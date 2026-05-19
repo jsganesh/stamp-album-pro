@@ -89,14 +89,18 @@ class HTMLRenderer:
         ps = self.album.page_setup
 
         # Page size in mm
-        width_mm = ps.width
-        height_mm = ps.height
+        width_mm = round(ps.width, 2)
+        height_mm = round(ps.height, 2)
 
         # Margins
-        ml = ps.margin_left
-        mr = ps.margin_right
-        mt = ps.margin_top
-        mb = ps.margin_bottom
+        ml = round(ps.margin_left, 2)
+        mr = round(ps.margin_right, 2)
+        mt = round(ps.margin_top, 2)
+        mb = round(ps.margin_bottom, 2)
+
+        # Content area dimensions
+        content_width = round(ps.width - ps.margin_left - ps.margin_right, 2)
+        content_height = round(ps.height - ps.margin_top - ps.margin_bottom, 2)
 
         styles = f"""
         <style>
@@ -125,20 +129,22 @@ class HTMLRenderer:
 
         .page-border {{
             position: absolute;
-            top: {mt}mm;
-            left: {ml}mm;
-            right: {mr}mm;
-            bottom: {mb}mm;
+            top: 0;
+            left: 0;
+            width: {width_mm}mm;
+            height: {height_mm}mm;
             pointer-events: none;
+            z-index: 1;
         }}
 
         .page-content {{
             position: absolute;
             top: {mt}mm;
             left: {ml}mm;
-            right: {mr}mm;
-            bottom: {mb}mm;
+            width: {content_width}mm;
+            height: {content_height}mm;
             overflow: hidden;
+            z-index: 2;
         }}
 
         .page-title {{
@@ -166,7 +172,7 @@ class HTMLRenderer:
 
         .stamp-row {{
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             margin-bottom: {ps.vspace}mm;
             align-items: flex-start;
         }}
@@ -180,14 +186,17 @@ class HTMLRenderer:
         }}
 
         .stamp {{
-            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             box-sizing: border-box;
-            text-align: center;
         }}
 
         .stamp-box {{
             box-sizing: border-box;
-            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }}
 
         .stamp-box.shape-oval {{
@@ -227,20 +236,27 @@ class HTMLRenderer:
         .stamp-heading {{
             text-align: center;
             margin-top: 1mm;
+            margin-bottom: 0.5mm;
             font-weight: bold;
+            line-height: 1.2;
         }}
 
         .stamp-footer {{
             text-align: center;
             margin-top: 0.5mm;
             line-height: 1.2;
+            max-width: 100%;
+            word-wrap: break-word;
         }}
 
         .stamp-catalog {{
             text-align: center;
-            margin-top: 0.5mm;
+            margin-top: 0.25mm;
             font-size: 0.8em;
             color: #666;
+            line-height: 1.2;
+            max-width: 100%;
+            word-wrap: break-word;
         }}
 
         .h-rule {{
@@ -417,12 +433,19 @@ class HTMLRenderer:
         ps = self.album.page_setup
         color = self._color_to_css(self.album.color_album_border)
 
+        # Border rectangle: positioned at margin boundary
+        border_left = ps.margin_left
+        border_top = ps.margin_top
+        border_width = round(ps.width - ps.margin_left - ps.margin_right, 2)
+        border_height = round(ps.height - ps.margin_top - ps.margin_bottom, 2)
+
         parts = ['<div class="page-border">']
 
         if ps.border_outer > 0:
             parts.append(
-                f'<div style="position: absolute; top: 0; left: 0; '
-                f"right: 0; bottom: 0; "
+                f'<div style="position: absolute; '
+                f"top: {border_top}mm; left: {border_left}mm; "
+                f"width: {border_width}mm; height: {border_height}mm; "
                 f'border: {ps.border_outer}mm solid {color};"></div>'
             )
 
@@ -430,8 +453,8 @@ class HTMLRenderer:
             offset = ps.border_outer + ps.border_spacing
             parts.append(
                 f'<div style="position: absolute; '
-                f"top: {offset}mm; left: {offset}mm; "
-                f"right: {offset}mm; bottom: {offset}mm; "
+                f"top: {border_top + offset}mm; left: {border_left + offset}mm; "
+                f"width: {round(border_width - offset * 2, 2)}mm; height: {round(border_height - offset * 2, 2)}mm; "
                 f'border: {ps.border_inner1}mm solid {color};"></div>'
             )
 
@@ -439,8 +462,8 @@ class HTMLRenderer:
             offset = ps.border_outer + ps.border_inner1 + ps.border_spacing * 2
             parts.append(
                 f'<div style="position: absolute; '
-                f"top: {offset}mm; left: {offset}mm; "
-                f"right: {offset}mm; bottom: {offset}mm; "
+                f"top: {border_top + offset}mm; left: {border_left + offset}mm; "
+                f"width: {round(border_width - offset * 2, 2)}mm; height: {round(border_height - offset * 2, 2)}mm; "
                 f'border: {ps.border_inner2}mm solid {color};"></div>'
             )
 
