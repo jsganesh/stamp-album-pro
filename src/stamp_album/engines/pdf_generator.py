@@ -35,10 +35,10 @@ BASE14_FONT_MAP = {
     "CB": {"family": "Courier, monospace", "weight": "bold", "style": "normal"},
     "CI": {"family": "Courier, monospace", "weight": "normal", "style": "italic"},
     "CS": {"family": "Courier, monospace", "weight": "bold", "style": "italic"},
-    "TN": {"family": '"Times New Roman", Times, serif', "weight": "normal", "style": "normal"},
-    "TB": {"family": '"Times New Roman", Times, serif', "weight": "bold", "style": "normal"},
-    "TI": {"family": '"Times New Roman", Times, serif', "weight": "normal", "style": "italic"},
-    "TS": {"family": '"Times New Roman", Times, serif', "weight": "bold", "style": "italic"},
+    "TN": {"family": "'Times New Roman', Times, serif", "weight": "normal", "style": "normal"},
+    "TB": {"family": "'Times New Roman', Times, serif", "weight": "bold", "style": "normal"},
+    "TI": {"family": "'Times New Roman', Times, serif", "weight": "normal", "style": "italic"},
+    "TS": {"family": "'Times New Roman', Times, serif", "weight": "bold", "style": "italic"},
     "HN": {"family": "Helvetica, Arial, sans-serif", "weight": "normal", "style": "normal"},
     "HB": {"family": "Helvetica, Arial, sans-serif", "weight": "bold", "style": "normal"},
     "HI": {"family": "Helvetica, Arial, sans-serif", "weight": "normal", "style": "italic"},
@@ -732,21 +732,21 @@ class HTMLRenderer:
         """Convert a font ID to CSS font properties."""
         if font_id in BASE14_FONT_MAP:
             mapping = BASE14_FONT_MAP[font_id]
-            parts = [f'font-family: {mapping["family"]}', f"font-size: {size}pt"]
+            parts = [f"font-family: {mapping['family']}", f"font-size: {size}pt"]
             if mapping["weight"] != "normal":
-                parts.append(f'font-weight: {mapping["weight"]}')
+                parts.append(f"font-weight: {mapping['weight']}")
             if mapping["style"] != "normal":
-                parts.append(f'font-style: {mapping["style"]}')
-            return "; ".join(parts) + ";"
+                parts.append(f"font-style: {mapping['style']}")
+            return "; ".join(parts)
 
         # User-defined font - try to resolve via font manager
         if self.font_manager:
             font_info = self.font_manager.find_font(font_id)
             if font_info:
-                return f'font-family: "{font_info.name}"; font-size: {size}pt;'
+                return f"font-family: '{font_info.name}'; font-size: {size}pt"
 
         # Fallback
-        return f"font-family: Helvetica, Arial, sans-serif; font-size: {size}pt;"
+        return f"font-family: Helvetica, Arial, sans-serif; font-size: {size}pt"
 
     def _color_to_css(self, color: Optional[Color]) -> str:
         """Convert a Color object to CSS color string."""
