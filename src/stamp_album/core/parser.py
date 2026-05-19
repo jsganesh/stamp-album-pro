@@ -141,6 +141,8 @@ class AlbumParser:
         # Paragraph ended
         paragraph: Optional[Paragraph] = None
         ifdef_stack: list[bool] = [True]
+        # Pending row alignment (applied when next row is created)
+        pending_row_alignment: Optional[RowAlignment] = None
 
         # Join continuation lines
         lines = source_text.split("\n")
@@ -527,14 +529,19 @@ class AlbumParser:
                     spacing=float(params[2]),
                     width=float(params[3]),
                 )
+                if pending_row_alignment is not None:
+                    current_row.alignment = pending_row_alignment
                 current_page.rows.append(current_row)
             elif cmd == "ROW_ALIGN_TOP":
+                pending_row_alignment = RowAlignment.TOP
                 if current_row:
                     current_row.alignment = RowAlignment.TOP
             elif cmd == "ROW_ALIGN_MIDDLE":
+                pending_row_alignment = RowAlignment.MIDDLE
                 if current_row:
                     current_row.alignment = RowAlignment.MIDDLE
             elif cmd == "ROW_ALIGN_BOTTOM":
+                pending_row_alignment = RowAlignment.BOTTOM
                 if current_row:
                     current_row.alignment = RowAlignment.BOTTOM
 
@@ -542,11 +549,16 @@ class AlbumParser:
             elif cmd == "STAMP_ADD":
                 if current_row is None:
                     continue
+                catalog_refs = []
+                for i in range(3, min(len(params), 6)):
+                    catalog_refs.append(unquote(params[i]))
+                while len(catalog_refs) < 3:
+                    catalog_refs.append("")
                 stamp = Stamp(
                     width=float(params[0]),
                     height=float(params[1]),
                     description=unquote(params[2]),
-                    catalog_refs=[unquote(params[3]), unquote(params[4]), unquote(params[5])],
+                    catalog_refs=catalog_refs,
                     shape=StampShape.RECTANGLE,
                 )
                 current_row.stamps.append(stamp)
@@ -564,11 +576,16 @@ class AlbumParser:
             elif cmd == "STAMP_ADD_IMG":
                 if current_row is None:
                     continue
+                catalog_refs = []
+                for i in range(4, min(len(params), 7)):
+                    catalog_refs.append(unquote(params[i]))
+                while len(catalog_refs) < 3:
+                    catalog_refs.append("")
                 stamp = Stamp(
                     width=float(params[0]),
                     height=float(params[1]),
                     description=unquote(params[3]),
-                    catalog_refs=[unquote(params[4]), unquote(params[5]), unquote(params[6])],
+                    catalog_refs=catalog_refs,
                     image_path=unquote(params[2]),
                     shape=StampShape.RECTANGLE,
                 )
