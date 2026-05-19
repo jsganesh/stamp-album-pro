@@ -648,11 +648,18 @@ class AlbumParser:
                         "TOP": TextAlignment.TOP,
                         "BOTTOM": TextAlignment.BOTTOM,
                     }
+                    # Format: (font_id size alignment text) or (font_id size text)
+                    if len(params) >= 4:
+                        v_align = align_map.get(params[2].upper(), TextAlignment.CENTER)
+                        text = unquote(params[3])
+                    else:
+                        v_align = TextAlignment.CENTER
+                        text = unquote(params[2])
                     current_stamp.heading = StampHeading(
                         font_id=params[0],
                         size=float(params[1]),
-                        text=unquote(params[3]),
-                        vertical_alignment=align_map.get(params[2].upper(), TextAlignment.CENTER),
+                        text=text,
+                        vertical_alignment=v_align,
                     )
             elif cmd == "STAMP_HEADING_PADDING":
                 album.page_setup.heading_padding = float(params[0])

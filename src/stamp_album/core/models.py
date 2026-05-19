@@ -35,6 +35,8 @@ class TextAlignment(enum.Enum):
     CENTER = "center"
     RIGHT = "right"
     JUSTIFY = "justify"
+    TOP = "top"
+    BOTTOM = "bottom"
 
 
 class RowStyle(enum.Enum):
