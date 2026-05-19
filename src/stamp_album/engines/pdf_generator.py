@@ -29,9 +29,6 @@ from stamp_album.core.models import (
 # Constants
 # ---------------------------------------------------------------------------
 
-DPI = 96  # WeasyPrint uses 96 DPI for CSS
-MM_TO_PX = DPI / 25.4  # Convert mm to pixels at 96 DPI
-
 # Base-14 PDF font equivalents mapped to web-safe fonts
 BASE14_FONT_MAP = {
     "CN": ("Courier", "monospace"),
@@ -120,6 +117,7 @@ class HTMLRenderer:
             height: {height_mm}mm;
             page-break-after: always;
             box-sizing: border-box;
+            padding: {mt}mm {mr}mm {mb}mm {ml}mm;
         }}
 
         .page:last-child {{
@@ -132,15 +130,18 @@ class HTMLRenderer:
             left: 0;
             right: 0;
             bottom: 0;
+            pointer-events: none;
         }}
 
         .page-title {{
             text-align: center;
             margin-bottom: {ps.vspace}mm;
+            font-weight: bold;
         }}
 
         .page-text {{
             margin-bottom: {ps.vspace}mm;
+            line-height: 1.4;
         }}
 
         .page-text.center {{
@@ -174,19 +175,17 @@ class HTMLRenderer:
         .stamp {{
             position: relative;
             box-sizing: border-box;
+            text-align: center;
         }}
 
         .stamp-box {{
-            border: 0.1mm solid black;
+            border: 0.5pt solid black;
             box-sizing: border-box;
+            margin: 0 auto;
         }}
 
         .stamp-box.shape-oval {{
             border-radius: 50%;
-        }}
-
-        .stamp-box.shape-diamond {{
-            transform: rotate(45deg);
         }}
 
         .stamp-image {{
@@ -198,30 +197,42 @@ class HTMLRenderer:
         .stamp-heading {{
             text-align: center;
             margin-top: 1mm;
+            font-weight: bold;
         }}
 
         .stamp-footer {{
             text-align: center;
-            margin-top: 1mm;
+            margin-top: 0.5mm;
+            line-height: 1.2;
+        }}
+
+        .stamp-catalog {{
+            text-align: center;
+            margin-top: 0.5mm;
+            font-size: 0.8em;
+            color: #666;
         }}
 
         .h-rule {{
             border: none;
-            border-top: 0.1mm solid black;
+            border-top: 0.5pt solid black;
             margin: 2mm 0;
         }}
 
         .header {{
             margin-bottom: 2mm;
+            font-size: 0.9em;
         }}
 
         .footer {{
             margin-top: 2mm;
+            font-size: 0.9em;
         }}
 
         .margin-text {{
             position: absolute;
             writing-mode: vertical-rl;
+            font-size: 0.8em;
         }}
 
         .margin-text.left {{
@@ -252,6 +263,10 @@ class HTMLRenderer:
             object-fit: cover;
             z-index: -1;
             opacity: 0.3;
+        }}
+
+        .vspace {{
+            height: 1mm;
         }}
         </style>
         """
@@ -306,13 +321,13 @@ class HTMLRenderer:
         # Horizontal rules
         for line, spacing, margin in page.h_rules:
             parts.append(
-                f'<hr class="h-rule" style="border-top-width: {line}mm; '
+                f'<hr class="h-rule" style="border-top-width: {line}pt; '
                 f'margin: {spacing}mm {margin}mm;">'
             )
 
         # VSpace
         if page.vspace > 0:
-            parts.append(f'<div style="height: {page.vspace}mm;"></div>')
+            parts.append(f'<div class="vspace" style="height: {page.vspace}mm;"></div>')
 
         # Stamp rows
         for row in page.rows:
@@ -322,7 +337,7 @@ class HTMLRenderer:
         for x, y, w, h in page.boxes:
             parts.append(
                 f'<div style="position: absolute; left: {x}mm; top: {y}mm; '
-                f'width: {w}mm; height: {h}mm; border: 0.1mm solid black;"></div>'
+                f'width: {w}mm; height: {h}mm; border: 0.5pt solid black;"></div>'
             )
 
         if content_class:
@@ -340,41 +355,35 @@ class HTMLRenderer:
         ps = self.album.page_setup
         color = self._color_to_css(self.album.color_album_border)
 
-        borders = []
-        if ps.border_outer > 0:
-            borders.append(f"border: {ps.border_outer}mm solid {color};")
-
-        parts = ['<div class="page-border" style="pointer-events: none;">']
+        parts = ['<div class="page-border">']
 
         if ps.border_outer > 0:
             parts.append(
                 f'<div style="position: absolute; top: 0; left: 0; '
-                f'right: 0; bottom: 0; border: {ps.border_outer}mm solid {color};"></div>'
+                f'right: 0; bottom: 0; border: {ps.border_outer}pt solid {color};"></div>'
             )
 
         if ps.border_inner1 > 0:
             offset = ps.border_outer + ps.border_spacing
             parts.append(
-                f'<div style="position: absolute; top: {offset}mm; left: {offset}mm; '
-                f"right: {offset}mm; bottom: {offset}mm; "
-                f'border: {ps.border_inner1}mm solid {color};"></div>'
+                f'<div style="position: absolute; top: {offset}pt; left: {offset}pt; '
+                f"right: {offset}pt; bottom: {offset}pt; "
+                f'border: {ps.border_inner1}pt solid {color};"></div>'
             )
 
         if ps.border_inner2 > 0:
             offset = ps.border_outer + ps.border_inner1 + ps.border_spacing * 2
             parts.append(
-                f'<div style="position: absolute; top: {offset}mm; left: {offset}mm; '
-                f"right: {offset}mm; bottom: {offset}mm; "
-                f'border: {ps.border_inner2}mm solid {color};"></div>'
+                f'<div style="position: absolute; top: {offset}pt; left: {offset}pt; '
+                f"right: {offset}pt; bottom: {offset}pt; "
+                f'border: {ps.border_inner2}pt solid {color};"></div>'
             )
 
         parts.append("</div>")
         return "\n".join(parts)
 
     def _render_decorative_border(self, border_file: str) -> str:
-        """Render decorative border (placeholder - would load border images)."""
-        # In a full implementation, this would parse the border definition file
-        # and render corner/edge images
+        """Render decorative border (placeholder)."""
         return f"<!-- Decorative border: {border_file} -->"
 
     def _render_header_footer(self, text: FormattedText, css_class: str) -> str:
@@ -383,6 +392,7 @@ class HTMLRenderer:
         # Substitute tokens
         content = content.replace("$PAGE$", str(self._page_counter))
         content = content.replace("$DATE$", date.today().strftime("%Y-%m-%d"))
+        content = content.replace("$PAGES$", str(len(self.album.pages)))
 
         font_css = self._font_to_css(text.font_id, text.size)
         color_css = self._color_to_css(text.color or self.album.color_header)
@@ -401,7 +411,7 @@ class HTMLRenderer:
         return (
             f'<div class="margin-text {position_class}" '
             f'style="{font_css}; color: {color_css};">'
-            f"{item.text}</div>"
+            f"{self._format_text(item.text)}</div>"
         )
 
     def _render_text_element(self, text: FormattedText) -> str:
@@ -463,10 +473,7 @@ class HTMLRenderer:
         shape_class = ""
         if stamp.shape == StampShape.OVAL:
             shape_class = "shape-oval"
-        elif stamp.shape == StampShape.DIAMOND:
-            shape_class = "shape-diamond"
 
-        # Border settings from page setup
         border_color = self._color_to_css(self.album.color_stamp_border)
         bg_color = self._color_to_css(self.album.color_stamp_background)
 
@@ -511,8 +518,8 @@ class HTMLRenderer:
             font_css = self._font_to_css(row.font_id, row.size * 0.8)
             catalog_text = " | ".join(catalog_parts)
             parts.append(
-                f'<div class="stamp-footer" style="{font_css}; color: {text_color}; '
-                f'font-size: 0.8em;">{catalog_text}</div>'
+                f'<div class="stamp-catalog" style="{font_css}; color: {text_color};">'
+                f"{catalog_text}</div>"
             )
 
         parts.append("</div>")

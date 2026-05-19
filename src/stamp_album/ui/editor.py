@@ -36,7 +36,7 @@ class LineNumberArea(QWidget):
         self.editor = editor
 
     def sizeHint(self):
-        return self.editor._line_number_area_size()
+        return QSize(self.editor._line_number_area_width(), 0)
 
     def paintEvent(self, event):
         self.editor._line_number_area_paint_event(event)
@@ -67,7 +67,7 @@ class AlbumEditor(QPlainTextEdit):
     def _setup_editor(self):
         """Configure the editor appearance and behavior."""
         # Use monospace font
-        font = QFont("Menlo" if self._is_macos() else "Consolas", 11)
+        font = QFont("Menlo" if self._is_macos() else "Consolas", 12)
         font.setFixedPitch(True)
         self.setFont(font)
 
@@ -81,6 +81,9 @@ class AlbumEditor(QPlainTextEdit):
         # Margins
         self._setup_margins()
 
+        # Apply dark mode styling
+        self._apply_editor_style()
+
     def _is_macos(self) -> bool:
         """Check if running on macOS."""
         import platform
@@ -89,9 +92,37 @@ class AlbumEditor(QPlainTextEdit):
 
     def _setup_margins(self):
         """Set up editor margins."""
-        # fm = self.fontMetrics()
         margin = 4
         self.setViewportMargins(self._line_number_area_width(), 0, margin, 0)
+
+    def _apply_editor_style(self):
+        """Apply dark or light mode styling to the editor."""
+        if self._dark_mode:
+            self.setStyleSheet("""
+                QPlainTextEdit {
+                    background-color: #1E1E1E;
+                    color: #D4D4D4;
+                    border: none;
+                    selection-background-color: #264F78;
+                }
+                """)
+            palette = self.palette()
+            palette.setColor(palette.ColorRole.Base, QColor("#1E1E1E"))
+            palette.setColor(palette.ColorRole.Text, QColor("#D4D4D4"))
+            self.setPalette(palette)
+        else:
+            self.setStyleSheet("""
+                QPlainTextEdit {
+                    background-color: #FFFFFF;
+                    color: #000000;
+                    border: none;
+                    selection-background-color: #ADD6FF;
+                }
+                """)
+            palette = self.palette()
+            palette.setColor(palette.ColorRole.Base, QColor("#FFFFFF"))
+            palette.setColor(palette.ColorRole.Text, QColor("#000000"))
+            self.setPalette(palette)
 
     def _setup_line_numbers(self):
         """Set up the line number area."""
@@ -133,10 +164,6 @@ class AlbumEditor(QPlainTextEdit):
         if rect.contains(self.viewport().rect()):
             self._update_line_number_area_width()
 
-    def _line_number_area_size(self):
-        """Return the size hint for the line number area."""
-        return QSize(self._line_number_area_width(), 0)
-
     def _line_number_area_paint_event(self, event):
         """Paint the line number area."""
         painter = QPainter(self.line_number_area)
@@ -167,7 +194,7 @@ class AlbumEditor(QPlainTextEdit):
 
             block = block.next()
             top = bottom
-            bottom = top + self.blockDrawingRect(block).height()
+            bottom = top + self.blockBoundingRect(block).height()
             block_number += 1
 
     def resizeEvent(self, event):
@@ -271,6 +298,7 @@ class AlbumEditor(QPlainTextEdit):
     def set_dark_mode(self, enabled: bool):
         """Enable or disable dark mode."""
         self._dark_mode = enabled
+        self._apply_editor_style()
         if self._highlighter:
             self._highlighter = DSLHighlighter(self.document(), self._dark_mode)
 

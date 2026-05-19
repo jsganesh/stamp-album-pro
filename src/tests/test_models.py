@@ -2,7 +2,6 @@
 Tests for the core data models.
 """
 
-import pytest
 
 from stamp_album.core.models import (
     Album,
@@ -60,8 +59,11 @@ class TestColor:
         assert abs(c.b - 0.502) < 0.01
 
     def test_invalid_color_name(self):
-        with pytest.raises(ValueError):
-            Color.from_name("notacolor")
+        # Unknown colors now return black instead of raising ValueError
+        c = Color.from_name("notacolor")
+        assert c.r == 0.0
+        assert c.g == 0.0
+        assert c.b == 0.0
 
     def test_to_tuple(self):
         c = Color(r=0.5, g=0.5, b=0.5)

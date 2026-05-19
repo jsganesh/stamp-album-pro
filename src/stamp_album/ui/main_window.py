@@ -13,7 +13,7 @@ import tempfile
 from pathlib import Path
 
 from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtGui import QAction, QKeySequence
+from PyQt6.QtGui import QAction, QFont, QKeySequence
 from PyQt6.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
@@ -33,6 +33,224 @@ from stamp_album.ui.editor import AlbumEditor
 from stamp_album.ui.preview_panel import PreviewPanel
 from stamp_album.ui.template_gallery import TemplateGallery
 
+# Application styling
+APP_STYLESHEET = """
+QMainWindow {
+    background-color: #1E1E1E;
+}
+
+QToolBar {
+    background-color: #2D2D2D;
+    border: none;
+    border-bottom: 1px solid #3E3E3E;
+    padding: 4px;
+    spacing: 4px;
+}
+
+QToolBar QToolButton {
+    background-color: #3C3C3C;
+    color: #CCCCCC;
+    border: 1px solid #4A4A4A;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+QToolBar QToolButton:hover {
+    background-color: #4A4A4A;
+    border-color: #5A5A5A;
+}
+
+QToolBar QToolButton:pressed {
+    background-color: #2A2A2A;
+}
+
+QToolBar QToolButton:disabled {
+    background-color: #2D2D2D;
+    color: #666666;
+    border-color: #3A3A3A;
+}
+
+QMenuBar {
+    background-color: #2D2D2D;
+    color: #CCCCCC;
+    border: none;
+    padding: 2px;
+}
+
+QMenuBar::item {
+    padding: 6px 12px;
+    background-color: transparent;
+}
+
+QMenuBar::item:selected {
+    background-color: #3C3C3C;
+}
+
+QMenu {
+    background-color: #2D2D2D;
+    color: #CCCCCC;
+    border: 1px solid #3E3E3E;
+    padding: 4px;
+}
+
+QMenu::item {
+    padding: 6px 24px 6px 12px;
+}
+
+QMenu::item:selected {
+    background-color: #3C3C3C;
+}
+
+QMenu::separator {
+    height: 1px;
+    background-color: #3E3E3E;
+    margin: 4px 8px;
+}
+
+QStatusBar {
+    background-color: #007ACC;
+    color: white;
+    border: none;
+}
+
+QStatusBar QLabel {
+    color: white;
+    padding: 2px 8px;
+}
+
+QSplitter::handle {
+    background-color: #3E3E3E;
+    width: 2px;
+}
+
+QSplitter::handle:hover {
+    background-color: #007ACC;
+}
+
+QLabel {
+    color: #CCCCCC;
+}
+
+QComboBox {
+    background-color: #3C3C3C;
+    color: #CCCCCC;
+    border: 1px solid #4A4A4A;
+    border-radius: 4px;
+    padding: 4px 8px;
+}
+
+QComboBox::drop-down {
+    border: none;
+    padding-right: 8px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #2D2D2D;
+    color: #CCCCCC;
+    selection-background-color: #007ACC;
+}
+
+QPushButton {
+    background-color: #3C3C3C;
+    color: #CCCCCC;
+    border: 1px solid #4A4A4A;
+    border-radius: 4px;
+    padding: 6px 12px;
+}
+
+QPushButton:hover {
+    background-color: #4A4A4A;
+}
+
+QPushButton:pressed {
+    background-color: #2A2A2A;
+}
+
+QDialog {
+    background-color: #1E1E1E;
+}
+
+QTabWidget::pane {
+    border: 1px solid #3E3E3E;
+    background-color: #1E1E1E;
+}
+
+QTabBar::tab {
+    background-color: #2D2D2D;
+    color: #CCCCCC;
+    padding: 8px 16px;
+    border: 1px solid #3E3E3E;
+    border-bottom: none;
+}
+
+QTabBar::tab:selected {
+    background-color: #1E1E1E;
+    border-bottom: 1px solid #1E1E1E;
+}
+
+QScrollArea {
+    border: none;
+    background-color: #1E1E1E;
+}
+
+QGroupBox {
+    color: #CCCCCC;
+    border: 1px solid #3E3E3E;
+    border-radius: 4px;
+    margin-top: 8px;
+    padding-top: 12px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 8px;
+    padding: 0 4px;
+}
+
+QLineEdit {
+    background-color: #3C3C3C;
+    color: #CCCCCC;
+    border: 1px solid #4A4A4A;
+    border-radius: 4px;
+    padding: 4px 8px;
+}
+
+QSpinBox, QDoubleSpinBox {
+    background-color: #3C3C3C;
+    color: #CCCCCC;
+    border: 1px solid #4A4A4A;
+    border-radius: 4px;
+    padding: 4px 8px;
+}
+
+QCheckBox {
+    color: #CCCCCC;
+    spacing: 8px;
+}
+
+QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #4A4A4A;
+    border-radius: 3px;
+    background-color: #3C3C3C;
+}
+
+QCheckBox::indicator:checked {
+    background-color: #007ACC;
+    border-color: #007ACC;
+}
+
+QMessageBox {
+    background-color: #1E1E1E;
+}
+
+QMessageBox QLabel {
+    color: #CCCCCC;
+}
+"""
+
 
 class MainWindow(QMainWindow):
     """
@@ -44,6 +262,7 @@ class MainWindow(QMainWindow):
         self._file_path: str | None = None
         self._config: dict = {}
         self._recent_files: list[str] = []
+        self._pdf_path: str | None = None
 
         self._setup_window()
         self._setup_actions()
@@ -51,27 +270,36 @@ class MainWindow(QMainWindow):
         self._setup_menu()
         self._setup_central_widget()
         self._setup_status_bar()
+        self._apply_stylesheet()
 
     def _setup_window(self):
         """Configure the main window."""
         self.setWindowTitle("StampAlbum Pro")
-        self.resize(1200, 800)
-        self.setMinimumSize(800, 600)
+        self.resize(1400, 900)
+        self.setMinimumSize(900, 600)
+
+        # Set application font
+        font = QFont("SF Pro Text", 13)
+        self.setFont(font)
+
+    def _apply_stylesheet(self):
+        """Apply the application stylesheet."""
+        self.setStyleSheet(APP_STYLESHEET)
 
     def _setup_actions(self):
         """Create all application actions."""
         # File actions
-        self.act_new = QAction("New", self)
+        self.act_new = QAction("📄 New", self)
         self.act_new.setShortcut(QKeySequence.StandardKey.New)
         self.act_new.setStatusTip("Create a new album")
         self.act_new.triggered.connect(self._new_album)
 
-        self.act_open = QAction("Open", self)
+        self.act_open = QAction("📂 Open", self)
         self.act_open.setShortcut(QKeySequence.StandardKey.Open)
         self.act_open.setStatusTip("Open an album file")
         self.act_open.triggered.connect(self._open_file)
 
-        self.act_save = QAction("Save", self)
+        self.act_save = QAction("💾 Save", self)
         self.act_save.setShortcut(QKeySequence.StandardKey.Save)
         self.act_save.setStatusTip("Save the current album")
         self.act_save.triggered.connect(self._save_file)
@@ -83,45 +311,45 @@ class MainWindow(QMainWindow):
         self.act_save_as.triggered.connect(self._save_file_as)
         self.act_save_as.setEnabled(False)
 
-        self.act_generate = QAction("Generate PDF", self)
+        self.act_generate = QAction("⚡ Generate PDF", self)
         self.act_generate.setShortcut(QKeySequence("Ctrl+G"))
         self.act_generate.setStatusTip("Generate the PDF album")
         self.act_generate.triggered.connect(self._generate_pdf)
         self.act_generate.setEnabled(False)
 
-        self.act_view_pdf = QAction("View PDF", self)
+        self.act_view_pdf = QAction("👁 View PDF", self)
         self.act_view_pdf.setShortcut(QKeySequence("Ctrl+V"))
         self.act_view_pdf.setStatusTip("View the generated PDF")
         self.act_view_pdf.triggered.connect(self._view_pdf)
         self.act_view_pdf.setEnabled(False)
 
         # Edit actions
-        self.act_undo = QAction("Undo", self)
+        self.act_undo = QAction("↩ Undo", self)
         self.act_undo.setShortcut(QKeySequence.StandardKey.Undo)
         self.act_undo.triggered.connect(lambda: self.editor.undo())
 
-        self.act_redo = QAction("Redo", self)
+        self.act_redo = QAction("↪ Redo", self)
         self.act_redo.setShortcut(QKeySequence.StandardKey.Redo)
         self.act_redo.triggered.connect(lambda: self.editor.redo())
 
-        self.act_cut = QAction("Cut", self)
+        self.act_cut = QAction("✂ Cut", self)
         self.act_cut.setShortcut(QKeySequence.StandardKey.Cut)
         self.act_cut.triggered.connect(lambda: self.editor.cut())
 
-        self.act_copy = QAction("Copy", self)
+        self.act_copy = QAction("📋 Copy", self)
         self.act_copy.setShortcut(QKeySequence.StandardKey.Copy)
         self.act_copy.triggered.connect(lambda: self.editor.copy())
 
-        self.act_paste = QAction("Paste", self)
+        self.act_paste = QAction("📌 Paste", self)
         self.act_paste.setShortcut(QKeySequence.StandardKey.Paste)
         self.act_paste.triggered.connect(lambda: self.editor.paste())
 
-        self.act_find = QAction("Find...", self)
+        self.act_find = QAction("🔍 Find...", self)
         self.act_find.setShortcut(QKeySequence.StandardKey.Find)
         self.act_find.triggered.connect(self._show_find_dialog)
 
         # View actions
-        self.act_toggle_preview = QAction("Toggle Preview", self)
+        self.act_toggle_preview = QAction("👁 Toggle Preview", self)
         self.act_toggle_preview.setShortcut(QKeySequence("Ctrl+P"))
         self.act_toggle_preview.setStatusTip("Show/hide the preview panel")
         self.act_toggle_preview.triggered.connect(self._toggle_preview)
@@ -129,22 +357,22 @@ class MainWindow(QMainWindow):
         self.act_toggle_preview.setChecked(True)
 
         # Tools actions
-        self.act_templates = QAction("Template Gallery", self)
+        self.act_templates = QAction("🎨 Template Gallery", self)
         self.act_templates.setShortcut(QKeySequence("Ctrl+T"))
         self.act_templates.setStatusTip("Browse album templates")
         self.act_templates.triggered.connect(self._show_templates)
 
-        self.act_settings = QAction("Settings...", self)
+        self.act_settings = QAction("⚙ Settings...", self)
         self.act_settings.setShortcut(QKeySequence("Ctrl+,"))
         self.act_settings.setStatusTip("Open settings dialog")
         self.act_settings.triggered.connect(self._show_settings)
 
         # Help actions
-        self.act_help = QAction("Help", self)
+        self.act_help = QAction("❓ Help", self)
         self.act_help.setShortcut(QKeySequence.StandardKey.HelpContents)
         self.act_help.triggered.connect(self._show_help)
 
-        self.act_about = QAction("About", self)
+        self.act_about = QAction("ℹ About", self)
         self.act_about.triggered.connect(self._show_about)
 
     def _setup_toolbar(self):
@@ -152,10 +380,8 @@ class MainWindow(QMainWindow):
         toolbar = QToolBar("Main Toolbar")
         toolbar.setMovable(False)
         toolbar.setFloatable(False)
-        toolbar.setIconSize(QSize(24, 24))
-        toolbar.setStyleSheet(
-            "QToolBar { background-color: #F5F5F5; border-bottom: 1px solid #CCCCCC; }"
-        )
+        toolbar.setIconSize(QSize(20, 20))
+        toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
 
         toolbar.addAction(self.act_new)
         toolbar.addAction(self.act_open)
@@ -228,8 +454,8 @@ class MainWindow(QMainWindow):
         self.preview.refresh_requested.connect(self._refresh_preview)
         self.splitter.addWidget(self.preview)
 
-        # Set splitter sizes (70% editor, 30% preview)
-        self.splitter.setSizes([840, 360])
+        # Set splitter sizes (65% editor, 35% preview)
+        self.splitter.setSizes([910, 490])
 
         self.setCentralWidget(self.splitter)
 
@@ -319,11 +545,20 @@ class MainWindow(QMainWindow):
             self._save_file()
 
         # Parse the album
+        source_text = self.editor.toPlainText()
         try:
             parser = AlbumParser()
-            album = parser.parse(self.editor.toPlainText(), self._file_path)
+            album = parser.parse(source_text, self._file_path)
         except Exception as e:
             QMessageBox.critical(self, "Parse Error", f"Failed to parse album:\n\n{str(e)}")
+            return
+
+        if not album.pages:
+            QMessageBox.warning(
+                self,
+                "No Pages",
+                "The album has no pages. Add PAGE_START commands to create pages.",
+            )
             return
 
         # Determine output path
@@ -357,7 +592,7 @@ class MainWindow(QMainWindow):
 
     def _view_pdf(self):
         """Open the generated PDF in the system viewer."""
-        if hasattr(self, "_pdf_path") and self._pdf_path:
+        if self._pdf_path and Path(self._pdf_path).exists():
             import platform
             import subprocess
 
@@ -367,6 +602,8 @@ class MainWindow(QMainWindow):
                 os.startfile(self._pdf_path)
             else:
                 subprocess.run(["xdg-open", self._pdf_path])
+        else:
+            QMessageBox.warning(self, "No PDF", "Generate a PDF first.")
 
     def _toggle_preview(self):
         """Show or hide the preview panel."""
@@ -412,6 +649,7 @@ class MainWindow(QMainWindow):
         dialog = QDialog(self)
         dialog.setWindowTitle("Find")
         dialog.setModal(True)
+        dialog.setStyleSheet(APP_STYLESHEET)
 
         layout = QVBoxLayout(dialog)
 
