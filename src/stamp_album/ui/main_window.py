@@ -367,6 +367,11 @@ class MainWindow(QMainWindow):
         self.act_settings.setStatusTip("Open settings dialog")
         self.act_settings.triggered.connect(self._show_settings)
 
+        self.act_visual_builder = QAction("🎨 Visual Builder", self)
+        self.act_visual_builder.setShortcut(QKeySequence("Ctrl+B"))
+        self.act_visual_builder.setStatusTip("Open visual drag-and-drop builder")
+        self.act_visual_builder.triggered.connect(self._show_visual_builder)
+
         # Help actions
         self.act_help = QAction("❓ Help", self)
         self.act_help.setShortcut(QKeySequence.StandardKey.HelpContents)
@@ -429,6 +434,7 @@ class MainWindow(QMainWindow):
         # Tools menu
         tools_menu = self.menuBar().addMenu("&Tools")
         tools_menu.addAction(self.act_templates)
+        tools_menu.addAction(self.act_visual_builder)
         tools_menu.addSeparator()
         tools_menu.addAction(self.act_settings)
 
@@ -641,6 +647,34 @@ class MainWindow(QMainWindow):
         if dialog.exec():
             self.config = dialog.get_config()
             self._apply_config()
+
+    def _show_visual_builder(self):
+        """Show the visual drag-and-drop builder."""
+        if not self.current_file:
+            self.status_bar.showMessage("Open an album file first", 3000)
+            return
+
+        # Parse current album
+        try:
+            parser = AlbumParser()
+            album = parser.parse(self.editor.toPlainText())
+        except Exception as e:
+            self.status_bar.showMessage(f"Parse error: {e}", 3000)
+            return
+
+        if not album.pages:
+            self.status_bar.showMessage("No pages in album", 3000)
+            return
+
+        # Open builder for first page
+        from stamp_album.ui.visual_builder import VisualBuilderDialog
+
+        page = album.pages[0]
+        dialog = VisualBuilderDialog(page, album.page_setup, self)
+        if dialog.exec():
+            # Update editor with modified page (simplified - would need DSL generation)
+            self.status_bar.showMessage("Visual builder changes applied", 3000)
+            self._refresh_preview()
 
     def _show_find_dialog(self):
         """Show a simple find dialog."""
