@@ -15,7 +15,35 @@ def main():
     if str(src_path) not in sys.path:
         sys.path.insert(0, str(src_path))
 
-    print("StampAlbum Pro v0.1.0")
+    # Check for CLI mode
+    if len(sys.argv) > 1 and sys.argv[1] in ("-c", "--cli"):
+        _run_cli(sys.argv[2:])
+        return
+
+    # Run GUI mode
+    _run_gui()
+
+
+def _run_gui():
+    """Run the graphical user interface."""
+    from PyQt6.QtWidgets import QApplication
+
+    from stamp_album.ui.main_window import MainWindow
+
+    app = QApplication(sys.argv)
+    app.setApplicationName("StampAlbum Pro")
+    app.setApplicationVersion("0.1.0")
+    app.setOrganizationName("StampAlbum")
+
+    window = MainWindow()
+    window.show()
+
+    sys.exit(app.exec())
+
+
+def _run_cli(args: list[str]):
+    """Run in command-line mode."""
+    print("StampAlbum Pro v0.1.0 (CLI Mode)")
     print("=" * 40)
     print()
     print("Usage:")
@@ -27,11 +55,11 @@ def main():
     print("  -h, --help            Show this help message")
     print()
 
-    if len(sys.argv) < 2:
+    if not args:
         print("No source file specified.")
         sys.exit(1)
 
-    source_file = sys.argv[-1]
+    source_file = args[-1]
 
     if not Path(source_file).exists():
         print(f"Error: File not found: {source_file}")
@@ -50,9 +78,9 @@ def main():
 
     # Determine output path
     output_path = None
-    for i, arg in enumerate(sys.argv):
-        if arg in ("-o", "--output") and i + 1 < len(sys.argv):
-            output_path = sys.argv[i + 1]
+    for i, arg in enumerate(args):
+        if arg in ("-o", "--output") and i + 1 < len(args):
+            output_path = args[i + 1]
             break
 
     if output_path is None:
@@ -67,7 +95,7 @@ def main():
     print(f"PDF generated: {output_path}")
 
     # Show preview if requested
-    if "-p" in sys.argv or "--preview" in sys.argv:
+    if "-p" in args or "--preview" in args:
         html = generator.get_html_preview(album)
         preview_path = str(Path(output_path).with_suffix(".html"))
         Path(preview_path).write_text(html, encoding="utf-8")
