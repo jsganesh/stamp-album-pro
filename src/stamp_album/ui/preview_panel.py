@@ -16,7 +16,6 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from weasyprint import HTML
 
 
 class PreviewPanel(QWidget):
@@ -154,6 +153,8 @@ class PreviewPanel(QWidget):
 
     def _render_pages(self):
         """Render HTML pages to QPixmap images using WeasyPrint."""
+        from weasyprint import HTML
+
         self._page_images = []
         self._page_count = 0
 

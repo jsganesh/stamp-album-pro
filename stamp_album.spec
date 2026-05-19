@@ -55,9 +55,6 @@ a = Analysis(
     excludes=[
         "tkinter",
         "unittest",
-        "email",
-        "http",
-        "xml",
         "pydoc",
     ],
     win_no_prefer_redirects=False,

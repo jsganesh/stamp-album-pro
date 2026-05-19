@@ -11,8 +11,6 @@ from __future__ import annotations
 from datetime import date
 from typing import Optional
 
-from weasyprint import HTML
-
 from stamp_album.core.models import (
     Album,
     Color,
@@ -805,6 +803,8 @@ class PDFGenerator:
             album: The album data model
             output_path: Path to write the PDF file
         """
+        from weasyprint import HTML
+
         renderer = HTMLRenderer(album, self.font_manager)
         html_content = renderer.render()
 
@@ -821,6 +821,8 @@ class PDFGenerator:
         Returns:
             PDF content as bytes
         """
+        from weasyprint import HTML
+
         renderer = HTMLRenderer(album, self.font_manager)
         html_content = renderer.render()
 
