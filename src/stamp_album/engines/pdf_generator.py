@@ -31,18 +31,18 @@ from stamp_album.core.models import (
 
 # Base-14 PDF font equivalents mapped to web-safe fonts
 BASE14_FONT_MAP = {
-    "CN": ("Courier", "monospace"),
-    "CB": ("Courier", "monospace", "bold"),
-    "CI": ("Courier", "monospace", "normal", "italic"),
-    "CS": ("Courier", "monospace", "bold", "italic"),
-    "TN": ("Times New Roman", "serif"),
-    "TB": ("Times New Roman", "serif", "bold"),
-    "TI": ("Times New Roman", "serif", "normal", "italic"),
-    "TS": ("Times New Roman", "serif", "bold", "italic"),
-    "HN": ("Helvetica", "Arial", "sans-serif"),
-    "HB": ("Helvetica", "Arial", "sans-serif", "bold"),
-    "HI": ("Helvetica", "Arial", "sans-serif", "normal", "italic"),
-    "HS": ("Helvetica", "Arial", "sans-serif", "bold", "italic"),
+    "CN": {"family": "Courier, monospace", "weight": "normal", "style": "normal"},
+    "CB": {"family": "Courier, monospace", "weight": "bold", "style": "normal"},
+    "CI": {"family": "Courier, monospace", "weight": "normal", "style": "italic"},
+    "CS": {"family": "Courier, monospace", "weight": "bold", "style": "italic"},
+    "TN": {"family": '"Times New Roman", Times, serif', "weight": "normal", "style": "normal"},
+    "TB": {"family": '"Times New Roman", Times, serif', "weight": "bold", "style": "normal"},
+    "TI": {"family": '"Times New Roman", Times, serif', "weight": "normal", "style": "italic"},
+    "TS": {"family": '"Times New Roman", Times, serif', "weight": "bold", "style": "italic"},
+    "HN": {"family": "Helvetica, Arial, sans-serif", "weight": "normal", "style": "normal"},
+    "HB": {"family": "Helvetica, Arial, sans-serif", "weight": "bold", "style": "normal"},
+    "HI": {"family": "Helvetica, Arial, sans-serif", "weight": "normal", "style": "italic"},
+    "HS": {"family": "Helvetica, Arial, sans-serif", "weight": "bold", "style": "italic"},
 }
 
 
@@ -117,7 +117,6 @@ class HTMLRenderer:
             height: {height_mm}mm;
             page-break-after: always;
             box-sizing: border-box;
-            padding: {mt}mm {mr}mm {mb}mm {ml}mm;
         }}
 
         .page:last-child {{
@@ -126,11 +125,20 @@ class HTMLRenderer:
 
         .page-border {{
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: {mt}mm;
+            left: {ml}mm;
+            right: {mr}mm;
+            bottom: {mb}mm;
             pointer-events: none;
+        }}
+
+        .page-content {{
+            position: absolute;
+            top: {mt}mm;
+            left: {ml}mm;
+            right: {mr}mm;
+            bottom: {mb}mm;
+            overflow: hidden;
         }}
 
         .page-title {{
@@ -159,7 +167,6 @@ class HTMLRenderer:
         .stamp-row {{
             display: flex;
             flex-wrap: wrap;
-            gap: {ps.hspace}mm;
             margin-bottom: {ps.vspace}mm;
             align-items: flex-start;
         }}
@@ -179,13 +186,36 @@ class HTMLRenderer:
         }}
 
         .stamp-box {{
-            border: 0.5pt solid black;
             box-sizing: border-box;
             margin: 0 auto;
         }}
 
         .stamp-box.shape-oval {{
             border-radius: 50%;
+        }}
+
+        .stamp-box.shape-triangle {{
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        }}
+
+        .stamp-box.shape-triangle-inv {{
+            clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+        }}
+
+        .stamp-box.shape-diamond {{
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+        }}
+
+        .stamp-box.shape-hexagon {{
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+        }}
+
+        .stamp-box.shape-octagon {{
+            clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+        }}
+
+        .stamp-box.shape-pentagon {{
+            clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
         }}
 
         .stamp-image {{
@@ -220,27 +250,49 @@ class HTMLRenderer:
         }}
 
         .header {{
-            margin-bottom: 2mm;
+            position: absolute;
+            top: 0;
+            left: {ml}mm;
+            right: {mr}mm;
+            height: {mt}mm;
             font-size: 0.9em;
+            display: flex;
+            align-items: center;
         }}
 
         .footer {{
-            margin-top: 2mm;
+            position: absolute;
+            bottom: 0;
+            left: {ml}mm;
+            right: {mr}mm;
+            height: {mb}mm;
             font-size: 0.9em;
+            display: flex;
+            align-items: center;
         }}
 
         .margin-text {{
             position: absolute;
             writing-mode: vertical-rl;
             font-size: 0.8em;
+            top: {mt}mm;
+            bottom: {mb}mm;
+            display: flex;
+            align-items: center;
         }}
 
         .margin-text.left {{
-            left: 2mm;
+            left: 0;
+            width: {ml}mm;
+            justify-content: flex-start;
+            padding-left: 1mm;
         }}
 
         .margin-text.right {{
-            right: 2mm;
+            right: 0;
+            width: {mr}mm;
+            justify-content: flex-end;
+            padding-right: 1mm;
         }}
 
         .quadrille {{
@@ -289,18 +341,21 @@ class HTMLRenderer:
         if ps.has_border:
             parts.append(self._render_line_border())
 
-        # Header
+        # Header (in top margin)
         if ps.header_text:
             parts.append(self._render_header_footer(ps.header_text, "header"))
 
-        # Title
-        if ps.title:
-            parts.append(self._render_text_element(ps.title))
-
-        # Margin text
+        # Margin text (in side margins)
         if hasattr(ps, "margin_texts"):
             for margin_item in ps.margin_texts:
                 parts.append(self._render_margin_text(margin_item))
+
+        # Content area (inside margins)
+        parts.append('<div class="page-content">')
+
+        # Title
+        if ps.title:
+            parts.append(self._render_text_element(ps.title, "title"))
 
         # Page content
         content_class = "column-container" if page.column_mode == ColumnMode.TWO_COLUMN else ""
@@ -320,9 +375,13 @@ class HTMLRenderer:
             parts.append(self._render_paragraph(paragraph))
 
         # Horizontal rules
+        h_rule_color = self._color_to_css(
+            self.album.color_h_rule or Color(r=0.0, g=0.0, b=0.0)
+        )
         for line, spacing, margin in page.h_rules:
             parts.append(
                 f'<hr class="h-rule" style="border-top-width: {line}mm; '
+                f"border-top-color: {h_rule_color}; "
                 f'margin: {spacing}mm {margin}mm;">'
             )
 
@@ -344,7 +403,9 @@ class HTMLRenderer:
         if content_class:
             parts.append("</div>")
 
-        # Footer
+        parts.append("</div>")  # close page-content
+
+        # Footer (in bottom margin)
         if ps.footer_text:
             parts.append(self._render_header_footer(ps.footer_text, "footer"))
 
@@ -399,7 +460,8 @@ class HTMLRenderer:
         content = content.replace("$PAGES$", str(len(self.album.pages)))
 
         font_css = self._font_to_css(text.font_id, text.size)
-        color_css = self._color_to_css(text.color or self.album.color_header)
+        elem_type = "header" if css_class == "header" else "footer"
+        color_css = self._color_to_css(self._resolve_color(text.color, elem_type))
 
         return (
             f'<div class="{css_class}" style="{font_css}; color: {color_css};">'
@@ -418,7 +480,26 @@ class HTMLRenderer:
             f"{self._format_text(item.text)}</div>"
         )
 
-    def _render_text_element(self, text: FormattedText) -> str:
+    def _resolve_color(self, text_color, element_type="page_text"):
+        """Resolve the effective color for a text element.
+
+        Checks in order: element color, then album-level color for that element type.
+        """
+        if text_color is not None:
+            return text_color
+
+        color_map = {
+            "title": self.album.color_title,
+            "header": self.album.color_header,
+            "footer": self.album.color_footer,
+            "margin_text": self.album.color_margin_text,
+            "page_text": self.album.color_page_text,
+            "stamp_heading": self.album.color_stamp_heading,
+            "stamp_text": self.album.color_stamp_text,
+        }
+        return color_map.get(element_type)
+
+    def _render_text_element(self, text: FormattedText, element_type: str = "page_text") -> str:
         """Render a formatted text element."""
         align_class = ""
         if text.alignment == TextAlignment.CENTER:
@@ -429,7 +510,7 @@ class HTMLRenderer:
             align_class = "justify"
 
         font_css = self._font_to_css(text.font_id, text.size)
-        color_css = self._color_to_css(text.color or self.album.color_page_text)
+        color_css = self._color_to_css(self._resolve_color(text.color, element_type))
         vspace = f"margin-bottom: {text.vspace}mm;" if text.vspace > 0 else ""
 
         # Phase 4: Advanced typography
@@ -444,7 +525,7 @@ class HTMLRenderer:
     def _render_paragraph(self, paragraph) -> str:
         """Render a paragraph."""
         font_css = self._font_to_css(paragraph.font_id, paragraph.size)
-        color_css = self._color_to_css(paragraph.color or self.album.color_page_text)
+        color_css = self._color_to_css(self._resolve_color(paragraph.color, "page_text"))
 
         # Phase 4: Advanced typography
         typography_css = self._build_typography_css(paragraph)
@@ -513,7 +594,9 @@ class HTMLRenderer:
         elif row.alignment.name == "BOTTOM":
             align_class = "align-bottom"
 
-        parts = [f'<div class="stamp-row {align_class}">']
+        parts = [
+            f'<div class="stamp-row {align_class}" style="gap: {row.spacing}mm;">'
+        ]
 
         for stamp in row.stamps:
             parts.append(self._render_stamp(stamp, row))
@@ -534,6 +617,18 @@ class HTMLRenderer:
         shape_class = ""
         if stamp.shape == StampShape.OVAL:
             shape_class = "shape-oval"
+        elif stamp.shape == StampShape.TRIANGLE:
+            shape_class = "shape-triangle"
+        elif stamp.shape == StampShape.TRIANGLE_INV:
+            shape_class = "shape-triangle-inv"
+        elif stamp.shape == StampShape.DIAMOND:
+            shape_class = "shape-diamond"
+        elif stamp.shape == StampShape.HEXAGON:
+            shape_class = "shape-hexagon"
+        elif stamp.shape == StampShape.OCTAGON:
+            shape_class = "shape-octagon"
+        elif stamp.shape == StampShape.PENTAGON:
+            shape_class = "shape-pentagon"
 
         border_color = self._color_to_css(
             self.album.color_stamp_border or Color(r=0.5, g=0.5, b=0.5)
@@ -542,11 +637,22 @@ class HTMLRenderer:
             self.album.color_stamp_background or Color(r=1.0, g=1.0, b=1.0)
         )
 
+        # Map border style
+        border_style_map = {
+            "SOLID": "solid",
+            "DASHED": "dashed",
+            "DOTTED": "dotted",
+            "BLANK": "none",
+        }
+        border_style = border_style_map.get(
+            ps.stamp_border_settings.style.name, "solid"
+        )
+
         parts = [
             f'<div class="stamp" style="width: {width}mm;">',
             f'<div class="stamp-box {shape_class}" '
             f'style="width: {width}mm; height: {height}mm; '
-            f"border-color: {border_color}; "
+            f"border: 0.5pt {border_style} {border_color}; "
             f'background-color: {bg_color};">',
         ]
 
@@ -561,7 +667,7 @@ class HTMLRenderer:
         # Stamp heading
         if stamp.heading:
             heading_color = self._color_to_css(
-                self.album.color_stamp_heading or self.album.color_page_text
+                self._resolve_color(None, "stamp_heading")
             )
             font_css = self._font_to_css(stamp.heading.font_id, stamp.heading.size)
             parts.append(
@@ -572,7 +678,7 @@ class HTMLRenderer:
         # Stamp description
         if stamp.description:
             text_color = self._color_to_css(
-                self.album.color_stamp_text or self.album.color_page_text
+                self._resolve_color(None, "stamp_text")
             )
             font_css = self._font_to_css(row.font_id, row.size)
             parts.append(
@@ -584,9 +690,9 @@ class HTMLRenderer:
         catalog_parts = [c for c in stamp.catalog_refs if c]
         if catalog_parts:
             text_color = self._color_to_css(
-                self.album.color_stamp_text or self.album.color_page_text
+                self._resolve_color(None, "stamp_text")
             )
-            font_css = self._font_to_css(row.font_id, row.size * 0.8)
+            font_css = self._font_to_css(row.font_id, round(row.size * 0.8, 1))
             catalog_text = " | ".join(catalog_parts)
             parts.append(
                 f'<div class="stamp-catalog" style="{font_css}; color: {text_color};">'
@@ -605,8 +711,8 @@ class HTMLRenderer:
             f'<div class="quadrille" style="width: {quadrille.width}mm; '
             f"height: {quadrille.height}mm; "
             f"background-size: {grid_size}mm {grid_size}mm; "
-            f"background-image: linear-gradient({color} 1px, transparent 1px), "
-            f'linear-gradient(90deg, {color} 1px, transparent 1px);">'
+            f"background-image: linear-gradient({color} 0.1mm, transparent 0.1mm), "
+            f'linear-gradient(90deg, {color} 0.1mm, transparent 0.1mm);">'
             f"</div>"
         )
 
@@ -626,18 +732,12 @@ class HTMLRenderer:
         """Convert a font ID to CSS font properties."""
         if font_id in BASE14_FONT_MAP:
             mapping = BASE14_FONT_MAP[font_id]
-            family = (
-                ", ".join(f'"{f}"' for f in mapping[:-1]) if len(mapping) > 1 else f'"{mapping[0]}"'
-            )
-            style = ""
-
-            if len(mapping) >= 3:
-                if mapping[2] == "bold":
-                    style = "font-weight: bold;"
-                if len(mapping) >= 4 and mapping[3] == "italic":
-                    style += "font-style: italic;"
-
-            return f"font-family: {family}; font-size: {size}pt; {style}"
+            parts = [f'font-family: {mapping["family"]}', f"font-size: {size}pt"]
+            if mapping["weight"] != "normal":
+                parts.append(f'font-weight: {mapping["weight"]}')
+            if mapping["style"] != "normal":
+                parts.append(f'font-style: {mapping["style"]}')
+            return "; ".join(parts) + ";"
 
         # User-defined font - try to resolve via font manager
         if self.font_manager:
@@ -646,7 +746,7 @@ class HTMLRenderer:
                 return f'font-family: "{font_info.name}"; font-size: {size}pt;'
 
         # Fallback
-        return f"font-family: Arial, sans-serif; font-size: {size}pt;"
+        return f"font-family: Helvetica, Arial, sans-serif; font-size: {size}pt;"
 
     def _color_to_css(self, color: Optional[Color]) -> str:
         """Convert a Color object to CSS color string."""
