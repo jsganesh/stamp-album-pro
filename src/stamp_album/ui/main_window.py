@@ -659,14 +659,14 @@ class MainWindow(QMainWindow):
 
     def _show_visual_builder(self):
         """Show the visual drag-and-drop builder."""
-        if not self.current_file:
+        if not self._file_path:
             self.status_bar.showMessage("Open an album file first", 3000)
             return
 
         # Parse current album
         try:
             parser = AlbumParser()
-            album = parser.parse(self.editor.toPlainText())
+            album = parser.parse(self.editor.toPlainText(), self._file_path)
         except Exception as e:
             self.status_bar.showMessage(f"Parse error: {e}", 3000)
             return

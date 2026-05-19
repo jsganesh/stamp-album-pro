@@ -1,11 +1,12 @@
 """
 Live preview panel for StampAlbum Pro.
 
-Renders a real-time HTML preview of the album as the user edits,
-using WeasyPrint to generate HTML that can be displayed in a web view.
+Renders a real-time preview of the album as the user edits,
+using WeasyPrint to generate page images for accurate preview.
 """
 
 from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import (
     QComboBox,
     QLabel,
@@ -15,6 +16,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from weasyprint import HTML
 
 
 class PreviewPanel(QWidget):
@@ -34,6 +36,7 @@ class PreviewPanel(QWidget):
         self._page_count: int = 0
         self._current_page: int = 0
         self._zoom_level: float = 1.0
+        self._page_images: list[QPixmap] = []
 
         self._setup_ui()
 
@@ -54,7 +57,9 @@ class PreviewPanel(QWidget):
 
         self.preview_label = QLabel()
         self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.preview_label.setStyleSheet("background-color: #E0E0E0; border: 1px solid #CCCCCC;")
+        self.preview_label.setStyleSheet(
+            "background-color: #E0E0E0; border: 1px solid #CCCCCC;"
+        )
         self.scroll_area.setWidget(self.preview_label)
 
         layout.addWidget(self.scroll_area)
@@ -143,13 +148,39 @@ class PreviewPanel(QWidget):
             html: HTML string to render
         """
         self._html_content = html
-        self._page_count = html.count('<div class="page"')
+        self._render_pages()
         self._current_page = 0
         self._update_display()
 
+    def _render_pages(self):
+        """Render HTML pages to QPixmap images using WeasyPrint."""
+        self._page_images = []
+        self._page_count = 0
+
+        if not self._html_content:
+            return
+
+        try:
+            # Render HTML to PNG images using WeasyPrint
+            html_doc = HTML(string=self._html_content)
+            doc = html_doc.render()
+
+            self._page_count = len(doc.pages)
+
+            for page in doc.pages:
+                # Render each page to PNG
+                png_bytes = page.write_to_image().write_png()
+                pixmap = QPixmap()
+                pixmap.loadFromData(png_bytes)
+                self._page_images.append(pixmap)
+        except Exception:
+            # If rendering fails, show error
+            self._page_count = 0
+            self._page_images = []
+
     def _update_display(self):
         """Update the preview display."""
-        if not self._html_content:
+        if not self._page_images:
             self.preview_label.setText("No preview available")
             self.status_label.setText("No preview available")
             self.page_label.setText("Page 0 / 0")
@@ -157,43 +188,16 @@ class PreviewPanel(QWidget):
             self.next_page_btn.setEnabled(False)
             return
 
-        # Extract the current page's HTML
-        page_html = self._extract_page(self._current_page)
-
-        # Create a minimal HTML document for display
-        # (In a full implementation, this would be rendered in QWebEngineView)
-        _display_html = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <style>
-                body {{
-                    margin: 0;
-                    padding: 20px;
-                    background-color: #E0E0E0;
-                    display: flex;
-                    justify-content: center;
-                }}
-                .page {{
-                    background-color: white;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-                }}
-            </style>
-        </head>
-        <body>
-            {page_html}
-        </body>
-        </html>
-        """
-
-        # For now, show a placeholder - in a full implementation,
-        # we'd use QWebEngineView to render the HTML
-        self.preview_label.setText(
-            f"Preview: Page {self._current_page + 1} of {self._page_count}\n\n"
-            f"(HTML rendering requires QWebEngineView)\n\n"
-            f"Zoom: {int(self._zoom_level * 100)}%"
-        )
+        # Display current page image with zoom
+        if 0 <= self._current_page < len(self._page_images):
+            pixmap = self._page_images[self._current_page]
+            scaled = pixmap.scaled(
+                int(pixmap.width() * self._zoom_level),
+                int(pixmap.height() * self._zoom_level),
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+            self.preview_label.setPixmap(scaled)
 
         # Update status
         self.status_label.setText(
@@ -206,40 +210,12 @@ class PreviewPanel(QWidget):
         self.prev_page_btn.setEnabled(self._current_page > 0)
         self.next_page_btn.setEnabled(self._current_page < self._page_count - 1)
 
-    def _extract_page(self, page_index: int) -> str:
-        """Extract a single page from the full HTML."""
-        # Find all page divs
-        pages = []
-        start = 0
-        while True:
-            idx = self._html_content.find('<div class="page"', start)
-            if idx == -1:
-                break
-
-            # Find matching closing tag
-            depth = 0
-            i = idx
-            while i < len(self._html_content):
-                if self._html_content[i : i + 5] == "<div ":
-                    depth += 1
-                elif self._html_content[i : i + 6] == "</div>":
-                    depth -= 1
-                    if depth == 0:
-                        pages.append(self._html_content[idx : i + 6])
-                        break
-                i += 1
-
-            start = i + 1
-
-        if 0 <= page_index < len(pages):
-            return pages[page_index]
-        return ""
-
     def clear(self):
         """Clear the preview."""
         self._html_content = ""
         self._page_count = 0
         self._current_page = 0
+        self._page_images = []
         self._update_display()
 
     @property
