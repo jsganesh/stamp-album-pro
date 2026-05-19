@@ -475,8 +475,12 @@ class HTMLRenderer:
         if stamp.shape == StampShape.OVAL:
             shape_class = "shape-oval"
 
-        border_color = self._color_to_css(self.album.color_stamp_border)
-        bg_color = self._color_to_css(self.album.color_stamp_background)
+        border_color = self._color_to_css(
+            self.album.color_stamp_border or Color(r=0.5, g=0.5, b=0.5)
+        )
+        bg_color = self._color_to_css(
+            self.album.color_stamp_background or Color(r=1.0, g=1.0, b=1.0)
+        )
 
         parts = [
             f'<div class="stamp" style="width: {width}mm;">',
@@ -496,7 +500,9 @@ class HTMLRenderer:
 
         # Stamp heading
         if stamp.heading:
-            heading_color = self._color_to_css(self.album.color_stamp_heading)
+            heading_color = self._color_to_css(
+                self.album.color_stamp_heading or self.album.color_page_text
+            )
             font_css = self._font_to_css(stamp.heading.font_id, stamp.heading.size)
             parts.append(
                 f'<div class="stamp-heading" style="{font_css}; color: {heading_color};">'
@@ -505,7 +511,9 @@ class HTMLRenderer:
 
         # Stamp description
         if stamp.description:
-            text_color = self._color_to_css(self.album.color_stamp_text)
+            text_color = self._color_to_css(
+                self.album.color_stamp_text or self.album.color_page_text
+            )
             font_css = self._font_to_css(row.font_id, row.size)
             parts.append(
                 f'<div class="stamp-footer" style="{font_css}; color: {text_color};">'
@@ -515,7 +523,9 @@ class HTMLRenderer:
         # Catalog references
         catalog_parts = [c for c in stamp.catalog_refs if c]
         if catalog_parts:
-            text_color = self._color_to_css(self.album.color_stamp_text)
+            text_color = self._color_to_css(
+                self.album.color_stamp_text or self.album.color_page_text
+            )
             font_css = self._font_to_css(row.font_id, row.size * 0.8)
             catalog_text = " | ".join(catalog_parts)
             parts.append(

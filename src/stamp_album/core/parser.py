@@ -493,8 +493,21 @@ class AlbumParser:
                         grid_size=float(params[2]),
                     )
             elif cmd == "PAGE_TEXT_PARAGRAPH_START":
-                # Starting paragraph
+                # Parse paragraph parameters: (font_id size alignment)
                 paragraph = Paragraph()
+                if len(params) >= 2:
+                    paragraph.font_id = params[0]
+                    paragraph.size = float(params[1])
+                if len(params) >= 3:
+                    align_map = {
+                        "Left": TextAlignment.LEFT,
+                        "Center": TextAlignment.CENTER,
+                        "Centre": TextAlignment.CENTER,
+                        "Right": TextAlignment.RIGHT,
+                        "Justified": TextAlignment.JUSTIFY,
+                        "Justify": TextAlignment.JUSTIFY,
+                    }
+                    paragraph.alignment = align_map.get(params[2], TextAlignment.LEFT)
             elif cmd == "PAGE_TEXT_PARAGRAPH_END":
                 # Paragraph ended
                 if paragraph and current_page:
@@ -701,6 +714,12 @@ class AlbumParser:
                 album.page_setup.text_char_spacing = float(params[0])
             elif cmd == "TEXT_LINE_LEADING":
                 album.page_setup.text_line_leading = float(params[0])
+
+            # -- Paragraph content (non-command lines inside paragraph) --
+            elif paragraph is not None:
+                # Unquote if it's a quoted string, otherwise use as-is
+                content = unquote(line) if line.startswith('"') else line
+                paragraph.lines.append(content)
 
         return album
 
