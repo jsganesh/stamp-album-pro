@@ -7,7 +7,7 @@ text elements, and configure rows/columns.
 
 from __future__ import annotations
 
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import QSize, Qt, pyqtSignal
 from PyQt6.QtGui import QColor, QMouseEvent, QPainter, QPen, QWheelEvent
 from PyQt6.QtWidgets import (
     QComboBox,
@@ -221,7 +221,7 @@ class VisualBuilder(QWidget):
         # Toolbar
         toolbar = QToolBar()
         toolbar.setMovable(False)
-        toolbar.setIconSize((16, 16))
+        toolbar.setIconSize(QSize(16, 16))
 
         grid_btn = QPushButton("Grid")
         grid_btn.setCheckable(True)

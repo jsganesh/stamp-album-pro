@@ -263,6 +263,7 @@ class MainWindow(QMainWindow):
         self._config: dict = {}
         self._recent_files: list[str] = []
         self._pdf_path: str | None = None
+        self._preview_sizes: list[int] | None = None
 
         self._setup_window()
         self._setup_actions()
@@ -614,10 +615,18 @@ class MainWindow(QMainWindow):
     def _toggle_preview(self):
         """Show or hide the preview panel."""
         if self.preview.isVisible():
+            # Save current sizes before hiding
+            self._preview_sizes = self.splitter.sizes()
             self.preview.hide()
+            self.splitter.setSizes([self.width(), 0])
             self.act_toggle_preview.setChecked(False)
         else:
             self.preview.show()
+            # Restore previous sizes or use default split
+            if hasattr(self, "_preview_sizes") and self._preview_sizes:
+                self.splitter.setSizes(self._preview_sizes)
+            else:
+                self.splitter.setSizes([int(self.width() * 0.65), int(self.width() * 0.35)])
             self.act_toggle_preview.setChecked(True)
 
     def _refresh_preview(self):
