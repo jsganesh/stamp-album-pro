@@ -6,7 +6,7 @@ and parameters in the album source editor.
 """
 
 from PyQt6.QtCore import QRegularExpression
-from PyQt6.QtGui import QColor, QFont, QTextCharFormat, QTextDocument
+from PyQt6.QtGui import QColor, QFont, QTextCharFormat, QTextCursor, QTextDocument
 
 
 class DSLHighlighter:
@@ -86,7 +86,8 @@ class DSLHighlighter:
         """Apply syntax highlighting to the document."""
         # Clear all formatting
         cursor = self.document.find("")
-        cursor.select(QTextDocument.SelectionType.Document)
+        cursor.movePosition(QTextCursor.MoveOperation.Start)
+        cursor.movePosition(QTextCursor.MoveOperation.End, QTextCursor.MoveMode.KeepAnchor)
         cursor.setCharFormat(QTextCharFormat())
         cursor.clearSelection()
 
