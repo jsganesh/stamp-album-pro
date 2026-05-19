@@ -322,7 +322,7 @@ class HTMLRenderer:
         # Horizontal rules
         for line, spacing, margin in page.h_rules:
             parts.append(
-                f'<hr class="h-rule" style="border-top-width: {line}pt; '
+                f'<hr class="h-rule" style="border-top-width: {line}mm; '
                 f'margin: {spacing}mm {margin}mm;">'
             )
 
@@ -352,7 +352,7 @@ class HTMLRenderer:
         return "\n".join(parts)
 
     def _render_line_border(self) -> str:
-        """Render page line border."""
+        """Render page line border using mm units consistently."""
         ps = self.album.page_setup
         color = self._color_to_css(self.album.color_album_border)
 
@@ -361,23 +361,26 @@ class HTMLRenderer:
         if ps.border_outer > 0:
             parts.append(
                 f'<div style="position: absolute; top: 0; left: 0; '
-                f'right: 0; bottom: 0; border: {ps.border_outer}pt solid {color};"></div>'
+                f'right: 0; bottom: 0; '
+                f'border: {ps.border_outer}mm solid {color};"></div>'
             )
 
         if ps.border_inner1 > 0:
             offset = ps.border_outer + ps.border_spacing
             parts.append(
-                f'<div style="position: absolute; top: {offset}pt; left: {offset}pt; '
-                f"right: {offset}pt; bottom: {offset}pt; "
-                f'border: {ps.border_inner1}pt solid {color};"></div>'
+                f'<div style="position: absolute; '
+                f'top: {offset}mm; left: {offset}mm; '
+                f'right: {offset}mm; bottom: {offset}mm; '
+                f'border: {ps.border_inner1}mm solid {color};"></div>'
             )
 
         if ps.border_inner2 > 0:
             offset = ps.border_outer + ps.border_inner1 + ps.border_spacing * 2
             parts.append(
-                f'<div style="position: absolute; top: {offset}pt; left: {offset}pt; '
-                f"right: {offset}pt; bottom: {offset}pt; "
-                f'border: {ps.border_inner2}pt solid {color};"></div>'
+                f'<div style="position: absolute; '
+                f'top: {offset}mm; left: {offset}mm; '
+                f'right: {offset}mm; bottom: {offset}mm; '
+                f'border: {ps.border_inner2}mm solid {color};"></div>'
             )
 
         parts.append("</div>")
@@ -427,12 +430,14 @@ class HTMLRenderer:
 
         font_css = self._font_to_css(text.font_id, text.size)
         color_css = self._color_to_css(text.color or self.album.color_page_text)
-
         vspace = f"margin-bottom: {text.vspace}mm;" if text.vspace > 0 else ""
+
+        # Phase 4: Advanced typography
+        typography_css = self._build_typography_css(text)
 
         return (
             f'<div class="page-text {align_class}" '
-            f'style="{font_css}; color: {color_css}; {vspace}">'
+            f'style="{font_css}; color: {color_css}; {vspace}{typography_css}">'
             f"{self._format_text(text.content)}</div>"
         )
 
@@ -441,9 +446,71 @@ class HTMLRenderer:
         font_css = self._font_to_css(paragraph.font_id, paragraph.size)
         color_css = self._color_to_css(paragraph.color or self.album.color_page_text)
 
+        # Phase 4: Advanced typography
+        typography_css = self._build_typography_css(paragraph)
+
         lines = "<br>".join(self._format_text(line) for line in paragraph.lines)
 
-        return f'<div class="page-text" style="{font_css}; color: {color_css};">' f"{lines}</div>"
+        return (
+            f'<div class="page-text" style="{font_css}; color: {color_css};'
+            f'{typography_css}">{lines}</div>'
+        )
+
+    def _build_typography_css(self, text) -> str:
+        """Build CSS for advanced typography effects."""
+        parts = []
+
+        # Font weight and style
+        if hasattr(text, "weight") and text.weight and text.weight != "normal":
+            parts.append(f"font-weight: {text.weight};")
+        if hasattr(text, "style") and text.style and text.style != "normal":
+            parts.append(f"font-style: {text.style};")
+
+        # Text shadow
+        if hasattr(text, "shadow") and text.shadow:
+            s = text.shadow
+            color = self._color_to_css(s.color)
+            opacity = s.opacity
+            # Convert mm to px for CSS (1mm ≈ 3.78px)
+            px_factor = 3.78
+            x = s.offset_x * px_factor
+            y = s.offset_y * px_factor
+            blur = s.blur * px_factor
+            # Use rgba for opacity
+            r, g, b = int(s.color.r * 255), int(s.color.g * 255), int(s.color.b * 255)
+            parts.append(
+                f"text-shadow: {x}px {y}px {blur}px rgba({r}, {g}, {b}, {opacity});"
+            )
+
+        # Text outline (using -webkit-text-stroke for WeasyPrint compatibility)
+        if hasattr(text, "outline") and text.outline:
+            o = text.outline
+            color = self._color_to_css(o.color)
+            width_pt = o.width * 2.835  # mm to pt
+            parts.append(
+                f"-webkit-text-stroke: {width_pt}pt {color};"
+            )
+
+        # Gradient fill
+        if hasattr(text, "gradient") and text.gradient and text.gradient.stops:
+            g = text.gradient
+            if g.direction == "horizontal":
+                angle = "90deg"
+            elif g.direction == "vertical":
+                angle = "180deg"
+            else:  # diagonal
+                angle = "135deg"
+            stops_css = ", ".join(
+                f"{self._color_to_css(stop.color)} {stop.offset * 100}%"
+                for stop in g.stops
+            )
+            parts.append(
+                f"background: linear-gradient({angle}, {stops_css});"
+            )
+            parts.append("-webkit-background-clip: text;")
+            parts.append("-webkit-text-fill-color: transparent;")
+
+        return " ".join(parts)
 
     def _render_row(self, row: Row) -> str:
         """Render a row of stamps."""

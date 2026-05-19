@@ -714,6 +714,58 @@ class AlbumParser:
                 album.page_setup.text_char_spacing = float(params[0])
             elif cmd == "TEXT_LINE_LEADING":
                 album.page_setup.text_line_leading = float(params[0])
+            elif cmd == "TEXT_SHADOW":
+                # TEXT_SHADOW (offset_x offset_y blur color opacity)
+                from stamp_album.core.models import TextShadow
+
+                shadow = TextShadow()
+                vals = params if params else tokens[1:]
+                if len(vals) >= 2:
+                    shadow.offset_x = float(vals[0])
+                    shadow.offset_y = float(vals[1])
+                if len(vals) >= 3:
+                    shadow.blur = float(vals[2])
+                if len(vals) >= 4:
+                    shadow.color = Color.from_name(vals[3].strip("()"))
+                if len(vals) >= 5:
+                    shadow.opacity = float(vals[4])
+                album.page_setup.default_text_shadow = shadow
+            elif cmd == "TEXT_OUTLINE":
+                # TEXT_OUTLINE (width color)
+                from stamp_album.core.models import TextOutline
+
+                outline = TextOutline()
+                vals = params if params else tokens[1:]
+                if len(vals) >= 1:
+                    outline.width = float(vals[0])
+                if len(vals) >= 2:
+                    outline.color = Color.from_name(vals[1].strip("()"))
+                album.page_setup.default_text_outline = outline
+            elif cmd == "TEXT_GRADIENT":
+                # TEXT_GRADIENT (direction color1 offset1 color2 offset2 ...)
+                from stamp_album.core.models import GradientFill, GradientStop
+
+                gradient = GradientFill()
+                vals = params if params else tokens[1:]
+                if len(vals) >= 1:
+                    gradient.direction = vals[0]
+                i = 1
+                while i + 1 < len(vals):
+                    color = Color.from_name(vals[i].strip("()"))
+                    offset = float(vals[i + 1])
+                    gradient.stops.append(GradientStop(offset=offset, color=color))
+                    i += 2
+                album.page_setup.default_text_gradient = gradient if gradient.stops else None
+            elif cmd == "TEXT_WEIGHT":
+                if params:
+                    album.page_setup.default_text_weight = params[0]
+                elif len(tokens) > 1:
+                    album.page_setup.default_text_weight = tokens[1]
+            elif cmd == "TEXT_STYLE":
+                if params:
+                    album.page_setup.default_text_style = params[0]
+                elif len(tokens) > 1:
+                    album.page_setup.default_text_style = tokens[1]
 
             # -- Paragraph content (non-command lines inside paragraph) --
             elif paragraph is not None:

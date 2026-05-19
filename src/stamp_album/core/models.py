@@ -303,6 +303,41 @@ class Color:
 
 
 @dataclass
+class TextShadow:
+    """Text shadow effect."""
+
+    offset_x: float = 1.0  # mm
+    offset_y: float = -1.0  # mm
+    blur: float = 0.5  # mm
+    color: Color = field(default_factory=lambda: Color(r=0.0, g=0.0, b=0.0))
+    opacity: float = 0.5
+
+
+@dataclass
+class TextOutline:
+    """Text outline/stroke effect."""
+
+    width: float = 0.3  # mm
+    color: Color = field(default_factory=lambda: Color(r=0.0, g=0.0, b=0.0))
+
+
+@dataclass
+class GradientStop:
+    """A single stop in a gradient."""
+
+    offset: float  # 0.0 to 1.0
+    color: Color
+
+
+@dataclass
+class GradientFill:
+    """Gradient fill for text."""
+
+    direction: str = "horizontal"  # horizontal, vertical, diagonal
+    stops: list[GradientStop] = field(default_factory=list)
+
+
+@dataclass
 class FormattedText:
     """Text with formatting information."""
 
@@ -316,6 +351,12 @@ class FormattedText:
     right_padding: float = 0.0
     char_spacing: float = 0.0
     line_leading: float = 0.0
+    # Phase 4: Advanced typography
+    shadow: Optional[TextShadow] = None
+    outline: Optional[TextOutline] = None
+    gradient: Optional[GradientFill] = None
+    weight: str = "normal"  # normal, bold, bolder, light, etc.
+    style: str = "normal"  # normal, italic, oblique
 
 
 @dataclass
@@ -327,6 +368,12 @@ class Paragraph:
     size: float = 10.0
     alignment: TextAlignment = TextAlignment.LEFT
     color: Optional[Color] = None
+    # Phase 4: Advanced typography
+    shadow: Optional[TextShadow] = None
+    outline: Optional[TextOutline] = None
+    gradient: Optional[GradientFill] = None
+    weight: str = "normal"
+    style: str = "normal"
 
 
 # ---------------------------------------------------------------------------
@@ -512,6 +559,12 @@ class PageSetup:
     heading_padding: float = 0.0
     text_char_spacing: float = 0.0
     text_line_leading: float = 0.0
+    # Phase 4: Default typography settings
+    default_text_shadow: Optional[TextShadow] = None
+    default_text_outline: Optional[TextOutline] = None
+    default_text_gradient: Optional[GradientFill] = None
+    default_text_weight: str = "normal"
+    default_text_style: str = "normal"
 
 
 @dataclass
