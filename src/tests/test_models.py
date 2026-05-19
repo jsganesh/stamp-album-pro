@@ -2,7 +2,6 @@
 Tests for the core data models.
 """
 
-
 from stamp_album.core.models import (
     Album,
     Color,

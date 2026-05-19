@@ -298,7 +298,7 @@ class HTMLRenderer:
             parts.append(self._render_text_element(ps.title))
 
         # Margin text
-        if hasattr(ps, 'margin_texts'):
+        if hasattr(ps, "margin_texts"):
             for margin_item in ps.margin_texts:
                 parts.append(self._render_margin_text(margin_item))
 
@@ -361,7 +361,7 @@ class HTMLRenderer:
         if ps.border_outer > 0:
             parts.append(
                 f'<div style="position: absolute; top: 0; left: 0; '
-                f'right: 0; bottom: 0; '
+                f"right: 0; bottom: 0; "
                 f'border: {ps.border_outer}mm solid {color};"></div>'
             )
 
@@ -369,8 +369,8 @@ class HTMLRenderer:
             offset = ps.border_outer + ps.border_spacing
             parts.append(
                 f'<div style="position: absolute; '
-                f'top: {offset}mm; left: {offset}mm; '
-                f'right: {offset}mm; bottom: {offset}mm; '
+                f"top: {offset}mm; left: {offset}mm; "
+                f"right: {offset}mm; bottom: {offset}mm; "
                 f'border: {ps.border_inner1}mm solid {color};"></div>'
             )
 
@@ -378,8 +378,8 @@ class HTMLRenderer:
             offset = ps.border_outer + ps.border_inner1 + ps.border_spacing * 2
             parts.append(
                 f'<div style="position: absolute; '
-                f'top: {offset}mm; left: {offset}mm; '
-                f'right: {offset}mm; bottom: {offset}mm; '
+                f"top: {offset}mm; left: {offset}mm; "
+                f"right: {offset}mm; bottom: {offset}mm; "
                 f'border: {ps.border_inner2}mm solid {color};"></div>'
             )
 
@@ -478,18 +478,14 @@ class HTMLRenderer:
             blur = s.blur * px_factor
             # Use rgba for opacity
             r, g, b = int(s.color.r * 255), int(s.color.g * 255), int(s.color.b * 255)
-            parts.append(
-                f"text-shadow: {x}px {y}px {blur}px rgba({r}, {g}, {b}, {opacity});"
-            )
+            parts.append(f"text-shadow: {x}px {y}px {blur}px rgba({r}, {g}, {b}, {opacity});")
 
         # Text outline (using -webkit-text-stroke for WeasyPrint compatibility)
         if hasattr(text, "outline") and text.outline:
             o = text.outline
             color = self._color_to_css(o.color)
             width_pt = o.width * 2.835  # mm to pt
-            parts.append(
-                f"-webkit-text-stroke: {width_pt}pt {color};"
-            )
+            parts.append(f"-webkit-text-stroke: {width_pt}pt {color};")
 
         # Gradient fill
         if hasattr(text, "gradient") and text.gradient and text.gradient.stops:
@@ -501,12 +497,9 @@ class HTMLRenderer:
             else:  # diagonal
                 angle = "135deg"
             stops_css = ", ".join(
-                f"{self._color_to_css(stop.color)} {stop.offset * 100}%"
-                for stop in g.stops
+                f"{self._color_to_css(stop.color)} {stop.offset * 100}%" for stop in g.stops
             )
-            parts.append(
-                f"background: linear-gradient({angle}, {stops_css});"
-            )
+            parts.append(f"background: linear-gradient({angle}, {stops_css});")
             parts.append("-webkit-background-clip: text;")
             parts.append("-webkit-text-fill-color: transparent;")
 
@@ -560,7 +553,7 @@ class HTMLRenderer:
         # Stamp image
         if stamp.image_path and not ps.stamp_image_settings.hidden:
             parts.append(
-                f'<img class="stamp-image" src="{stamp.image_path}" ' f'alt="{stamp.description}">'
+                f'<img class="stamp-image" src="{stamp.image_path}" alt="{stamp.description}">'
             )
 
         parts.append("</div>")
@@ -650,7 +643,7 @@ class HTMLRenderer:
         if self.font_manager:
             font_info = self.font_manager.find_font(font_id)
             if font_info:
-                return f'font-family: "{font_info.name}"; ' f"font-size: {size}pt;"
+                return f'font-family: "{font_info.name}"; font-size: {size}pt;'
 
         # Fallback
         return f"font-family: Arial, sans-serif; font-size: {size}pt;"

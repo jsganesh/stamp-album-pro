@@ -219,9 +219,7 @@ class LayoutEngine:
         Returns:
             True if placement is valid
         """
-        new_rect = PlacementRect(
-            x - margin, y - margin, width + 2 * margin, height + 2 * margin
-        )
+        new_rect = PlacementRect(x - margin, y - margin, width + 2 * margin, height + 2 * margin)
         for rect in self._placed_rects:
             if self._rects_overlap(new_rect, rect):
                 return False
@@ -466,9 +464,7 @@ class LayoutEngine:
 
         return rows
 
-    def _arrange_grid(
-        self, stamps: list[Stamp], max_width: float, spacing: float
-    ) -> list[Row]:
+    def _arrange_grid(self, stamps: list[Stamp], max_width: float, spacing: float) -> list[Row]:
         """Arrange in a uniform grid based on average stamp size."""
         if not stamps:
             return []
@@ -477,16 +473,12 @@ class LayoutEngine:
         cols = max(1, int(max_width / (avg_width + spacing)))
         return self.fit_stamps_in_grid(stamps, cols)
 
-    def _arrange_packing(
-        self, stamps: list[Stamp], max_width: float, spacing: float
-    ) -> list[Row]:
+    def _arrange_packing(self, stamps: list[Stamp], max_width: float, spacing: float) -> list[Row]:
         """Bin-packing approach: sort by height, pack tallest first."""
         sorted_stamps = sorted(stamps, key=lambda s: s.height, reverse=True)
         return self._arrange_row_first(sorted_stamps, max_width, spacing)
 
-    def _arrange_balanced(
-        self, stamps: list[Stamp], max_width: float, spacing: float
-    ) -> list[Row]:
+    def _arrange_balanced(self, stamps: list[Stamp], max_width: float, spacing: float) -> list[Row]:
         """Balance rows by total width rather than stamp count."""
         if not stamps:
             return []
@@ -525,9 +517,7 @@ class LayoutEngine:
             height += self.page_setup.vspace
         return height
 
-    def _score_layout(
-        self, rows: list[Row], total_height: float, content_height: float
-    ) -> float:
+    def _score_layout(self, rows: list[Row], total_height: float, content_height: float) -> float:
         """
         Score a layout (higher is better).
 

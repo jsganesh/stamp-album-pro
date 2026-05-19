@@ -115,9 +115,7 @@ class StampCanvas(QWidget):
                     font = painter.font()
                     font.setPointSize(6)
                     painter.setFont(font)
-                    painter.drawText(
-                        x_offset + 2, y_offset + h - 2, stamp.description[:20]
-                    )
+                    painter.drawText(x_offset + 2, y_offset + h - 2, stamp.description[:20])
 
                 x_offset += w + int(row.spacing * self.scale)
 
