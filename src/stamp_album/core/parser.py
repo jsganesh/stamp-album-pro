@@ -86,12 +86,23 @@ def parse_params(token_list: list[str]) -> list[str]:
 
 
 def unquote(s: str) -> str:
-    """Remove quotes and process escape sequences."""
-    if s.startswith('"') and s.endswith('"'):
-        s = s[1:-1]
-    s = s.replace("\\n", "\n")
-    s = s.replace("\\\\", "\\")
-    return s
+    """Remove quotes and process escape sequences.
+
+    Handles multiple adjacent quoted strings (from line continuation).
+    """
+    import re
+
+    # Find all quoted strings and concatenate their contents
+    parts = re.findall(r'"([^"]*(?:\\.[^"]*)*)"', s)
+    if parts:
+        result = "".join(parts)
+    else:
+        # Fallback: just strip outer quotes
+        result = s.strip('"')
+
+    result = result.replace("\\n", "\n")
+    result = result.replace("\\\\", "\\")
+    return result
 
 
 def parse_color(val: str) -> Color:
@@ -417,12 +428,28 @@ class AlbumParser:
                     alignment = TextAlignment.CENTER
                 elif cmd == "PAGE_TEXT_RIGHT":
                     alignment = TextAlignment.RIGHT
-                vspace = float(params[3]) if len(params) > 3 else 0.0
+                # Find vspace: last parameter if it's numeric, otherwise 0.0
+                vspace = 0.0
+                text_end_idx = len(params)
+                if len(params) > 2:
+                    last_param = params[-1]
+                    try:
+                        vspace = float(last_param)
+                        text_end_idx = len(params) - 1
+                    except ValueError:
+                        vspace = 0.0
+                # Concatenate all string parameters from index 2 to text_end_idx
+                text_content = ""
+                for p in params[2:text_end_idx]:
+                    if p.startswith('"'):
+                        text_content += unquote(p)
+                    else:
+                        text_content += p
                 current_page.text_elements.append(
                     FormattedText(
                         font_id=params[0],
                         size=float(params[1]),
-                        content=unquote(params[2]),
+                        content=text_content,
                         alignment=alignment,
                         color=album.color_page_text,
                         vspace=vspace,

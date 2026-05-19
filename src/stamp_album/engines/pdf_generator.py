@@ -295,11 +295,12 @@ class HTMLRenderer:
 
         # Title
         if ps.title:
-            parts.append(self._render_formatted_text(ps.title, "page-title"))
+            parts.append(self._render_text_element(ps.title))
 
         # Margin text
-        for margin_item in ps.margin_texts:
-            parts.append(self._render_margin_text(margin_item))
+        if hasattr(ps, 'margin_texts'):
+            for margin_item in ps.margin_texts:
+                parts.append(self._render_margin_text(margin_item))
 
         # Page content
         content_class = "column-container" if page.column_mode == ColumnMode.TWO_COLUMN else ""
