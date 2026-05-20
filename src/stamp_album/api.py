@@ -1,54 +1,77 @@
+import os
 import tempfile
+from pathlib import Path
 from typing import Optional
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from stamp_album.core.parser import AlbumParser
 from stamp_album.core.serializer import AlbumSerializer
 from stamp_album.engines.pdf_generator import HTMLRenderer, PDFGenerator
 
-app = FastAPI(title="StampAlbum Pro API")
+app = FastAPI(title="StampAlbum Pro")
 parser = AlbumParser()
 serializer = AlbumSerializer()
+
+# Directory for user files
+FILES_DIR = Path(os.environ.get("STAMP_ALBUM_FILES", Path.home() / "StampAlbum"))
+FILES_DIR.mkdir(parents=True, exist_ok=True)
+
+# Serve web UI
+WEB_DIR = Path(__file__).parent / "web"
 
 
 @app.get("/")
 async def root():
-    return HTMLResponse(
-        """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>StampAlbum Pro API</title>
-            <style>
-                body { font-family: system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
-                h1 { color: #1a1a2e; }
-                .endpoint { background: #f4f4f5; padding: 12px 16px; margin: 8px 0; border-radius: 6px; font-family: monospace; }
-                .method { display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: bold; margin-right: 8px; }
-                .post { background: #4ade80; color: #064e3b; }
-                .get { background: #60a5fa; color: #1e3a5f; }
-                a { color: #2563eb; }
-            </style>
-        </head>
-        <body>
-            <h1>StampAlbum Pro API</h1>
-            <p>API server is running. Visit <a href="/docs">/docs</a> for interactive API documentation.</p>
-            <h2>Endpoints</h2>
-            <div class="endpoint"><span class="method get">GET</span> / — This page</div>
-            <div class="endpoint"><span class="method get">GET</span> /docs — Swagger UI</div>
-            <div class="endpoint"><span class="method post">POST</span> /render — Render DSL to HTML preview</div>
-            <div class="endpoint"><span class="method post">POST</span> /parse — Parse DSL to JSON model</div>
-            <div class="endpoint"><span class="method post">POST</span> /visual-update — Update stamp position via visual builder</div>
-            <div class="endpoint"><span class="method post">POST</span> /export — Generate and download PDF</div>
-        </body>
-        </html>
-        """
+    return FileResponse(WEB_DIR / "index.html")
+
+
+app.mount("/style.css", StaticFiles(directory=WEB_DIR), name="web")
+app.mount("/app.js", StaticFiles(directory=WEB_DIR), name="web")
+
+
+# File management endpoints
+class FileContent(BaseModel):
+    content: str
+
+
+@app.get("/files")
+async def list_files():
+    files = sorted(
+        [f.name for f in FILES_DIR.iterdir() if f.suffix in (".slbum", ".txt")]
     )
+    return files
 
 
+@app.get("/files/{filename}")
+async def get_file(filename: str):
+    filepath = FILES_DIR / filename
+    if not filepath.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    return PlainTextResponse(filepath.read_text(encoding="utf-8"))
+
+
+@app.post("/files/{filename}")
+async def save_file(filename: str, request: FileContent):
+    filepath = FILES_DIR / filename
+    filepath.write_text(request.content, encoding="utf-8")
+    return {"status": "saved", "path": str(filepath)}
+
+
+@app.delete("/files/{filename}")
+async def delete_file(filename: str):
+    filepath = FILES_DIR / filename
+    if not filepath.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    filepath.unlink()
+    return {"status": "deleted"}
+
+
+# API endpoints
 class RenderRequest(BaseModel):
     dsl: str
     source_path: Optional[str] = "untitled.slbum"
@@ -111,11 +134,12 @@ async def export_pdf(request: RenderRequest):
         with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
             pdf_path = tmp.name
             generator.generate(album, pdf_path)
-        return FileResponse(pdf_path, filename="album.pdf")
+        return FileResponse(
+            pdf_path, media_type="application/pdf", filename="album.pdf"
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080)
-

@@ -62,21 +62,21 @@ class AlbumSerializer:
             lines.append(f'ALBUM_AUTHOR("{self._escape_string(album.author)}")')
 
         ps = album.page_setup
-        lines.append(f"ALBUM_PAGES_SIZE({ps.width}, {ps.height})")
+        lines.append(f"ALBUM_PAGES_SIZE({ps.width} {ps.height})")
         lines.append(
-            f"ALBUM_PAGES_MARGINS({ps.margin_left}, {ps.margin_right}, "
-            f"{ps.margin_top}, {ps.margin_bottom})"
+            f"ALBUM_PAGES_MARGINS({ps.margin_left} {ps.margin_right} "
+            f"{ps.margin_top} {ps.margin_bottom})"
         )
 
         if ps.has_border:
             lines.append(
-                f"ALBUM_PAGES_BORDER({ps.border_outer}, {ps.border_inner1}, "
-                f"{ps.border_inner2}, {ps.border_spacing})"
+                f"ALBUM_PAGES_BORDER({ps.border_outer} {ps.border_inner1} "
+                f"{ps.border_inner2} {ps.border_spacing})"
             )
 
         for font in album.fonts:
             lines.append(
-                f'ALBUM_DEFINE_FONT("{self._escape_string(font.font_id)}", '
+                f'ALBUM_DEFINE_FONT("{self._escape_string(font.font_id)}" '
                 f'"{self._escape_string(font.font_name)}")'
             )
 
@@ -84,19 +84,21 @@ class AlbumSerializer:
             lines.append("PAGE_START")
 
             if page.background_image:
-                lines.append(f'PAGE_BACKGROUND_IMG("{self._escape_string(page.background_image)}")')
+                lines.append(
+                    f'PAGE_BACKGROUND_IMG("{self._escape_string(page.background_image)}")'
+                )
 
             for text in page.text_elements:
                 align_suffix = self._format_text_alignment(text.alignment)
                 content = self._escape_string(text.content)
                 if text.vspace:
                     lines.append(
-                        f'PAGE_TEXT{align_suffix}("{text.font_id}", {text.size}, '
-                        f'"{content}", {text.vspace})'
+                        f'PAGE_TEXT{align_suffix}("{text.font_id}" {text.size} '
+                        f'"{content}" {text.vspace})'
                     )
                 else:
                     lines.append(
-                        f'PAGE_TEXT{align_suffix}("{text.font_id}", {text.size}, "{content}")'
+                        f'PAGE_TEXT{align_suffix}("{text.font_id}" {text.size} "{content}")'
                     )
 
             if page.vspace:
@@ -105,8 +107,8 @@ class AlbumSerializer:
             for row in page.rows:
                 style_code = self._format_row_style(row.style)
                 line = (
-                    f"ROW_START_{style_code}({row.font_id}, {row.size}, "
-                    f"{row.spacing}, {row.width})"
+                    f'ROW_START_{style_code}("{row.font_id}" {row.size} '
+                    f"{row.spacing} {row.width})"
                 )
                 lines.append(line)
 
@@ -116,28 +118,30 @@ class AlbumSerializer:
                         desc = self._escape_string(stamp.description)
                         img = self._escape_string(stamp.image_path)
                         lines.append(
-                            f'STAMP_ADD_IMG({stamp.width}, {stamp.height}, '
-                            f'"{img}", "{desc}")'
+                            f'STAMP_ADD_IMG({stamp.width} {stamp.height} '
+                            f'"{img}" "{desc}")'
                         )
                     elif stamp.shape == StampShape.RECTANGLE:
                         if stamp.description:
                             desc = self._escape_string(stamp.description)
                             lines.append(
-                                f'STAMP_ADD({stamp.width}, {stamp.height}, "{desc}")'
+                                f'STAMP_ADD({stamp.width} {stamp.height} "{desc}")'
                             )
                         else:
-                            lines.append(f"STAMP_ADD_BLANK({stamp.width}, {stamp.height})")
+                            lines.append(
+                                f"STAMP_ADD_BLANK({stamp.width} {stamp.height})"
+                            )
                     else:
                         desc = self._escape_string(stamp.description)
                         lines.append(
-                            f"{cmd}({stamp.width}, {stamp.height}, "
-                            f'"{desc}", "", "", "")'
+                            f'{cmd}({stamp.width} {stamp.height} '
+                            f'"{desc}" "" "" "")'
                         )
 
                     if stamp.heading:
                         lines.append(
-                            f'STAMP_HEADING("{stamp.heading.font_id}", '
-                            f'{stamp.heading.size}, '
+                            f'STAMP_HEADING("{stamp.heading.font_id}" '
+                            f'{stamp.heading.size} '
                             f'"{self._escape_string(stamp.heading.text)}")'
                         )
 
