@@ -163,20 +163,26 @@ function newAlbum() {
     updateFileListActive();
 }
 
-async function openFile() {
-    try {
-        const response = await fetch(`${API_BASE}/files`);
-        if (!response.ok) throw new Error("Failed to list files");
-        const files = await response.json();
-        if (files.length === 0) {
-            showToast("No files found. Upload a .slbum file first.", "warning");
-            return;
-        }
-        // Open the first file for now (file browser is better)
-        loadFile(files[0]);
-    } catch (err) {
-        showToast("Error loading files: " + err.message, "error");
-    }
+function openFile() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".slbum,.txt";
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            currentFile = file.name;
+            document.getElementById("file-name").textContent = file.name;
+            document.getElementById("btn-save").disabled = false;
+            document.getElementById("btn-export").disabled = false;
+            setEditorContent(ev.target.result);
+            showToast(`Opened ${file.name}`, "success");
+        };
+        reader.onerror = () => showToast("Failed to read file", "error");
+        reader.readAsText(file);
+    };
+    input.click();
 }
 
 async function loadFile(filename) {
