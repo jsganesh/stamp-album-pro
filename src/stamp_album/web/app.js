@@ -513,8 +513,12 @@ function insertStampElement(shape, width, height, x, y) {
     const dsl = getEditorContent();
     const lines = dsl.split("\n");
 
-    const shapeCmd = shape === "rectangle" ? "STAMP_ADD" : `STAMP_ADD_${shape.toUpperCase()}`;
-    const newLine = `${shapeCmd}(${width} ${height} "New Stamp")`;
+    // Shape commands require 6 params: width height description catalog1 catalog2 catalog3
+    const catalogRefs = '"" "" ""';
+    const newLine =
+        shape === "rectangle"
+            ? `STAMP_ADD(${width} ${height} "New Stamp" ${catalogRefs})`
+            : `STAMP_ADD_${shape.toUpperCase()}(${width} ${height} "New Stamp" ${catalogRefs})`;
 
     // Find the last row to add to, or create a new row
     let insertIdx = -1;
