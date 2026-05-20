@@ -15,6 +15,40 @@ parser = AlbumParser()
 serializer = AlbumSerializer()
 
 
+@app.get("/")
+async def root():
+    return HTMLResponse(
+        """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>StampAlbum Pro API</title>
+            <style>
+                body { font-family: system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+                h1 { color: #1a1a2e; }
+                .endpoint { background: #f4f4f5; padding: 12px 16px; margin: 8px 0; border-radius: 6px; font-family: monospace; }
+                .method { display: inline-block; padding: 2px 8px; border-radius: 4px; font-weight: bold; margin-right: 8px; }
+                .post { background: #4ade80; color: #064e3b; }
+                .get { background: #60a5fa; color: #1e3a5f; }
+                a { color: #2563eb; }
+            </style>
+        </head>
+        <body>
+            <h1>StampAlbum Pro API</h1>
+            <p>API server is running. Visit <a href="/docs">/docs</a> for interactive API documentation.</p>
+            <h2>Endpoints</h2>
+            <div class="endpoint"><span class="method get">GET</span> / — This page</div>
+            <div class="endpoint"><span class="method get">GET</span> /docs — Swagger UI</div>
+            <div class="endpoint"><span class="method post">POST</span> /render — Render DSL to HTML preview</div>
+            <div class="endpoint"><span class="method post">POST</span> /parse — Parse DSL to JSON model</div>
+            <div class="endpoint"><span class="method post">POST</span> /visual-update — Update stamp position via visual builder</div>
+            <div class="endpoint"><span class="method post">POST</span> /export — Generate and download PDF</div>
+        </body>
+        </html>
+        """
+    )
+
+
 class RenderRequest(BaseModel):
     dsl: str
     source_path: Optional[str] = "untitled.slbum"
