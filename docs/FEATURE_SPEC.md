@@ -1,11 +1,11 @@
 # StampAlbum Pro - Feature Specification
 
 ## Overview
-A modern desktop application for creating professional stamp album pages for display and competition use. Generates high-quality PDF output from a declarative configuration format.
+A modern web application for creating professional stamp album pages for display and competition use. Generates high-quality PDF output from a declarative configuration format, with a live preview that updates as you type.
 
 ---
 
-## Phase 1: Core Features
+## Phase 1: Core Features (Complete)
 
 ### 1.1 Page Layout System
 - **Page sizes**: A4, US Letter, A3, custom dimensions
@@ -65,51 +65,93 @@ A modern desktop application for creating professional stamp album pages for dis
 
 ---
 
-## Phase 2: UI Features
+## Phase 2: Web Application (Complete)
 
-### 2.1 Main Interface
-- **Split view**: Editor and status log
-- **Toolbar**: File operations, generate, view, font, configure, wizard, help
-- **Status bar**: Editor position, mode, encoding
-- **Recent files**: Quick access to recently opened albums
+### 2.1 Web Interface
+- **Split view**: Editor and live preview panels
+- **Toolbar**: New, Open, Save, Export PDF actions
+- **Status bar**: File name, save status, operation feedback
+- **Keyboard shortcuts**: Ctrl+S (save), Ctrl+O (open), Ctrl+N (new), Ctrl+E (export)
 
 ### 2.2 Text Editor
-- **Syntax highlighting**: Commands, strings, comments, parameters
-- **Line numbers**: With current line highlighting
-- **Bracket matching**: Visual bracket pair highlighting
-- **Find/Replace**: Find, find next, find and replace
+- **CodeMirror**: Syntax highlighting, line numbers, dark theme
+- **Auto-save**: Debounced file saving
 - **Undo/Redo**: Full edit history
-- **File change detection**: Detect external modifications
-- **Customizable shortcuts**: User-defined keyboard shortcuts
-- **Print support**: Print source files
+- **File change detection**: Modified indicator
 
-### 2.3 Configuration
-- **General settings**: Work directory, recent files count
-- **Editor settings**: Font, size, syntax colors, dark mode
-- **Key map**: Custom keyboard shortcuts
-- **Advanced settings**: Unicode mode, system fonts inclusion
+### 2.3 Live Preview
+- **Auto-refresh**: Debounced preview update (400ms after last edit)
+- **HTML rendering**: Accurate preview matching PDF output
+- **Error display**: Parse errors shown inline in preview panel
+- **Toggle**: Show/hide preview panel
 
-### 2.4 Font Management
-- **Font scanning**: System and bundled font directories
-- **Font validation**: TTF/TTC compatibility checking
-- **Font browser**: List available fonts with details
-- **Bad font reporting**: List incompatible font files
+### 2.4 File Management
+- **File browser**: Sidebar listing all `.slbum` files
+- **Upload**: Import `.slbum` files from disk
+- **Save**: Persist files to user directory (`~/StampAlbum/`)
+- **Delete**: Remove files with confirmation
+- **Auto-detect**: Files saved from desktop app are visible in web app
 
-### 2.5 Wizard
-- **New album creation**: Step-by-step guided setup
-- **Page configuration**: Size, margins, borders
-- **Template generation**: Basic album structure with examples
+### 2.5 PDF Export
+- **One-click export**: Generate and download PDF
+- **Browser download**: PDF opens in browser or downloads
+- **Error handling**: Generation errors shown as toast notifications
 
-### 2.6 Help System
-- **Qt Help Engine**: Contents, index, search
-- **Navigation**: Home, back, forward
-- **Print support**: Print help topics
+### 2.6 REST API
+- **FastAPI server**: `/render`, `/parse`, `/export`, `/visual-update` endpoints
+- **Swagger UI**: Interactive API documentation at `/docs`
+- **File endpoints**: `/files` for CRUD operations
+- **CORS-ready**: Configured for frontend integration
 
-### 2.7 Additional Features
-- **Tip of the day**: Startup tips
-- **Dark mode**: Configurable dark theme
-- **Console mode**: Command-line batch processing
-- **Cross-platform**: macOS, Linux, Windows
+---
+
+## Phase 3: Desktop Application (Complete)
+
+### 3.1 PyQt6 Desktop App
+- **Main window**: Split editor + preview layout
+- **Menu system**: File, Edit, View, Tools, Help menus
+- **Toolbar**: Quick access to common actions
+- **Status bar**: File path, cursor position, operation feedback
+
+### 3.2 Desktop Editor
+- **Syntax highlighting**: DSL command highlighting
+- **Line numbers**: With current line tracking
+- **Find/Replace**: Search text in editor
+- **Undo/Redo**: Full edit history
+
+### 3.3 Desktop Preview
+- **WeasyPrint rendering**: Accurate page preview as images
+- **Page navigation**: Multi-page album support
+- **Zoom controls**: 50% to 200% zoom levels
+- **Toggle**: Show/hide preview panel
+
+### 3.4 Visual Builder
+- **Canvas**: Visual representation of page layout
+- **Property panel**: Edit stamp properties
+- **Auto-arrange**: Row-first, grid, packing, balanced layouts
+- **Dialog**: Visual builder modal for page editing
+
+### 3.5 macOS App Bundle
+- **PyInstaller**: Self-contained `.app` bundle
+- **Bundled dylibs**: WeasyPrint native libraries included
+- **No brew required**: Works without Homebrew on target machines
+- **Build script**: `./build.sh` for reproducible builds
+
+---
+
+## Phase 4: Serializer & Round-Trip (Complete)
+
+### 4.1 DSL Serializer
+- **Model-to-DSL**: Convert Album models back to DSL text
+- **All commands**: Supports all DSL commands and variants
+- **String escaping**: Proper quote and backslash handling
+- **Stamp shapes**: Rectangle, triangle, diamond, oval, etc.
+- **Text alignment**: Correct PAGE_TEXT variants
+
+### 4.2 Visual Builder Bridge
+- **`/visual-update` API**: Update stamp position via API
+- **Round-trip**: Parse DSL → modify model → serialize back to DSL
+- **Editor sync**: Visual changes reflected in text editor
 
 ---
 
@@ -123,32 +165,25 @@ A modern desktop application for creating professional stamp album pages for dis
 - String literals in quotes
 
 ### Output Format
-- PDF generation via LibHaru
+- PDF generation via WeasyPrint
 - Measurements in millimeters
 - Font sizes in points
-- 72 DPI rendering
+- HTML preview rendering
 
 ### Platform Support
+- **Web**: Any modern browser (Chrome, Firefox, Safari, Edge)
 - **macOS**: ARM64 (Apple Silicon), Intel
-- **Linux**: 64-bit
-- **Windows**: 32-bit, 64-bit
+- **Linux**: 64-bit (web app)
+- **Windows**: 64-bit (web app)
 
 ---
 
-## Future Enhancements (Not in Original)
+## Future Enhancements
 
-### Live Preview
-- Real-time PDF preview while editing
-- Auto-refresh on file save
-
-### Multi-Document Interface
-- Tabbed editing for multiple albums
-- Drag-and-drop tab reordering
-
-### Visual Builder
-- Drag-and-drop stamp placement
-- Visual row/column configuration
-- Template gallery with previews
+### Visual Builder (Web)
+- Drag-and-drop stamp placement on preview
+- React-based visual canvas overlay
+- Real-time DSL sync via WebSocket
 
 ### Advanced Typography
 - Inline text formatting (bold, italic, etc.)
@@ -168,3 +203,8 @@ A modern desktop application for creating professional stamp album pages for dis
 - SVG
 - HTML/CSS web gallery
 - EPUB
+
+### Collaboration
+- Multi-user editing
+- Version history
+- Cloud sync
