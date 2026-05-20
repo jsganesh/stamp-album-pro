@@ -346,6 +346,10 @@ body {
     box-shadow: 0 4px 24px rgba(0,0,0,0.3);
 }
 
+.visual-mode #preview-frame {
+    pointer-events: none;
+}
+
 /* Status Bar */
 #status-bar {
     display: flex;
@@ -543,6 +547,10 @@ body {
     z-index: 50;
 }
 
+#preview-panel:not(.preview-hidden) #visual-overlay:not(.visual-hidden) {
+    pointer-events: all;
+}
+
 .visual-hidden {
     display: none !important;
 }
@@ -619,10 +627,12 @@ body {
 /* Drop indicator */
 .drop-indicator {
     position: absolute;
-    border: 2px dashed var(--accent);
-    background: rgba(88, 166, 255, 0.1);
+    border: 2px dashed #58a6ff;
+    background: rgba(88, 166, 255, 0.15);
     pointer-events: none;
     z-index: 51;
+    border-radius: 4px;
+    display: none;
 }
 
 /* Visual mode active - shift editor to make room for toolbox */

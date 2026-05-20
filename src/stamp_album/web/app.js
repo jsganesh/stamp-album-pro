@@ -368,6 +368,7 @@ function escapeAttr(str) {
 let visualMode = false;
 let visualElements = [];
 let dragData = null;
+let dropIndicator = null;
 
 function initVisualBuilder() {
     const toggle = document.getElementById("toggle-visual");
@@ -376,6 +377,9 @@ function initVisualBuilder() {
         document.body.classList.toggle("visual-mode", visualMode);
         document.getElementById("visual-toolbox").classList.toggle("toolbox-hidden", !visualMode);
         document.getElementById("visual-overlay").classList.toggle("visual-hidden", !visualMode);
+
+        const frame = document.getElementById("preview-frame");
+        frame.style.pointerEvents = visualMode ? "none" : "auto";
 
         if (visualMode) {
             renderVisualOverlay();
@@ -401,29 +405,43 @@ function initToolboxDrag() {
             };
             e.dataTransfer.effectAllowed = "copy";
             e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
+            item.style.opacity = "0.5";
+        });
+
+        item.addEventListener("dragend", (e) => {
+            item.style.opacity = "1";
+            removeDropIndicator();
         });
     });
 }
 
 function initOverlayDrop() {
     const overlay = document.getElementById("visual-overlay");
-    const container = document.getElementById("preview-container");
 
-    container.addEventListener("dragover", (e) => {
+    overlay.addEventListener("dragover", (e) => {
         if (!visualMode) return;
         e.preventDefault();
         e.dataTransfer.dropEffect = "copy";
+        showDropIndicator(e);
     });
 
-    container.addEventListener("drop", (e) => {
+    overlay.addEventListener("dragleave", (e) => {
+        removeDropIndicator();
+    });
+
+    overlay.addEventListener("drop", (e) => {
         if (!visualMode) return;
         e.preventDefault();
+        removeDropIndicator();
 
         try {
-            const data = JSON.parse(e.dataTransfer.getData("text/plain"));
-            const rect = container.getBoundingClientRect();
-            const x = e.clientX - rect.left + container.scrollLeft;
-            const y = e.clientY - rect.top + container.scrollTop;
+            const raw = e.dataTransfer.getData("text/plain");
+            if (!raw) return;
+            const data = JSON.parse(raw);
+
+            const rect = overlay.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
 
             if (data.type === "text") {
                 insertTextElement(data.align, x, y);
@@ -436,6 +454,28 @@ function initOverlayDrop() {
             // Ignore invalid drops
         }
     });
+}
+
+function showDropIndicator(e) {
+    if (!dropIndicator) {
+        dropIndicator = document.createElement("div");
+        dropIndicator.className = "drop-indicator";
+        document.getElementById("visual-overlay").appendChild(dropIndicator);
+    }
+    const rect = document.getElementById("visual-overlay").getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    dropIndicator.style.left = (x - 30) + "px";
+    dropIndicator.style.top = (y - 15) + "px";
+    dropIndicator.style.width = "60px";
+    dropIndicator.style.height = "30px";
+    dropIndicator.style.display = "block";
+}
+
+function removeDropIndicator() {
+    if (dropIndicator) {
+        dropIndicator.style.display = "none";
+    }
 }
 
 function insertTextElement(align, x, y) {
