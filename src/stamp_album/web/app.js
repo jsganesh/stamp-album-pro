@@ -32,6 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initEditor();
     initButtons();
     initKeyboardShortcuts();
+    initVisualBuilder();
     loadFileList();
     setEditorContent(DEFAULT_DSL);
     refreshPreview();
@@ -355,4 +356,183 @@ function escapeHtml(str) {
 
 function escapeAttr(str) {
     return str.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+}
+
+// Visual Builder
+let visualMode = false;
+let visualElements = [];
+let dragData = null;
+
+function initVisualBuilder() {
+    const toggle = document.getElementById("toggle-visual");
+    toggle.addEventListener("change", (e) => {
+        visualMode = e.target.checked;
+        document.body.classList.toggle("visual-mode", visualMode);
+        document.getElementById("visual-toolbox").classList.toggle("toolbox-hidden", !visualMode);
+        document.getElementById("visual-overlay").classList.toggle("visual-hidden", !visualMode);
+
+        if (visualMode) {
+            renderVisualOverlay();
+        } else {
+            clearVisualOverlay();
+        }
+    });
+
+    initToolboxDrag();
+    initOverlayDrop();
+}
+
+function initToolboxDrag() {
+    document.querySelectorAll(".toolbox-item").forEach((item) => {
+        item.addEventListener("dragstart", (e) => {
+            dragData = {
+                type: item.dataset.type,
+                align: item.dataset.align || "left",
+                shape: item.dataset.shape || "rectangle",
+                width: parseFloat(item.dataset.w) || 40,
+                height: parseFloat(item.dataset.h) || 30,
+                style: item.dataset.style || "FS",
+            };
+            e.dataTransfer.effectAllowed = "copy";
+            e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
+        });
+    });
+}
+
+function initOverlayDrop() {
+    const overlay = document.getElementById("visual-overlay");
+    const container = document.getElementById("preview-container");
+
+    container.addEventListener("dragover", (e) => {
+        if (!visualMode) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "copy";
+    });
+
+    container.addEventListener("drop", (e) => {
+        if (!visualMode) return;
+        e.preventDefault();
+
+        try {
+            const data = JSON.parse(e.dataTransfer.getData("text/plain"));
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left + container.scrollLeft;
+            const y = e.clientY - rect.top + container.scrollTop;
+
+            if (data.type === "text") {
+                insertTextElement(data.align, x, y);
+            } else if (data.type === "stamp") {
+                insertStampElement(data.shape, data.width, data.height, x, y);
+            } else if (data.type === "row") {
+                insertRowElement(data.style, x, y);
+            }
+        } catch (err) {
+            // Ignore invalid drops
+        }
+    });
+}
+
+function insertTextElement(align, x, y) {
+    const dsl = getEditorContent();
+    const lines = dsl.split("\n");
+    const text = "New Text";
+    const fontId = "HN";
+    const size = 12;
+
+    const alignSuffix = align === "center" ? "_CENTRE" : align === "right" ? "_RIGHT" : "";
+    const newLine = `PAGE_TEXT${alignSuffix}("${fontId}" ${size} "${text}")`;
+
+    // Find the last PAGE_START or insert after existing text elements
+    let insertIdx = -1;
+    for (let i = lines.length - 1; i >= 0; i--) {
+        if (lines[i].trim().startsWith("PAGE_START")) {
+            insertIdx = i + 1;
+            break;
+        }
+    }
+
+    if (insertIdx === -1) {
+        lines.push("PAGE_START");
+        lines.push(newLine);
+    } else {
+        lines.splice(insertIdx, 0, newLine);
+    }
+
+    setEditorContent(lines.join("\n"));
+    refreshPreview();
+    showToast("Text element added", "success");
+}
+
+function insertStampElement(shape, width, height, x, y) {
+    const dsl = getEditorContent();
+    const lines = dsl.split("\n");
+
+    const shapeCmd = shape === "rectangle" ? "STAMP_ADD" : `STAMP_ADD_${shape.toUpperCase()}`;
+    const newLine = `${shapeCmd}(${width} ${height} "New Stamp")`;
+
+    // Find the last row to add to, or create a new row
+    let insertIdx = -1;
+    for (let i = lines.length - 1; i >= 0; i--) {
+        if (lines[i].trim().startsWith("ROW_START_")) {
+            insertIdx = i + 1;
+            break;
+        }
+    }
+
+    if (insertIdx === -1) {
+        // Find last PAGE_START
+        for (let i = lines.length - 1; i >= 0; i--) {
+            if (lines[i].trim().startsWith("PAGE_START")) {
+                lines.splice(i + 1, 0, 'ROW_START_FS("HN" 10 5 180)');
+                lines.splice(i + 2, 0, newLine);
+                break;
+            }
+        }
+    } else {
+        lines.splice(insertIdx, 0, newLine);
+    }
+
+    setEditorContent(lines.join("\n"));
+    refreshPreview();
+    showToast("Stamp element added", "success");
+}
+
+function insertRowElement(style, x, y) {
+    const dsl = getEditorContent();
+    const lines = dsl.split("\n");
+
+    const newLine = `ROW_START_${style}("HN" 10 5 180)`;
+
+    // Find the last PAGE_START
+    let insertIdx = -1;
+    for (let i = lines.length - 1; i >= 0; i--) {
+        if (lines[i].trim().startsWith("PAGE_START")) {
+            insertIdx = i + 1;
+            break;
+        }
+    }
+
+    if (insertIdx === -1) {
+        lines.push("PAGE_START");
+        lines.push(newLine);
+    } else {
+        lines.splice(insertIdx, 0, newLine);
+    }
+
+    setEditorContent(lines.join("\n"));
+    refreshPreview();
+    showToast("Row element added", "success");
+}
+
+function renderVisualOverlay() {
+    clearVisualOverlay();
+    // Parse current DSL and render draggable elements
+    // This is a simplified version - full implementation would parse all elements
+    const overlay = document.getElementById("visual-overlay");
+    overlay.innerHTML = '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--text-muted);font-size:13px;text-align:center;pointer-events:none">Drag elements from the toolbox onto the preview</div>';
+}
+
+function clearVisualOverlay() {
+    const overlay = document.getElementById("visual-overlay");
+    overlay.innerHTML = "";
 }

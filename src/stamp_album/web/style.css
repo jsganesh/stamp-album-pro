@@ -417,3 +417,219 @@ body {
     from { transform: translateY(20px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
+
+/* Visual Builder Toggle */
+.toggle-visual {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.toggle-visual:hover {
+    background: var(--bg-hover);
+}
+
+.toggle-visual input {
+    accent-color: var(--accent);
+}
+
+/* Visual Toolbox */
+#visual-toolbox {
+    position: fixed;
+    left: 0;
+    top: var(--toolbar-height);
+    bottom: var(--statusbar-height);
+    width: 180px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s;
+    overflow-y: auto;
+}
+
+.toolbox-hidden {
+    transform: translateX(-100%);
+}
+
+.toolbox-header {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.toolbox-header h3 {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+}
+
+.toolbox-section {
+    padding: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.toolbox-section h4 {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    padding-left: 4px;
+}
+
+.toolbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: grab;
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--bg-tertiary);
+    margin-bottom: 4px;
+    user-select: none;
+}
+
+.toolbox-item:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.toolbox-item:active {
+    cursor: grabbing;
+}
+
+.stamp-preview {
+    width: 20px;
+    height: 15px;
+    border: 1px solid var(--text-muted);
+    flex-shrink: 0;
+}
+
+.stamp-preview.rect {
+    border-radius: 0;
+}
+
+.stamp-preview.oval {
+    border-radius: 50%;
+}
+
+.stamp-preview.diamond {
+    transform: rotate(45deg) scale(0.7);
+}
+
+.stamp-preview.triangle {
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    border: none;
+    background: var(--text-muted);
+}
+
+/* Visual Overlay */
+#visual-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 50;
+}
+
+.visual-hidden {
+    display: none !important;
+}
+
+.visual-element {
+    position: absolute;
+    pointer-events: all;
+    cursor: move;
+    border: 2px solid transparent;
+    transition: border-color 0.15s;
+}
+
+.visual-element:hover {
+    border-color: var(--accent);
+}
+
+.visual-element.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.3);
+}
+
+.visual-element.text-element {
+    background: rgba(88, 166, 255, 0.1);
+    padding: 4px 8px;
+    font-size: 12px;
+    min-width: 60px;
+    min-height: 20px;
+}
+
+.visual-element.stamp-element {
+    background: rgba(63, 185, 80, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.visual-element.stamp-element.shape-oval {
+    border-radius: 50%;
+}
+
+.visual-element.stamp-element.shape-diamond {
+    transform: rotate(45deg);
+}
+
+.visual-element.stamp-element.shape-triangle {
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.visual-element.row-element {
+    background: rgba(210, 153, 34, 0.1);
+    border: 2px dashed var(--warning);
+    min-height: 40px;
+}
+
+.visual-element .resize-handle {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 10px;
+    height: 10px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: nwse-resize;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.visual-element:hover .resize-handle {
+    opacity: 1;
+}
+
+/* Drop indicator */
+.drop-indicator {
+    position: absolute;
+    border: 2px dashed var(--accent);
+    background: rgba(88, 166, 255, 0.1);
+    pointer-events: none;
+    z-index: 51;
+}
+
+/* Visual mode active - shift editor to make room for toolbox */
+.visual-mode #main-content {
+    padding-left: 180px;
+}
+
+.visual-mode #sidebar {
+    left: 180px;
+}

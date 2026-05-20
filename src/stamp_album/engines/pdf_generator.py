@@ -132,17 +132,12 @@ class HTMLRenderer:
             width: {width_mm}mm;
             height: {height_mm}mm;
             pointer-events: none;
-            z-index: 1;
+            z-index: 100;
         }}
 
         .page-content {{
-            position: absolute;
-            top: {mt}mm;
-            left: {ml}mm;
-            width: {content_width}mm;
-            height: {content_height}mm;
-            overflow: hidden;
-            z-index: 2;
+            position: relative;
+            z-index: 1;
         }}
 
         .page-title {{
