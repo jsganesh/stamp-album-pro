@@ -106,6 +106,20 @@ function initKeyboardShortcuts() {
 
 // Wizard
 function initWizard() {
+    // Accordion toggle
+    document.querySelectorAll(".section-header").forEach((header) => {
+        header.addEventListener("click", () => {
+            const section = header.closest(".wizard-section");
+            const wasOpen = section.classList.contains("open");
+            // Close all sections
+            document.querySelectorAll(".wizard-section").forEach((s) => s.classList.remove("open"));
+            // Toggle clicked section
+            if (!wasOpen) {
+                section.classList.add("open");
+            }
+        });
+    });
+
     // Paper size selection
     document.querySelectorAll(".paper-option").forEach((opt) => {
         opt.addEventListener("click", () => {
@@ -114,8 +128,9 @@ function initWizard() {
             wizardState.paperSize = opt.dataset.size;
             wizardState.paperWidth = parseFloat(opt.dataset.w);
             wizardState.paperHeight = parseFloat(opt.dataset.h);
-            document.getElementById("btn-next-border").disabled = false;
+            document.getElementById("val-paper").textContent = `${wizardState.paperSize} (${wizardState.paperWidth}×${wizardState.paperHeight}mm)`;
             document.getElementById("btn-export").disabled = false;
+            collapseAndOpen("section-paper", "section-border");
             updatePreviewFromWizard();
         });
     });
@@ -126,7 +141,9 @@ function initWizard() {
             document.querySelectorAll(".border-option").forEach((o) => o.classList.remove("selected"));
             opt.classList.add("selected");
             wizardState.border = opt.dataset.border;
-            document.getElementById("btn-next-layout").disabled = false;
+            const label = opt.querySelector("span").textContent;
+            document.getElementById("val-border").textContent = label;
+            collapseAndOpen("section-border", "section-layout");
             updatePreviewFromWizard();
         });
     });
@@ -137,39 +154,21 @@ function initWizard() {
             document.querySelectorAll(".layout-option").forEach((o) => o.classList.remove("selected"));
             opt.classList.add("selected");
             wizardState.columns = parseInt(opt.dataset.columns);
-            document.getElementById("btn-start-building").disabled = false;
+            const labels = { 0: "Free", 1: "Single", 2: "Two", 3: "Three" };
+            document.getElementById("val-layout").textContent = labels[wizardState.columns] || "Not set";
+            collapseAndOpen("section-layout", "section-build");
             updatePreviewFromWizard();
+            initDragDrop();
         });
     });
 
-    // Navigation
-    document.getElementById("btn-next-border").addEventListener("click", () => goToStep(2));
-    document.getElementById("btn-back-paper").addEventListener("click", () => goToStep(1));
-    document.getElementById("btn-next-layout").addEventListener("click", () => goToStep(3));
-    document.getElementById("btn-back-border").addEventListener("click", () => goToStep(2));
-    document.getElementById("btn-start-building").addEventListener("click", () => {
-        goToStep(4);
-        wizardState.complete = true;
-        initDragDrop();
-    });
-
-    // Start with wizard open and at step 1
-    goToStep(1);
+    // Start with first section open
+    document.getElementById("section-paper").classList.add("open");
 }
 
-function goToStep(step) {
-    wizardState.step = step;
-    document.querySelectorAll(".wizard-step").forEach((s) => s.classList.remove("active"));
-
-    const stepMap = {
-        1: "step-paper",
-        2: "step-border",
-        3: "step-layout",
-        4: "step-build",
-    };
-
-    document.getElementById(stepMap[step]).classList.add("active");
-    document.getElementById("wizard-step-label").textContent = `Step ${step} of 4`;
+function collapseAndOpen(closeId, openId) {
+    document.getElementById(closeId).classList.remove("open");
+    document.getElementById(openId).classList.add("open");
 }
 
 function updatePreviewFromWizard() {
@@ -182,22 +181,22 @@ function updatePreviewFromWizard() {
 
     if (wizardState.border && wizardState.border !== "none") {
         const borderMap = {
-            single: "ALBUM_PAGES_BORDER(0.1 0 0 0)",
-            double: "ALBUM_PAGES_BORDER(0.1 0.5 0 0)",
-            triple: "ALBUM_PAGES_BORDER(0.1 0.5 0.1 1.0)",
-            ornate: "ALBUM_PAGES_BORDER(0.2 0.5 0.2 1.5)",
-            classic: "ALBUM_PAGES_BORDER(0.1 0.3 0.1 0.5)",
+            single: "ALBUM_PAGES_BORDER(0.15 0 0 0)",
+            double: "ALBUM_PAGES_BORDER(0.15 0.15 0 0.5)",
+            triple: "ALBUM_PAGES_BORDER(0.15 0.15 0.15 1.0)",
+            ornate: "ALBUM_PAGES_BORDER(0.2 0.15 0.2 1.5)",
+            classic: "ALBUM_PAGES_BORDER(0.15 0.1 0.15 0.5)",
             modern: "ALBUM_PAGES_BORDER(0.3 0 0 0)",
-            corner: "ALBUM_PAGES_BORDER(0.1 0 0 0)",
-            dashed: "ALBUM_PAGES_BORDER(0.1 0 0 0)",
-            dotted: "ALBUM_PAGES_BORDER(0.1 0 0 0)",
+            corner: "ALBUM_PAGES_BORDER(0.15 0 0 0)",
+            dashed: "ALBUM_PAGES_BORDER(0.15 0 0 0)",
+            dotted: "ALBUM_PAGES_BORDER(0.15 0 0 0)",
         };
         if (borderMap[wizardState.border]) {
             lines.push(borderMap[wizardState.border]);
         }
     }
 
-    if (wizardState.columns) {
+    if (wizardState.columns !== null) {
         lines.push("PAGE_START");
         if (wizardState.columns > 1) {
             lines.push(`PAGE_COLUMN_START(10)`);
@@ -451,10 +450,14 @@ function newAlbum() {
     document.getElementById("file-name").textContent = "Untitled";
     document.getElementById("btn-save").disabled = true;
     document.getElementById("btn-export").disabled = true;
-    wizardState = { step: 1, paperSize: null, paperWidth: null, paperHeight: null, border: null, columns: null, complete: false };
-    goToStep(1);
+    wizardState = { paperSize: null, paperWidth: null, paperHeight: null, border: null, columns: null };
     document.querySelectorAll(".paper-option, .border-option, .layout-option").forEach((o) => o.classList.remove("selected"));
-    editor.setValue(DEFAULT_DSL);
+    document.querySelectorAll(".wizard-section").forEach((s) => s.classList.remove("open"));
+    document.getElementById("section-paper").classList.add("open");
+    document.getElementById("val-paper").textContent = "Not set";
+    document.getElementById("val-border").textContent = "Not set";
+    document.getElementById("val-layout").textContent = "Not set";
+    editor.setValue("");
     updateFileListActive();
 }
 

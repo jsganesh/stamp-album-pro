@@ -63,7 +63,7 @@
             <div class="toolbar-right">
                 <label class="toggle-wizard">
                     <input type="checkbox" id="toggle-wizard" checked>
-                    <span>Wizard</span>
+                    <span>Setup</span>
                 </label>
                 <label class="toggle-sidebar">
                     <input type="checkbox" id="toggle-sidebar">
@@ -78,196 +78,218 @@
             <aside id="wizard-panel">
                 <div class="wizard-header">
                     <h3>Album Setup</h3>
-                    <span id="wizard-step-label">Step 1 of 3</span>
                 </div>
 
-                <!-- Step 1: Paper Size -->
-                <div class="wizard-step active" id="step-paper">
-                    <h4>Paper Size</h4>
-                    <p class="step-desc">Choose your display page size</p>
-                    <div class="paper-options">
-                        <div class="paper-option" data-size="A4" data-w="210" data-h="297">
-                            <div class="paper-preview a4"></div>
-                            <span>A4</span>
-                            <small>210 × 297mm</small>
-                        </div>
-                        <div class="paper-option" data-size="A3" data-w="297" data-h="420">
-                            <div class="paper-preview a3"></div>
-                            <span>A3</span>
-                            <small>297 × 420mm</small>
-                        </div>
-                        <div class="paper-option" data-size="Letter" data-w="216" data-h="279">
-                            <div class="paper-preview letter"></div>
-                            <span>Letter</span>
-                            <small>216 × 279mm</small>
-                        </div>
-                        <div class="paper-option" data-size="Legal" data-w="216" data-h="356">
-                            <div class="paper-preview legal"></div>
-                            <span>Legal</span>
-                            <small>216 × 356mm</small>
-                        </div>
-                        <div class="paper-option" data-size="A5" data-w="148" data-h="210">
-                            <div class="paper-preview a5"></div>
-                            <span>A5</span>
-                            <small>148 × 210mm</small>
-                        </div>
-                        <div class="paper-option" data-size="Custom" data-w="250" data-h="300">
-                            <div class="paper-preview custom"></div>
-                            <span>Custom</span>
-                            <small>250 × 300mm</small>
-                        </div>
+                <!-- Section 1: Paper Size -->
+                <div class="wizard-section open" id="section-paper">
+                    <div class="section-header" data-section="paper">
+                        <span class="section-icon">📄</span>
+                        <span class="section-title">Paper Size</span>
+                        <span class="section-value" id="val-paper">Not set</span>
+                        <svg class="section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
                     </div>
-                    <button class="wizard-next" id="btn-next-border" disabled>Next: Borders →</button>
-                </div>
-
-                <!-- Step 2: Border -->
-                <div class="wizard-step" id="step-border">
-                    <h4>Page Border</h4>
-                    <p class="step-desc">Choose a border style for your display</p>
-                    <div class="border-options">
-                        <div class="border-option" data-border="none">
-                            <div class="border-preview none"></div>
-                            <span>None</span>
+                    <div class="section-content">
+                        <div class="paper-options">
+                            <div class="paper-option" data-size="A4" data-w="210" data-h="297">
+                                <div class="paper-preview a4"></div>
+                                <span>A4</span>
+                                <small>210 × 297mm</small>
+                            </div>
+                            <div class="paper-option" data-size="A3" data-w="297" data-h="420">
+                                <div class="paper-preview a3"></div>
+                                <span>A3</span>
+                                <small>297 × 420mm</small>
+                            </div>
+                            <div class="paper-option" data-size="Letter" data-w="216" data-h="279">
+                                <div class="paper-preview letter"></div>
+                                <span>Letter</span>
+                                <small>216 × 279mm</small>
+                            </div>
+                            <div class="paper-option" data-size="Legal" data-w="216" data-h="356">
+                                <div class="paper-preview legal"></div>
+                                <span>Legal</span>
+                                <small>216 × 356mm</small>
+                            </div>
+                            <div class="paper-option" data-size="A5" data-w="148" data-h="210">
+                                <div class="paper-preview a5"></div>
+                                <span>A5</span>
+                                <small>148 × 210mm</small>
+                            </div>
+                            <div class="paper-option" data-size="Custom" data-w="250" data-h="300">
+                                <div class="paper-preview custom"></div>
+                                <span>Custom</span>
+                                <small>250 × 300mm</small>
+                            </div>
                         </div>
-                        <div class="border-option" data-border="single">
-                            <div class="border-preview single"></div>
-                            <span>Single Line</span>
-                        </div>
-                        <div class="border-option" data-border="double">
-                            <div class="border-preview double"></div>
-                            <span>Double Line</span>
-                        </div>
-                        <div class="border-option" data-border="triple">
-                            <div class="border-preview triple"></div>
-                            <span>Triple Line</span>
-                        </div>
-                        <div class="border-option" data-border="ornate">
-                            <div class="border-preview ornate"></div>
-                            <span>Ornate</span>
-                        </div>
-                        <div class="border-option" data-border="classic">
-                            <div class="border-preview classic"></div>
-                            <span>Classic Frame</span>
-                        </div>
-                        <div class="border-option" data-border="modern">
-                            <div class="border-preview modern"></div>
-                            <span>Modern</span>
-                        </div>
-                        <div class="border-option" data-border="corner">
-                            <div class="border-preview corner"></div>
-                            <span>Corner Only</span>
-                        </div>
-                        <div class="border-option" data-border="dashed">
-                            <div class="border-preview dashed"></div>
-                            <span>Dashed</span>
-                        </div>
-                        <div class="border-option" data-border="dotted">
-                            <div class="border-preview dotted"></div>
-                            <span>Dotted</span>
-                        </div>
-                    </div>
-                    <div class="wizard-nav">
-                        <button class="wizard-back" id="btn-back-paper">← Back</button>
-                        <button class="wizard-next" id="btn-next-layout" disabled>Next: Layout →</button>
                     </div>
                 </div>
 
-                <!-- Step 3: Column Layout -->
-                <div class="wizard-step" id="step-layout">
-                    <h4>Column Layout</h4>
-                    <p class="step-desc">How do you want to arrange content?</p>
-                    <div class="layout-options">
-                        <div class="layout-option" data-columns="1">
-                            <div class="layout-preview one-col"></div>
-                            <span>Single Column</span>
-                        </div>
-                        <div class="layout-option" data-columns="2">
-                            <div class="layout-preview two-col"></div>
-                            <span>Two Columns</span>
-                        </div>
-                        <div class="layout-option" data-columns="3">
-                            <div class="layout-preview three-col"></div>
-                            <span>Three Columns</span>
-                        </div>
-                        <div class="layout-option" data-columns="0">
-                            <div class="layout-preview free"></div>
-                            <span>Free Form</span>
-                        </div>
+                <!-- Section 2: Border -->
+                <div class="wizard-section" id="section-border">
+                    <div class="section-header" data-section="border">
+                        <span class="section-icon">🖼</span>
+                        <span class="section-title">Border</span>
+                        <span class="section-value" id="val-border">Not set</span>
+                        <svg class="section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
                     </div>
-                    <div class="wizard-nav">
-                        <button class="wizard-back" id="btn-back-border">← Back</button>
-                        <button class="wizard-next" id="btn-start-building" disabled>Start Building →</button>
+                    <div class="section-content">
+                        <div class="border-options">
+                            <div class="border-option" data-border="none">
+                                <div class="border-preview none"></div>
+                                <span>None</span>
+                            </div>
+                            <div class="border-option" data-border="single">
+                                <div class="border-preview single"></div>
+                                <span>Single</span>
+                            </div>
+                            <div class="border-option" data-border="double">
+                                <div class="border-preview double"></div>
+                                <span>Double</span>
+                            </div>
+                            <div class="border-option" data-border="triple">
+                                <div class="border-preview triple"></div>
+                                <span>Triple</span>
+                            </div>
+                            <div class="border-option" data-border="ornate">
+                                <div class="border-preview ornate"></div>
+                                <span>Ornate</span>
+                            </div>
+                            <div class="border-option" data-border="classic">
+                                <div class="border-preview classic"></div>
+                                <span>Classic</span>
+                            </div>
+                            <div class="border-option" data-border="modern">
+                                <div class="border-preview modern"></div>
+                                <span>Modern</span>
+                            </div>
+                            <div class="border-option" data-border="corner">
+                                <div class="border-preview corner"></div>
+                                <span>Corner</span>
+                            </div>
+                            <div class="border-option" data-border="dashed">
+                                <div class="border-preview dashed"></div>
+                                <span>Dashed</span>
+                            </div>
+                            <div class="border-option" data-border="dotted">
+                                <div class="border-preview dotted"></div>
+                                <span>Dotted</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Step 4: Building (collapsed wizard) -->
-                <div class="wizard-step" id="step-build">
-                    <h4>Add Elements</h4>
-                    <p class="step-desc">Drag elements onto the preview</p>
-                    <div class="build-toolbox">
-                        <div class="build-section">
-                            <h5>Text</h5>
-                            <div class="build-item" draggable="true" data-type="text" data-align="left">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="4 7 4 4 20 4 20 7"/>
-                                    <line x1="12" y1="20" x2="12" y2="4"/>
-                                </svg>
-                                <span>Left Text</span>
+                <!-- Section 3: Layout -->
+                <div class="wizard-section" id="section-layout">
+                    <div class="section-header" data-section="layout">
+                        <span class="section-icon">📐</span>
+                        <span class="section-title">Columns</span>
+                        <span class="section-value" id="val-layout">Not set</span>
+                        <svg class="section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </div>
+                    <div class="section-content">
+                        <div class="layout-options">
+                            <div class="layout-option" data-columns="1">
+                                <div class="layout-preview one-col"></div>
+                                <span>Single</span>
                             </div>
-                            <div class="build-item" draggable="true" data-type="text" data-align="center">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="4 7 4 4 20 4 20 7"/>
-                                    <line x1="12" y1="20" x2="12" y2="4"/>
-                                </svg>
-                                <span>Center Text</span>
+                            <div class="layout-option" data-columns="2">
+                                <div class="layout-preview two-col"></div>
+                                <span>Two</span>
                             </div>
-                            <div class="build-item" draggable="true" data-type="text" data-align="right">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="4 7 4 4 20 4 20 7"/>
-                                    <line x1="12" y1="20" x2="12" y2="4"/>
-                                </svg>
-                                <span>Right Text</span>
+                            <div class="layout-option" data-columns="3">
+                                <div class="layout-preview three-col"></div>
+                                <span>Three</span>
                             </div>
-                        </div>
-                        <div class="build-section">
-                            <h5>Stamps</h5>
-                            <div class="build-item" draggable="true" data-type="stamp" data-shape="rectangle" data-w="40" data-h="30">
-                                <div class="stamp-preview rect"></div>
-                                <span>Rectangle</span>
-                            </div>
-                            <div class="build-item" draggable="true" data-type="stamp" data-shape="rectangle" data-w="30" data-h="30">
-                                <div class="stamp-preview square"></div>
-                                <span>Square</span>
-                            </div>
-                            <div class="build-item" draggable="true" data-type="stamp" data-shape="oval" data-w="40" data-h="30">
-                                <div class="stamp-preview oval"></div>
-                                <span>Oval</span>
-                            </div>
-                            <div class="build-item" draggable="true" data-type="stamp" data-shape="diamond" data-w="40" data-h="30">
-                                <div class="stamp-preview diamond"></div>
-                                <span>Diamond</span>
-                            </div>
-                            <div class="build-item" draggable="true" data-type="stamp" data-shape="triangle" data-w="40" data-h="30">
-                                <div class="stamp-preview triangle"></div>
-                                <span>Triangle</span>
+                            <div class="layout-option" data-columns="0">
+                                <div class="layout-preview free"></div>
+                                <span>Free</span>
                             </div>
                         </div>
-                        <div class="build-section">
-                            <h5>Rows</h5>
-                            <div class="build-item" draggable="true" data-type="row" data-style="FS">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="3" width="18" height="18" rx="2"/>
-                                    <line x1="3" y1="9" x2="21" y2="9"/>
-                                </svg>
-                                <span>Fixed Row</span>
+                    </div>
+                </div>
+
+                <!-- Section 4: Build -->
+                <div class="wizard-section" id="section-build">
+                    <div class="section-header" data-section="build">
+                        <span class="section-icon">🔧</span>
+                        <span class="section-title">Elements</span>
+                        <span class="section-value">Drag to preview</span>
+                        <svg class="section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </div>
+                    <div class="section-content">
+                        <div class="build-toolbox">
+                            <div class="build-section">
+                                <h5>Text</h5>
+                                <div class="build-item" draggable="true" data-type="text" data-align="left">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="4 7 4 4 20 4 20 7"/>
+                                        <line x1="12" y1="20" x2="12" y2="4"/>
+                                    </svg>
+                                    <span>Left</span>
+                                </div>
+                                <div class="build-item" draggable="true" data-type="text" data-align="center">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="4 7 4 4 20 4 20 7"/>
+                                        <line x1="12" y1="20" x2="12" y2="4"/>
+                                    </svg>
+                                    <span>Center</span>
+                                </div>
+                                <div class="build-item" draggable="true" data-type="text" data-align="right">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="4 7 4 4 20 4 20 7"/>
+                                        <line x1="12" y1="20" x2="12" y2="4"/>
+                                    </svg>
+                                    <span>Right</span>
+                                </div>
                             </div>
-                            <div class="build-item" draggable="true" data-type="row" data-style="ES">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="3" width="18" height="18" rx="2"/>
-                                    <line x1="3" y1="9" x2="21" y2="9"/>
-                                    <line x1="9" y1="9" x2="9" y2="21"/>
-                                </svg>
-                                <span>Equal Row</span>
+                            <div class="build-section">
+                                <h5>Stamps</h5>
+                                <div class="build-item" draggable="true" data-type="stamp" data-shape="rectangle" data-w="40" data-h="30">
+                                    <div class="stamp-preview rect"></div>
+                                    <span>Rectangle</span>
+                                </div>
+                                <div class="build-item" draggable="true" data-type="stamp" data-shape="rectangle" data-w="30" data-h="30">
+                                    <div class="stamp-preview square"></div>
+                                    <span>Square</span>
+                                </div>
+                                <div class="build-item" draggable="true" data-type="stamp" data-shape="oval" data-w="40" data-h="30">
+                                    <div class="stamp-preview oval"></div>
+                                    <span>Oval</span>
+                                </div>
+                                <div class="build-item" draggable="true" data-type="stamp" data-shape="diamond" data-w="40" data-h="30">
+                                    <div class="stamp-preview diamond"></div>
+                                    <span>Diamond</span>
+                                </div>
+                                <div class="build-item" draggable="true" data-type="stamp" data-shape="triangle" data-w="40" data-h="30">
+                                    <div class="stamp-preview triangle"></div>
+                                    <span>Triangle</span>
+                                </div>
+                            </div>
+                            <div class="build-section">
+                                <h5>Rows</h5>
+                                <div class="build-item" draggable="true" data-type="row" data-style="FS">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                        <line x1="3" y1="9" x2="21" y2="9"/>
+                                    </svg>
+                                    <span>Fixed Row</span>
+                                </div>
+                                <div class="build-item" draggable="true" data-type="row" data-style="ES">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                        <line x1="3" y1="9" x2="21" y2="9"/>
+                                        <line x1="9" y1="9" x2="9" y2="21"/>
+                                    </svg>
+                                    <span>Equal Row</span>
+                                </div>
                             </div>
                         </div>
                     </div>
