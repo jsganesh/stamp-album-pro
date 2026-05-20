@@ -5,8 +5,16 @@ let editor = null;
 let currentFile = null;
 let debounceTimer = null;
 let isModified = false;
+let wizardState = {
+    step: 1,
+    paperSize: null,
+    paperWidth: null,
+    paperHeight: null,
+    border: null,
+    columns: null,
+    complete: false,
+};
 
-// Default template
 const DEFAULT_DSL = `ALBUM_TITLE("My Stamp Album")
 ALBUM_AUTHOR("Collector")
 
@@ -18,24 +26,21 @@ PAGE_TEXT_CENTER("Helvetica" 18 "My Stamp Collection" 5)
 PAGE_TEXT_CENTER("Helvetica" 12 "A carefully curated album")
 
 ROW_START_FS("Helvetica" 10 5 180)
-STAMP_ADD(40 30 "First Stamp")
-STAMP_ADD(40 30 "Second Stamp")
-STAMP_ADD(40 30 "Third Stamp")
+STAMP_ADD(40 30 "First Stamp" "" "" "")
+STAMP_ADD(40 30 "Second Stamp" "" "" "")
+STAMP_ADD(40 30 "Third Stamp" "" "" "")
 
 ROW_START_FS("Helvetica" 10 5 180)
-STAMP_ADD(40 30 "Fourth Stamp")
-STAMP_ADD(40 30 "Fifth Stamp")
+STAMP_ADD(40 30 "Fourth Stamp" "" "" "")
+STAMP_ADD(40 30 "Fifth Stamp" "" "" "")
 `;
 
-// Initialize
 document.addEventListener("DOMContentLoaded", () => {
     initEditor();
     initButtons();
     initKeyboardShortcuts();
-    initVisualBuilder();
+    initWizard();
     loadFileList();
-    setEditorContent(DEFAULT_DSL);
-    refreshPreview();
 });
 
 function initEditor() {
@@ -71,9 +76,9 @@ function initButtons() {
     });
     document.getElementById("file-input").addEventListener("change", handleFileUpload);
 
-    document.getElementById("toggle-preview").addEventListener("change", (e) => {
-        const panel = document.getElementById("preview-panel");
-        panel.classList.toggle("preview-hidden", !e.target.checked);
+    document.getElementById("toggle-wizard").addEventListener("change", (e) => {
+        const panel = document.getElementById("wizard-panel");
+        panel.classList.toggle("wizard-hidden", !e.target.checked);
     });
 
     document.getElementById("toggle-sidebar").addEventListener("change", (e) => {
@@ -97,6 +102,293 @@ function initKeyboardShortcuts() {
             exportPDF();
         }
     });
+}
+
+// Wizard
+function initWizard() {
+    // Paper size selection
+    document.querySelectorAll(".paper-option").forEach((opt) => {
+        opt.addEventListener("click", () => {
+            document.querySelectorAll(".paper-option").forEach((o) => o.classList.remove("selected"));
+            opt.classList.add("selected");
+            wizardState.paperSize = opt.dataset.size;
+            wizardState.paperWidth = parseFloat(opt.dataset.w);
+            wizardState.paperHeight = parseFloat(opt.dataset.h);
+            document.getElementById("btn-next-border").disabled = false;
+            document.getElementById("btn-export").disabled = false;
+            updatePreviewFromWizard();
+        });
+    });
+
+    // Border selection
+    document.querySelectorAll(".border-option").forEach((opt) => {
+        opt.addEventListener("click", () => {
+            document.querySelectorAll(".border-option").forEach((o) => o.classList.remove("selected"));
+            opt.classList.add("selected");
+            wizardState.border = opt.dataset.border;
+            document.getElementById("btn-next-layout").disabled = false;
+            updatePreviewFromWizard();
+        });
+    });
+
+    // Column layout selection
+    document.querySelectorAll(".layout-option").forEach((opt) => {
+        opt.addEventListener("click", () => {
+            document.querySelectorAll(".layout-option").forEach((o) => o.classList.remove("selected"));
+            opt.classList.add("selected");
+            wizardState.columns = parseInt(opt.dataset.columns);
+            document.getElementById("btn-start-building").disabled = false;
+            updatePreviewFromWizard();
+        });
+    });
+
+    // Navigation
+    document.getElementById("btn-next-border").addEventListener("click", () => goToStep(2));
+    document.getElementById("btn-back-paper").addEventListener("click", () => goToStep(1));
+    document.getElementById("btn-next-layout").addEventListener("click", () => goToStep(3));
+    document.getElementById("btn-back-border").addEventListener("click", () => goToStep(2));
+    document.getElementById("btn-start-building").addEventListener("click", () => {
+        goToStep(4);
+        wizardState.complete = true;
+        initDragDrop();
+    });
+
+    // Start with wizard open and at step 1
+    goToStep(1);
+}
+
+function goToStep(step) {
+    wizardState.step = step;
+    document.querySelectorAll(".wizard-step").forEach((s) => s.classList.remove("active"));
+
+    const stepMap = {
+        1: "step-paper",
+        2: "step-border",
+        3: "step-layout",
+        4: "step-build",
+    };
+
+    document.getElementById(stepMap[step]).classList.add("active");
+    document.getElementById("wizard-step-label").textContent = `Step ${step} of 4`;
+}
+
+function updatePreviewFromWizard() {
+    const lines = [];
+
+    if (wizardState.paperSize) {
+        lines.push(`ALBUM_PAGES_SIZE(${wizardState.paperWidth} ${wizardState.paperHeight})`);
+        lines.push("ALBUM_PAGES_MARGINS(15 15 15 15)");
+    }
+
+    if (wizardState.border && wizardState.border !== "none") {
+        const borderMap = {
+            single: "ALBUM_PAGES_BORDER(0.1 0 0 0)",
+            double: "ALBUM_PAGES_BORDER(0.1 0.5 0 0)",
+            triple: "ALBUM_PAGES_BORDER(0.1 0.5 0.1 1.0)",
+            ornate: "ALBUM_PAGES_BORDER(0.2 0.5 0.2 1.5)",
+            classic: "ALBUM_PAGES_BORDER(0.1 0.3 0.1 0.5)",
+            modern: "ALBUM_PAGES_BORDER(0.3 0 0 0)",
+            corner: "ALBUM_PAGES_BORDER(0.1 0 0 0)",
+            dashed: "ALBUM_PAGES_BORDER(0.1 0 0 0)",
+            dotted: "ALBUM_PAGES_BORDER(0.1 0 0 0)",
+        };
+        if (borderMap[wizardState.border]) {
+            lines.push(borderMap[wizardState.border]);
+        }
+    }
+
+    if (wizardState.columns) {
+        lines.push("PAGE_START");
+        if (wizardState.columns > 1) {
+            lines.push(`PAGE_COLUMN_START(10)`);
+        }
+    }
+
+    // Only update if we have meaningful content
+    if (lines.length > 0) {
+        const current = getEditorContent();
+        if (!current.trim() || current === DEFAULT_DSL.trim()) {
+            editor.setValue(lines.join("\n"));
+            refreshPreview();
+        }
+    }
+}
+
+// Drag and drop (initialized after step 4)
+function initDragDrop() {
+    document.querySelectorAll(".build-item").forEach((item) => {
+        item.addEventListener("dragstart", (e) => {
+            const data = {
+                type: item.dataset.type,
+                align: item.dataset.align || "left",
+                shape: item.dataset.shape || "rectangle",
+                width: parseFloat(item.dataset.w) || 40,
+                height: parseFloat(item.dataset.h) || 30,
+                style: item.dataset.style || "FS",
+            };
+            e.dataTransfer.effectAllowed = "copy";
+            e.dataTransfer.setData("text/plain", JSON.stringify(data));
+            item.style.opacity = "0.5";
+        });
+
+        item.addEventListener("dragend", (e) => {
+            item.style.opacity = "1";
+            removeDropIndicator();
+        });
+    });
+
+    const overlay = document.getElementById("visual-overlay");
+
+    overlay.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.dataTransfer.dropEffect = "copy";
+        showDropIndicator(e);
+    });
+
+    overlay.addEventListener("dragleave", () => {
+        removeDropIndicator();
+    });
+
+    overlay.addEventListener("drop", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        removeDropIndicator();
+
+        try {
+            const raw = e.dataTransfer.getData("text/plain");
+            if (!raw) return;
+            const data = JSON.parse(raw);
+
+            if (data.type === "text") {
+                insertTextElement(data.align);
+            } else if (data.type === "stamp") {
+                insertStampElement(data.shape, data.width, data.height);
+            } else if (data.type === "row") {
+                insertRowElement(data.style);
+            }
+        } catch (err) {
+            console.error("Drop failed:", err);
+        }
+    });
+}
+
+function showDropIndicator(e) {
+    if (!dropIndicator) {
+        dropIndicator = document.createElement("div");
+        dropIndicator.className = "drop-indicator";
+        document.getElementById("visual-overlay").appendChild(dropIndicator);
+    }
+    const rect = document.getElementById("visual-overlay").getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    dropIndicator.style.left = (x - 30) + "px";
+    dropIndicator.style.top = (y - 15) + "px";
+    dropIndicator.style.width = "60px";
+    dropIndicator.style.height = "30px";
+    dropIndicator.style.display = "block";
+}
+
+function removeDropIndicator() {
+    if (dropIndicator) {
+        dropIndicator.style.display = "none";
+    }
+}
+
+let dropIndicator = null;
+
+function insertTextElement(align) {
+    const dsl = getEditorContent();
+    const lines = dsl.split("\n");
+    const text = "New Text";
+    const fontId = "HN";
+    const size = 12;
+
+    const alignSuffix = align === "center" ? "_CENTRE" : align === "right" ? "_RIGHT" : "";
+    const newLine = `PAGE_TEXT${alignSuffix}("${fontId}" ${size} "${text}")`;
+
+    let insertIdx = -1;
+    for (let i = lines.length - 1; i >= 0; i--) {
+        if (lines[i].trim().startsWith("PAGE_START")) {
+            insertIdx = i + 1;
+            break;
+        }
+    }
+
+    if (insertIdx === -1) {
+        lines.push("PAGE_START");
+        lines.push(newLine);
+    } else {
+        lines.splice(insertIdx, 0, newLine);
+    }
+
+    editor.setValue(lines.join("\n"));
+    editor.setCursor(editor.lineCount() - 1, 0);
+    refreshPreview();
+    showToast("Text element added", "success");
+}
+
+function insertStampElement(shape, width, height) {
+    const dsl = getEditorContent();
+    const lines = dsl.split("\n");
+
+    const catalogRefs = '"" "" ""';
+    const newLine =
+        shape === "rectangle"
+            ? `STAMP_ADD(${width} ${height} "New Stamp" ${catalogRefs})`
+            : `STAMP_ADD_${shape.toUpperCase()}(${width} ${height} "New Stamp" ${catalogRefs})`;
+
+    let insertIdx = -1;
+    for (let i = lines.length - 1; i >= 0; i--) {
+        if (lines[i].trim().startsWith("ROW_START_")) {
+            insertIdx = i + 1;
+            break;
+        }
+    }
+
+    if (insertIdx === -1) {
+        for (let i = lines.length - 1; i >= 0; i--) {
+            if (lines[i].trim().startsWith("PAGE_START")) {
+                lines.splice(i + 1, 0, 'ROW_START_FS("HN" 10 5 180)');
+                lines.splice(i + 2, 0, newLine);
+                break;
+            }
+        }
+    } else {
+        lines.splice(insertIdx, 0, newLine);
+    }
+
+    editor.setValue(lines.join("\n"));
+    editor.setCursor(editor.lineCount() - 1, 0);
+    refreshPreview();
+    showToast("Stamp element added", "success");
+}
+
+function insertRowElement(style) {
+    const dsl = getEditorContent();
+    const lines = dsl.split("\n");
+
+    const newLine = `ROW_START_${style}("HN" 10 5 180)`;
+
+    let insertIdx = -1;
+    for (let i = lines.length - 1; i >= 0; i--) {
+        if (lines[i].trim().startsWith("PAGE_START")) {
+            insertIdx = i + 1;
+            break;
+        }
+    }
+
+    if (insertIdx === -1) {
+        lines.push("PAGE_START");
+        lines.push(newLine);
+    } else {
+        lines.splice(insertIdx, 0, newLine);
+    }
+
+    editor.setValue(lines.join("\n"));
+    editor.setCursor(editor.lineCount() - 1, 0);
+    refreshPreview();
+    showToast("Row element added", "success");
 }
 
 // Editor operations
@@ -159,7 +451,10 @@ function newAlbum() {
     document.getElementById("file-name").textContent = "Untitled";
     document.getElementById("btn-save").disabled = true;
     document.getElementById("btn-export").disabled = true;
-    setEditorContent(DEFAULT_DSL);
+    wizardState = { step: 1, paperSize: null, paperWidth: null, paperHeight: null, border: null, columns: null, complete: false };
+    goToStep(1);
+    document.querySelectorAll(".paper-option, .border-option, .layout-option").forEach((o) => o.classList.remove("selected"));
+    editor.setValue(DEFAULT_DSL);
     updateFileListActive();
 }
 
@@ -362,223 +657,4 @@ function escapeHtml(str) {
 
 function escapeAttr(str) {
     return str.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-}
-
-// Visual Builder
-let visualMode = false;
-let visualElements = [];
-let dragData = null;
-let dropIndicator = null;
-
-function initVisualBuilder() {
-    const toggle = document.getElementById("toggle-visual");
-    toggle.addEventListener("change", (e) => {
-        visualMode = e.target.checked;
-        document.body.classList.toggle("visual-mode", visualMode);
-        document.getElementById("visual-toolbox").classList.toggle("toolbox-hidden", !visualMode);
-        document.getElementById("visual-overlay").classList.toggle("visual-hidden", !visualMode);
-
-        const frame = document.getElementById("preview-frame");
-        frame.style.pointerEvents = visualMode ? "none" : "auto";
-
-        if (visualMode) {
-            renderVisualOverlay();
-        } else {
-            clearVisualOverlay();
-        }
-    });
-
-    initToolboxDrag();
-    initOverlayDrop();
-}
-
-function initToolboxDrag() {
-    document.querySelectorAll(".toolbox-item").forEach((item) => {
-        item.addEventListener("dragstart", (e) => {
-            dragData = {
-                type: item.dataset.type,
-                align: item.dataset.align || "left",
-                shape: item.dataset.shape || "rectangle",
-                width: parseFloat(item.dataset.w) || 40,
-                height: parseFloat(item.dataset.h) || 30,
-                style: item.dataset.style || "FS",
-            };
-            e.dataTransfer.effectAllowed = "copy";
-            e.dataTransfer.setData("text/plain", JSON.stringify(dragData));
-            item.style.opacity = "0.5";
-        });
-
-        item.addEventListener("dragend", (e) => {
-            item.style.opacity = "1";
-            removeDropIndicator();
-        });
-    });
-}
-
-function initOverlayDrop() {
-    const overlay = document.getElementById("visual-overlay");
-
-    overlay.addEventListener("dragover", (e) => {
-        if (!visualMode) return;
-        e.preventDefault();
-        e.stopPropagation();
-        e.dataTransfer.dropEffect = "copy";
-        showDropIndicator(e);
-    });
-
-    overlay.addEventListener("dragleave", (e) => {
-        removeDropIndicator();
-    });
-
-    overlay.addEventListener("drop", (e) => {
-        if (!visualMode) return;
-        e.preventDefault();
-        e.stopPropagation();
-        removeDropIndicator();
-
-        try {
-            const raw = e.dataTransfer.getData("text/plain");
-            if (!raw) return;
-            const data = JSON.parse(raw);
-
-            if (data.type === "text") {
-                insertTextElement(data.align);
-            } else if (data.type === "stamp") {
-                insertStampElement(data.shape, data.width, data.height);
-            } else if (data.type === "row") {
-                insertRowElement(data.style);
-            }
-        } catch (err) {
-            console.error("Drop failed:", err);
-        }
-    });
-}
-
-function showDropIndicator(e) {
-    if (!dropIndicator) {
-        dropIndicator = document.createElement("div");
-        dropIndicator.className = "drop-indicator";
-        document.getElementById("visual-overlay").appendChild(dropIndicator);
-    }
-    const rect = document.getElementById("visual-overlay").getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    dropIndicator.style.left = (x - 30) + "px";
-    dropIndicator.style.top = (y - 15) + "px";
-    dropIndicator.style.width = "60px";
-    dropIndicator.style.height = "30px";
-    dropIndicator.style.display = "block";
-}
-
-function removeDropIndicator() {
-    if (dropIndicator) {
-        dropIndicator.style.display = "none";
-    }
-}
-
-function insertTextElement(align) {
-    const dsl = getEditorContent();
-    const lines = dsl.split("\n");
-    const text = "New Text";
-    const fontId = "HN";
-    const size = 12;
-
-    const alignSuffix = align === "center" ? "_CENTRE" : align === "right" ? "_RIGHT" : "";
-    const newLine = `PAGE_TEXT${alignSuffix}("${fontId}" ${size} "${text}")`;
-
-    let insertIdx = -1;
-    for (let i = lines.length - 1; i >= 0; i--) {
-        if (lines[i].trim().startsWith("PAGE_START")) {
-            insertIdx = i + 1;
-            break;
-        }
-    }
-
-    if (insertIdx === -1) {
-        lines.push("PAGE_START");
-        lines.push(newLine);
-    } else {
-        lines.splice(insertIdx, 0, newLine);
-    }
-
-    editor.setValue(lines.join("\n"));
-    editor.setCursor(editor.lineCount() - 1, 0);
-    refreshPreview();
-    showToast("Text element added", "success");
-}
-
-function insertStampElement(shape, width, height) {
-    const dsl = getEditorContent();
-    const lines = dsl.split("\n");
-
-    const catalogRefs = '"" "" ""';
-    const newLine =
-        shape === "rectangle"
-            ? `STAMP_ADD(${width} ${height} "New Stamp" ${catalogRefs})`
-            : `STAMP_ADD_${shape.toUpperCase()}(${width} ${height} "New Stamp" ${catalogRefs})`;
-
-    let insertIdx = -1;
-    for (let i = lines.length - 1; i >= 0; i--) {
-        if (lines[i].trim().startsWith("ROW_START_")) {
-            insertIdx = i + 1;
-            break;
-        }
-    }
-
-    if (insertIdx === -1) {
-        for (let i = lines.length - 1; i >= 0; i--) {
-            if (lines[i].trim().startsWith("PAGE_START")) {
-                lines.splice(i + 1, 0, 'ROW_START_FS("HN" 10 5 180)');
-                lines.splice(i + 2, 0, newLine);
-                break;
-            }
-        }
-    } else {
-        lines.splice(insertIdx, 0, newLine);
-    }
-
-    editor.setValue(lines.join("\n"));
-    editor.setCursor(editor.lineCount() - 1, 0);
-    refreshPreview();
-    showToast("Stamp element added", "success");
-}
-
-function insertRowElement(style) {
-    const dsl = getEditorContent();
-    const lines = dsl.split("\n");
-
-    const newLine = `ROW_START_${style}("HN" 10 5 180)`;
-
-    let insertIdx = -1;
-    for (let i = lines.length - 1; i >= 0; i--) {
-        if (lines[i].trim().startsWith("PAGE_START")) {
-            insertIdx = i + 1;
-            break;
-        }
-    }
-
-    if (insertIdx === -1) {
-        lines.push("PAGE_START");
-        lines.push(newLine);
-    } else {
-        lines.splice(insertIdx, 0, newLine);
-    }
-
-    editor.setValue(lines.join("\n"));
-    editor.setCursor(editor.lineCount() - 1, 0);
-    refreshPreview();
-    showToast("Row element added", "success");
-}
-
-function renderVisualOverlay() {
-    clearVisualOverlay();
-    // Parse current DSL and render draggable elements
-    // This is a simplified version - full implementation would parse all elements
-    const overlay = document.getElementById("visual-overlay");
-    overlay.innerHTML = '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--text-muted);font-size:13px;text-align:center;pointer-events:none">Drag elements from the toolbox onto the preview</div>';
-}
-
-function clearVisualOverlay() {
-    const overlay = document.getElementById("visual-overlay");
-    overlay.innerHTML = "";
 }
