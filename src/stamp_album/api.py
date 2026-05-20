@@ -6,7 +6,6 @@ from typing import Optional
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from stamp_album.core.parser import AlbumParser
@@ -30,8 +29,14 @@ async def root():
     return FileResponse(WEB_DIR / "index.html")
 
 
-app.mount("/style.css", StaticFiles(directory=WEB_DIR), name="web")
-app.mount("/app.js", StaticFiles(directory=WEB_DIR), name="web")
+@app.get("/style.css")
+async def serve_css():
+    return FileResponse(WEB_DIR / "style.css", media_type="text/css")
+
+
+@app.get("/app.js")
+async def serve_js():
+    return FileResponse(WEB_DIR / "app.js", media_type="application/javascript")
 
 
 # File management endpoints
