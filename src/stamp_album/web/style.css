@@ -335,6 +335,7 @@ body {
     padding: 20px;
     display: flex;
     justify-content: center;
+    position: relative;
 }
 
 #preview-frame {
@@ -348,6 +349,7 @@ body {
 
 .visual-mode #preview-frame {
     pointer-events: none;
+    user-select: none;
 }
 
 /* Status Bar */
@@ -522,6 +524,12 @@ body {
     border-radius: 0;
 }
 
+.stamp-preview.square {
+    border-radius: 0;
+    width: 16px;
+    height: 16px;
+}
+
 .stamp-preview.oval {
     border-radius: 50%;
 }
@@ -539,16 +547,17 @@ body {
 /* Visual Overlay */
 #visual-overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
     z-index: 50;
+    display: none;
 }
 
-#preview-panel:not(.preview-hidden) #visual-overlay:not(.visual-hidden) {
-    pointer-events: all;
+.visual-mode #visual-overlay:not(.visual-hidden) {
+    display: block;
+    pointer-events: auto;
 }
 
 .visual-hidden {

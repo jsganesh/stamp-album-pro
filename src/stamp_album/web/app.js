@@ -421,6 +421,7 @@ function initOverlayDrop() {
     overlay.addEventListener("dragover", (e) => {
         if (!visualMode) return;
         e.preventDefault();
+        e.stopPropagation();
         e.dataTransfer.dropEffect = "copy";
         showDropIndicator(e);
     });
@@ -432,6 +433,7 @@ function initOverlayDrop() {
     overlay.addEventListener("drop", (e) => {
         if (!visualMode) return;
         e.preventDefault();
+        e.stopPropagation();
         removeDropIndicator();
 
         try {
@@ -439,19 +441,15 @@ function initOverlayDrop() {
             if (!raw) return;
             const data = JSON.parse(raw);
 
-            const rect = overlay.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
             if (data.type === "text") {
-                insertTextElement(data.align, x, y);
+                insertTextElement(data.align);
             } else if (data.type === "stamp") {
-                insertStampElement(data.shape, data.width, data.height, x, y);
+                insertStampElement(data.shape, data.width, data.height);
             } else if (data.type === "row") {
-                insertRowElement(data.style, x, y);
+                insertRowElement(data.style);
             }
         } catch (err) {
-            // Ignore invalid drops
+            console.error("Drop failed:", err);
         }
     });
 }
@@ -478,7 +476,7 @@ function removeDropIndicator() {
     }
 }
 
-function insertTextElement(align, x, y) {
+function insertTextElement(align) {
     const dsl = getEditorContent();
     const lines = dsl.split("\n");
     const text = "New Text";
@@ -488,7 +486,6 @@ function insertTextElement(align, x, y) {
     const alignSuffix = align === "center" ? "_CENTRE" : align === "right" ? "_RIGHT" : "";
     const newLine = `PAGE_TEXT${alignSuffix}("${fontId}" ${size} "${text}")`;
 
-    // Find the last PAGE_START or insert after existing text elements
     let insertIdx = -1;
     for (let i = lines.length - 1; i >= 0; i--) {
         if (lines[i].trim().startsWith("PAGE_START")) {
@@ -504,23 +501,22 @@ function insertTextElement(align, x, y) {
         lines.splice(insertIdx, 0, newLine);
     }
 
-    setEditorContent(lines.join("\n"));
+    editor.setValue(lines.join("\n"));
+    editor.setCursor(editor.lineCount() - 1, 0);
     refreshPreview();
     showToast("Text element added", "success");
 }
 
-function insertStampElement(shape, width, height, x, y) {
+function insertStampElement(shape, width, height) {
     const dsl = getEditorContent();
     const lines = dsl.split("\n");
 
-    // Shape commands require 6 params: width height description catalog1 catalog2 catalog3
     const catalogRefs = '"" "" ""';
     const newLine =
         shape === "rectangle"
             ? `STAMP_ADD(${width} ${height} "New Stamp" ${catalogRefs})`
             : `STAMP_ADD_${shape.toUpperCase()}(${width} ${height} "New Stamp" ${catalogRefs})`;
 
-    // Find the last row to add to, or create a new row
     let insertIdx = -1;
     for (let i = lines.length - 1; i >= 0; i--) {
         if (lines[i].trim().startsWith("ROW_START_")) {
@@ -530,7 +526,6 @@ function insertStampElement(shape, width, height, x, y) {
     }
 
     if (insertIdx === -1) {
-        // Find last PAGE_START
         for (let i = lines.length - 1; i >= 0; i--) {
             if (lines[i].trim().startsWith("PAGE_START")) {
                 lines.splice(i + 1, 0, 'ROW_START_FS("HN" 10 5 180)');
@@ -542,18 +537,18 @@ function insertStampElement(shape, width, height, x, y) {
         lines.splice(insertIdx, 0, newLine);
     }
 
-    setEditorContent(lines.join("\n"));
+    editor.setValue(lines.join("\n"));
+    editor.setCursor(editor.lineCount() - 1, 0);
     refreshPreview();
     showToast("Stamp element added", "success");
 }
 
-function insertRowElement(style, x, y) {
+function insertRowElement(style) {
     const dsl = getEditorContent();
     const lines = dsl.split("\n");
 
     const newLine = `ROW_START_${style}("HN" 10 5 180)`;
 
-    // Find the last PAGE_START
     let insertIdx = -1;
     for (let i = lines.length - 1; i >= 0; i--) {
         if (lines[i].trim().startsWith("PAGE_START")) {
@@ -569,7 +564,8 @@ function insertRowElement(style, x, y) {
         lines.splice(insertIdx, 0, newLine);
     }
 
-    setEditorContent(lines.join("\n"));
+    editor.setValue(lines.join("\n"));
+    editor.setCursor(editor.lineCount() - 1, 0);
     refreshPreview();
     showToast("Row element added", "success");
 }
