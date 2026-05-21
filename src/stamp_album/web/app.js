@@ -158,6 +158,7 @@ function initWizard() {
             document.getElementById("val-layout").textContent = labels[wizardState.columns] || "Not set";
             collapseAndOpen("section-layout", "section-build");
             updatePreviewFromWizard();
+            enableVisualMode();
             initDragDrop();
         });
     });
@@ -171,54 +172,43 @@ function collapseAndOpen(closeId, openId) {
     document.getElementById(openId).classList.add("open");
 }
 
+function enableVisualMode() {
+    document.body.classList.add("visual-mode");
+    document.getElementById("visual-overlay").classList.remove("visual-hidden");
+    document.getElementById("preview-frame").style.pointerEvents = "none";
+}
+
 function updatePreviewFromWizard() {
     const dsl = getEditorContent();
     const lines = dsl.split("\n");
 
-    // Separate setup lines from page content
-    const setupLines = [];
-    const pageLines = [];
-    let inPageSetup = true;
+    // Extract existing page content (everything from PAGE_START onward)
+    const pageContentLines = [];
+    const titleLines = [];
+    let foundPageStart = false;
 
     for (const line of lines) {
         const trimmed = line.trim();
-        if (inPageSetup) {
-            if (trimmed.startsWith("PAGE_START") || trimmed.startsWith("PAGE_TEXT") ||
-                trimmed.startsWith("ROW_START") || trimmed.startsWith("STAMP_") ||
-                trimmed.startsWith("PAGE_COLUMN") || trimmed.startsWith("PAGE_VSPACE") ||
-                trimmed.startsWith("PAGE_SET") || trimmed.startsWith("PAGE_BACKGROUND") ||
-                trimmed.startsWith("PAGE_ADD") || trimmed.startsWith("PAGE_RULE") ||
-                trimmed.startsWith("PAGE_QUADRILLE") || trimmed.startsWith("PAGE_TEXT_PARAGRAPH")) {
-                inPageSetup = false;
-                pageLines.push(line);
-            } else if (trimmed && !trimmed.startsWith("#")) {
-                // Replace existing setup commands
-                if (!trimmed.startsWith("ALBUM_PAGES_SIZE") && !trimmed.startsWith("ALBUM_PAGES_MARGINS") &&
-                    !trimmed.startsWith("ALBUM_PAGES_BORDER") && !trimmed.startsWith("ALBUM_PAGES_SPACING") &&
-                    !trimmed.startsWith("ALBUM_PAGES_TITLE") && !trimmed.startsWith("ALBUM_DEFINE_FONT") &&
-                    !trimmed.startsWith("ALBUM_TITLE") && !trimmed.startsWith("ALBUM_AUTHOR")) {
-                    pageLines.push(line);
-                }
-            }
-        } else {
-            pageLines.push(line);
+        if (trimmed.startsWith("PAGE_START") || trimmed.startsWith("PAGE_TEXT") ||
+            trimmed.startsWith("ROW_START") || trimmed.startsWith("STAMP_") ||
+            trimmed.startsWith("PAGE_COLUMN") || trimmed.startsWith("PAGE_VSPACE") ||
+            trimmed.startsWith("PAGE_SET") || trimmed.startsWith("PAGE_BACKGROUND") ||
+            trimmed.startsWith("PAGE_ADD") || trimmed.startsWith("PAGE_RULE") ||
+            trimmed.startsWith("PAGE_QUADRILLE") || trimmed.startsWith("PAGE_TEXT_PARAGRAPH")) {
+            foundPageStart = true;
+            pageContentLines.push(line);
+        } else if (trimmed.startsWith("ALBUM_TITLE") || trimmed.startsWith("ALBUM_AUTHOR") || trimmed.startsWith("ALBUM_DEFINE_FONT")) {
+            titleLines.push(line);
         }
+        // Skip old setup lines - they'll be regenerated
     }
 
-    // Build new setup lines
-    const newSetup = [];
-
-    // Preserve title/author if present
-    for (const line of lines) {
-        const t = line.trim();
-        if (t.startsWith("ALBUM_TITLE") || t.startsWith("ALBUM_AUTHOR") || t.startsWith("ALBUM_DEFINE_FONT")) {
-            newSetup.push(line);
-        }
-    }
+    // Build new DSL
+    const result = [...titleLines];
 
     if (wizardState.paperSize) {
-        newSetup.push(`ALBUM_PAGES_SIZE(${wizardState.paperWidth} ${wizardState.paperHeight})`);
-        newSetup.push("ALBUM_PAGES_MARGINS(15 15 15 15)");
+        result.push(`ALBUM_PAGES_SIZE(${wizardState.paperWidth} ${wizardState.paperHeight})`);
+        result.push("ALBUM_PAGES_MARGINS(15 15 15 15)");
     }
 
     if (wizardState.border && wizardState.border !== "none") {
@@ -234,29 +224,40 @@ function updatePreviewFromWizard() {
             dotted: "ALBUM_PAGES_BORDER(0.5 0 0 0)",
         };
         if (borderMap[wizardState.border]) {
-            newSetup.push(borderMap[wizardState.border]);
+            result.push(borderMap[wizardState.border]);
         }
     }
 
-    if (wizardState.columns !== null && wizardState.columns > 1) {
-        newSetup.push(`PAGE_COLUMN_START(10)`);
+    // Always add PAGE_START if we have any page-level settings or content
+    if (wizardState.paperSize || wizardState.border || wizardState.columns !== null || pageContentLines.length > 0) {
+        result.push("PAGE_START");
+
+        // Column mode goes after PAGE_START
+        if (wizardState.columns !== null && wizardState.columns > 1) {
+            result.push(`PAGE_COLUMN_START(10)`);
+        }
     }
 
-    // Ensure PAGE_START exists if there's page content
-    const hasPageStart = pageLines.some(l => l.trim().startsWith("PAGE_START"));
-    if (!hasPageStart && pageLines.length > 0) {
-        newSetup.push("PAGE_START");
+    // Append existing page content (skip duplicate PAGE_START and PAGE_COLUMN_START)
+    for (const line of pageContentLines) {
+        const t = line.trim();
+        if (t === "PAGE_START" && result[result.length - 1] === "PAGE_START") continue;
+        if (t.startsWith("PAGE_COLUMN_START") && wizardState.columns !== null) continue;
+        result.push(line);
     }
 
-    // Combine
-    const result = [...newSetup, ...pageLines].join("\n");
-    editor.setValue(result);
+    editor.setValue(result.join("\n"));
     editor.setCursor(editor.lineCount() - 1, 0);
     refreshPreview();
 }
 
 // Drag and drop (initialized after step 4)
+let dragDropInitialized = false;
+
 function initDragDrop() {
+    if (dragDropInitialized) return;
+    dragDropInitialized = true;
+
     document.querySelectorAll(".build-item").forEach((item) => {
         item.addEventListener("dragstart", (e) => {
             const data = {

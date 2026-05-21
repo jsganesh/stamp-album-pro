@@ -638,25 +638,41 @@ body {
     box-shadow: 0 4px 24px rgba(0,0,0,0.3);
 }
 
-.visual-mode #preview-frame {
-    pointer-events: none;
-    user-select: none;
-}
-
 /* Visual Overlay */
 #visual-overlay {
     position: absolute;
-    top: 20px;
-    left: 20px;
-    right: 20px;
-    bottom: 20px;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 50;
     display: none;
+    background: rgba(88, 166, 255, 0.03);
+    border: 2px dashed transparent;
+    transition: border-color 0.2s;
 }
 
-.visual-mode #visual-overlay:not(.visual-hidden) {
+body.visual-mode #visual-overlay {
     display: block;
     pointer-events: auto;
+    border-color: rgba(88, 166, 255, 0.2);
+}
+
+body.visual-mode #visual-overlay::after {
+    content: "Drop elements here";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(88, 166, 255, 0.4);
+    font-size: 14px;
+    pointer-events: none;
+}
+
+body.visual-mode #preview-frame {
+    pointer-events: none;
+    user-select: none;
+    opacity: 0.85;
 }
 
 .visual-hidden {
