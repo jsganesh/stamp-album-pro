@@ -436,20 +436,7 @@ function insertTextElement(align) {
     const alignSuffix = align === "center" ? "_CENTRE" : align === "right" ? "_RIGHT" : "";
     const newLine = `PAGE_TEXT${alignSuffix}("${fontId}" ${size} "${text}")`;
 
-    let insertIdx = -1;
-    for (let i = lines.length - 1; i >= 0; i--) {
-        if (lines[i].trim().startsWith("PAGE_START")) {
-            insertIdx = i + 1;
-            break;
-        }
-    }
-
-    if (insertIdx === -1) {
-        lines.push("PAGE_START");
-        lines.push(newLine);
-    } else {
-        lines.splice(insertIdx, 0, newLine);
-    }
+    lines.push(newLine);
 
     editor.setValue(lines.join("\n"));
     editor.setCursor(editor.lineCount() - 1, 0);
@@ -467,24 +454,12 @@ function insertStampElement(shape, width, height) {
             ? `STAMP_ADD(${width} ${height} "New Stamp" ${catalogRefs})`
             : `STAMP_ADD_${shape.toUpperCase()}(${width} ${height} "New Stamp" ${catalogRefs})`;
 
-    let insertIdx = -1;
-    for (let i = lines.length - 1; i >= 0; i--) {
-        if (lines[i].trim().startsWith("ROW_START_")) {
-            insertIdx = i + 1;
-            break;
-        }
-    }
-
-    if (insertIdx === -1) {
-        for (let i = lines.length - 1; i >= 0; i--) {
-            if (lines[i].trim().startsWith("PAGE_START")) {
-                lines.splice(i + 1, 0, 'ROW_START_FS("HN" 10 5 180)');
-                lines.splice(i + 2, 0, newLine);
-                break;
-            }
-        }
+    const lastLine = lines[lines.length - 1].trim();
+    if (lastLine.startsWith("ROW_START_") || lastLine.startsWith("STAMP_ADD")) {
+        lines.push(newLine);
     } else {
-        lines.splice(insertIdx, 0, newLine);
+        lines.push('ROW_START_FS("HN" 10 5 180)');
+        lines.push(newLine);
     }
 
     editor.setValue(lines.join("\n"));
@@ -499,20 +474,7 @@ function insertRowElement(style) {
 
     const newLine = `ROW_START_${style}("HN" 10 5 180)`;
 
-    let insertIdx = -1;
-    for (let i = lines.length - 1; i >= 0; i--) {
-        if (lines[i].trim().startsWith("PAGE_START")) {
-            insertIdx = i + 1;
-            break;
-        }
-    }
-
-    if (insertIdx === -1) {
-        lines.push("PAGE_START");
-        lines.push(newLine);
-    } else {
-        lines.splice(insertIdx, 0, newLine);
-    }
+    lines.push(newLine);
 
     editor.setValue(lines.join("\n"));
     editor.setCursor(editor.lineCount() - 1, 0);
@@ -818,21 +780,14 @@ function insertImageRef(filename) {
     const dsl = getEditorContent();
     const lines = dsl.split("\n");
 
-    let insertIdx = -1;
-    for (let i = lines.length - 1; i >= 0; i--) {
-        if (lines[i].trim().startsWith("ROW_START_")) {
-            insertIdx = i + 1;
-            break;
-        }
-    }
-
     const newLine = `STAMP_ADD_IMG (40 30 "${filename}" "" "" "" )`;
 
-    if (insertIdx === -1) {
-        lines.push("ROW_START_ES (HN 10 0.1 180)");
+    const lastLine = lines[lines.length - 1].trim();
+    if (lastLine.startsWith("ROW_START_") || lastLine.startsWith("STAMP_ADD")) {
         lines.push(newLine);
     } else {
-        lines.splice(insertIdx, 0, newLine);
+        lines.push('ROW_START_ES (HN 10 0.1 180)');
+        lines.push(newLine);
     }
 
     editor.setValue(lines.join("\n"));
