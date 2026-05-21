@@ -113,7 +113,7 @@ body {
     color: var(--text-muted);
 }
 
-.toggle-wizard, .toggle-sidebar {
+.toggle-wizard, .toggle-sidebar, .toggle-visual {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -124,11 +124,11 @@ body {
     border-radius: 6px;
 }
 
-.toggle-wizard:hover, .toggle-sidebar:hover {
+.toggle-wizard:hover, .toggle-sidebar:hover, .toggle-visual:hover {
     background: var(--bg-hover);
 }
 
-.toggle-wizard input, .toggle-sidebar input {
+.toggle-wizard input, .toggle-sidebar input, .toggle-visual input {
     accent-color: var(--accent);
 }
 

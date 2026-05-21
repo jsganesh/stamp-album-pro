@@ -85,6 +85,16 @@ function initButtons() {
         const sidebar = document.getElementById("sidebar");
         sidebar.classList.toggle("sidebar-hidden", !e.target.checked);
     });
+
+    document.getElementById("toggle-visual").addEventListener("change", (e) => {
+        if (e.target.checked) {
+            enableVisualMode();
+        } else {
+            document.body.classList.remove("visual-mode");
+            document.getElementById("visual-overlay").classList.add("visual-hidden");
+            document.getElementById("preview-frame").style.pointerEvents = "";
+        }
+    });
 }
 
 function initKeyboardShortcuts() {
@@ -228,9 +238,8 @@ function updatePreviewFromWizard() {
             zigzag: "ALBUM_PAGES_DECORATIVE_BORDER(\"zigzag\")",
         };
         if (borderMap[wizardState.border]) {
-            newSetup.push(borderMap[wizardState.border]);
+            result.push(borderMap[wizardState.border]);
         }
-    }
     }
 
     // Always add PAGE_START if we have any page-level settings or content
@@ -497,7 +506,7 @@ function newAlbum() {
     currentFile = null;
     document.getElementById("file-name").textContent = "Untitled";
     document.getElementById("btn-save").disabled = true;
-    document.getElementById("btn-export").disabled = true;
+    document.getElementById("btn-export").disabled = false;
     wizardState = { paperSize: null, paperWidth: null, paperHeight: null, border: null, columns: null };
     document.querySelectorAll(".paper-option, .border-option, .layout-option").forEach((o) => o.classList.remove("selected"));
     document.querySelectorAll(".wizard-section").forEach((s) => s.classList.remove("open"));
@@ -505,8 +514,9 @@ function newAlbum() {
     document.getElementById("val-paper").textContent = "Not set";
     document.getElementById("val-border").textContent = "Not set";
     document.getElementById("val-layout").textContent = "Not set";
-    editor.setValue("");
+    editor.setValue(DEFAULT_DSL);
     updateFileListActive();
+    refreshPreview();
 }
 
 function openFile() {
