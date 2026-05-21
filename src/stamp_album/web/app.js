@@ -216,16 +216,17 @@ function updatePreviewFromWizard() {
             single: "ALBUM_PAGES_BORDER(0.5 0 0 0)",
             double: "ALBUM_PAGES_BORDER(0.5 0.5 0 1.0)",
             triple: "ALBUM_PAGES_BORDER(0.5 0.5 0.5 1.5)",
-            ornate: "ALBUM_PAGES_BORDER(0.5 0.5 0.5 2.0)",
             classic: "ALBUM_PAGES_BORDER(0.5 0.3 0.5 1.0)",
-            modern: "ALBUM_PAGES_BORDER(0.8 0 0 0)",
-            corner: "ALBUM_PAGES_BORDER(0.5 0 0 0)",
+            artdeco: "ALBUM_PAGES_DECORATIVE_BORDER(\"artdeco\")",
+            floral: "ALBUM_PAGES_DECORATIVE_BORDER(\"floral\")",
+            scroll: "ALBUM_PAGES_DECORATIVE_BORDER(\"scroll\")",
+            "corner-only": "ALBUM_PAGES_DECORATIVE_BORDER(\"corner-only\")",
             dashed: "ALBUM_PAGES_BORDER(0.5 0 0 0)",
-            dotted: "ALBUM_PAGES_BORDER(0.5 0 0 0)",
         };
         if (borderMap[wizardState.border]) {
-            result.push(borderMap[wizardState.border]);
+            newSetup.push(borderMap[wizardState.border]);
         }
+    }
     }
 
     // Always add PAGE_START if we have any page-level settings or content

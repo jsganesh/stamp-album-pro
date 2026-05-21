@@ -342,12 +342,10 @@ class HTMLRenderer:
         if page.background_image:
             parts.append(f'<img class="background-image" src="{page.background_image}" alt="">')
 
-        # Decorative border
+        # Decorative border or line border
         if ps.decorative_border_file:
             parts.append(self._render_decorative_border(ps.decorative_border_file))
-
-        # Line border
-        if ps.has_border:
+        elif ps.has_border:
             parts.append(self._render_line_border())
 
         # Header (in top margin)
@@ -463,9 +461,116 @@ class HTMLRenderer:
         parts.append("</div>")
         return "\n".join(parts)
 
-    def _render_decorative_border(self, border_file: str) -> str:
-        """Render decorative border (placeholder)."""
-        return f"<!-- Decorative border: {border_file} -->"
+    def _render_decorative_border(self, border_style: str) -> str:
+        """Render decorative border using CSS/SVG."""
+        ps = self.album.page_setup
+        color = self._color_to_css(self.album.color_album_border)
+
+        border_left = ps.margin_left
+        border_top = ps.margin_top
+        border_width = round(ps.width - ps.margin_left - ps.margin_right, 2)
+        border_height = round(ps.height - ps.margin_top - ps.margin_bottom, 2)
+
+        parts = ['<div class="page-border">']
+
+        if border_style == "artdeco":
+            # Art Deco: geometric corners with stepped lines
+            parts.append(
+                f'<div style="position: absolute; '
+                f'top: {border_top}mm; left: {border_left}mm; '
+                f'width: {border_width}mm; height: {border_height}mm; '
+                f'border: 0.5mm solid {color};"></div>'
+            )
+            # Corner decorations
+            corner_size = 8
+            for cx, cy in [(border_left, border_top),
+                           (border_left + border_width - corner_size, border_top),
+                           (border_left, border_top + border_height - corner_size),
+                           (border_left + border_width - corner_size, border_top + border_height - corner_size)]:
+                parts.append(
+                    f'<div style="position: absolute; '
+                    f'top: {cy}mm; left: {cx}mm; '
+                    f'width: {corner_size}mm; height: {corner_size}mm; '
+                    f'border: 0.3mm solid {color};"></div>'
+                )
+
+        elif border_style == "floral":
+            # Floral: ornate corners with curved elements
+            parts.append(
+                f'<div style="position: absolute; '
+                f'top: {border_top}mm; left: {border_left}mm; '
+                f'width: {border_width}mm; height: {border_height}mm; '
+                f'border: 0.3mm solid {color};"></div>'
+            )
+            # Corner flourishes using SVG
+            svg_corner = f'''<svg width="12mm" height="12mm" viewBox="0 0 12 12" style="position: absolute;">
+                <path d="M0,0 Q6,0 6,6 Q6,12 0,12" fill="none" stroke="{color}" stroke-width="0.3"/>
+                <circle cx="3" cy="3" r="1" fill="{color}"/>
+                <circle cx="9" cy="3" r="0.5" fill="{color}"/>
+                <circle cx="3" cy="9" r="0.5" fill="{color}"/>
+            </svg>'''
+            positions = [
+                (border_left, border_top, ""),
+                (border_left + border_width - 12, border_top, "transform: scaleX(-1)"),
+                (border_left, border_top + border_height - 12, "transform: scaleY(-1)"),
+                (border_left + border_width - 12, border_top + border_height - 12, "transform: scale(-1, -1)"),
+            ]
+            for x, y, transform in positions:
+                parts.append(
+                    f'<div style="position: absolute; top: {y}mm; left: {x}mm; {transform}">'
+                    f'{svg_corner}</div>'
+                )
+
+        elif border_style == "scroll":
+            # Scroll: elegant curved corners
+            parts.append(
+                f'<div style="position: absolute; '
+                f'top: {border_top}mm; left: {border_left}mm; '
+                f'width: {border_width}mm; height: {border_height}mm; '
+                f'border: 0.4mm solid {color}; border-radius: 2mm;"></div>'
+            )
+            # Inner decorative line
+            inset = 2
+            parts.append(
+                f'<div style="position: absolute; '
+                f'top: {border_top + inset}mm; left: {border_left + inset}mm; '
+                f'width: {round(border_width - inset * 2, 2)}mm; height: {round(border_height - inset * 2, 2)}mm; '
+                f'border: 0.2mm solid {color}; border-radius: 1.5mm;"></div>'
+            )
+
+        elif border_style == "corner-only":
+            # Corner only: decorative corners without connecting lines
+            svg_corner = f'''<svg width="15mm" height="15mm" viewBox="0 0 15 15" style="position: absolute;">
+                <path d="M0,0 L15,0 L15,3 L3,3 L3,15 L0,15 Z" fill="none" stroke="{color}" stroke-width="0.4"/>
+                <path d="M5,0 Q8,3 5,6" fill="none" stroke="{color}" stroke-width="0.3"/>
+                <circle cx="2" cy="2" r="0.8" fill="{color}"/>
+            </svg>'''
+            positions = [
+                (border_left, border_top, ""),
+                (border_left + border_width - 15, border_top, "transform: scaleX(-1)"),
+                (border_left, border_top + border_height - 15, "transform: scaleY(-1)"),
+                (border_left + border_width - 15, border_top + border_height - 15, "transform: scale(-1, -1)"),
+            ]
+            for x, y, transform in positions:
+                parts.append(
+                    f'<div style="position: absolute; top: {y}mm; left: {x}mm; {transform}">'
+                    f'{svg_corner}</div>'
+                )
+
+        elif border_style == "dashed":
+            parts.append(
+                f'<div style="position: absolute; '
+                f'top: {border_top}mm; left: {border_left}mm; '
+                f'width: {border_width}mm; height: {border_height}mm; '
+                f'border: 0.5mm dashed {color};"></div>'
+            )
+
+        else:
+            # Fallback to line border
+            return self._render_line_border()
+
+        parts.append("</div>")
+        return "\n".join(parts)
 
     def _render_header_footer(self, text: FormattedText, css_class: str) -> str:
         """Render header or footer text."""
