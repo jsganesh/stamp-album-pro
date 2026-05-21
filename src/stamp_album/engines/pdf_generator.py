@@ -104,7 +104,7 @@ class HTMLRenderer:
         <style>
         @page {{
             size: {width_mm}mm {height_mm}mm;
-            margin: {mt}mm {mr}mm {mb}mm {ml}mm;
+            margin: 0;
         }}
 
         body {{
@@ -764,6 +764,14 @@ class HTMLRenderer:
 
     def _render_paragraph(self, paragraph) -> str:
         """Render a paragraph."""
+        align_class = ""
+        if paragraph.alignment.name == "CENTER":
+            align_class = "center"
+        elif paragraph.alignment.name == "RIGHT":
+            align_class = "right"
+        elif paragraph.alignment.name == "JUSTIFY":
+            align_class = "justify"
+
         font_css = self._font_to_css(paragraph.font_id, paragraph.size)
         color_css = self._color_to_css(self._resolve_color(paragraph.color, "page_text"))
 
@@ -773,7 +781,7 @@ class HTMLRenderer:
         lines = "<br>".join(self._format_text(line) for line in paragraph.lines)
 
         return (
-            f'<div class="page-text" style="{font_css}; color: {color_css};'
+            f'<div class="page-text {align_class}" style="{font_css}; color: {color_css};'
             f'{typography_css}">{lines}</div>'
         )
 
