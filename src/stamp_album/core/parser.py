@@ -457,9 +457,12 @@ class AlbumParser:
                         vspace=vspace,
                     )
                 )
+                current_page.content_flow.append(("text", current_page.text_elements[-1]))
             elif cmd == "PAGE_VSPACE":
                 if current_page:
-                    current_page.vspace = float(params[0])
+                    vspace_val = float(params[0])
+                    current_page.vspace = vspace_val
+                    current_page.content_flow.append(("vspace", vspace_val))
             elif cmd == "PAGE_SET_VERTICAL_POS":
                 if current_page:
                     current_page.absolute_vpos = float(params[0])
@@ -512,6 +515,7 @@ class AlbumParser:
                 # Paragraph ended
                 if paragraph and current_page:
                     current_page.paragraphs.append(paragraph)
+                    current_page.content_flow.append(("paragraph", paragraph))
                 paragraph = None
             elif cmd == "PAGE_COLUMN_START":
                 if current_page:
@@ -545,6 +549,7 @@ class AlbumParser:
                 if pending_row_alignment is not None:
                     current_row.alignment = pending_row_alignment
                 current_page.rows.append(current_row)
+                current_page.content_flow.append(("row", current_row))
             elif cmd == "ROW_ALIGN_TOP":
                 pending_row_alignment = RowAlignment.TOP
                 if current_row:

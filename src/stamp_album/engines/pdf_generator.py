@@ -378,32 +378,51 @@ class HTMLRenderer:
         if page.quadrille:
             parts.append(self._render_quadrille(page.quadrille))
 
-        # Text elements
-        for text_elem in page.text_elements:
-            parts.append(self._render_text_element(text_elem))
+        # Render content in sequential order using content_flow
+        if page.content_flow:
+            for content_type, content_data in page.content_flow:
+                if content_type == "text":
+                    parts.append(self._render_text_element(content_data))
+                elif content_type == "paragraph":
+                    parts.append(self._render_paragraph(content_data))
+                elif content_type == "row":
+                    parts.append(self._render_row(content_data))
+                elif content_type == "vspace":
+                    vspace_val = content_data
+                    if vspace_val != 0:
+                        if vspace_val > 0:
+                            parts.append(f'<div class="vspace" style="height: {vspace_val}mm;"></div>')
+                        else:
+                            # Negative vspace: use negative margin to pull content up
+                            parts.append(f'<div class="vspace" style="margin-top: {vspace_val}mm;"></div>')
+        else:
+            # Fallback to legacy grouped rendering if content_flow is empty
+            # Text elements
+            for text_elem in page.text_elements:
+                parts.append(self._render_text_element(text_elem))
 
-        # Paragraphs
-        for paragraph in page.paragraphs:
-            parts.append(self._render_paragraph(paragraph))
+            # Paragraphs
+            for paragraph in page.paragraphs:
+                parts.append(self._render_paragraph(paragraph))
 
-        # Horizontal rules
-        h_rule_color = self._color_to_css(
-            self.album.color_h_rule or Color(r=0.0, g=0.0, b=0.0)
-        )
-        for line, spacing, margin in page.h_rules:
-            parts.append(
-                f'<hr class="h-rule" style="border-top-width: {line}mm; '
-                f"border-top-color: {h_rule_color}; "
-                f'margin: {spacing}mm {margin}mm;">'
+            # Horizontal rules
+            h_rule_color = self._color_to_css(
+                self.album.color_h_rule or Color(r=0.0, g=0.0, b=0.0)
             )
+            for line, spacing, margin in page.h_rules:
+                parts.append(
+                    f'<hr class="h-rule" style="border-top-width: {line}mm; '
+                    f"border-top-color: {h_rule_color}; "
+                    f'margin: {spacing}mm {margin}mm;">'
+                )
 
-        # VSpace
-        if page.vspace > 0:
-            parts.append(f'<div class="vspace" style="height: {page.vspace}mm;"></div>')
+            # VSpace
+            if page.vspace > 0:
+                parts.append(f'<div class="vspace" style="height: {page.vspace}mm;"></div>')
 
-        # Stamp rows
-        for row in page.rows:
-            parts.append(self._render_row(row))
+            # Stamp rows
+            for row in page.rows:
+                parts.append(self._render_row(row))
 
         # Boxes
         for x, y, w, h in page.boxes:

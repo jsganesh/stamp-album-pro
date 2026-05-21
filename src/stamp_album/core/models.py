@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import enum
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Any, Optional
 
 # ---------------------------------------------------------------------------
 # Enumerations
@@ -514,6 +514,7 @@ class Page:
     vspace: float = 0.0
     absolute_vpos: Optional[float] = None
     boxes: list[tuple[float, float, float, float]] = field(default_factory=list)
+    content_flow: list[tuple[str, Any]] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
