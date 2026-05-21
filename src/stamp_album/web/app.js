@@ -172,45 +172,87 @@ function collapseAndOpen(closeId, openId) {
 }
 
 function updatePreviewFromWizard() {
-    const lines = [];
+    const dsl = getEditorContent();
+    const lines = dsl.split("\n");
+
+    // Separate setup lines from page content
+    const setupLines = [];
+    const pageLines = [];
+    let inPageSetup = true;
+
+    for (const line of lines) {
+        const trimmed = line.trim();
+        if (inPageSetup) {
+            if (trimmed.startsWith("PAGE_START") || trimmed.startsWith("PAGE_TEXT") ||
+                trimmed.startsWith("ROW_START") || trimmed.startsWith("STAMP_") ||
+                trimmed.startsWith("PAGE_COLUMN") || trimmed.startsWith("PAGE_VSPACE") ||
+                trimmed.startsWith("PAGE_SET") || trimmed.startsWith("PAGE_BACKGROUND") ||
+                trimmed.startsWith("PAGE_ADD") || trimmed.startsWith("PAGE_RULE") ||
+                trimmed.startsWith("PAGE_QUADRILLE") || trimmed.startsWith("PAGE_TEXT_PARAGRAPH")) {
+                inPageSetup = false;
+                pageLines.push(line);
+            } else if (trimmed && !trimmed.startsWith("#")) {
+                // Replace existing setup commands
+                if (!trimmed.startsWith("ALBUM_PAGES_SIZE") && !trimmed.startsWith("ALBUM_PAGES_MARGINS") &&
+                    !trimmed.startsWith("ALBUM_PAGES_BORDER") && !trimmed.startsWith("ALBUM_PAGES_SPACING") &&
+                    !trimmed.startsWith("ALBUM_PAGES_TITLE") && !trimmed.startsWith("ALBUM_DEFINE_FONT") &&
+                    !trimmed.startsWith("ALBUM_TITLE") && !trimmed.startsWith("ALBUM_AUTHOR")) {
+                    pageLines.push(line);
+                }
+            }
+        } else {
+            pageLines.push(line);
+        }
+    }
+
+    // Build new setup lines
+    const newSetup = [];
+
+    // Preserve title/author if present
+    for (const line of lines) {
+        const t = line.trim();
+        if (t.startsWith("ALBUM_TITLE") || t.startsWith("ALBUM_AUTHOR") || t.startsWith("ALBUM_DEFINE_FONT")) {
+            newSetup.push(line);
+        }
+    }
 
     if (wizardState.paperSize) {
-        lines.push(`ALBUM_PAGES_SIZE(${wizardState.paperWidth} ${wizardState.paperHeight})`);
-        lines.push("ALBUM_PAGES_MARGINS(15 15 15 15)");
+        newSetup.push(`ALBUM_PAGES_SIZE(${wizardState.paperWidth} ${wizardState.paperHeight})`);
+        newSetup.push("ALBUM_PAGES_MARGINS(15 15 15 15)");
     }
 
     if (wizardState.border && wizardState.border !== "none") {
         const borderMap = {
-            single: "ALBUM_PAGES_BORDER(0.15 0 0 0)",
-            double: "ALBUM_PAGES_BORDER(0.15 0.15 0 0.5)",
-            triple: "ALBUM_PAGES_BORDER(0.15 0.15 0.15 1.0)",
-            ornate: "ALBUM_PAGES_BORDER(0.2 0.15 0.2 1.5)",
-            classic: "ALBUM_PAGES_BORDER(0.15 0.1 0.15 0.5)",
-            modern: "ALBUM_PAGES_BORDER(0.3 0 0 0)",
-            corner: "ALBUM_PAGES_BORDER(0.15 0 0 0)",
-            dashed: "ALBUM_PAGES_BORDER(0.15 0 0 0)",
-            dotted: "ALBUM_PAGES_BORDER(0.15 0 0 0)",
+            single: "ALBUM_PAGES_BORDER(0.5 0 0 0)",
+            double: "ALBUM_PAGES_BORDER(0.5 0.5 0 1.0)",
+            triple: "ALBUM_PAGES_BORDER(0.5 0.5 0.5 1.5)",
+            ornate: "ALBUM_PAGES_BORDER(0.5 0.5 0.5 2.0)",
+            classic: "ALBUM_PAGES_BORDER(0.5 0.3 0.5 1.0)",
+            modern: "ALBUM_PAGES_BORDER(0.8 0 0 0)",
+            corner: "ALBUM_PAGES_BORDER(0.5 0 0 0)",
+            dashed: "ALBUM_PAGES_BORDER(0.5 0 0 0)",
+            dotted: "ALBUM_PAGES_BORDER(0.5 0 0 0)",
         };
         if (borderMap[wizardState.border]) {
-            lines.push(borderMap[wizardState.border]);
+            newSetup.push(borderMap[wizardState.border]);
         }
     }
 
-    if (wizardState.columns !== null) {
-        lines.push("PAGE_START");
-        if (wizardState.columns > 1) {
-            lines.push(`PAGE_COLUMN_START(10)`);
-        }
+    if (wizardState.columns !== null && wizardState.columns > 1) {
+        newSetup.push(`PAGE_COLUMN_START(10)`);
     }
 
-    // Only update if we have meaningful content
-    if (lines.length > 0) {
-        const current = getEditorContent();
-        if (!current.trim() || current === DEFAULT_DSL.trim()) {
-            editor.setValue(lines.join("\n"));
-            refreshPreview();
-        }
+    // Ensure PAGE_START exists if there's page content
+    const hasPageStart = pageLines.some(l => l.trim().startsWith("PAGE_START"));
+    if (!hasPageStart && pageLines.length > 0) {
+        newSetup.push("PAGE_START");
     }
+
+    // Combine
+    const result = [...newSetup, ...pageLines].join("\n");
+    editor.setValue(result);
+    editor.setCursor(editor.lineCount() - 1, 0);
+    refreshPreview();
 }
 
 // Drag and drop (initialized after step 4)
