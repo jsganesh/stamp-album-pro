@@ -473,15 +473,15 @@ class HTMLRenderer:
 
         parts = ['<div class="page-border">']
 
-        if border_style == "artdeco":
-            # Art Deco: geometric corners with stepped lines
+        if border_style == "geometric":
+            # Geometric: stepped corners with angular patterns
             parts.append(
                 f'<div style="position: absolute; '
                 f'top: {border_top}mm; left: {border_left}mm; '
                 f'width: {border_width}mm; height: {border_height}mm; '
                 f'border: 0.5mm solid {color};"></div>'
             )
-            # Corner decorations
+            # Angular corner decorations
             corner_size = 8
             for cx, cy in [(border_left, border_top),
                            (border_left + border_width - corner_size, border_top),
@@ -494,8 +494,8 @@ class HTMLRenderer:
                     f'border: 0.3mm solid {color};"></div>'
                 )
 
-        elif border_style == "floral":
-            # Floral: ornate corners with curved elements
+        elif border_style == "vine":
+            # Vine: organic curved corners with botanical elements
             parts.append(
                 f'<div style="position: absolute; '
                 f'top: {border_top}mm; left: {border_left}mm; '
@@ -521,8 +521,8 @@ class HTMLRenderer:
                     f'{svg_corner}</div>'
                 )
 
-        elif border_style == "scroll":
-            # Scroll: elegant curved corners
+        elif border_style == "elegant":
+            # Elegant: smooth curved corners with inner frame
             parts.append(
                 f'<div style="position: absolute; '
                 f'top: {border_top}mm; left: {border_left}mm; '
@@ -538,8 +538,8 @@ class HTMLRenderer:
                 f'border: 0.2mm solid {color}; border-radius: 1.5mm;"></div>'
             )
 
-        elif border_style == "corner-only":
-            # Corner only: decorative corners without connecting lines
+        elif border_style == "accent":
+            # Accent: decorative corners without connecting lines
             svg_corner = f'''<svg width="15mm" height="15mm" viewBox="0 0 15 15" style="position: absolute;">
                 <path d="M0,0 L15,0 L15,3 L3,3 L3,15 L0,15 Z" fill="none" stroke="{color}" stroke-width="0.4"/>
                 <path d="M5,0 Q8,3 5,6" fill="none" stroke="{color}" stroke-width="0.3"/>
@@ -564,6 +564,90 @@ class HTMLRenderer:
                 f'width: {border_width}mm; height: {border_height}mm; '
                 f'border: 0.5mm dashed {color};"></div>'
             )
+
+        elif border_style == "dotted":
+            parts.append(
+                f'<div style="position: absolute; '
+                f'top: {border_top}mm; left: {border_left}mm; '
+                f'width: {border_width}mm; height: {border_height}mm; '
+                f'border: 0.5mm dotted {color};"></div>'
+            )
+
+        elif border_style == "diamond":
+            # Diamond: repeating diamond pattern border
+            parts.append(
+                f'<div style="position: absolute; '
+                f'top: {border_top}mm; left: {border_left}mm; '
+                f'width: {border_width}mm; height: {border_height}mm; '
+                f'border: 0.4mm solid {color};"></div>'
+            )
+            # Diamond corner accents
+            svg_diamond = f'''<svg width="10mm" height="10mm" viewBox="0 0 10 10" style="position: absolute;">
+                <polygon points="5,0 10,5 5,10 0,5" fill="none" stroke="{color}" stroke-width="0.3"/>
+                <polygon points="5,2 8,5 5,8 2,5" fill="{color}"/>
+            </svg>'''
+            positions = [
+                (border_left - 2, border_top - 2, ""),
+                (border_left + border_width - 8, border_top - 2, ""),
+                (border_left - 2, border_top + border_height - 8, ""),
+                (border_left + border_width - 8, border_top + border_height - 8, ""),
+            ]
+            for x, y, transform in positions:
+                parts.append(
+                    f'<div style="position: absolute; top: {y}mm; left: {x}mm; {transform}">'
+                    f'{svg_diamond}</div>'
+                )
+
+        elif border_style == "greek":
+            # Greek Key: meander pattern border
+            parts.append(
+                f'<div style="position: absolute; '
+                f'top: {border_top}mm; left: {border_left}mm; '
+                f'width: {border_width}mm; height: {border_height}mm; '
+                f'border: 0.5mm solid {color};"></div>'
+            )
+            # Greek key corner elements
+            svg_greek = f'''<svg width="14mm" height="14mm" viewBox="0 0 14 14" style="position: absolute;">
+                <path d="M0,0 L14,0 L14,4 L4,4 L4,10 L10,10 L10,6 L6,6 L6,8 L8,8 L8,4 L2,4 L2,12 L14,12" 
+                      fill="none" stroke="{color}" stroke-width="0.4"/>
+            </svg>'''
+            positions = [
+                (border_left, border_top, ""),
+                (border_left + border_width - 14, border_top, "transform: scaleX(-1)"),
+                (border_left, border_top + border_height - 14, "transform: scaleY(-1)"),
+                (border_left + border_width - 14, border_top + border_height - 14, "transform: scale(-1, -1)"),
+            ]
+            for x, y, transform in positions:
+                parts.append(
+                    f'<div style="position: absolute; top: {y}mm; left: {x}mm; {transform}">'
+                    f'{svg_greek}</div>'
+                )
+
+        elif border_style == "zigzag":
+            # Zigzag: sawtooth pattern border
+            parts.append(
+                f'<div style="position: absolute; '
+                f'top: {border_top}mm; left: {border_left}mm; '
+                f'width: {border_width}mm; height: {border_height}mm; '
+                f'border: 0.4mm solid {color};"></div>'
+            )
+            # Zigzag corner accents
+            svg_zigzag = f'''<svg width="12mm" height="12mm" viewBox="0 0 12 12" style="position: absolute;">
+                <polyline points="0,0 3,3 0,6 3,9 0,12" fill="none" stroke="{color}" stroke-width="0.3"/>
+                <polyline points="12,0 9,3 12,6 9,9 12,12" fill="none" stroke="{color}" stroke-width="0.3"/>
+                <polyline points="0,0 3,0 6,3 9,0 12,0" fill="none" stroke="{color}" stroke-width="0.3"/>
+            </svg>'''
+            positions = [
+                (border_left, border_top, ""),
+                (border_left + border_width - 12, border_top, "transform: scaleX(-1)"),
+                (border_left, border_top + border_height - 12, "transform: scaleY(-1)"),
+                (border_left + border_width - 12, border_top + border_height - 12, "transform: scale(-1, -1)"),
+            ]
+            for x, y, transform in positions:
+                parts.append(
+                    f'<div style="position: absolute; top: {y}mm; left: {x}mm; {transform}">'
+                    f'{svg_zigzag}</div>'
+                )
 
         else:
             # Fallback to line border

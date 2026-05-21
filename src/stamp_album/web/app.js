@@ -216,12 +216,16 @@ function updatePreviewFromWizard() {
             single: "ALBUM_PAGES_BORDER(0.5 0 0 0)",
             double: "ALBUM_PAGES_BORDER(0.5 0.5 0 1.0)",
             triple: "ALBUM_PAGES_BORDER(0.5 0.5 0.5 1.5)",
-            classic: "ALBUM_PAGES_BORDER(0.5 0.3 0.5 1.0)",
-            artdeco: "ALBUM_PAGES_DECORATIVE_BORDER(\"artdeco\")",
-            floral: "ALBUM_PAGES_DECORATIVE_BORDER(\"floral\")",
-            scroll: "ALBUM_PAGES_DECORATIVE_BORDER(\"scroll\")",
-            "corner-only": "ALBUM_PAGES_DECORATIVE_BORDER(\"corner-only\")",
+            heritage: "ALBUM_PAGES_BORDER(0.5 0.3 0.5 1.0)",
+            geometric: "ALBUM_PAGES_DECORATIVE_BORDER(\"geometric\")",
+            vine: "ALBUM_PAGES_DECORATIVE_BORDER(\"vine\")",
+            elegant: "ALBUM_PAGES_DECORATIVE_BORDER(\"elegant\")",
+            accent: "ALBUM_PAGES_DECORATIVE_BORDER(\"accent\")",
             dashed: "ALBUM_PAGES_BORDER(0.5 0 0 0)",
+            dotted: "ALBUM_PAGES_BORDER(0.5 0 0 0)",
+            diamond: "ALBUM_PAGES_DECORATIVE_BORDER(\"diamond\")",
+            greek: "ALBUM_PAGES_DECORATIVE_BORDER(\"greek\")",
+            zigzag: "ALBUM_PAGES_DECORATIVE_BORDER(\"zigzag\")",
         };
         if (borderMap[wizardState.border]) {
             newSetup.push(borderMap[wizardState.border]);
