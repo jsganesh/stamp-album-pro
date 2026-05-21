@@ -147,8 +147,9 @@ async def render_preview(request: RenderRequest):
         album = parser.parse(request.dsl, request.source_path)
         renderer = HTMLRenderer(album, None)
         html = renderer.render()
-        # Replace image paths with API endpoints
-        html = html.replace('src="', 'src="/images/')
+        # Replace image paths with API endpoints (only for local filenames)
+        import re
+        html = re.sub(r'src="([^"/][^"]*\.(?:png|jpg|jpeg|gif|bmp|tiff|tif|webp))"', r'src="/images/\1"', html)
         return html
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -191,7 +192,8 @@ async def export_pdf(request: RenderRequest):
         generator = PDFGenerator()
         with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
             pdf_path = tmp.name
-            generator.generate(album, pdf_path)
+            # Use localhost:8080 as base URL for image resolution
+            generator.generate(album, pdf_path, base_url="http://localhost:8080")
         return FileResponse(
             pdf_path, media_type="application/pdf", filename="album.pdf"
         )

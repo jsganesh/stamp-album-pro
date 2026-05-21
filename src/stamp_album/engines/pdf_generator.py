@@ -140,10 +140,7 @@ class HTMLRenderer:
             z-index: 1;
             width: 100%;
             box-sizing: border-box;
-            padding-top: {mt}mm;
-            padding-left: {ml}mm;
-            padding-right: {mr}mm;
-            padding-bottom: {mb}mm;
+            padding: {mt}mm {mr}mm {mb}mm {ml}mm;
             overflow: hidden;
         }}
 
@@ -1032,38 +1029,58 @@ class PDFGenerator:
     def __init__(self, font_manager=None):
         self.font_manager = font_manager
 
-    def generate(self, album: Album, output_path: str) -> None:
+    def generate(self, album: Album, output_path: str, base_url: str = None) -> None:
         """
         Generate a PDF from an Album model.
 
         Args:
             album: The album data model
             output_path: Path to write the PDF file
+            base_url: Base URL for resolving relative image paths
         """
         from weasyprint import HTML
+        import re
 
         renderer = HTMLRenderer(album, self.font_manager)
         html_content = renderer.render()
 
-        # Write PDF
-        HTML(string=html_content).write_pdf(output_path)
+        # Replace image paths with absolute URLs if base_url provided
+        if base_url:
+            html_content = re.sub(
+                r'src="([^"/][^"]*\.(?:png|jpg|jpeg|gif|bmp|tiff|tif|webp))"',
+                rf'src="{base_url}/images/\1"',
+                html_content
+            )
 
-    def generate_to_bytes(self, album: Album) -> bytes:
+        # Write PDF
+        HTML(string=html_content, base_url=base_url).write_pdf(output_path)
+
+    def generate_to_bytes(self, album: Album, base_url: str = None) -> bytes:
         """
         Generate PDF as bytes (for preview or in-memory use).
 
         Args:
             album: The album data model
+            base_url: Base URL for resolving relative image paths
 
         Returns:
             PDF content as bytes
         """
         from weasyprint import HTML
+        import re
 
         renderer = HTMLRenderer(album, self.font_manager)
         html_content = renderer.render()
 
-        return HTML(string=html_content).write_pdf()
+        # Replace image paths with absolute URLs if base_url provided
+        if base_url:
+            html_content = re.sub(
+                r'src="([^"/][^"]*\.(?:png|jpg|jpeg|gif|bmp|tiff|tif|webp))"',
+                rf'src="{base_url}/images/\1"',
+                html_content
+            )
+
+        return HTML(string=html_content, base_url=base_url).write_pdf()
 
     def get_html_preview(self, album: Album) -> str:
         """

@@ -41,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initKeyboardShortcuts();
     initWizard();
     loadFileList();
+    initImageDragDrop();
     document.getElementById("btn-export").disabled = false;
 });
 
@@ -322,6 +323,12 @@ function initDragDrop() {
         e.stopPropagation();
         removeDropIndicator();
 
+        // Check if files are being dropped (images)
+        if (e.dataTransfer.files.length > 0) {
+            handleImageDrop(e.dataTransfer.files);
+            return;
+        }
+
         try {
             const raw = e.dataTransfer.getData("text/plain");
             if (!raw) return;
@@ -337,6 +344,61 @@ function initDragDrop() {
         } catch (err) {
             console.error("Drop failed:", err);
         }
+    });
+}
+
+async function handleImageDrop(files) {
+    const imageExts = ["png", "jpg", "jpeg", "gif", "bmp", "tiff", "tif", "webp"];
+
+    for (const file of files) {
+        const ext = file.name.toLowerCase().split(".").pop();
+        if (!imageExts.includes(ext)) continue;
+
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const response = await fetch(`${API_BASE}/images`, {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!response.ok) throw new Error(`Failed to upload ${file.name}`);
+
+            // Insert into editor
+            insertImageRef(file.name);
+            showToast(`Dropped & added ${file.name}`, "success");
+        } catch (err) {
+            showToast("Error: " + err.message, "error");
+        }
+    }
+
+    loadFileList();
+}
+
+// Enable image drag-and-drop on editor and preview
+function initImageDragDrop() {
+    const editorContainer = document.getElementById("editor-container");
+    const previewContainer = document.getElementById("preview-container");
+
+    [editorContainer, previewContainer].forEach((container) => {
+        container.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "copy";
+            container.classList.add("drag-over");
+        });
+
+        container.addEventListener("dragleave", () => {
+            container.classList.remove("drag-over");
+        });
+
+        container.addEventListener("drop", (e) => {
+            e.preventDefault();
+            container.classList.remove("drag-over");
+            if (e.dataTransfer.files.length > 0) {
+                handleImageDrop(e.dataTransfer.files);
+            }
+        });
     });
 }
 
@@ -589,9 +651,9 @@ async function loadFile(filename) {
 
 async function saveFile() {
     if (!currentFile) {
-        const name = prompt("Save as:", "album.slbum");
+        const name = prompt("Save as:", "album.txt");
         if (!name) return;
-        currentFile = name.endsWith(".slbum") ? name : name + ".slbum";
+        currentFile = name.endsWith(".txt") || name.endsWith(".slbum") ? name : name + ".txt";
         document.getElementById("file-name").textContent = currentFile;
     }
 
@@ -608,9 +670,22 @@ async function saveFile() {
         document.getElementById("btn-export").disabled = false;
         loadFileList();
         showToast(`Saved ${currentFile}`, "success");
+
+        // Also download as .txt file
+        downloadFile(currentFile, getEditorContent());
     } catch (err) {
         showToast("Error: " + err.message, "error");
     }
+}
+
+function downloadFile(filename, content) {
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
 }
 
 async function deleteFile(filename) {
@@ -775,7 +850,7 @@ async function exportPDF() {
         const response = await fetch(`${API_BASE}/export`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ dsl, source_path: currentFile || "untitled.slbum" }),
+            body: JSON.stringify({ dsl, source_path: currentFile || "untitled.txt" }),
         });
 
         if (!response.ok) {
@@ -786,8 +861,11 @@ async function exportPDF() {
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
+        const pdfName = currentFile
+            ? currentFile.replace(/\.(slbum|txt)$/, "") + ".pdf"
+            : "album.pdf";
         a.href = url;
-        a.download = currentFile ? currentFile.replace(".slbum", ".pdf") : "album.pdf";
+        a.download = pdfName;
         a.click();
         URL.revokeObjectURL(url);
         document.getElementById("status-left").textContent = "PDF exported";
