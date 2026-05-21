@@ -138,11 +138,13 @@ class HTMLRenderer:
         .page-content {{
             position: relative;
             z-index: 1;
-            margin-top: {mt}mm;
-            margin-left: {ml}mm;
-            margin-right: {mr}mm;
-            margin-bottom: {mb}mm;
-            width: {content_width}mm;
+            width: 100%;
+            box-sizing: border-box;
+            padding-top: {mt}mm;
+            padding-left: {ml}mm;
+            padding-right: {mr}mm;
+            padding-bottom: {mb}mm;
+            overflow: hidden;
         }}
 
         .page-title {{
@@ -173,6 +175,8 @@ class HTMLRenderer:
             flex-wrap: nowrap;
             margin-bottom: {ps.vspace}mm;
             align-items: flex-start;
+            width: 100%;
+            box-sizing: border-box;
         }}
 
         .stamp-row.align-middle {{
@@ -837,13 +841,19 @@ class HTMLRenderer:
     def _render_row(self, row: Row) -> str:
         """Render a row of stamps."""
         align_class = ""
+        justify_style = ""
         if row.alignment.name == "MIDDLE":
             align_class = "align-middle"
         elif row.alignment.name == "BOTTOM":
             align_class = "align-bottom"
 
+        if row.style.name == "EQUAL_SPACE":
+            justify_style = "justify-content: space-between;"
+        elif row.style.name == "JUSTIFIED_SPACE":
+            justify_style = "justify-content: space-between;"
+
         parts = [
-            f'<div class="stamp-row {align_class}" style="gap: {row.spacing}mm;">'
+            f'<div class="stamp-row {align_class}" style="gap: {row.spacing}mm; {justify_style}">'
         ]
 
         for stamp in row.stamps:
