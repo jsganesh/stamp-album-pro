@@ -260,7 +260,7 @@ function updatePreviewFromWizard() {
 
         // Column mode goes after PAGE_START
         if (wizardState.columns !== null && wizardState.columns > 1) {
-            result.push(`PAGE_COLUMN_START(10)`);
+            result.push(`PAGE_COLUMN_START(${wizardState.columns})`);
         }
     }
 
@@ -440,7 +440,6 @@ function insertTextElement(align) {
 
     editor.setValue(lines.join("\n"));
     editor.setCursor(editor.lineCount() - 1, 0);
-    refreshPreview();
     showToast("Text element added", "success");
 }
 
@@ -464,7 +463,6 @@ function insertStampElement(shape, width, height) {
 
     editor.setValue(lines.join("\n"));
     editor.setCursor(editor.lineCount() - 1, 0);
-    refreshPreview();
     showToast("Stamp element added", "success");
 }
 
@@ -478,7 +476,6 @@ function insertRowElement(style) {
 
     editor.setValue(lines.join("\n"));
     editor.setCursor(editor.lineCount() - 1, 0);
-    refreshPreview();
     showToast("Row element added", "success");
 }
 

@@ -317,8 +317,16 @@ class HTMLRenderer:
         }}
 
         .column-container {{
-            column-count: 2;
-            column-gap: 10mm;
+            display: grid;
+            gap: 10mm;
+        }}
+
+        .column-container.cols-2 {{
+            grid-template-columns: 1fr 1fr;
+        }}
+
+        .column-container.cols-3 {{
+            grid-template-columns: 1fr 1fr 1fr;
         }}
 
         .background-image {{
@@ -371,7 +379,11 @@ class HTMLRenderer:
             parts.append(self._render_text_element(ps.title, "title"))
 
         # Page content
-        content_class = "column-container" if page.column_mode == ColumnMode.TWO_COLUMN else ""
+        content_class = ""
+        if page.column_mode == ColumnMode.TWO:
+            content_class = "column-container cols-2"
+        elif page.column_mode == ColumnMode.THREE:
+            content_class = "column-container cols-3"
         if content_class:
             parts.append(f'<div class="{content_class}">')
 

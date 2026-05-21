@@ -102,7 +102,9 @@ class ColumnMode(enum.Enum):
     """Column layout mode."""
 
     NONE = "none"
-    TWO_COLUMN = "two_column"
+    ONE = "one"
+    TWO = "two"
+    THREE = "three"
 
 
 # ---------------------------------------------------------------------------

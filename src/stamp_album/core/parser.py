@@ -521,8 +521,16 @@ class AlbumParser:
                 if current_page:
                     from stamp_album.core.models import ColumnMode
 
-                    current_page.column_mode = ColumnMode.TWO_COLUMN
-                    current_page.column_gap = float(params[0])
+                    num_cols = int(float(params[0])) if params else 2
+                    if num_cols == 1:
+                        current_page.column_mode = ColumnMode.ONE
+                    elif num_cols == 2:
+                        current_page.column_mode = ColumnMode.TWO
+                    elif num_cols == 3:
+                        current_page.column_mode = ColumnMode.THREE
+                    else:
+                        current_page.column_mode = ColumnMode.NONE
+                    current_page.column_gap = float(params[0]) if params else 10.0
             elif cmd == "PAGE_COLUMN_STOP":
                 if current_page:
                     from stamp_album.core.models import ColumnMode
