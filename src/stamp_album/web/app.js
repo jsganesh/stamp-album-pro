@@ -41,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initKeyboardShortcuts();
     initWizard();
     loadFileList();
+    document.getElementById("btn-export").disabled = false;
 });
 
 function initEditor() {
@@ -80,6 +81,11 @@ function initButtons() {
         document.getElementById("image-input").click();
     });
     document.getElementById("image-input").addEventListener("change", handleImageUpload);
+
+    document.getElementById("btn-upload-folder").addEventListener("click", () => {
+        document.getElementById("folder-input").click();
+    });
+    document.getElementById("folder-input").addEventListener("change", handleFolderUpload);
 
     document.getElementById("toggle-wizard").addEventListener("change", (e) => {
         const panel = document.getElementById("wizard-panel");
@@ -528,21 +534,39 @@ function openFile() {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = ".slbum,.txt";
-    input.onchange = (e) => {
+    input.onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = (ev) => {
+        reader.onload = async (ev) => {
             currentFile = file.name;
             document.getElementById("file-name").textContent = file.name;
             document.getElementById("btn-save").disabled = false;
             document.getElementById("btn-export").disabled = false;
             setEditorContent(ev.target.result);
+
+            // Upload to server so images in same folder can be referenced
+            try {
+                const response = await fetch(`${API_BASE}/files/${encodeURIComponent(file.name)}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ content: ev.target.result }),
+                });
+                if (response.ok) {
+                    loadFileList();
+                }
+            } catch (err) {
+                // Server upload is optional - file still works locally
+            }
+
             showToast(`Opened ${file.name}`, "success");
         };
         reader.onerror = () => showToast("Failed to read file", "error");
         reader.readAsText(file);
     };
+
+    // Allow selecting multiple files (album + images)
+    input.multiple = false;
     input.click();
 }
 
@@ -649,6 +673,55 @@ async function handleImageUpload(e) {
     }
 
     loadFileList();
+    e.target.value = "";
+}
+
+async function handleFolderUpload(e) {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    let uploaded = 0;
+    let errors = 0;
+
+    for (const file of files) {
+        const ext = file.name.toLowerCase().split(".").pop();
+        const imageExts = ["png", "jpg", "jpeg", "gif", "bmp", "tiff", "tif", "webp"];
+        const albumExts = ["slbum", "txt"];
+
+        try {
+            if (imageExts.includes(ext)) {
+                const formData = new FormData();
+                formData.append("file", file);
+                const response = await fetch(`${API_BASE}/images`, {
+                    method: "POST",
+                    body: formData,
+                });
+                if (response.ok) uploaded++;
+            } else if (albumExts.includes(ext)) {
+                const content = await file.text();
+                const response = await fetch(`${API_BASE}/files/${encodeURIComponent(file.name)}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ content }),
+                });
+                if (response.ok) {
+                    uploaded++;
+                    if (!currentFile) {
+                        currentFile = file.name;
+                        document.getElementById("file-name").textContent = file.name;
+                        document.getElementById("btn-save").disabled = false;
+                        document.getElementById("btn-export").disabled = false;
+                        setEditorContent(content);
+                    }
+                }
+            }
+        } catch (err) {
+            errors++;
+        }
+    }
+
+    loadFileList();
+    showToast(`Uploaded ${uploaded} files${errors > 0 ? `, ${errors} failed` : ""}`, uploaded > 0 ? "success" : "error");
     e.target.value = "";
 }
 
