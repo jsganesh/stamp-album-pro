@@ -71,10 +71,15 @@ function initButtons() {
     document.getElementById("btn-save").addEventListener("click", saveFile);
     document.getElementById("btn-export").addEventListener("click", exportPDF);
     document.getElementById("btn-refresh-preview").addEventListener("click", refreshPreview);
-    document.getElementById("btn-upload").addEventListener("click", () => {
+    document.getElementById("btn-upload-dsl").addEventListener("click", () => {
         document.getElementById("file-input").click();
     });
     document.getElementById("file-input").addEventListener("change", handleFileUpload);
+
+    document.getElementById("btn-upload-img").addEventListener("click", () => {
+        document.getElementById("image-input").click();
+    });
+    document.getElementById("image-input").addEventListener("change", handleImageUpload);
 
     document.getElementById("toggle-wizard").addEventListener("change", (e) => {
         const panel = document.getElementById("wizard-panel");
@@ -622,6 +627,72 @@ async function handleFileUpload(e) {
     e.target.value = "";
 }
 
+async function handleImageUpload(e) {
+    const files = e.target.files;
+    if (!files.length) return;
+
+    for (const file of files) {
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const response = await fetch(`${API_BASE}/images`, {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!response.ok) throw new Error(`Failed to upload ${file.name}`);
+            showToast(`Uploaded ${file.name}`, "success");
+        } catch (err) {
+            showToast("Error: " + err.message, "error");
+        }
+    }
+
+    loadFileList();
+    e.target.value = "";
+}
+
+async function deleteImage(filename) {
+    if (!confirm(`Delete image ${filename}?`)) return;
+    try {
+        const response = await fetch(`${API_BASE}/images/${encodeURIComponent(filename)}`, {
+            method: "DELETE",
+        });
+        if (!response.ok) throw new Error("Failed to delete");
+        loadFileList();
+        showToast(`Deleted ${filename}`, "success");
+    } catch (err) {
+        showToast("Error: " + err.message, "error");
+    }
+}
+
+function insertImageRef(filename) {
+    const dsl = getEditorContent();
+    const lines = dsl.split("\n");
+
+    let insertIdx = -1;
+    for (let i = lines.length - 1; i >= 0; i--) {
+        if (lines[i].trim().startsWith("ROW_START_")) {
+            insertIdx = i + 1;
+            break;
+        }
+    }
+
+    const newLine = `STAMP_ADD_IMG (40 30 "${filename}" "" "" "" )`;
+
+    if (insertIdx === -1) {
+        lines.push("ROW_START_ES (HN 10 0.1 180)");
+        lines.push(newLine);
+    } else {
+        lines.splice(insertIdx, 0, newLine);
+    }
+
+    editor.setValue(lines.join("\n"));
+    editor.setCursor(editor.lineCount() - 1, 0);
+    refreshPreview();
+    showToast(`Added ${filename} to editor`, "success");
+}
+
 // PDF Export
 async function exportPDF() {
     const dsl = getEditorContent();
@@ -664,12 +735,20 @@ async function loadFileList() {
     } catch (err) {
         // Silently fail - sidebar is optional
     }
+    try {
+        const response = await fetch(`${API_BASE}/images`);
+        if (!response.ok) return;
+        const images = await response.json();
+        renderImageList(images);
+    } catch (err) {
+        // Silently fail
+    }
 }
 
 function renderFileList(files) {
     const list = document.getElementById("file-list");
     if (files.length === 0) {
-        list.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px">No files yet.<br>Upload a .slbum file to get started.</div>';
+        list.innerHTML = '<div style="padding:12px 16px;color:var(--text-muted);font-size:12px">No album files</div>';
         return;
     }
 
@@ -678,6 +757,29 @@ function renderFileList(files) {
             <span>${escapeHtml(f)}</span>
             <div class="file-actions">
                 <button onclick="event.stopPropagation();deleteFile('${escapeAttr(f)}')" title="Delete">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    `).join("");
+}
+
+function renderImageList(images) {
+    const list = document.getElementById("image-list");
+    if (images.length === 0) {
+        list.innerHTML = '<div style="padding:12px 16px;color:var(--text-muted);font-size:12px">No images uploaded</div>';
+        return;
+    }
+
+    list.innerHTML = images.map((f) => `
+        <div class="image-item" onclick="insertImageRef('${escapeAttr(f)}')">
+            <img src="${API_BASE}/images/${escapeAttr(f)}" alt="${escapeHtml(f)}">
+            <span class="image-name">${escapeHtml(f)}</span>
+            <div class="image-actions">
+                <button onclick="event.stopPropagation();deleteImage('${escapeAttr(f)}')" title="Delete">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"/>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>

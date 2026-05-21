@@ -1,10 +1,11 @@
 import os
 import tempfile
+import shutil
 from pathlib import Path
 from typing import Optional
 
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 from pydantic import BaseModel
 
@@ -19,6 +20,10 @@ serializer = AlbumSerializer()
 # Directory for user files
 FILES_DIR = Path(os.environ.get("STAMP_ALBUM_FILES", Path.home() / "StampAlbum"))
 FILES_DIR.mkdir(parents=True, exist_ok=True)
+
+# Directory for uploaded images
+IMAGES_DIR = FILES_DIR / "images"
+IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 
 # Serve web UI
 WEB_DIR = Path(__file__).parent / "web"
@@ -76,6 +81,51 @@ async def delete_file(filename: str):
     return {"status": "deleted"}
 
 
+# Image management endpoints
+ALLOWED_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".tif", ".webp"}
+
+
+@app.get("/images")
+async def list_images():
+    images = sorted(
+        [f.name for f in IMAGES_DIR.iterdir() if f.suffix.lower() in ALLOWED_IMAGE_EXTENSIONS]
+    )
+    return images
+
+
+@app.get("/images/{filename}")
+async def get_image(filename: str):
+    filepath = IMAGES_DIR / filename
+    if not filepath.exists():
+        raise HTTPException(status_code=404, detail="Image not found")
+    return FileResponse(filepath)
+
+
+@app.post("/images")
+async def upload_image(file: UploadFile = File(...)):
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No filename provided")
+
+    ext = Path(file.filename).suffix.lower()
+    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+        raise HTTPException(status_code=400, detail=f"Unsupported image format: {ext}")
+
+    filepath = IMAGES_DIR / file.filename
+    with open(filepath, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    return {"status": "uploaded", "filename": file.filename, "path": str(filepath)}
+
+
+@app.delete("/images/{filename}")
+async def delete_image(filename: str):
+    filepath = IMAGES_DIR / filename
+    if not filepath.exists():
+        raise HTTPException(status_code=404, detail="Image not found")
+    filepath.unlink()
+    return {"status": "deleted"}
+
+
 # API endpoints
 class RenderRequest(BaseModel):
     dsl: str
@@ -96,7 +146,10 @@ async def render_preview(request: RenderRequest):
     try:
         album = parser.parse(request.dsl, request.source_path)
         renderer = HTMLRenderer(album, None)
-        return renderer.render()
+        html = renderer.render()
+        # Replace image paths with API endpoints
+        html = html.replace('src="', 'src="/images/')
+        return html
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
