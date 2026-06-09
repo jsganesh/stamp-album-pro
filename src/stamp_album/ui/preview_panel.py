@@ -36,6 +36,7 @@ class PreviewPanel(QWidget):
         self._current_page: int = 0
         self._zoom_level: float = 1.0
         self._page_images: list[QPixmap] = []
+        self._error_message: str | None = None
 
         self._setup_ui()
 
@@ -59,6 +60,7 @@ class PreviewPanel(QWidget):
         self.preview_label.setStyleSheet(
             "background-color: #E0E0E0; border: 1px solid #CCCCCC;"
         )
+        self.preview_label.setWordWrap(True)
         self.scroll_area.setWidget(self.preview_label)
 
         layout.addWidget(self.scroll_area)
@@ -157,6 +159,7 @@ class PreviewPanel(QWidget):
 
         self._page_images = []
         self._page_count = 0
+        self._error_message = None
 
         if not self._html_content:
             return
@@ -174,16 +177,40 @@ class PreviewPanel(QWidget):
                 pixmap = QPixmap()
                 pixmap.loadFromData(png_bytes)
                 self._page_images.append(pixmap)
-        except Exception:
-            # If rendering fails, show error
+        except Exception as e:
             self._page_count = 0
             self._page_images = []
+            self._error_message = str(e)
 
     def _update_display(self):
         """Update the preview display."""
+        # Show error message if rendering failed
+        if self._error_message:
+            self.preview_label.setText(
+                f"⚠ Preview Error\n\n{self._error_message}"
+            )
+            self.preview_label.setStyleSheet(
+                "background-color: #FFF3CD; border: 1px solid #FFC107; "
+                "color: #856404; padding: 20px; font-size: 13px;"
+            )
+            self.status_label.setText("Preview failed — see error above")
+            self.status_label.setStyleSheet(
+                "padding: 4px; background-color: #FFC107; color: #856404; font-weight: bold;"
+            )
+            self.page_label.setText("Page 0 / 0")
+            self.prev_page_btn.setEnabled(False)
+            self.next_page_btn.setEnabled(False)
+            return
+
         if not self._page_images:
             self.preview_label.setText("No preview available")
+            self.preview_label.setStyleSheet(
+                "background-color: #E0E0E0; border: 1px solid #CCCCCC;"
+            )
             self.status_label.setText("No preview available")
+            self.status_label.setStyleSheet(
+                "padding: 4px; background-color: #F5F5F5; border-top: 1px solid #CCCCCC;"
+            )
             self.page_label.setText("Page 0 / 0")
             self.prev_page_btn.setEnabled(False)
             self.next_page_btn.setEnabled(False)
@@ -199,6 +226,9 @@ class PreviewPanel(QWidget):
                 Qt.TransformationMode.SmoothTransformation,
             )
             self.preview_label.setPixmap(scaled)
+            self.preview_label.setStyleSheet(
+                "background-color: #E0E0E0; border: 1px solid #CCCCCC;"
+            )
 
         # Update status
         self.status_label.setText(

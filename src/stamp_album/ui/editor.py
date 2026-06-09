@@ -304,8 +304,8 @@ class AlbumEditor(QPlainTextEdit):
 
     def find_text(self, text: str, case_sensitive: bool = False) -> bool:
         """Find text in the document."""
-        flags = QTextDocument.FindFlag.FindBackward if False else QTextDocument.FindFlag(0)
-        if not case_sensitive:
+        flags = QTextDocument.FindFlag(0)
+        if case_sensitive:
             flags |= QTextDocument.FindFlag.FindCaseSensitively
 
         found = self.find(text, flags)

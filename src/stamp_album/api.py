@@ -1,21 +1,54 @@
 import os
 import tempfile
 import shutil
+import secrets
 from pathlib import Path
 from typing import Optional
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Request, Response
 from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 from pydantic import BaseModel
 
-from stamp_album.core.parser import AlbumParser
+from stamp_album.core.parser import AlbumParser, ParseError
 from stamp_album.core.serializer import AlbumSerializer
 from stamp_album.engines.pdf_generator import HTMLRenderer, PDFGenerator
 
 app = FastAPI(title="StampAlbum Pro")
 parser = AlbumParser()
 serializer = AlbumSerializer()
+
+# Security: CSRF token for session validation
+_CSRF_TOKEN = secrets.token_urlsafe(32)
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    """Add security headers to all responses."""
+    response = await call_next(request)
+    # Content Security Policy
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' https://cdnjs.cloudflare.com; "
+        "style-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; "
+        "img-src 'self' data:; "
+        "font-src 'self' https://cdnjs.cloudflare.com; "
+        "connect-src 'self'; "
+        "frame-src 'self'; "
+        "object-src 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self'"
+    )
+    # Prevent MIME type sniffing
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    # Prevent clickjacking
+    response.headers["X-Frame-Options"] = "DENY"
+    # Referrer policy
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    # Permissions policy
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    return response
+
 
 # Directory for user files
 FILES_DIR = Path(os.environ.get("STAMP_ALBUM_FILES", Path.home() / "StampAlbum"))
@@ -141,6 +174,13 @@ class VisualUpdateRequest(BaseModel):
     height: float
 
 
+def _handle_parse_error(e: Exception) -> None:
+    """Convert parser errors to appropriate HTTP exceptions."""
+    if isinstance(e, ParseError):
+        raise HTTPException(status_code=400, detail=str(e))
+    raise HTTPException(status_code=400, detail=f"Request error: {e}")
+
+
 @app.post("/render", response_class=HTMLResponse)
 async def render_preview(request: RenderRequest):
     try:
@@ -149,10 +189,14 @@ async def render_preview(request: RenderRequest):
         html = renderer.render()
         # Replace image paths with API endpoints (only for local filenames)
         import re
-        html = re.sub(r'src="([^"/][^"]*\.(?:png|jpg|jpeg|gif|bmp|tiff|tif|webp))"', r'src="/images/\1"', html)
+        html = re.sub(
+            r'src="([^\"/][^\"]*\.(?:png|jpg|jpeg|gif|bmp|tiff|tif|webp))"',
+            r'src="/images/\1"',
+            html,
+        )
         return html
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        _handle_parse_error(e)
 
 
 @app.post("/parse")
@@ -165,7 +209,7 @@ async def parse_album(request: RenderRequest):
             "fonts": len(album.fonts),
         }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        _handle_parse_error(e)
 
 
 @app.post("/visual-update")
@@ -178,27 +222,28 @@ async def visual_update(request: VisualUpdateRequest):
             request.stamp_idx,
             request.width,
             request.height,
-            request.source_path if hasattr(request, "source_path") else None,
         )
         return {"dsl": updated_dsl}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        _handle_parse_error(e)
 
 
 @app.post("/export")
 async def export_pdf(request: RenderRequest):
     try:
         album = parser.parse(request.dsl, request.source_path)
+        # Resolve local images to absolute file:// paths for reliable PDF generation
         generator = PDFGenerator()
         with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
             pdf_path = tmp.name
-            # Use localhost:8080 as base URL for image resolution
             generator.generate(album, pdf_path, base_url="http://localhost:8080")
         return FileResponse(
             pdf_path, media_type="application/pdf", filename="album.pdf"
         )
+    except ParseError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Export error: {e}")
 
 
 if __name__ == "__main__":

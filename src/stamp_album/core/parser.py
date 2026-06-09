@@ -30,6 +30,26 @@ from stamp_album.core.models import (
     TextAlignment,
 )
 
+
+# ---------------------------------------------------------------------------
+# Parse Error
+# ---------------------------------------------------------------------------
+
+
+class ParseError(Exception):
+    """Raised when the DSL parser encounters invalid syntax."""
+
+    def __init__(self, message: str, line_number: int | None = None, line_text: str | None = None):
+        self.line_number = line_number
+        self.line_text = line_text
+        parts = [message]
+        if line_number is not None:
+            parts.append(f"at line {line_number}")
+        if line_text is not None:
+            parts.append(f": {line_text!r}")
+        super().__init__(" ".join(parts))
+
+
 # ---------------------------------------------------------------------------
 # Tokenizer
 # ---------------------------------------------------------------------------
@@ -159,7 +179,8 @@ class AlbumParser:
         if current_line:
             joined_lines.append(current_line)
 
-        for line in joined_lines:
+        for _line_idx, line in enumerate(joined_lines):
+            line_number = _line_idx + 1
             # Remove comments (but not # inside quoted strings or hex colors)
             in_string = False
             comment_pos = -1
@@ -274,7 +295,7 @@ class AlbumParser:
             elif cmd == "ALBUM_PAGES_TITLE":
                 vspace = float(params[3]) if len(params) > 3 else 0.0
                 album.page_setup.title = FormattedText(
-                    font_id=params[0],
+                    font_id=unquote(params[0]),
                     size=float(params[1]),
                     content=unquote(params[2]),
                     alignment=TextAlignment.CENTER,
@@ -283,7 +304,7 @@ class AlbumParser:
                 )
             elif cmd == "ALBUM_PAGES_FOOTER":
                 album.page_setup.footer_text = FormattedText(
-                    font_id=params[0],
+                    font_id=unquote(params[0]),
                     size=float(params[1]),
                     content=unquote(params[3]),
                     alignment=TextAlignment.LEFT,
@@ -291,7 +312,7 @@ class AlbumParser:
                 )
             elif cmd == "ALBUM_PAGES_HEADER":
                 album.page_setup.header_text = FormattedText(
-                    font_id=params[0],
+                    font_id=unquote(params[0]),
                     size=float(params[1]),
                     content=unquote(params[3]),
                     alignment=TextAlignment.LEFT,
@@ -301,7 +322,7 @@ class AlbumParser:
                 before = unquote(params[4]) if len(params) > 4 else ""
                 after = unquote(params[5]) if len(params) > 5 else ""
                 ft = FormattedText(
-                    font_id=params[0],
+                    font_id=unquote(params[0]),
                     size=float(params[1]),
                     content=f"{before}$PAGE${after}",
                     alignment=TextAlignment.LEFT,
@@ -314,7 +335,7 @@ class AlbumParser:
                 before = unquote(params[5]) if len(params) > 5 else ""
                 after = unquote(params[6]) if len(params) > 6 else ""
                 ft = FormattedText(
-                    font_id=params[0],
+                    font_id=unquote(params[0]),
                     size=float(params[1]),
                     content=f"{before}$DATE${after}",
                     alignment=TextAlignment.LEFT,
@@ -369,7 +390,7 @@ class AlbumParser:
                         direction = params[4].lower()
                 album.page_setup.margin_texts.append(
                     MarginTextItem(
-                        font_id=params[0],
+                        font_id=unquote(params[0]),
                         size=float(params[1]),
                         text=unquote(params[2]),
                         position=self._parse_position(params[3]),
@@ -378,7 +399,7 @@ class AlbumParser:
                     )
                 )
             elif cmd == "ALBUM_DEFINE_FONT":
-                album.fonts.append(FontDefinition(font_id=params[0], font_name=unquote(params[1])))
+                album.fonts.append(FontDefinition(font_id=unquote(params[0]), font_name=unquote(params[1])))
 
             # -- Color commands --
             elif cmd in ("COLOUR_ALBUM_BORDER", "COLOR_ALBUM_BORDER"):
@@ -424,7 +445,7 @@ class AlbumParser:
                 current_row = None
             elif cmd in ("PAGE_TEXT", "PAGE_TEXT_CENTRE", "PAGE_TEXT_CENTER", "PAGE_TEXT_RIGHT"):
                 if current_page is None:
-                    continue
+                    raise ParseError("PAGE_TEXT command outside of PAGE_START block", line_number, line)
                 alignment = TextAlignment.LEFT
                 if cmd in ("PAGE_TEXT_CENTRE", "PAGE_TEXT_CENTER"):
                     alignment = TextAlignment.CENTER
@@ -449,7 +470,7 @@ class AlbumParser:
                         text_content += p
                 current_page.text_elements.append(
                     FormattedText(
-                        font_id=params[0],
+                        font_id=unquote(params[0]),
                         size=float(params[1]),
                         content=text_content,
                         alignment=alignment,
@@ -540,7 +561,7 @@ class AlbumParser:
             # -- Row commands --
             elif cmd in ("ROW_START_ES", "ROW_START_FS", "ROW_START_JS", "ROW_START_ROTATE"):
                 if current_page is None:
-                    continue
+                    raise ParseError("ROW_START command outside of PAGE_START block", line_number, line)
                 style_map = {
                     "ROW_START_ES": RowStyle.EQUAL_SPACE,
                     "ROW_START_FS": RowStyle.FIXED_SPACE,
@@ -549,7 +570,7 @@ class AlbumParser:
                 }
                 current_row = Row(
                     style=style_map[cmd],
-                    font_id=params[0],
+                    font_id=unquote(params[0]),
                     size=float(params[1]),
                     spacing=float(params[2]),
                     width=float(params[3]),
@@ -574,7 +595,7 @@ class AlbumParser:
             # -- Stamp commands --
             elif cmd == "STAMP_ADD":
                 if current_row is None:
-                    continue
+                    raise ParseError("STAMP_ADD command outside of ROW_START block", line_number, line)
                 catalog_refs = []
                 for i in range(3, min(len(params), 6)):
                     catalog_refs.append(unquote(params[i]))
@@ -591,7 +612,7 @@ class AlbumParser:
                 current_stamp = stamp
             elif cmd == "STAMP_ADD_BLANK":
                 if current_row is None:
-                    continue
+                    raise ParseError("STAMP_ADD_BLANK command outside of ROW_START block", line_number, line)
                 current_row.stamps.append(
                     Stamp(
                         width=float(params[0]),
@@ -601,7 +622,7 @@ class AlbumParser:
                 )
             elif cmd == "STAMP_ADD_IMG":
                 if current_row is None:
-                    continue
+                    raise ParseError("STAMP_ADD_IMG command outside of ROW_START block", line_number, line)
                 catalog_refs = []
                 for i in range(4, min(len(params), 7)):
                     catalog_refs.append(unquote(params[i]))
@@ -626,7 +647,7 @@ class AlbumParser:
                 "STAMP_ADD_PENTAGON",
             ):
                 if current_row is None:
-                    continue
+                    raise ParseError("STAMP_ADD shape command outside of ROW_START block", line_number, line)
                 shape_map = {
                     "STAMP_ADD_TRIANGLE": StampShape.TRIANGLE,
                     "STAMP_ADD_DIAMOND": StampShape.DIAMOND,
@@ -647,7 +668,7 @@ class AlbumParser:
             elif cmd == "STAMP_HEADING":
                 if current_stamp:
                     current_stamp.heading = StampHeading(
-                        font_id=params[0],
+                        font_id=unquote(params[0]),
                         size=float(params[1]),
                         text=unquote(params[2]),
                     )
@@ -669,7 +690,7 @@ class AlbumParser:
                         v_align = TextAlignment.CENTER
                         text = unquote(params[2])
                     current_stamp.heading = StampHeading(
-                        font_id=params[0],
+                        font_id=unquote(params[0]),
                         size=float(params[1]),
                         text=text,
                         vertical_alignment=v_align,
@@ -797,7 +818,7 @@ class AlbumParser:
 
     def parse_file(self, file_path: str) -> Album:
         """Parse a DSL source file into an Album model."""
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, "r", encoding="utf-8-sig") as f:
             source_text = f.read()
         return self.parse(source_text, source_path=file_path)
 
@@ -824,3 +845,49 @@ class AlbumParser:
             "BLANK": BorderStyle.BLANK,
         }
         return style_map.get(val.upper(), BorderStyle.SOLID)
+
+    def validate(self, album: Album) -> list[str]:
+        """
+        Validate a parsed album for common issues.
+
+        Returns a list of warning messages (empty if no issues).
+        """
+        warnings: list[str] = []
+
+        if not album.pages:
+            warnings.append("Album has no pages — add PAGE_START to create pages")
+
+        for page_idx, page in enumerate(album.pages):
+            prefix = f"Page {page_idx + 1}"
+
+            if not page.text_elements and not page.rows:
+                warnings.append(f"{prefix}: empty page (no text or stamps)")
+
+            for row_idx, row in enumerate(page.rows):
+                row_prefix = f"{prefix}, Row {row_idx + 1}"
+
+                if not row.stamps:
+                    warnings.append(f"{row_prefix}: row has no stamps")
+                    continue
+
+                for stamp_idx, stamp in enumerate(row.stamps):
+                    stamp_prefix = f"{row_prefix}, Stamp {stamp_idx + 1}"
+
+                    if stamp.width <= 0 and stamp.height <= 0:
+                        warnings.append(
+                            f"{stamp_prefix}: zero-size stamp "
+                            f"(width={stamp.width}, height={stamp.height}) — "
+                            f"stamp will be invisible in output"
+                        )
+                    elif stamp.width <= 0:
+                        warnings.append(
+                            f"{stamp_prefix}: zero width ({stamp.width}) — "
+                            f"stamp will be invisible in output"
+                        )
+                    elif stamp.height <= 0:
+                        warnings.append(
+                            f"{stamp_prefix}: zero height ({stamp.height}) — "
+                            f"stamp will be invisible in output"
+                        )
+
+        return warnings

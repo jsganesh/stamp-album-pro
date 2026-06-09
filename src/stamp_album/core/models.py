@@ -300,6 +300,21 @@ class Color:
         """Return RGB as a tuple."""
         return (self.r, self.g, self.b)
 
+    def to_hex(self) -> str:
+        """Return color as a hex string like '#RRGGBB'."""
+        r = max(0, min(255, int(self.r * 255)))
+        g = max(0, min(255, int(self.g * 255)))
+        b = max(0, min(255, int(self.b * 255)))
+        return f"#{r:02X}{g:02X}{b:02X}"
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Color):
+            return NotImplemented
+        return self.r == other.r and self.g == other.g and self.b == other.b
+
+    def __hash__(self) -> int:
+        return hash((self.r, self.g, self.b))
+
 
 # ---------------------------------------------------------------------------
 # Text Elements

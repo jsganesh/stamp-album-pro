@@ -4,6 +4,7 @@ from typing import Optional
 
 from stamp_album.core.models import (
     Album,
+    Color,
     RowStyle,
     Stamp,
     StampShape,
@@ -19,7 +20,7 @@ class AlbumSerializer:
     def _format_color(self, color) -> str:
         if color is None:
             return ""
-        return f"#{color.to_hex()}"
+        return color.to_hex()
 
     def _format_text_alignment(self, alignment: TextAlignment) -> str:
         align_map = {
@@ -80,6 +81,33 @@ class AlbumSerializer:
                 f'"{self._escape_string(font.font_name)}")'
             )
 
+        # Color commands
+        color_map = [
+            ("COLOUR_ALBUM_BORDER", album.color_album_border),
+            ("COLOUR_ALBUM_DECORATIVE_BORDER", album.color_decorative_border),
+            ("COLOUR_ALBUM_FOOTER", album.color_footer),
+            ("COLOUR_ALBUM_HEADER", album.color_header),
+            ("COLOUR_ALBUM_MARGIN_TXT", album.color_margin_text),
+            ("COLOUR_ALBUM_TITLE", album.color_title),
+            ("COLOUR_PAGE_RULE_H", album.color_h_rule),
+            ("COLOUR_PAGE_TEXT", album.color_page_text),
+            ("COLOUR_STAMP_BORDER", album.color_stamp_border),
+            ("COLOUR_STAMP_INNER_BORDER", album.color_stamp_inner_border),
+            ("COLOUR_STAMP_HEADING", album.color_stamp_heading),
+            ("COLOUR_STAMP_TEXT", album.color_stamp_text),
+            ("COLOUR_STAMP_BACKGROUND", album.color_stamp_background),
+        ]
+        for cmd_name, color_val in color_map:
+            if color_val is not None:
+                lines.append(f"{cmd_name}({self._format_color(color_val)})")
+        if album.color_quadrille_grid is not None:
+            grid = album.color_quadrille_grid
+            border = album.color_quadrille_border or Color()
+            major = album.color_quadrille_major or Color()
+            lines.append(
+                f"COLOUR_PAGE_QUADRILLE({self._format_color(grid)} "
+                f"{self._format_color(border)} {self._format_color(major)})"
+            )
         for page in album.pages:
             lines.append("PAGE_START")
 
