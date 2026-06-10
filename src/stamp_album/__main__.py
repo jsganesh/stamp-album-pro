@@ -76,6 +76,11 @@ def _run_cli(args: list[str]):
         action="version",
         version="StampAlbum Pro v0.1.0",
     )
+    parser.add_argument(
+        "-v", "--verbose",
+        action="store_true",
+        help="Show detailed parsing information and validation warnings",
+    )
 
     parsed = parser.parse_args(args)
 
@@ -96,6 +101,18 @@ def _run_cli(args: list[str]):
     print(f"Parsed album: {album.title or 'Untitled'}")
     print(f"Pages: {len(album.pages)}")
     print(f"Fonts: {len(album.fonts)}")
+
+    if parsed.verbose:
+        total_stamps = sum(len(row.stamps) for page in album.pages for row in page.rows)
+        print(f"Stamps: {total_stamps}")
+        print(f"Source: {parsed.source_file}")
+        warnings = parser_obj.validate(album)
+        if warnings:
+            print(f"\nWarnings ({len(warnings)}):")
+            for w in warnings:
+                print(f"  ⚠ {w}")
+        else:
+            print("\nNo validation warnings.")
     print()
 
     # Determine output path
