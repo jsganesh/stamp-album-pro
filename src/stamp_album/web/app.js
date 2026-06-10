@@ -502,6 +502,7 @@ async function refreshPreview() {
     const dsl = getEditorContent();
     if (!dsl.trim()) {
         setPreviewHtml("<html><body style='display:flex;align-items:center;justify-content:center;height:100vh;color:#999;font-family:system-ui'><p>Enter DSL code to see preview</p></body></html>");
+        clearErrorHighlight();
         return;
     }
 
@@ -514,16 +515,73 @@ async function refreshPreview() {
 
         if (!response.ok) {
             const error = await response.json();
-            setPreviewHtml(`<html><body style='padding:40px;font-family:system-ui;color:#f85149'><h3>Preview Error</h3><pre>${escapeHtml(error.detail)}</pre></body></html>`);
-            document.getElementById("preview-status").textContent = "Error";
+            const detail = error.detail || "Unknown error";
+            // Try to extract line number from error message (e.g., "at line 5")
+            const lineMatch = detail.match(/at line (\d+)/);
+            const errorLine = lineMatch ? parseInt(lineMatch[1]) : null;
+
+            // Highlight the error line in the editor
+            if (errorLine) {
+                highlightErrorLine(errorLine);
+            }
+
+            // Build a helpful error page
+            const errorHtml = [
+                "<html><body style='padding:40px;font-family:system-ui;max-width:600px;margin:0 auto'>",
+                "<div style='background:#FFF3CD;border:1px solid #FFC107;border-radius:8px;padding:20px;margin-bottom:20px'>",
+                "<h3 style='color:#856404;margin:0 0 10px 0'>⚠ DSL Error</h3>",
+                `<p style='color:#856404;margin:0;font-family:monospace;font-size:14px'>${escapeHtml(detail)}</p>`,
+                "</div>",
+                "<p style='color:#666;font-size:13px'>Check the highlighted line in the editor above.</p>",
+                "<p style='color:#666;font-size:13px'>Common fixes:</p>",
+                "<ul style='color:#666;font-size:13px'>",
+                "<li>Text commands need <code>PAGE_TEXT</code> inside a <code>PAGE_START</code> block</li>",
+                "<li>Stamp commands need <code>STAMP_ADD</code> inside a <code>ROW_START_*</code> block</li>",
+                "<li>Row commands need <code>ROW_START_FS</code> (or ES/JS) inside a <code>PAGE_START</code> block</li>",
+                "</ul>",
+                "</body></html>"
+            ].join("\n");
+
+            setPreviewHtml(errorHtml);
+            document.getElementById("preview-status").textContent = `Error on line ${errorLine || "?"}`;
+            document.getElementById("preview-status").style.color = "#f85149";
             return;
         }
 
         const html = await response.text();
         setPreviewHtml(html);
+        clearErrorHighlight();
         document.getElementById("preview-status").textContent = "Preview updated";
+        document.getElementById("preview-status").style.color = "";
     } catch (err) {
         document.getElementById("preview-status").textContent = "Preview failed";
+        document.getElementById("preview-status").style.color = "#f85149";
+        clearErrorHighlight();
+    }
+}
+
+function highlightErrorLine(lineNumber) {
+    // Clear previous error highlights
+    clearErrorHighlight();
+    // Add error class to the line (CodeMirror uses 0-based line numbers)
+    const lineHandle = editor.addLineClass(lineNumber - 1, "background", "cm-error-line");
+    // Store reference for cleanup
+    window._errorLineHandle = { lineNumber: lineNumber - 1, handle: lineHandle };
+    // Scroll to the error line
+    editor.scrollIntoView({ line: lineNumber - 1, ch: 0 }, 100);
+    // Set cursor to the error line
+    editor.setCursor(lineNumber - 1, 0);
+}
+
+function clearErrorHighlight() {
+    if (window._errorLineHandle) {
+        const { lineNumber } = window._errorLineHandle;
+        try {
+            editor.removeLineClass(lineNumber, "background", "cm-error-line");
+        } catch (e) {
+            // Line may have been deleted
+        }
+        window._errorLineHandle = null;
     }
 }
 

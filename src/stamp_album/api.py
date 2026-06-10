@@ -26,7 +26,6 @@ _CSRF_TOKEN = secrets.token_urlsafe(32)
 async def security_headers(request: Request, call_next):
     """Add security headers to all responses."""
     response = await call_next(request)
-    # Content Security Policy
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
         "script-src 'self' https://cdnjs.cloudflare.com; "
@@ -39,13 +38,9 @@ async def security_headers(request: Request, call_next):
         "base-uri 'self'; "
         "form-action 'self'"
     )
-    # Prevent MIME type sniffing
     response.headers["X-Content-Type-Options"] = "nosniff"
-    # Prevent clickjacking
     response.headers["X-Frame-Options"] = "DENY"
-    # Referrer policy
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    # Permissions policy
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     return response
 
@@ -187,10 +182,9 @@ async def render_preview(request: RenderRequest):
         album = parser.parse(request.dsl, request.source_path)
         renderer = HTMLRenderer(album, None)
         html = renderer.render()
-        # Replace image paths with API endpoints (only for local filenames)
         import re
         html = re.sub(
-            r'src="([^\"/][^\"]*\.(?:png|jpg|jpeg|gif|bmp|tiff|tif|webp))"',
+            r'src="([^\"/"][^"]*\.(?:png|jpg|jpeg|gif|bmp|tiff|tif|webp))"',
             r'src="/images/\1"',
             html,
         )
@@ -232,7 +226,6 @@ async def visual_update(request: VisualUpdateRequest):
 async def export_pdf(request: RenderRequest):
     try:
         album = parser.parse(request.dsl, request.source_path)
-        # Resolve local images to absolute file:// paths for reliable PDF generation
         generator = PDFGenerator()
         with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
             pdf_path = tmp.name
@@ -244,6 +237,31 @@ async def export_pdf(request: RenderRequest):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Export error: {e}")
+
+
+@app.post("/validate")
+async def validate_album(request: RenderRequest):
+    """Validate a DSL document and return warnings/errors."""
+    try:
+        album = parser.parse(request.dsl, request.source_path)
+        warnings = parser.validate(album)
+        stamp_count = sum(
+            len(row.stamps) for page in album.pages for row in page.rows
+        )
+        return {
+            "valid": True,
+            "warnings": warnings,
+            "title": album.title,
+            "pages": len(album.pages),
+            "stamps": stamp_count,
+        }
+    except ParseError as e:
+        return {
+            "valid": False,
+            "error": str(e),
+            "line_number": e.line_number,
+            "warnings": [],
+        }
 
 
 if __name__ == "__main__":
