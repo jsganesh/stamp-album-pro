@@ -769,9 +769,14 @@ class HTMLRenderer:
         # Phase 4: Advanced typography
         typography_css = self._build_typography_css(text)
 
+        # Drop cap
+        drop_cap_css = ""
+        if hasattr(text, "drop_cap_lines") and text.drop_cap_lines > 0:
+            drop_cap_css = "float: left; font-size: " + str(text.size * text.drop_cap_lines) + "pt; "
+
         return (
             f'<div class="page-text {align_class}" '
-            f'style="{font_css}; color: {color_css}; {vspace}{typography_css}">'
+            f'style="{font_css}; color: {color_css}; {vspace}{typography_css}{drop_cap_css}">'
             f"{self._format_text(text.content)}</div>"
         )
 

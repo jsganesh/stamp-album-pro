@@ -807,8 +807,23 @@ class AlbumParser:
                     album.page_setup.default_text_style = params[0]
                 elif len(tokens) > 1:
                     album.page_setup.default_text_style = tokens[1]
-
-            # -- Paragraph content (non-command lines inside paragraph) --
+            elif cmd == "PAGE_TEXT_DROP_CAP":
+                # PAGE_TEXT_DROP_CAP (font_id size lines "text")
+                # lines = number of lines the drop cap spans (default 2)
+                if current_page is None:
+                    raise ParseError("PAGE_TEXT_DROP_CAP command outside of PAGE_START block", line_number, line)
+                drop_lines = int(float(params[2])) if len(params) > 2 else 2
+                text_content = unquote(params[3]) if len(params) > 3 else unquote(params[2])
+                ft = FormattedText(
+                    font_id=unquote(params[0]),
+                    size=float(params[1]),
+                    content=text_content,
+                    alignment=TextAlignment.LEFT,
+                    color=album.color_page_text,
+                    drop_cap_lines=drop_lines,
+                )
+                current_page.text_elements.append(ft)
+                current_page.content_flow.append(("text", current_page.text_elements[-1]))
             elif paragraph is not None:
                 # Unquote if it's a quoted string, otherwise use as-is
                 content = unquote(line) if line.startswith('"') else line

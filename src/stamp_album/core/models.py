@@ -376,6 +376,7 @@ class FormattedText:
     gradient: Optional[GradientFill] = None
     weight: str = "normal"  # normal, bold, bolder, light, etc.
     style: str = "normal"  # normal, italic, oblique
+    drop_cap_lines: int = 0  # 0 = no drop cap, 2+ = drop cap spanning N lines
 
 
 @dataclass
