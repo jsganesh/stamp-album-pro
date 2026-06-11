@@ -49,6 +49,444 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        /* Tutorial overlay */
+        .tutorial-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 9999;
+        }
+        .tutorial-overlay.active {
+            display: block;
+        }
+        .tutorial-highlight {
+            position: relative;
+            z-index: 10000 !important;
+            box-shadow: 0 0 0 4px rgba(88, 166, 255, 0.5), 0 0 20px rgba(88, 166, 255, 0.3);
+            border-radius: 4px;
+        }
+        .tutorial-backdrop {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+        }
+        .tutorial-tooltip {
+            position: absolute;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 380px;
+            z-index: 10001;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            animation: tutorial-in 0.3s ease;
+        }
+        @keyframes tutorial-in {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .tutorial-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .tutorial-header span {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .tutorial-skip {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .tutorial-skip:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        .tutorial-tooltip h3 {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+            color: var(--text-primary);
+        }
+        .tutorial-tooltip p {
+            margin: 0 0 16px 0;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .tutorial-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+        .tutorial-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            transition: all 0.15s;
+        }
+        .tutorial-btn:hover:not(:disabled) {
+            background: var(--bg-hover);
+        }
+        .tutorial-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .tutorial-btn.tutorial-next {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+        .tutorial-btn.tutorial-next:hover {
+            background: var(--accent-hover);
+        }
+        .tutorial-dots {
+            display: flex;
+            gap: 6px;
+        }
+        .tutorial-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--bg-hover);
+            transition: all 0.2s;
+        }
+        .tutorial-dot.active {
+            background: var(--accent);
+            transform: scale(1.2);
+        }
+        .tutorial-start-btn {
+            margin-left: 8px;
+            padding: 4px 10px;
+            background: var(--accent);
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .tutorial-start-btn:hover {
+            background: var(--accent-hover);
+        }
+        /* Album Creation Wizard */
+        .album-wizard {
+            position: fixed;
+            top: 0;
+            right: -420px;
+            width: 400px;
+            height: 100vh;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            z-index: 9998;
+            display: flex;
+            flex-direction: column;
+            transition: right 0.3s ease;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.3);
+        }
+        .album-wizard.open {
+            right: 0;
+        }
+        .wizard-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .wizard-panel-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: var(--text-primary);
+        }
+        .wizard-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .wizard-close:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        .wizard-steps {
+            display: flex;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            gap: 4px;
+        }
+        .wizard-step-indicator {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            opacity: 0.4;
+            transition: opacity 0.2s;
+        }
+        .wizard-step-indicator.active {
+            opacity: 1;
+        }
+        .wizard-step-indicator.done {
+            opacity: 0.7;
+        }
+        .wizard-step-indicator .step-num {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .wizard-step-indicator.active .step-num {
+            background: var(--accent);
+            color: #fff;
+        }
+        .wizard-step-indicator.done .step-num {
+            background: var(--success);
+            color: #fff;
+        }
+        .wizard-step-indicator .step-label {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+        .wizard-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .wizard-pane {
+            display: none;
+        }
+        .wizard-pane.active {
+            display: block;
+        }
+        .wizard-pane h4 {
+            margin: 0 0 8px 0;
+            font-size: 15px;
+            color: var(--text-primary);
+        }
+        .wizard-help {
+            margin: 0 0 16px 0;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .wizard-field {
+            margin-bottom: 16px;
+        }
+        .wizard-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+        .wizard-field input[type="text"],
+        .wizard-field input[type="number"] {
+            width: 100%;
+            padding: 8px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 13px;
+            box-sizing: border-box;
+        }
+        .wizard-field input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .wizard-paper-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        .wizard-option-btn {
+            padding: 10px 8px;
+            background: var(--bg-tertiary);
+            border: 2px solid transparent;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.15s;
+        }
+        .wizard-option-btn:hover {
+            background: var(--bg-hover);
+        }
+        .wizard-option-btn.active {
+            border-color: var(--accent);
+            background: rgba(88, 166, 255, 0.1);
+            color: var(--text-primary);
+        }
+        .wizard-option-btn small {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+        .wizard-margins {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .wizard-margins input {
+            text-align: center;
+        }
+        .wizard-style-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .wizard-style-options .wizard-option-btn {
+            flex: 1;
+            min-width: 60px;
+        }
+        .wizard-color-options {
+            display: flex;
+            gap: 8px;
+        }
+        .wizard-color-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .wizard-color-btn:hover {
+            transform: scale(1.1);
+        }
+        .wizard-color-btn.active {
+            border-color: var(--text-primary);
+            box-shadow: 0 0 0 2px var(--bg-secondary), 0 0 0 4px var(--accent);
+        }
+        .wizard-template-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .wizard-template-card {
+            padding: 12px 14px;
+            background: var(--bg-tertiary);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .wizard-template-card:hover {
+            background: var(--bg-hover);
+        }
+        .wizard-template-card.selected {
+            border-color: var(--accent);
+            background: rgba(88, 166, 255, 0.1);
+        }
+        .wizard-template-card strong {
+            display: block;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+        .wizard-template-card small {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .wizard-stamp-entry {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+        .wizard-stamp-entry input {
+            padding: 6px 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 12px;
+        }
+        .wizard-stamp-desc { flex: 2; }
+        .wizard-stamp-cat { flex: 1; }
+        .wizard-stamp-w, .wizard-stamp-h { width: 50px; text-align: center; }
+        .wizard-remove-stamp {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 14px;
+        }
+        .wizard-remove-stamp:hover {
+            color: var(--error);
+        }
+        .wizard-add-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--bg-tertiary);
+            border: 1px dashed var(--border-color);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .wizard-add-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        .wizard-summary {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+        .wizard-summary strong {
+            color: var(--text-primary);
+        }
+        .wizard-summary .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .wizard-summary .summary-row:last-child {
+            border-bottom: none;
+        }
+        .wizard-nav {
+            display: flex;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        .wizard-backdrop {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 9997;
+        }
+        .wizard-backdrop.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -116,6 +554,7 @@
                     <input type="checkbox" id="toggle-sidebar">
                     <span>Files</span>
                 </label>
+                <button id="btn-tutorial" class="tutorial-start-btn" title="Start the interactive tutorial">?</button>
             </div>
         </header>
 
@@ -432,6 +871,177 @@
             <span id="status-right"></span>
         </footer>
     </div>
+
+    <!-- Tutorial Overlay -->
+    <div id="tutorial-overlay" class="tutorial-overlay">
+        <div id="tutorial-tooltip" class="tutorial-tooltip">
+            <div class="tutorial-header">
+                <span id="tutorial-step-num">1/6</span>
+                <button id="tutorial-skip" class="tutorial-skip">Skip</button>
+            </div>
+            <h3 id="tutorial-title"></h3>
+            <p id="tutorial-text"></p>
+            <div class="tutorial-footer">
+                <button id="tutorial-prev" class="tutorial-btn tutorial-prev">← Back</button>
+                <div id="tutorial-dots" class="tutorial-dots"></div>
+                <button id="tutorial-next" class="tutorial-btn tutorial-next">Next →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Album Creation Wizard -->
+    <div id="album-wizard" class="album-wizard">
+        <div class="wizard-panel-header">
+            <h3>Create New Album</h3>
+            <button id="wizard-close" class="wizard-close">✕</button>
+        </div>
+        <div class="wizard-steps">
+            <div class="wizard-step-indicator active" data-wizard-step="1">
+                <span class="step-num">1</span>
+                <span class="step-label">Info</span>
+            </div>
+            <div class="wizard-step-indicator" data-wizard-step="2">
+                <span class="step-num">2</span>
+                <span class="step-label">Paper</span>
+            </div>
+            <div class="wizard-step-indicator" data-wizard-step="3">
+                <span class="step-num">3</span>
+                <span class="step-label">Style</span>
+            </div>
+            <div class="wizard-step-indicator" data-wizard-step="4">
+                <span class="step-num">4</span>
+                <span class="step-label">Template</span>
+            </div>
+            <div class="wizard-step-indicator" data-wizard-step="5">
+                <span class="step-num">5</span>
+                <span class="step-label">Stamps</span>
+            </div>
+            <div class="wizard-step-indicator" data-wizard-step="6">
+                <span class="step-num">6</span>
+                <span class="step-label">Finish</span>
+            </div>
+        </div>
+        <div class="wizard-content">
+            <!-- Step 1: Album Info -->
+            <div class="wizard-pane active" data-pane="1">
+                <h4>Album Information</h4>
+                <p class="wizard-help">Give your album a title and author name.</p>
+                <div class="wizard-field">
+                    <label for="wizard-title">Album Title</label>
+                    <input type="text" id="wizard-title" placeholder="e.g., My British Collection">
+                </div>
+                <div class="wizard-field">
+                    <label for="wizard-author">Author Name</label>
+                    <input type="text" id="wizard-author" placeholder="e.g., John Smith">
+                </div>
+            </div>
+            <!-- Step 2: Paper Setup -->
+            <div class="wizard-pane" data-pane="2">
+                <h4>Paper Setup</h4>
+                <p class="wizard-help">Choose your page size and margins.</p>
+                <div class="wizard-field">
+                    <label>Page Size</label>
+                    <div class="wizard-paper-options">
+                        <button class="wizard-option-btn active" data-size="A4" data-w="210" data-h="297">A4<br><small>210×297mm</small></button>
+                        <button class="wizard-option-btn" data-size="A3" data-w="297" data-h="420">A3<br><small>297×420mm</small></button>
+                        <button class="wizard-option-btn" data-size="Letter" data-w="216" data-h="279">Letter<br><small>216×279mm</small></button>
+                        <button class="wizard-option-btn" data-size="Legal" data-w="216" data-h="356">Legal<br><small>216×356mm</small></button>
+                    </div>
+                </div>
+                <div class="wizard-field">
+                    <label>Margins (mm)</label>
+                    <div class="wizard-margins">
+                        <input type="number" id="wizard-ml" value="20" min="5" max="50" title="Left">
+                        <input type="number" id="wizard-mt" value="15" min="5" max="50" title="Top">
+                        <input type="number" id="wizard-mr" value="15" min="5" max="50" title="Right">
+                        <input type="number" id="wizard-mb" value="15" min="5" max="50" title="Bottom">
+                    </div>
+                </div>
+            </div>
+            <!-- Step 3: Style -->
+            <div class="wizard-pane" data-pane="3">
+                <h4>Page Style</h4>
+                <p class="wizard-help">Choose a border and color scheme.</p>
+                <div class="wizard-field">
+                    <label>Border Style</label>
+                    <div class="wizard-style-options">
+                        <button class="wizard-option-btn active" data-border="none">None</button>
+                        <button class="wizard-option-btn" data-border="single">Single</button>
+                        <button class="wizard-option-btn" data-border="double">Double</button>
+                        <button class="wizard-option-btn" data-border="triple">Triple</button>
+                        <button class="wizard-option-btn" data-border="elegant">Elegant</button>
+                    </div>
+                </div>
+                <div class="wizard-field">
+                    <label>Color Scheme</label>
+                    <div class="wizard-color-options">
+                        <button class="wizard-color-btn active" data-title="black" data-border="black" style="background:#333"></button>
+                        <button class="wizard-color-btn" data-title="darkblue" data-border="darkblue" style="background:#00008b"></button>
+                        <button class="wizard-color-btn" data-title="darkred" data-border="darkred" style="background:#8b0000"></button>
+                        <button class="wizard-color-btn" data-title="darkgreen" data-border="darkgreen" style="background:#006400"></button>
+                        <button class="wizard-color-btn" data-title="navy" data-border="navy" style="background:#000080"></button>
+                    </div>
+                </div>
+            </div>
+            <!-- Step 4: Template -->
+            <div class="wizard-pane" data-pane="4">
+                <h4>Choose a Template</h4>
+                <p class="wizard-help">Start with a pre-built template or create from scratch.</p>
+                <div class="wizard-template-list">
+                    <div class="wizard-template-card selected" data-template="blank">
+                        <strong>Blank Page</strong>
+                        <small>Start from scratch</small>
+                    </div>
+                    <div class="wizard-template-card" data-template="classic">
+                        <strong>Classic Album</strong>
+                        <small>Triple border, centered title</small>
+                    </div>
+                    <div class="wizard-template-card" data-template="competition">
+                        <strong>Competition</strong>
+                        <small>FIP-standard exhibition layout</small>
+                    </div>
+                    <div class="wizard-template-card" data-template="modern">
+                        <strong>Modern Minimal</strong>
+                        <small>Clean, generous white space</small>
+                    </div>
+                    <div class="wizard-template-card" data-template="two_column">
+                        <strong>Two Column</strong>
+                        <small>Dense information layout</small>
+                    </div>
+                    <div class="wizard-template-card" data-template="thematic">
+                        <strong>Thematic</strong>
+                        <small>Color-coded sections</small>
+                    </div>
+                </div>
+            </div>
+            <!-- Step 5: Stamps -->
+            <div class="wizard-pane" data-pane="5">
+                <h4>Add Your First Stamps</h4>
+                <p class="wizard-help">Add stamps to your first page. You can always add more later.</p>
+                <div id="wizard-stamp-entries">
+                    <div class="wizard-stamp-entry">
+                        <input type="text" placeholder="Stamp description" class="wizard-stamp-desc">
+                        <input type="text" placeholder="Catalog #" class="wizard-stamp-cat">
+                        <input type="number" placeholder="W" class="wizard-stamp-w" value="32" min="5" max="200">
+                        <input type="number" placeholder="H" class="wizard-stamp-h" value="37" min="5" max="200">
+                        <button class="wizard-remove-stamp" title="Remove">✕</button>
+                    </div>
+                </div>
+                <button id="wizard-add-stamp" class="wizard-add-btn">+ Add Another Stamp</button>
+            </div>
+            <!-- Step 6: Finish -->
+            <div class="wizard-pane" data-pane="6">
+                <h4>Review & Create</h4>
+                <p class="wizard-help">Review your album settings and create.</p>
+                <div id="wizard-summary" class="wizard-summary"></div>
+            </div>
+        </div>
+        <div class="wizard-nav">
+            <button id="wizard-prev" class="tutorial-btn" disabled>← Back</button>
+            <button id="wizard-next" class="tutorial-btn tutorial-next">Next →</button>
+        </div>
+    </div>
+    <div id="wizard-backdrop" class="wizard-backdrop"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>

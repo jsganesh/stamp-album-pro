@@ -987,3 +987,387 @@ function escapeAttr(str) {
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
 }
+
+// ============================================================
+// Tutorial System
+// ============================================================
+
+const TUTORIAL_STEPS = [
+    {
+        title: "Welcome to StampAlbum Pro! 🎨",
+        text: "This interactive tutorial will walk you through the key features of StampAlbum Pro. You can skip at any time and restart later by clicking the ? button.",
+        target: null,
+        position: "center",
+    },
+    {
+        title: "The DSL Editor",
+        text: "This is where you write your album definitions using our DSL (Domain Specific Language). Try typing ALBUM_TITLE(\"My Collection\") to get started. The editor has syntax highlighting and line numbers.",
+        target: "#editor-panel",
+        position: "right",
+    },
+    {
+        title: "Live Preview",
+        text: "As you type, the preview panel updates automatically (400ms after you stop typing). This shows exactly how your album pages will look when exported to PDF.",
+        target: "#preview-panel",
+        position: "left",
+    },
+    {
+        title: "Album Setup Wizard",
+        text: "Use the Setup panel on the left to quickly configure paper size, borders, and column layouts. Click each section to expand it. Changes are applied to your DSL in real-time.",
+        target: "#wizard-panel",
+        position: "right",
+    },
+    {
+        title: "File Management",
+        text: "Click the Files toggle to show the sidebar. You can create, open, save, and delete album files. Upload images to use in your stamp boxes. All files are stored in ~/StampAlbum/.",
+        target: "#toggle-sidebar",
+        position: "left",
+        action: () => {
+            const sidebar = document.getElementById("sidebar");
+            const toggle = document.getElementById("toggle-sidebar");
+            if (!toggle.checked) {
+                toggle.checked = true;
+                sidebar.classList.remove("sidebar-hidden");
+            }
+        },
+    },
+    {
+        title: "Export to PDF",
+        text: "When your album is ready, click Export PDF to generate a high-quality PDF file. The PDF uses professional typography and precise millimeter measurements for printing.",
+        target: "#btn-export",
+        position: "bottom",
+    },
+    {
+        title: "You're Ready! 🚀",
+        text: "You now know the basics. For more help, check the DSL reference in the documentation. Happy collecting!",
+        target: null,
+        position: "center",
+    },
+];
+
+let tutorialStep = 0;
+let tutorialActive = false;
+
+function initTutorial() {
+    const btn = document.getElementById("btn-tutorial");
+    if (btn) {
+        btn.addEventListener("click", startTutorial);
+    }
+    if (!localStorage.getItem("stampalbum-tutorial-done")) {
+        setTimeout(() => startTutorial(), 500);
+    }
+}
+
+function startTutorial() {
+    tutorialActive = true;
+    tutorialStep = 0;
+    document.getElementById("tutorial-overlay").classList.add("active");
+    showTutorialStep(0);
+}
+
+function endTutorial() {
+    tutorialActive = false;
+    document.getElementById("tutorial-overlay").classList.remove("active");
+    clearTutorialHighlight();
+    localStorage.setItem("stampalbum-tutorial-done", "true");
+}
+
+function showTutorialStep(idx) {
+    const step = TUTORIAL_STEPS[idx];
+    if (!step) { endTutorial(); return; }
+
+    document.getElementById("tutorial-step-num").textContent = `${idx + 1}/${TUTORIAL_STEPS.length}`;
+    document.getElementById("tutorial-title").textContent = step.title;
+    document.getElementById("tutorial-text").textContent = step.text;
+
+    document.getElementById("tutorial-prev").disabled = idx === 0;
+    const nextBtn = document.getElementById("tutorial-next");
+    nextBtn.textContent = idx === TUTORIAL_STEPS.length - 1 ? "Finish" : "Next →";
+
+    const dotsContainer = document.getElementById("tutorial-dots");
+    dotsContainer.innerHTML = TUTORIAL_STEPS.map((_, i) =>
+        `<div class="tutorial-dot ${i === idx ? "active" : ""}"></div>`
+    ).join("");
+
+    clearTutorialHighlight();
+    const tooltip = document.getElementById("tutorial-tooltip");
+    const overlay = document.getElementById("tutorial-overlay");
+
+    const oldBackdrop = overlay.querySelector(".tutorial-backdrop");
+    if (oldBackdrop) oldBackdrop.remove();
+
+    if (step.target) {
+        const targetEl = document.querySelector(step.target);
+        if (targetEl) {
+            targetEl.classList.add("tutorial-highlight");
+            const backdrop = document.createElement("div");
+            backdrop.className = "tutorial-backdrop";
+            overlay.appendChild(backdrop);
+
+            const rect = targetEl.getBoundingClientRect();
+            let top, left;
+            switch (step.position) {
+                case "right":
+                    top = rect.top + rect.height / 2 - 60;
+                    left = rect.right + 16;
+                    break;
+                case "left":
+                    top = rect.top + rect.height / 2 - 60;
+                    left = rect.left - 396;
+                    break;
+                case "bottom":
+                    top = rect.bottom + 16;
+                    left = rect.left + rect.width / 2 - 190;
+                    break;
+                default:
+                    top = rect.top + rect.height / 2 - 60;
+                    left = rect.right + 16;
+            }
+            top = Math.max(10, Math.min(top, window.innerHeight - 200));
+            left = Math.max(10, Math.min(left, window.innerWidth - 400));
+            tooltip.style.top = top + "px";
+            tooltip.style.left = left + "px";
+        }
+    } else {
+        tooltip.style.top = "50%";
+        tooltip.style.left = "50%";
+        tooltip.style.transform = "translate(-50%, -50%)";
+    }
+
+    if (step.action) step.action();
+}
+
+function clearTutorialHighlight() {
+    document.querySelectorAll(".tutorial-highlight").forEach(el => {
+        el.classList.remove("tutorial-highlight");
+    });
+    const backdrop = document.querySelector(".tutorial-backdrop");
+    if (backdrop) backdrop.remove();
+    const tooltip = document.getElementById("tutorial-tooltip");
+    tooltip.style.transform = "";
+}
+
+function tutorialNext() {
+    if (tutorialStep < TUTORIAL_STEPS.length - 1) {
+        tutorialStep++;
+        showTutorialStep(tutorialStep);
+    } else {
+        endTutorial();
+    }
+}
+
+function tutorialPrev() {
+    if (tutorialStep > 0) {
+        tutorialStep--;
+        showTutorialStep(tutorialStep);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    initTutorial();
+    document.getElementById("tutorial-next").addEventListener("click", tutorialNext);
+    document.getElementById("tutorial-prev").addEventListener("click", tutorialPrev);
+    document.getElementById("tutorial-skip").addEventListener("click", endTutorial);
+});
+
+// ============================================================
+// Album Creation Wizard
+// ============================================================
+
+let wizardStep = 1;
+const wizardData = {
+    title: "",
+    author: "",
+    pageSize: "A4",
+    pageWidth: 210,
+    pageHeight: 297,
+    marginLeft: 20,
+    marginTop: 15,
+    marginRight: 15,
+    marginBottom: 15,
+    border: "none",
+    titleColor: "black",
+    borderColor: "black",
+    template: "blank",
+    stamps: [{ description: "", catalog: "", width: 32, height: 37 }],
+};
+
+const WIZARD_TEMPLATES = {
+    blank: "",
+    classic: 'PAGE_TEXT_CENTRE(HS 14 "Section Title")\nPAGE_TEXT_CENTRE(HN 10 "Description text goes here.")\n\nPAGE_VSPACE(5)\n\nROW_START_FS(HN 8 0.5 6.0)\nSTAMP_ADD(32.0 37.0 "Description" "sg 1" "" "sacc 1")\nSTAMP_ADD(32.0 37.0 "Description" "sg 2" "" "sacc 2")',
+    competition: 'PAGE_TEXT_CENTRE(HS 16 "Section Title")\nPAGE_TEXT_CENTRE(HN 12 "Brief description of this section.")\n\nPAGE_RULE_H(0.5 4 0)\n\nROW_START_FS(HN 9 0.5 7.0)\nSTAMP_ADD(35.0 40.0 "Stamp description" "sg 1" "" "")\nSTAMP_HEADING(HB 10 "Key Item")',
+    modern: 'PAGE_TEXT(HN 11 "Section heading - left aligned")\n\nPAGE_VSPACE(8)\n\nROW_START_FS(HN 8 1.0 6.0)\nSTAMP_ADD(30.0 35.0 "Description" "" "" "")\nSTAMP_ADD(30.0 35.0 "Description" "" "" "")',
+    two_column: 'PAGE_COLUMN_START(10.0)\n\nPAGE_TEXT_CENTRE(HS 12 "Left Column")\nROW_START_FS(HN 7 0.3 5.0)\nSTAMP_ADD(25.0 28.0 "Stamp" "" "" "")\n\nPAGE_COLUMN_NEXT\n\nPAGE_TEXT_CENTRE(HS 12 "Right Column")\nROW_START_FS(HN 7 0.3 5.0)\nSTAMP_ADD(25.0 28.0 "Stamp" "" "" "")\n\nPAGE_COLUMN_STOP',
+    thematic: '# Theme: Section 1\nCOLOUR_PAGE_TEXT(darkblue)\nPAGE_TEXT_CENTRE(HS 14 "Theme: Birds")\nPAGE_TEXT_CENTRE(HN 10 "Description of this thematic section.")\n\nROW_START_FS(HN 8 0.5 6.0)\nSTAMP_ADD(32.0 37.0 "Bird stamp" "" "" "")\nSTAMP_ADD(32.0 37.0 "Bird stamp" "" "" "")',
+};
+
+function initWizard() {
+    document.getElementById("wizard-close").addEventListener("click", closeWizard);
+    document.getElementById("wizard-backdrop").addEventListener("click", closeWizard);
+    document.getElementById("wizard-next").addEventListener("click", wizardNext);
+    document.getElementById("wizard-prev").addEventListener("click", wizardPrev);
+    document.getElementById("wizard-add-stamp").addEventListener("click", addWizardStamp);
+
+    document.querySelectorAll(".wizard-paper-options .wizard-option-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".wizard-paper-options .wizard-option-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            wizardData.pageSize = btn.dataset.size;
+            wizardData.pageWidth = parseInt(btn.dataset.w);
+            wizardData.pageHeight = parseInt(btn.dataset.h);
+        });
+    });
+
+    document.querySelectorAll(".wizard-style-options .wizard-option-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".wizard-style-options .wizard-option-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            wizardData.border = btn.dataset.border;
+        });
+    });
+
+    document.querySelectorAll(".wizard-color-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".wizard-color-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            wizardData.titleColor = btn.dataset.title;
+            wizardData.borderColor = btn.dataset.border;
+        });
+    });
+
+    document.querySelectorAll(".wizard-template-card").forEach(card => {
+        card.addEventListener("click", () => {
+            document.querySelectorAll(".wizard-template-card").forEach(c => c.classList.remove("selected"));
+            card.classList.add("selected");
+            wizardData.template = card.dataset.template;
+        });
+    });
+
+    document.getElementById("wizard-stamp-entries").addEventListener("click", (e) => {
+        if (e.target.classList.contains("wizard-remove-stamp")) {
+            const entry = e.target.closest(".wizard-stamp-entry");
+            const entries = document.querySelectorAll(".wizard-stamp-entry");
+            if (entries.length > 1) entry.remove();
+        }
+    });
+
+    ["wizard-ml", "wizard-mt", "wizard-mr", "wizard-mb"].forEach(id => {
+        document.getElementById(id).addEventListener("change", (e) => {
+            const key = id.replace("wizard-m", "margin") + (id === "wizard-ml" ? "Left" : id === "wizard-mt" ? "Top" : id === "wizard-mr" ? "Right" : "Bottom");
+            wizardData[key] = parseFloat(e.target.value) || 15;
+        });
+    });
+}
+
+function openWizard() {
+    wizardStep = 1;
+    document.getElementById("album-wizard").classList.add("open");
+    document.getElementById("wizard-backdrop").classList.add("active");
+    showWizardStep(1);
+}
+
+function closeWizard() {
+    document.getElementById("album-wizard").classList.remove("open");
+    document.getElementById("wizard-backdrop").classList.remove("active");
+}
+
+function showWizardStep(step) {
+    wizardStep = step;
+    document.querySelectorAll(".wizard-step-indicator").forEach((ind, i) => {
+        ind.classList.remove("active", "done");
+        if (i + 1 === step) ind.classList.add("active");
+        if (i + 1 < step) ind.classList.add("done");
+    });
+    document.querySelectorAll(".wizard-pane").forEach(pane => {
+        pane.classList.toggle("active", parseInt(pane.dataset.pane) === step);
+    });
+    document.getElementById("wizard-prev").disabled = step === 1;
+    document.getElementById("wizard-next").textContent = step === 6 ? "Create Album" : "Next →";
+    if (step === 6) updateWizardSummary();
+}
+
+function wizardNext() {
+    if (wizardStep < 6) { showWizardStep(wizardStep + 1); }
+    else { createAlbumFromWizard(); }
+}
+
+function wizardPrev() {
+    if (wizardStep > 1) { showWizardStep(wizardStep - 1); }
+}
+
+function addWizardStamp() {
+    const container = document.getElementById("wizard-stamp-entries");
+    const entry = document.createElement("div");
+    entry.className = "wizard-stamp-entry";
+    entry.innerHTML = '<input type="text" placeholder="Stamp description" class="wizard-stamp-desc"><input type="text" placeholder="Catalog #" class="wizard-stamp-cat"><input type="number" placeholder="W" class="wizard-stamp-w" value="32" min="5" max="200"><input type="number" placeholder="H" class="wizard-stamp-h" value="37" min="5" max="200"><button class="wizard-remove-stamp" title="Remove">✕</button>';
+    container.appendChild(entry);
+}
+
+function updateWizardSummary() {
+    const title = document.getElementById("wizard-title").value || "Untitled";
+    const author = document.getElementById("wizard-author").value || "Unknown";
+    const stampEntries = document.querySelectorAll(".wizard-stamp-entry");
+    const stamps = [];
+    stampEntries.forEach(entry => {
+        const desc = entry.querySelector(".wizard-stamp-desc").value;
+        if (desc) stamps.push({ description: desc, catalog: entry.querySelector(".wizard-stamp-cat").value, width: entry.querySelector(".wizard-stamp-w").value, height: entry.querySelector(".wizard-stamp-h").value });
+    });
+    wizardData.title = title;
+    wizardData.author = author;
+    wizardData.stamps = stamps.length > 0 ? stamps : [{ description: "", catalog: "", width: 32, height: 37 }];
+    const borderMap = { none: "None", single: "Single", double: "Double", triple: "Triple", elegant: "Elegant" };
+    const tmplMap = { blank: "Blank", classic: "Classic", competition: "Competition", modern: "Modern", two_column: "Two Column", thematic: "Thematic" };
+    document.getElementById("wizard-summary").innerHTML = '<div class="summary-row"><span>Title</span><strong>' + escapeHtml(title) + '</strong></div><div class="summary-row"><span>Author</span><strong>' + escapeHtml(author) + '</strong></div><div class="summary-row"><span>Page Size</span><strong>' + wizardData.pageSize + ' (' + wizardData.pageWidth + 'x' + wizardData.pageHeight + 'mm)</strong></div><div class="summary-row"><span>Border</span><strong>' + (borderMap[wizardData.border] || "None") + '</strong></div><div class="summary-row"><span>Template</span><strong>' + (tmplMap[wizardData.template] || "Blank") + '</strong></div><div class="summary-row"><span>Stamps</span><strong>' + stamps.length + ' stamp(s)</strong></div>';
+}
+
+function createAlbumFromWizard() {
+    updateWizardSummary();
+    const dsl = generateWizardDSL();
+    editor.setValue(dsl);
+    setEditorContent(dsl);
+    closeWizard();
+    refreshPreview();
+    showToast("Album created! Edit the DSL or add more pages.", "success");
+}
+
+function generateWizardDSL() {
+    const L = [];
+    if (wizardData.title) L.push('ALBUM_TITLE("' + wizardData.title.replace(/"/g, '\\"') + '")');
+    if (wizardData.author) L.push('ALBUM_AUTHOR("' + wizardData.author.replace(/"/g, '\\"') + '")');
+    L.push("");
+    L.push("ALBUM_PAGES_SIZE(" + wizardData.pageWidth + " " + wizardData.pageHeight + ")");
+    L.push("ALBUM_PAGES_MARGINS(" + wizardData.marginLeft + " " + wizardData.marginRight + " " + wizardData.marginTop + " " + wizardData.marginBottom + ")");
+    L.push("ALBUM_PAGES_SPACING(6.0 6.0)");
+    if (wizardData.border === "single") L.push("ALBUM_PAGES_BORDER(0.5 0 0 0)");
+    else if (wizardData.border === "double") L.push("ALBUM_PAGES_BORDER(0.5 0.5 0 1.0)");
+    else if (wizardData.border === "triple") L.push("ALBUM_PAGES_BORDER(0.5 0.5 0.5 1.5)");
+    else if (wizardData.border === "elegant") L.push("ALBUM_PAGES_BORDER(0.4 0.2 0.4 1.0)");
+    if (wizardData.titleColor !== "black") L.push("COLOUR_ALBUM_TITLE(" + wizardData.titleColor + ")");
+    if (wizardData.borderColor !== "black") L.push("COLOUR_ALBUM_BORDER(" + wizardData.borderColor + ")");
+    if (wizardData.title) L.push('ALBUM_PAGES_TITLE(TB 16 "' + wizardData.title.replace(/"/g, '\\"') + '")');
+    L.push("");
+    if (wizardData.template !== "blank" && WIZARD_TEMPLATES[wizardData.template]) {
+        L.push("PAGE_START");
+        L.push("");
+        L.push(WIZARD_TEMPLATES[wizardData.template]);
+    } else {
+        L.push("PAGE_START");
+        L.push("");
+        if (wizardData.stamps.length > 0 && wizardData.stamps[0].description) {
+            L.push('ROW_START_FS(HN 8 0.5 6.0)');
+            wizardData.stamps.forEach(s => {
+                L.push('STAMP_ADD(' + s.width + ' ' + s.height + ' "' + s.description.replace(/"/g, '\\"').replace(/\n/g, '\\n') + '" "' + (s.catalog || "") + '" "" "")');
+            });
+        }
+    }
+    return L.join("\n");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    initWizard();
+    var origNew = window.newAlbum;
+    window.newAlbum = function() {
+        if (isModified && !confirm("Discard unsaved changes?")) return;
+        openWizard();
+    };
+});
