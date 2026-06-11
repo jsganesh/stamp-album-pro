@@ -48,7 +48,7 @@
         var filter = document.getElementById("history-filter") ? document.getElementById("history-filter").value : "";
 
         try {
-            var url = API_BASE + "/api/versions/" + encodeURIComponent(filename);
+            var url = API_BASE + "/api/version/" + encodeURIComponent(filename);
             var response = await fetch(url);
             if (!response.ok) return;
             var data = await response.json();
@@ -106,7 +106,7 @@
         var comment = document.getElementById("history-comment") ? document.getElementById("history-comment").value : "";
 
         try {
-            var response = await fetch(API_BASE + "/api/versions/save", {
+            var response = await fetch(API_BASE + "/api/version/save", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ filename: filename, dsl: dsl, comment: comment }),
@@ -125,7 +125,7 @@
         var filename = currentFile || "untitled.slbum";
 
         try {
-            var response = await fetch(API_BASE + "/api/versions/" + encodeURIComponent(filename) + "/" + encodeURIComponent(versionId));
+            var response = await fetch(API_BASE + "/api/version/" + encodeURIComponent(filename) + "/" + encodeURIComponent(versionId));
             if (!response.ok) throw new Error("Version not found");
             var data = await response.json();
             editor.setValue(data.dsl);
@@ -142,7 +142,7 @@
         var filename = currentFile || "untitled.slbum";
 
         try {
-            var response = await fetch(API_BASE + "/api/versions/" + encodeURIComponent(filename) + "/" + encodeURIComponent(versionId), {
+            var response = await fetch(API_BASE + "/api/version/" + encodeURIComponent(filename) + "/" + encodeURIComponent(versionId), {
                 method: "DELETE",
             });
             if (!response.ok) throw new Error("Delete failed");
@@ -161,7 +161,7 @@
         var dsl = editor.getValue();
         if (dsl.trim() && currentFile) {
             try {
-                await fetch(API_BASE + "/api/versions/save", {
+                await fetch(API_BASE + "/api/version/save", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ filename: currentFile, dsl: dsl, comment: "Auto-save" }),

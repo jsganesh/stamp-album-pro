@@ -603,17 +603,13 @@ async def websocket_preview(websocket: WebSocket):
         active_connections.pop(client_id, None)
 
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8080)
-
 
 # ============================================================
 # Version History API (P2-15)
 # ============================================================
 
 from stamp_album.version_history import (
-    save_version, get_versions, get_version, delete_version, get_version_count,
-    VERSIONS_DIR,
+    save_version, get_versions, get_version, delete_version,
 )
 
 
@@ -623,9 +619,8 @@ class VersionSaveRequest(BaseModel):
     comment: str = ""
 
 
-@app.post("/api/versions/save")
+@app.post("/api/version/save")
 async def api_save_version(request: VersionSaveRequest):
-    """Save a new version of a file."""
     if not request.filename:
         raise HTTPException(status_code=400, detail="Filename required")
     if not request.dsl.strip():
@@ -634,25 +629,137 @@ async def api_save_version(request: VersionSaveRequest):
     return version
 
 
-@app.get("/api/versions/{filename}")
+@app.get("/api/version/list/{filename}")
 async def api_get_versions(filename: str):
-    """Get all versions for a file."""
     versions = get_versions(filename)
     return {"versions": versions, "count": len(versions)}
 
 
-@app.get("/api/versions/{filename}/{version_id}")
+@app.get("/api/version/get/{filename}/{version_id}")
 async def api_get_version(filename: str, version_id: str):
-    """Get a specific version's DSL content."""
     dsl = get_version(filename, version_id)
     if dsl is None:
         raise HTTPException(status_code=404, detail="Version not found")
     return {"dsl": dsl, "filename": filename, "version_id": version_id}
 
 
-@app.delete("/api/versions/{filename}/{version_id}")
+@app.delete("/api/version/delete/{filename}/{version_id}")
 async def api_delete_version(filename: str, version_id: str):
-    """Delete a specific version."""
     if delete_version(filename, version_id):
         return {"status": "deleted"}
     raise HTTPException(status_code=404, detail="Version not found")
+
+
+# ============================================================
+# Multi-User & Cloud Sync API (P2-14 + P2-16)
+# ============================================================
+
+from stamp_album.cloud_sync import (
+    create_user, authenticate_user, get_user, list_users,
+    create_session, validate_session, destroy_session,
+    share_file, get_shared_files, get_my_shares, revoke_share,
+)
+
+
+class RegisterRequest(BaseModel):
+    username: str
+    password: str
+    display_name: str = ""
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class ShareRequest(BaseModel):
+    filename: str
+    shared_with: str
+    permission: str = "read"
+
+
+def _get_current_user(request: Request) -> Optional[str]:
+    token = request.cookies.get("session_token")
+    if token:
+        return validate_session(token)
+    return None
+
+
+@app.post("/api/auth/register")
+async def api_register(request: RegisterRequest):
+    try:
+        user = create_user(request.username, request.password, request.display_name)
+        return {"status": "created", "user": user}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/api/auth/login")
+async def api_login(request: LoginRequest):
+    user = authenticate_user(request.username, request.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+    token = create_session(request.username)
+    return {"status": "logged_in", "user": user, "token": token}
+
+
+@app.post("/api/auth/logout")
+async def api_logout(request: Request):
+    token = request.cookies.get("session_token")
+    if token:
+        destroy_session(token)
+    return {"status": "logged_out"}
+
+
+@app.get("/api/auth/me")
+async def api_current_user(request: Request):
+    username = _get_current_user(request)
+    if not username:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return {"user": get_user(username)}
+
+
+@app.get("/api/users")
+async def api_list_users(request: Request):
+    if not _get_current_user(request):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return {"users": list_users()}
+
+
+@app.post("/api/share")
+async def api_share_file(request: ShareRequest, http_request: Request):
+    username = _get_current_user(http_request)
+    if not username:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    share = share_file(username, request.filename, request.shared_with, request.permission)
+    return {"status": "shared", "share": share}
+
+
+@app.get("/api/share/received")
+async def api_shared_with_me(request: Request):
+    username = _get_current_user(request)
+    if not username:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return {"shares": get_shared_files(username)}
+
+
+@app.get("/api/share/sent")
+async def api_my_shares(request: Request):
+    username = _get_current_user(request)
+    if not username:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return {"shares": get_my_shares(username)}
+
+
+@app.delete("/api/share/{share_id}")
+async def api_revoke_share(share_id: str, request: Request):
+    username = _get_current_user(request)
+    if not username:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    if revoke_share(share_id, username):
+        return {"status": "revoked"}
+    raise HTTPException(status_code=404, detail="Share not found")
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8080)
