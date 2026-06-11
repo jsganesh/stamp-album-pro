@@ -605,3 +605,54 @@ async def websocket_preview(websocket: WebSocket):
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080)
+
+
+# ============================================================
+# Version History API (P2-15)
+# ============================================================
+
+from stamp_album.version_history import (
+    save_version, get_versions, get_version, delete_version, get_version_count,
+    VERSIONS_DIR,
+)
+
+
+class VersionSaveRequest(BaseModel):
+    filename: str
+    dsl: str
+    comment: str = ""
+
+
+@app.post("/api/versions/save")
+async def api_save_version(request: VersionSaveRequest):
+    """Save a new version of a file."""
+    if not request.filename:
+        raise HTTPException(status_code=400, detail="Filename required")
+    if not request.dsl.strip():
+        raise HTTPException(status_code=400, detail="DSL content required")
+    version = save_version(request.filename, request.dsl, request.comment)
+    return version
+
+
+@app.get("/api/versions/{filename}")
+async def api_get_versions(filename: str):
+    """Get all versions for a file."""
+    versions = get_versions(filename)
+    return {"versions": versions, "count": len(versions)}
+
+
+@app.get("/api/versions/{filename}/{version_id}")
+async def api_get_version(filename: str, version_id: str):
+    """Get a specific version's DSL content."""
+    dsl = get_version(filename, version_id)
+    if dsl is None:
+        raise HTTPException(status_code=404, detail="Version not found")
+    return {"dsl": dsl, "filename": filename, "version_id": version_id}
+
+
+@app.delete("/api/versions/{filename}/{version_id}")
+async def api_delete_version(filename: str, version_id: str):
+    """Delete a specific version."""
+    if delete_version(filename, version_id):
+        return {"status": "deleted"}
+    raise HTTPException(status_code=404, detail="Version not found")
