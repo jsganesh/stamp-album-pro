@@ -451,6 +451,8 @@ class Stamp:
     catalog_refs: list[str] = field(default_factory=list)
     shape: StampShape = StampShape.RECTANGLE
     image_path: Optional[str] = None
+    abs_x: float = 0.0  # Absolute X position (mm) for drag-and-drop
+    abs_y: float = 0.0  # Absolute Y position (mm) for drag-and-drop
     heading: Optional[StampHeading] = None
     footer_text: str = ""
 
@@ -533,6 +535,7 @@ class Page:
     absolute_vpos: Optional[float] = None
     boxes: list[tuple[float, float, float, float]] = field(default_factory=list)
     content_flow: list[tuple[str, Any]] = field(default_factory=list)
+    absolute_stamps: list[Stamp] = field(default_factory=list)  # Absolutely positioned stamps
 
 
 # ---------------------------------------------------------------------------

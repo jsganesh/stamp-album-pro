@@ -613,8 +613,13 @@ class AlbumParser:
 
             # -- Stamp commands --
             elif cmd == "STAMP_ADD":
+                if current_page is None:
+                    raise ParseError("STAMP_ADD command outside of PAGE_START block", line_number, line)
                 if current_row is None:
-                    raise ParseError("STAMP_ADD command outside of ROW_START block", line_number, line)
+                    # Auto-create row if none exists
+                    current_row = Row(style=RowStyle.FIXED_SPACE, spacing=album.page_setup.hspace)
+                    current_page.rows.append(current_row)
+                    current_page.content_flow.append(("row", current_row))
                 catalog_refs = []
                 for i in range(3, min(len(params), 6)):
                     catalog_refs.append(unquote(params[i]))
@@ -628,6 +633,29 @@ class AlbumParser:
                     shape=StampShape.RECTANGLE,
                 )
                 current_row.stamps.append(stamp)
+                current_stamp = stamp
+            elif cmd == "STAMP_ADD_AT":
+                # STAMP_ADD_AT (x y width height "description" "catalog1" "catalog2" "catalog3")
+                if current_page is None:
+                    raise ParseError("STAMP_ADD_AT command outside of PAGE_START block", line_number, line)
+                description = unquote(params[4]) if len(params) > 4 else ""
+                catalog_refs = []
+                for j in range(5, min(len(params), 8)):
+                    catalog_refs.append(unquote(params[j]))
+                while len(catalog_refs) < 3:
+                    catalog_refs.append("")
+                stamp = Stamp(
+                    abs_x=float(params[0]),
+                    abs_y=float(params[1]),
+                    width=float(params[2]),
+                    height=float(params[3]),
+                    description=description,
+                    catalog_refs=catalog_refs,
+                    shape=StampShape.RECTANGLE,
+                )
+                if not hasattr(current_page, "absolute_stamps"):
+                    current_page.absolute_stamps = []
+                current_page.absolute_stamps.append(stamp)
                 current_stamp = stamp
             elif cmd == "STAMP_ADD_BLANK":
                 if current_row is None:

@@ -117,21 +117,23 @@ class TestParserErrors:
         with pytest.raises(ParseError, match="outside of PAGE_START"):
             parser.parse('ROW_START_FS("HN" 10 5 180)')
 
-    def test_stamp_outside_row_raises(self, parser):
-        with pytest.raises(ParseError, match="outside of ROW_START"):
-            parser.parse('PAGE_START\nSTAMP_ADD(40 30 "test" "" "" "")')
+    def test_stamp_add_auto_creates_row(self, parser):
+        # STAMP_ADD now auto-creates a row if none exists
+        album = parser.parse('PAGE_START\nSTAMP_ADD(40 30 "test" "" "" "")')
+        assert len(album.pages[0].rows) == 1
+        assert len(album.pages[0].rows[0].stamps) == 1
 
-    def test_blank_stamp_outside_row_raises(self, parser):
+    def test_blank_stamp_outside_page_raises(self, parser):
         with pytest.raises(ParseError, match="outside of ROW_START"):
-            parser.parse('PAGE_START\nSTAMP_ADD_BLANK(40 30)')
+            parser.parse('STAMP_ADD_BLANK(40 30)')
 
-    def test_stamp_img_outside_row_raises(self, parser):
+    def test_stamp_img_outside_page_raises(self, parser):
         with pytest.raises(ParseError, match="outside of ROW_START"):
-            parser.parse('PAGE_START\nSTAMP_ADD_IMG(40 30 "img.png" "test" "" "")')
+            parser.parse('STAMP_ADD_IMG(40 30 "img.png" "test" "" "")')
 
-    def test_triangle_stamp_outside_row_raises(self, parser):
+    def test_triangle_stamp_outside_page_raises(self, parser):
         with pytest.raises(ParseError, match="outside of ROW_START"):
-            parser.parse('PAGE_START\nSTAMP_ADD_TRIANGLE(40 30 "test" "" "" "")')
+            parser.parse('STAMP_ADD_TRIANGLE(40 30 "test" "" "" "")')
 
     def test_error_includes_line_number(self, parser):
         with pytest.raises(ParseError) as exc_info:
@@ -139,7 +141,14 @@ class TestParserErrors:
         assert exc_info.value.line_number == 1
 
     def test_error_line_number_multiline(self, parser):
-        # STAMP_ADD outside ROW_START on line 3
+        # Test that a command on a specific line reports the correct line number
+        # STAMP_ADD_AT with no PAGE_START should fail
         with pytest.raises(ParseError) as exc_info:
-            parser.parse('PAGE_START\nPAGE_TEXT("HN" 10 "ok")\nSTAMP_ADD(40 30 "test" "" "" "")')
-        assert exc_info.value.line_number == 3
+            parser.parse('STAMP_ADD_AT(10 20 40 30 "test" "" "" "")')
+        assert exc_info.value.line_number == 1
+
+    def test_absolute_stamp_parses_correctly(self, parser):
+        source = 'PAGE_START\nPAGE_TEXT("HN" 10 "ok")\nSTAMP_ADD_AT(10 20 40 30 "test" "" "" "")'
+        album = parser.parse(source)
+        assert len(album.pages[0].absolute_stamps) == 1
+        assert album.pages[0].absolute_stamps[0].abs_x == 10.0

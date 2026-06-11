@@ -444,6 +444,28 @@ class HTMLRenderer:
                 f'width: {w}mm; height: {h}mm; border: 0.5pt solid black;"></div>'
             )
 
+        # Absolutely positioned stamps (drag-and-drop)
+        for stamp in page.absolute_stamps:
+            ps = self.album.page_setup
+            width = stamp.width + ps.stamp_box_adjust
+            height = stamp.height + ps.stamp_box_adjust
+            border_color = self._color_to_css(self.album.color_stamp_border or Color(r=0.5, g=0.5, b=0.5))
+            bg_color = self._color_to_css(self.album.color_stamp_background or Color(r=1.0, g=1.0, b=1.0))
+            shape_class = ""
+            if stamp.shape == StampShape.OVAL: shape_class = "shape-oval"
+            elif stamp.shape == StampShape.TRIANGLE: shape_class = "shape-triangle"
+            elif stamp.shape == StampShape.DIAMOND: shape_class = "shape-diamond"
+            elif stamp.shape == StampShape.HEXAGON: shape_class = "shape-hexagon"
+            elif stamp.shape == StampShape.OCTAGON: shape_class = "shape-octagon"
+            elif stamp.shape == StampShape.PENTAGON: shape_class = "shape-pentagon"
+            desc = self._format_text(stamp.description) if stamp.description else ""
+            parts.append(
+                f'<div class="stamp" style="position:absolute;left:{stamp.abs_x}mm;top:{stamp.abs_y}mm;width:{width}mm;">'
+                f'<div class="stamp-box {shape_class}" style="width:{width}mm;height:{height}mm;'
+                f'border:0.5pt solid {border_color};background-color:{bg_color};">'
+                f'{desc}</div></div>'
+            )
+
         if content_class:
             parts.append("</div>")
 
