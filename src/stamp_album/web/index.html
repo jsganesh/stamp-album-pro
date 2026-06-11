@@ -487,6 +487,140 @@
         .wizard-backdrop.active {
             display: block;
         }
+        /* Export dropdown */
+        .export-dropdown {
+            position: relative;
+        }
+        .export-dropdown > button {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .export-dropdown > button:hover:not(:disabled) {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        .export-dropdown > button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .export-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 4px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 6px;
+            min-width: 240px;
+            z-index: 1000;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+        .export-menu.open {
+            display: block;
+        }
+        .export-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 10px 12px;
+            background: none;
+            border: none;
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 13px;
+            cursor: pointer;
+            text-align: left;
+            transition: background 0.15s;
+        }
+        .export-option:hover {
+            background: var(--bg-hover);
+        }
+        .export-icon {
+            font-size: 20px;
+            width: 28px;
+            text-align: center;
+        }
+        .export-option div {
+            display: flex;
+            flex-direction: column;
+        }
+        .export-option strong {
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .export-option small {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        /* Responsive */
+        @media (max-width: 1024px) {
+            #wizard-panel { width: 180px; }
+            .paper-options { grid-template-columns: repeat(2, 1fr); }
+            .border-options { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            #main-content { flex-direction: column; }
+            #wizard-panel {
+                width: 100%;
+                height: auto;
+                max-height: 200px;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                flex-shrink: 0;
+            }
+            #sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 200px;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+            #editor-panel, #preview-panel {
+                flex: 1;
+                min-height: 200px;
+            }
+            .toolbar-center { display: none; }
+            .export-dropdown > button span { display: none; }
+        }
+        @media (max-width: 480px) {
+            #toolbar { padding: 0 6px; }
+            .logo span { display: none; }
+            .toggle-visual span, .toggle-wizard span, .toggle-sidebar span { display: none; }
+        }
+        /* Touch-friendly */
+        body.is-touch #toolbar button { padding: 10px 14px; }
+        body.is-touch .build-item { padding: 10px 12px; }
+        body.is-touch .paper-option, body.is-touch .border-option, body.is-touch .layout-option { padding: 12px 8px; }
+        /* Language selector */
+        .lang-selector {
+            display: flex;
+            gap: 2px;
+            margin-right: 8px;
+        }
+        .lang-btn {
+            padding: 2px 6px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            color: var(--text-muted);
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .lang-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
+        .lang-btn.active { color: var(--accent); border-color: var(--accent); }
     </style>
 </head>
 <body>
@@ -527,15 +661,50 @@
                     Save
                 </button>
                 <div class="toolbar-divider"></div>
-                <button id="btn-export" title="Export PDF (Ctrl+E)" disabled>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14 2 14 8 20 8"/>
-                        <line x1="12" y1="18" x2="12" y2="12"/>
-                        <polyline points="9 15 12 18 15 15"/>
-                    </svg>
-                    Export PDF
-                </button>
+                <div class="export-dropdown">
+                    <button id="btn-export" title="Export (Ctrl+E)" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="12" y1="18" x2="12" y2="12"/>
+                            <polyline points="9 15 12 18 15 15"/>
+                        </svg>
+                        Export
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </button>
+                    <div id="export-menu" class="export-menu">
+                        <button class="export-option" data-format="pdf" title="Print-ready PDF with precise typography">
+                            <span class="export-icon">📄</span>
+                            <div>
+                                <strong>Export PDF</strong>
+                                <small>Print-ready, professional quality</small>
+                            </div>
+                        </button>
+                        <button class="export-option" data-format="png" title="Image of the first page">
+                            <span class="export-icon">🖼</span>
+                            <div>
+                                <strong>Export PNG</strong>
+                                <small>Image of the first page</small>
+                            </div>
+                        </button>
+                        <button class="export-option" data-format="svg" title="Scalable vector graphic">
+                            <span class="export-icon">📐</span>
+                            <div>
+                                <strong>Export SVG</strong>
+                                <small>Scalable vector graphic</small>
+                            </div>
+                        </button>
+                        <button class="export-option" data-format="html" title="Web gallery of all pages">
+                            <span class="export-icon">🌐</span>
+                            <div>
+                                <strong>Export HTML Gallery</strong>
+                                <small>Self-contained web gallery</small>
+                            </div>
+                        </button>
+                    </div>
+                </div>
             </div>
             <div class="toolbar-center">
                 <span id="file-name">Untitled</span>
@@ -555,6 +724,13 @@
                     <span>Files</span>
                 </label>
                 <button id="btn-tutorial" class="tutorial-start-btn" title="Start the interactive tutorial">?</button>
+                <div class="lang-selector">
+                    <button class="lang-btn active" data-lang="en" title="English">EN</button>
+                    <button class="lang-btn" data-lang="fr" title="Français">FR</button>
+                    <button class="lang-btn" data-lang="de" title="Deutsch">DE</button>
+                    <button class="lang-btn" data-lang="nl" title="Nederlands">NL</button>
+                    <button class="lang-btn" data-lang="it" title="Italiano">IT</button>
+                </div>
             </div>
         </header>
 

@@ -1371,3 +1371,167 @@ document.addEventListener("DOMContentLoaded", () => {
         openWizard();
     };
 });
+
+// ============================================================
+// P1-6: Export (PNG, SVG, HTML Gallery)
+// ============================================================
+
+function initExportDropdown() {
+    const dropdown = document.querySelector(".export-dropdown");
+    if (!dropdown) return;
+    const btn = dropdown.querySelector("button");
+    const menu = dropdown.querySelector(".export-menu");
+    btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        menu.classList.toggle("open");
+    });
+    menu.addEventListener("click", async (e) => {
+        const option = e.target.closest(".export-option");
+        if (!option) return;
+        menu.classList.remove("open");
+        await doExport(option.dataset.format);
+    });
+    document.addEventListener("click", () => { menu.classList.remove("open"); });
+}
+
+async function doExport(format) {
+    const dsl = getEditorContent();
+    if (!dsl.trim()) { showToast("Nothing to export", "error"); return; }
+    document.getElementById("status-left").textContent = "Exporting " + format.toUpperCase() + "...";
+    try {
+        const response = await fetch(`${API_BASE}/export`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ dsl, format, source_path: currentFile || "untitled.slbum" }),
+        });
+        if (!response.ok) { const err = await response.json(); throw new Error(err.detail || "Export failed"); }
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = (currentFile ? currentFile.replace(/\.(slbum|txt)$/, "") : "album") + "." + format;
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("status-left").textContent = format.toUpperCase() + " exported";
+        showToast(format.toUpperCase() + " exported successfully", "success");
+    } catch (err) {
+        document.getElementById("status-left").textContent = "Export failed";
+        showToast("Export failed: " + err.message, "error");
+    }
+}
+
+// ============================================================
+// P1-7: Undo/Redo System
+// ============================================================
+
+const undoStack = [];
+const redoStack = [];
+const MAX_UNDO = 50;
+
+function saveUndoState() {
+    if (!editor) return;
+    const content = editor.getValue();
+    if (undoStack.length > 0 && undoStack[undoStack.length - 1] === content) return;
+    undoStack.push(content);
+    if (undoStack.length > MAX_UNDO) undoStack.shift();
+    redoStack.length = 0;
+}
+
+function undo() {
+    if (undoStack.length <= 1) return;
+    redoStack.push(undoStack.pop());
+    editor.setValue(undoStack[undoStack.length - 1]);
+    schedulePreview();
+}
+
+function redo() {
+    if (redoStack.length === 0) return;
+    const next = redoStack.pop();
+    undoStack.push(next);
+    editor.setValue(next);
+    schedulePreview();
+}
+
+function initUndoRedo() {
+    if (!editor) return;
+    saveUndoState();
+    let undoTimer = null;
+    editor.on("change", () => { clearTimeout(undoTimer); undoTimer = setTimeout(() => saveUndoState(), 1000); });
+    document.addEventListener("keydown", (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
+        if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.key === "z" && e.shiftKey))) { e.preventDefault(); redo(); }
+    });
+}
+
+// ============================================================
+// P1-10: Internationalization
+// ============================================================
+
+const I18N = {
+    en: { "toolbar.new": "New", "toolbar.open": "Open", "toolbar.save": "Save", "toolbar.export": "Export", "status.ready": "Ready", "status.modified": "Modified", "status.saved": "Saved", "preview.ready": "Ready", "preview.updated": "Preview updated", "export.pdf": "Export PDF", "export.png": "Export PNG", "export.svg": "Export SVG", "export.html": "Export HTML Gallery" },
+    fr: { "toolbar.new": "Nouveau", "toolbar.open": "Ouvrir", "toolbar.save": "Enregistrer", "toolbar.export": "Exporter", "status.ready": "Prêt", "status.modified": "Modifié", "status.saved": "Enregistré", "preview.ready": "Prêt", "preview.updated": "Aperçu mis à jour", "export.pdf": "Exporter PDF", "export.png": "Exporter PNG", "export.svg": "Exporter SVG", "export.html": "Exporter galerie HTML" },
+    de: { "toolbar.new": "Neu", "toolbar.open": "Öffnen", "toolbar.save": "Speichern", "toolbar.export": "Exportieren", "status.ready": "Bereit", "status.modified": "Geändert", "status.saved": "Gespeichert", "preview.ready": "Bereit", "preview.updated": "Vorschau aktualisiert", "export.pdf": "PDF exportieren", "export.png": "PNG exportieren", "export.svg": "SVG exportieren", "export.html": "HTML-Galerie exportieren" },
+    nl: { "toolbar.new": "Nieuw", "toolbar.open": "Openen", "toolbar.save": "Opslaan", "toolbar.export": "Exporteren", "status.ready": "Klaar", "status.modified": "Gewijzigd", "status.saved": "Opgeslagen", "preview.ready": "Klaar", "preview.updated": "Voorvertoning bijgewerkt", "export.pdf": "PDF exporteren", "export.png": "PNG exporteren", "export.svg": "SVG exporteren", "export.html": "HTML-galerie exporteren" },
+    it: { "toolbar.new": "Nuovo", "toolbar.open": "Apri", "toolbar.save": "Salva", "toolbar.export": "Esporta", "status.ready": "Pronto", "status.modified": "Modificato", "status.saved": "Salvato", "preview.ready": "Pronto", "preview.updated": "Anteprima aggiornata", "export.pdf": "Esporta PDF", "export.png": "Esporta PNG", "export.svg": "Esporta SVG", "export.html": "Esporta galleria HTML" },
+};
+
+let currentLang = "en";
+
+function t(key) { return I18N[currentLang]?.[key] || I18N.en[key] || key; }
+
+function setLanguage(lang) {
+    if (!I18N[lang]) return;
+    currentLang = lang;
+    localStorage.setItem("stampalbum-lang", lang);
+    applyTranslations();
+}
+
+function applyTranslations() {
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+        const text = t(el.dataset.i18n);
+        if (el.placeholder) el.placeholder = text;
+        else el.textContent = text;
+    });
+}
+
+function initI18n() {
+    const saved = localStorage.getItem("stampalbum-lang");
+    if (saved && I18N[saved]) { currentLang = saved; }
+    else { const bl = navigator.language?.split("-")[0]; if (I18N[bl]) currentLang = bl; }
+    applyTranslations();
+}
+
+// ============================================================
+// P1-8: Responsive / Mobile
+// ============================================================
+
+function initResponsive() {
+    const mq = window.matchMedia("(max-width: 768px)");
+    function handleChange(e) {
+        document.body.classList.toggle("is-mobile", e.matches);
+        if (e.matches) {
+            document.getElementById("wizard-panel")?.classList.add("wizard-hidden");
+            document.getElementById("sidebar")?.classList.add("sidebar-hidden");
+        }
+    }
+    mq.addEventListener("change", handleChange);
+    handleChange(mq);
+    if ("ontouchstart" in window || navigator.maxTouchPoints > 0) {
+        document.body.classList.add("is-touch");
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    initExportDropdown();
+    initUndoRedo();
+    initI18n();
+    initResponsive();
+    // Language selector
+    document.querySelectorAll(".lang-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".lang-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            setLanguage(btn.dataset.lang);
+        });
+    });
+});

@@ -264,5 +264,99 @@ async def validate_album(request: RenderRequest):
         }
 
 
+class ExportRequest(BaseModel):
+    dsl: str
+    format: str = "pdf"  # pdf, png, svg, html
+    source_path: Optional[str] = "untitled.slbum"
+    dpi: int = 150
+
+
+@app.post("/export")
+async def export_album(request: ExportRequest):
+    """Export album to PDF, PNG, SVG, or HTML gallery."""
+    fmt = request.format.lower()
+    if fmt not in ("pdf", "png", "svg", "html"):
+        raise HTTPException(status_code=400, detail=f"Unsupported format: {fmt}")
+
+    try:
+        album = parser.parse(request.dsl, request.source_path)
+        generator = PDFGenerator()
+        html_content = generator.get_html_preview(album)
+
+        import re
+        html_content = re.sub(
+            r'src="([^\"/"][^"]*\.(?:png|jpg|jpeg|gif|bmp|tiff|tif|webp))"',
+            r'src="/images/\1"',
+            html_content,
+        )
+
+        if fmt == "pdf":
+            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+                pdf_path = tmp.name
+                generator.generate(album, pdf_path, base_url="http://localhost:8080")
+            return FileResponse(pdf_path, media_type="application/pdf", filename="album.pdf")
+
+        elif fmt == "png":
+            from weasyprint import HTML as WPHTML
+            doc = WPHTML(string=html_content, base_url="http://localhost:8080").render()
+            if not doc.pages:
+                raise HTTPException(status_code=400, detail="No pages to export")
+            # Export first page as PNG
+            png_bytes = doc.pages[0].write_png(resolution=request.dpi)
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+                tmp.write(png_bytes)
+                tmp.flush()
+                return FileResponse(tmp.name, media_type="image/png", filename="album.png")
+
+        elif fmt == "svg":
+            from weasyprint import HTML as WPHTML
+            doc = WPHTML(string=html_content, base_url="http://localhost:8080").render()
+            if not doc.pages:
+                raise HTTPException(status_code=400, detail="No pages to export")
+            svg_bytes = doc.pages[0].write_svg()
+            with tempfile.NamedTemporaryFile(suffix=".svg", delete=False) as tmp:
+                tmp.write(svg_bytes)
+                tmp.flush()
+                return FileResponse(tmp.name, media_type="image/svg+xml", filename="album.svg")
+
+        elif fmt == "html":
+            gallery_html = _build_html_gallery(html_content, album)
+            with tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode="w", encoding="utf-8") as tmp:
+                tmp.write(gallery_html)
+                tmp.flush()
+                return FileResponse(tmp.name, media_type="text/html", filename="album-gallery.html")
+
+    except ParseError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Export error: {e}")
+
+
+def _build_html_gallery(html_content: str, album: "Album") -> str:
+    """Build a self-contained HTML gallery from album HTML."""
+    title = album.title or "Stamp Album"
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{title} — Gallery</title>
+    <style>
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }}
+        h1 {{ text-align: center; color: #333; margin-bottom: 30px; }}
+        .gallery {{ display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }}
+        .page {{ background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 4px; overflow: hidden; }}
+        .page-label {{ text-align: center; padding: 8px; font-size: 12px; color: #666; background: #fafafa; border-top: 1px solid #eee; }}
+    </style>
+</head>
+<body>
+    <h1>{title}</h1>
+    <div class="gallery">
+        {html_content}
+    </div>
+</body>
+</html>"""
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080)
