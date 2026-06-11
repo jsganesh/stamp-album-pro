@@ -984,15 +984,30 @@ class HTMLRenderer:
         )
 
     def _format_text(self, text: str) -> str:
-        """Format text for HTML output, handling newlines and special chars."""
-        # Escape HTML special characters
+        """Format text for HTML output, handling newlines, special chars, and inline formatting."""
         text = text.replace("&", "&amp;")
         text = text.replace("<", "&lt;")
         text = text.replace(">", "&gt;")
-
-        # Convert newlines to <br>
+        text = self._parse_inline_formatting(text)
         text = text.replace("\n", "<br>")
+        return text
 
+    def _parse_inline_formatting(self, text: str) -> str:
+        """Parse inline formatting markers: **bold**, *italic*, _underline_, ~~strikethrough~~, `code`, ^sup^, ~sub~"""
+        import re
+        text = re.sub(r'\\\*', '\x00AST\x00', text)
+        text = re.sub(r'\\\_', '\x00US\x00', text)
+        text = re.sub(r'\\\~', '\x00TIL\x00', text)
+        text = re.sub(r'\*\*\*(.+?)\*\*\*', r'<strong><em>\1</em></strong>', text)
+        text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
+        text = re.sub(r'__(.+?)__', r'<strong>\1</strong>', text)
+        text = re.sub(r'~~(.+?)~~', r'<s>\1</s>', text)
+        text = re.sub(r'\*(.+?)\*', r'<em>\1</em>', text)
+        text = re.sub(r'(?<!\\)_(.+?)_(?!_)', r'<em>\1</em>', text)
+        text = re.sub(r'`(.+?)`', r'<code style="font-family:monospace;background:rgba(0,0,0,0.05);padding:1px 3px;border-radius:2px">\1</code>', text)
+        text = re.sub(r'\^(.+?)\^', r'<sup>\1</sup>', text)
+        text = re.sub(r'(?<!<)~(.+?)~(?!>)', r'<sub>\1</sub>', text)
+        text = text.replace('\x00AST\x00', '*').replace('\x00US\x00', '_').replace('\x00TIL\x00', '~')
         return text
 
     def _font_to_css(self, font_id: str, size: float) -> str:

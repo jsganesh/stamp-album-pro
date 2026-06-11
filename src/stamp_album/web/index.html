@@ -709,6 +709,13 @@
         .stamp-modal-body { flex: 1; overflow-y: auto; padding: 18px; }
         .stamp-modal-footer { display: flex; gap: 8px; padding: 14px 18px; border-top: 1px solid var(--border-color); }
         .stamp-modal-footer button { flex: 1; }
+        .formatting-toolbar { display: flex; gap: 2px; padding: 4px 8px; background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); }
+        .fmt-btn { padding: 4px 8px; background: transparent; border: 1px solid transparent; border-radius: 4px; color: var(--text-secondary); font-size: 12px; cursor: pointer; transition: all 0.15s; }
+        .fmt-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .fmt-btn strong { font-weight: 700; }
+        .fmt-btn em { font-style: italic; }
+        .fmt-btn s { text-decoration: line-through; }
+        .fmt-btn code { font-family: monospace; background: rgba(0,0,0,0.1); padding: 0 2px; border-radius: 2px; }
     </style>
 </head>
 <body>
@@ -1110,6 +1117,17 @@
 
             <!-- Editor Panel -->
             <section id="editor-panel">
+                <div class="formatting-toolbar">
+                    <button class="fmt-btn" data-fmt="bold" title="Bold (Ctrl+B)"><strong>B</strong></button>
+                    <button class="fmt-btn" data-fmt="italic" title="Italic (Ctrl+I)"><em>I</em></button>
+                    <button class="fmt-btn" data-fmt="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+                    <button class="fmt-btn" data-fmt="strikethrough" title="Strikethrough"><s>S</s></button>
+                    <button class="fmt-btn" data-fmt="code" title="Code"><code>`</code></button>
+                    <button class="fmt-btn" data-fmt="superscript" title="Superscript">x<sup>2</sup></button>
+                    <button class="fmt-btn" data-fmt="subscript" title="Subscript">x<sub>2</sub></button>
+                    <span style="flex:1"></span>
+                    <button class="fmt-btn" data-fmt="help" title="Formatting help">?</button>
+                </div>
                 <div id="editor-container"></div>
             </section>
 

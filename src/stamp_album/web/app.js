@@ -1776,3 +1776,40 @@ window.schedulePreview = function() {
 };
 
 document.addEventListener("DOMContentLoaded", function() { initVisualSync(); });
+
+// ============================================================
+// P2-1: Inline Text Formatting Toolbar
+// ============================================================
+
+function initFormattingToolbar() {
+    document.querySelectorAll(".fmt-btn").forEach(function(btn) {
+        btn.addEventListener("click", function() {
+            var fmt = btn.dataset.fmt;
+            if (fmt === "help") {
+                showToast("Formatting: **bold** *italic* _underline_ ~~strike~~ `code` ^sup^ ~sub~", "info");
+                return;
+            }
+            applyFormatting(fmt);
+        });
+    });
+    document.addEventListener("keydown", function(e) {
+        if (!(e.ctrlKey || e.metaKey)) return;
+        if (e.key === "b") { e.preventDefault(); applyFormatting("bold"); }
+        if (e.key === "i") { e.preventDefault(); applyFormatting("italic"); }
+        if (e.key === "u") { e.preventDefault(); applyFormatting("underline"); }
+    });
+}
+
+function applyFormatting(fmt) {
+    if (!editor) return;
+    var sel = editor.getSelection();
+    var cursor = editor.getCursor();
+    var markers = { bold: ["**","**"], italic: ["*","*"], underline: ["_","_"], strikethrough: ["~~","~~"], code: ["`","`"], superscript: ["^","^"], subscript: ["~","~"] };
+    var m = markers[fmt];
+    if (!m) return;
+    if (sel) { editor.replaceSelection(m[0] + sel + m[1]); }
+    else { editor.replaceRange(m[0] + m[1], cursor); editor.setCursor({ line: cursor.line, ch: cursor.ch + m[0].length }); }
+    editor.focus();
+}
+
+document.addEventListener("DOMContentLoaded", function() { initFormattingToolbar(); });
