@@ -621,6 +621,53 @@
         }
         .lang-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
         .lang-btn.active { color: var(--accent); border-color: var(--accent); }
+        /* Visual Property Panel */
+        .visual-property-panel {
+            position: fixed;
+            right: -320px;
+            top: 48px;
+            width: 300px;
+            height: calc(100vh - 72px);
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            z-index: 9996;
+            display: flex;
+            flex-direction: column;
+            transition: right 0.3s ease;
+            box-shadow: -2px 0 12px rgba(0,0,0,0.2);
+        }
+        .visual-property-panel.open { right: 0; }
+        .vpp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .vpp-header h4 { margin: 0; font-size: 14px; color: var(--text-primary); }
+        .vpp-content { flex: 1; overflow-y: auto; padding: 16px; }
+        .vpp-field { margin-bottom: 12px; }
+        .vpp-field label { display: block; font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+        .vpp-field input, .vpp-field textarea, .vpp-field select {
+            width: 100%; padding: 6px 10px; background: var(--bg-tertiary);
+            border: 1px solid var(--border-color); border-radius: 4px;
+            color: var(--text-primary); font-size: 12px; box-sizing: border-box;
+        }
+        .vpp-field input:focus, .vpp-field textarea:focus, .vpp-field select:focus {
+            outline: none; border-color: var(--accent);
+        }
+        .vpp-row { display: flex; gap: 8px; }
+        .vpp-row .vpp-field { flex: 1; }
+        .vpp-footer {
+            display: flex; gap: 8px; padding: 12px 16px;
+            border-top: 1px solid var(--border-color);
+        }
+        .vpp-footer button { flex: 1; }
+        /* Stamp highlight in preview */
+        .stamp-selected { outline: 2px solid var(--accent) !important; outline-offset: 2px; }
+        .stamp-hover:hover { outline: 2px dashed var(--accent); outline-offset: 2px; cursor: pointer; }
+        /* DSL line highlight */
+        .cm-dsl-stamp-line { background-color: rgba(88, 166, 255, 0.08) !important; border-left: 3px solid var(--accent) !important; }
     </style>
 </head>
 <body>
@@ -1218,6 +1265,60 @@
         </div>
     </div>
     <div id="wizard-backdrop" class="wizard-backdrop"></div>
+
+    <!-- Visual Editor Property Panel -->
+    <div id="visual-property-panel" class="visual-property-panel">
+        <div class="vpp-header">
+            <h4>Stamp Properties</h4>
+            <button id="vpp-close" class="wizard-close">✕</button>
+        </div>
+        <div class="vpp-content">
+            <div class="vpp-field">
+                <label>Description</label>
+                <textarea id="vpp-desc" rows="2" placeholder="Stamp description"></textarea>
+            </div>
+            <div class="vpp-field">
+                <label>Catalog Reference</label>
+                <input type="text" id="vpp-cat" placeholder="e.g., SG 1">
+            </div>
+            <div class="vpp-row">
+                <div class="vpp-field">
+                    <label>Width (mm)</label>
+                    <input type="number" id="vpp-width" min="5" max="200" step="0.5">
+                </div>
+                <div class="vpp-field">
+                    <label>Height (mm)</label>
+                    <input type="number" id="vpp-height" min="5" max="200" step="0.5">
+                </div>
+            </div>
+            <div class="vpp-field">
+                <label>Shape</label>
+                <select id="vpp-shape">
+                    <option value="rectangle">Rectangle</option>
+                    <option value="oval">Oval</option>
+                    <option value="diamond">Diamond</option>
+                    <option value="triangle">Triangle</option>
+                    <option value="hexagon">Hexagon</option>
+                    <option value="octagon">Octagon</option>
+                    <option value="pentagon">Pentagon</option>
+                </select>
+            </div>
+            <div class="vpp-field">
+                <label>Heading</label>
+                <input type="text" id="vpp-heading" placeholder="Optional heading text">
+            </div>
+            <div class="vpp-field">
+                <label>Image</label>
+                <select id="vpp-image">
+                    <option value="">No image</option>
+                </select>
+            </div>
+        </div>
+        <div class="vpp-footer">
+            <button id="vpp-apply" class="tutorial-btn tutorial-next">Apply</button>
+            <button id="vpp-delete" class="tutorial-btn" style="background:var(--error);color:#fff;border-color:var(--error)">Delete Stamp</button>
+        </div>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>

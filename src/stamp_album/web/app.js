@@ -1535,3 +1535,244 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+
+// ============================================================
+// P1-4: Bidirectional DSL <-> Visual Sync
+// ============================================================
+
+let visualSyncEnabled = false;
+let stampMap = [];
+let selectedStampIdx = -1;
+
+function initVisualSync() {
+    var toggle = document.getElementById("toggle-visual");
+    if (toggle) {
+        toggle.addEventListener("change", function(e) {
+            visualSyncEnabled = e.target.checked;
+            if (visualSyncEnabled) enableVisualMode();
+            else disableVisualMode();
+        });
+    }
+    document.getElementById("vpp-close").addEventListener("click", closePropertyPanel);
+    document.getElementById("vpp-apply").addEventListener("click", applyStampProperties);
+    document.getElementById("vpp-delete").addEventListener("click", deleteSelectedStamp);
+    var frame = document.getElementById("preview-frame");
+    frame.addEventListener("load", function() {
+        if (visualSyncEnabled) setTimeout(function() { buildStampMap(); }, 200);
+    });
+}
+
+function enableVisualMode() {
+    visualSyncEnabled = true;
+    var overlay = document.getElementById("visual-overlay");
+    overlay.classList.remove("visual-hidden");
+    overlay.style.pointerEvents = "auto";
+    buildStampMap();
+}
+
+function disableVisualMode() {
+    visualSyncEnabled = false;
+    var overlay = document.getElementById("visual-overlay");
+    overlay.classList.add("visual-hidden");
+    overlay.style.pointerEvents = "none";
+    closePropertyPanel();
+    clearDslHighlight();
+}
+
+function buildStampMap() {
+    stampMap = [];
+    if (!editor) return;
+    var dsl = editor.getValue();
+    var lines = dsl.split("\n");
+    var currentPageIdx = 0;
+    var currentRowIdx = 0;
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (line.startsWith("PAGE_START")) { currentPageIdx++; currentRowIdx = 0; }
+        else if (line.match(/^ROW_START_/)) { currentRowIdx++; }
+        else if (line.match(/^STAMP_ADD/)) {
+            var parsed = parseStampLine(line, i);
+            if (parsed) { parsed.pageIdx = currentPageIdx; parsed.rowIdx = currentRowIdx; stampMap.push(parsed); }
+        }
+    }
+    renderStampOverlay();
+}
+
+function parseStampLine(line, lineIdx) {
+    var match = line.match(/^(STAMP_ADD\w*)\s*\((.+)\)\s*$/);
+    if (!match) return null;
+    var cmd = match[1];
+    var params = match[2];
+    var args = [];
+    var current = "";
+    var inQuote = false;
+    for (var i = 0; i < params.length; i++) {
+        var ch = params[i];
+        if (ch === '"') { inQuote = !inQuote; }
+        else if (ch === ',' && !inQuote) { args.push(current.trim()); current = ""; }
+        else { current += ch; }
+    }
+    if (current.trim()) args.push(current.trim());
+    var unquote = function(s) { return s.replace(/^"/, "").replace(/"$/, ""); };
+    var width = 0, height = 0, description = "", catalog = "", shape = "rectangle", imagePath = "";
+    if (cmd === "STAMP_ADD_BLANK") { width = parseFloat(args[0]) || 0; height = parseFloat(args[1]) || 0; }
+    else if (cmd === "STAMP_ADD_IMG") { width = parseFloat(args[0]) || 0; height = parseFloat(args[1]) || 0; imagePath = unquote(args[2]) || ""; description = unquote(args[3]) || ""; catalog = unquote(args[4]) || ""; }
+    else {
+        width = parseFloat(args[0]) || 0; height = parseFloat(args[1]) || 0;
+        description = unquote(args[2]) || ""; catalog = unquote(args[3]) || "";
+        if (cmd === "STAMP_ADD_TRIANGLE") shape = "triangle";
+        else if (cmd === "STAMP_ADD_DIAMOND") shape = "diamond";
+        else if (cmd === "STAMP_ADD_OVAL") shape = "oval";
+        else if (cmd === "STAMP_ADD_HEXAGON") shape = "hexagon";
+        else if (cmd === "STAMP_ADD_OCTAGON") shape = "octagon";
+        else if (cmd === "STAMP_ADD_PENTAGON") shape = "pentagon";
+    }
+    return { line: lineIdx, cmd: cmd, width: width, height: height, description: description, catalog: catalog, shape: shape, imagePath: imagePath, heading: "", dslLine: line };
+}
+
+function renderStampOverlay() {
+    var overlay = document.getElementById("visual-overlay");
+    overlay.innerHTML = "";
+    if (stampMap.length === 0) {
+        overlay.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:13px;text-align:center;padding:20px;">No stamps found.<br>Add stamps via DSL or visual builder.</div>';
+        return;
+    }
+    var frame = document.getElementById("preview-frame");
+    var frameDoc = frame.contentDocument || frame.contentWindow.document;
+    if (!frameDoc) return;
+    var stampEls = frameDoc.querySelectorAll(".stamp");
+    var frameRect = frame.getBoundingClientRect();
+    stampEls.forEach(function(stampEl, idx) {
+        var rect = stampEl.getBoundingClientRect();
+        if (rect.width === 0) return;
+        var el = document.createElement("div");
+        el.className = "visual-stamp-overlay";
+        el.style.cssText = "position:absolute;left:" + (rect.left - frameRect.left) + "px;top:" + (rect.top - frameRect.top) + "px;width:" + rect.width + "px;height:" + rect.height + "px;cursor:pointer;border-radius:2px;transition:outline 0.15s;";
+        el.title = (stampMap[idx] && stampMap[idx].description) || ("Stamp " + (idx + 1));
+        el.dataset.stampIdx = idx;
+        el.addEventListener("click", function(e) { e.stopPropagation(); selectStamp(idx); });
+        el.addEventListener("mouseenter", function() { if (selectedStampIdx !== idx) { el.style.outline = "2px dashed var(--accent)"; el.style.outlineOffset = "2px"; } });
+        el.addEventListener("mouseleave", function() { if (selectedStampIdx !== idx) { el.style.outline = ""; } });
+        overlay.appendChild(el);
+    });
+}
+
+function selectStamp(idx) {
+    selectedStampIdx = idx;
+    var stamp = stampMap[idx];
+    if (!stamp) return;
+    document.querySelectorAll(".visual-stamp-overlay").forEach(function(el, i) {
+        if (i === idx) { el.style.outline = "2px solid var(--accent)"; el.style.outlineOffset = "2px"; el.style.background = "rgba(88,166,255,0.1)"; }
+        else { el.style.outline = ""; el.style.background = ""; }
+    });
+    highlightDslLine(stamp.line);
+    showPropertyPanel(stamp);
+}
+
+function showPropertyPanel(stamp) {
+    document.getElementById("visual-property-panel").classList.add("open");
+    document.getElementById("vpp-desc").value = stamp.description || "";
+    document.getElementById("vpp-cat").value = stamp.catalog || "";
+    document.getElementById("vpp-width").value = stamp.width || 32;
+    document.getElementById("vpp-height").value = stamp.height || 37;
+    document.getElementById("vpp-shape").value = stamp.shape || "rectangle";
+    document.getElementById("vpp-heading").value = stamp.heading || "";
+    var imgSelect = document.getElementById("vpp-image");
+    imgSelect.innerHTML = '<option value="">No image</option>';
+    var images = window._uploadedImages || [];
+    images.forEach(function(img) {
+        var opt = document.createElement("option");
+        opt.value = img; opt.textContent = img;
+        if (img === stamp.imagePath) opt.selected = true;
+        imgSelect.appendChild(opt);
+    });
+}
+
+function closePropertyPanel() {
+    document.getElementById("visual-property-panel").classList.remove("open");
+    selectedStampIdx = -1;
+    clearDslHighlight();
+    document.querySelectorAll(".visual-stamp-overlay").forEach(function(el) { el.style.outline = ""; el.style.background = ""; });
+}
+
+function applyStampProperties() {
+    if (selectedStampIdx < 0 || !stampMap[selectedStampIdx]) return;
+    var stamp = stampMap[selectedStampIdx];
+    var newDesc = document.getElementById("vpp-desc").value;
+    var newCat = document.getElementById("vpp-cat").value;
+    var newWidth = parseFloat(document.getElementById("vpp-width").value) || 32;
+    var newHeight = parseFloat(document.getElementById("vpp-height").value) || 37;
+    var newShape = document.getElementById("vpp-shape").value;
+    var newHeading = document.getElementById("vpp-heading").value;
+    var newImage = document.getElementById("vpp-image").value;
+    var dsl = editor.getValue();
+    var lines = dsl.split("\n");
+    var lineIdx = stamp.line;
+    var newLine;
+    if (newImage) { newLine = "STAMP_ADD_IMG(" + newWidth + " " + newHeight + ' "' + newImage + '" "' + newDesc + '" "' + newCat + '" "" "")'; }
+    else { var shapeCmd = newShape === "rectangle" ? "STAMP_ADD" : "STAMP_ADD_" + newShape.toUpperCase(); newLine = shapeCmd + "(" + newWidth + " " + newHeight + ' "' + newDesc + '" "' + newCat + '" "" "")'; }
+    lines[lineIdx] = newLine;
+    if (newHeading) {
+        var nextLine = lines[lineIdx + 1] ? lines[lineIdx + 1].trim() : "";
+        if (nextLine && nextLine.startsWith("STAMP_HEADING")) { lines[lineIdx + 1] = 'STAMP_HEADING(HB 10 "' + newHeading + '")'; }
+        else { lines.splice(lineIdx + 1, 0, 'STAMP_HEADING(HB 10 "' + newHeading + '")'); stampMap.forEach(function(s, i) { if (i > selectedStampIdx) s.line++; }); }
+    }
+    editor.setValue(lines.join("\n"));
+    saveUndoState();
+    schedulePreview();
+    setTimeout(function() { buildStampMap(); }, 500);
+    showToast("Stamp updated", "success");
+}
+
+function deleteSelectedStamp() {
+    if (selectedStampIdx < 0 || !stampMap[selectedStampIdx]) return;
+    var stamp = stampMap[selectedStampIdx];
+    var dsl = editor.getValue();
+    var lines = dsl.split("\n");
+    var lineIdx = stamp.line;
+    var nextLine = lines[lineIdx + 1] ? lines[lineIdx + 1].trim() : "";
+    if (nextLine && nextLine.startsWith("STAMP_HEADING")) { lines.splice(lineIdx, 2); }
+    else { lines.splice(lineIdx, 1); }
+    editor.setValue(lines.join("\n"));
+    saveUndoState();
+    closePropertyPanel();
+    schedulePreview();
+    setTimeout(function() { buildStampMap(); }, 500);
+    showToast("Stamp deleted", "success");
+}
+
+function highlightDslLine(lineIdx) {
+    clearDslHighlight();
+    if (!editor) return;
+    editor.addLineClass(lineIdx, "background", "cm-dsl-stamp-line");
+    editor.scrollIntoView({ line: lineIdx, ch: 0 }, 100);
+}
+
+function clearDslHighlight() {
+    if (!editor) return;
+    var count = editor.lineCount();
+    for (var i = 0; i < count; i++) { try { editor.removeLineClass(i, "background", "cm-dsl-stamp-line"); } catch(e) {} }
+}
+
+function trackUploadedImage(filename) {
+    if (!window._uploadedImages) window._uploadedImages = [];
+    if (window._uploadedImages.indexOf(filename) === -1) window._uploadedImages.push(filename);
+}
+
+var origLoadFileList = window.loadFileList;
+window.loadFileList = async function() {
+    if (origLoadFileList) await origLoadFileList();
+    try {
+        var response = await fetch(`${API_BASE}/images`);
+        if (response.ok) { var images = await response.json(); window._uploadedImages = images; }
+    } catch(e) {}
+};
+
+var stampMapTimer = null;
+var origSchedulePreview = window.schedulePreview;
+window.schedulePreview = function() {
+    if (origSchedulePreview) origSchedulePreview();
+    if (visualSyncEnabled) { clearTimeout(stampMapTimer); stampMapTimer = setTimeout(function() { buildStampMap(); }, 600); }
+};
+
+document.addEventListener("DOMContentLoaded", function() { initVisualSync(); });
