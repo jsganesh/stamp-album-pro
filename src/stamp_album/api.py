@@ -511,9 +511,9 @@ async def auto_layout(request: AutoLayoutRequest):
     return {"dsl": updated_dsl, "strategy": request.strategy, "rows_created": len(result.rows), "stamps_arranged": sum(len(r.stamps) for r in result.rows), "fits_on_page": result.fits_on_page}
 
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8080)
-
+# ============================================================
+# Excel Import for Collection
+# ============================================================
 
 @app.post("/api/stamps/import-excel")
 async def import_stamps_excel(file: UploadFile = File(...)):
@@ -543,3 +543,65 @@ async def import_stamps_excel(file: UploadFile = File(...)):
         raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to parse Excel file: {e}")
+
+
+# ============================================================
+# WebSocket Real-Time Preview (P2-13)
+# ============================================================
+
+import json
+from fastapi import WebSocket, WebSocketDisconnect
+from typing import Dict
+
+active_connections: Dict[str, WebSocket] = {}
+
+
+@app.websocket("/ws/preview")
+async def websocket_preview(websocket: WebSocket):
+    await websocket.accept()
+    client_id = str(id(websocket))
+    active_connections[client_id] = websocket
+    try:
+        await websocket.send_json({"type": "connected", "client_id": client_id})
+        while True:
+            data = await websocket.receive_text()
+            try:
+                msg = json.loads(data)
+                msg_type = msg.get("type", "render")
+                if msg_type == "render":
+                    dsl = msg.get("dsl", "")
+                    if not dsl.strip():
+                        await websocket.send_json({"type": "preview", "html": "", "status": "empty"})
+                        continue
+                    try:
+                        album = parser.parse(dsl)
+                        renderer = HTMLRenderer(album, None)
+                        html = renderer.render()
+                        warnings = parser.validate(album)
+                        await websocket.send_json({"type": "preview", "html": html, "status": "ok", "warnings": warnings})
+                    except ParseError as e:
+                        await websocket.send_json({"type": "error", "message": str(e), "line": e.line_number})
+                    except Exception as e:
+                        await websocket.send_json({"type": "error", "message": "Render error: " + str(e)})
+                elif msg_type == "ping":
+                    await websocket.send_json({"type": "pong"})
+                elif msg_type == "validate":
+                    dsl = msg.get("dsl", "")
+                    try:
+                        album = parser.parse(dsl)
+                        warnings = parser.validate(album)
+                        await websocket.send_json({"type": "validation", "valid": True, "warnings": warnings})
+                    except ParseError as e:
+                        await websocket.send_json({"type": "validation", "valid": False, "error": str(e)})
+            except json.JSONDecodeError:
+                await websocket.send_json({"type": "error", "message": "Invalid JSON"})
+            except Exception as e:
+                await websocket.send_json({"type": "error", "message": "Server error: " + str(e)})
+    except WebSocketDisconnect:
+        active_connections.pop(client_id, None)
+    except Exception:
+        active_connections.pop(client_id, None)
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8080)
