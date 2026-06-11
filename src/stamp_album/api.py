@@ -222,23 +222,6 @@ async def visual_update(request: VisualUpdateRequest):
         _handle_parse_error(e)
 
 
-@app.post("/export")
-async def export_pdf(request: RenderRequest):
-    try:
-        album = parser.parse(request.dsl, request.source_path)
-        generator = PDFGenerator()
-        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
-            pdf_path = tmp.name
-            generator.generate(album, pdf_path, base_url="http://localhost:8080")
-        return FileResponse(
-            pdf_path, media_type="application/pdf", filename="album.pdf"
-        )
-    except ParseError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Export error: {e}")
-
-
 @app.post("/validate")
 async def validate_album(request: RenderRequest):
     """Validate a DSL document and return warnings/errors."""
@@ -356,6 +339,132 @@ def _build_html_gallery(html_content: str, album: "Album") -> str:
     </div>
 </body>
 </html>"""
+
+
+# ============================================================
+# Stamp Collection API
+# ============================================================
+
+from stamp_album.collection import (
+    load_collection, save_collection, add_stamp, update_stamp,
+    delete_stamp, search_stamps, import_csv, get_collection_stats,
+    COLLECTION_FILE,
+)
+
+
+class StampData(BaseModel):
+    country: str = ""
+    year: int = 0
+    description: str = ""
+    catalog_number: str = ""
+    catalog_type: str = "SG"
+    denomination: str = ""
+    condition: str = ""
+    purchase_price: float = 0.0
+    image_path: str = ""
+    notes: str = ""
+
+
+class StampUpdate(BaseModel):
+    country: Optional[str] = None
+    year: Optional[int] = None
+    description: Optional[str] = None
+    catalog_number: Optional[str] = None
+    catalog_type: Optional[str] = None
+    denomination: Optional[str] = None
+    condition: Optional[str] = None
+    purchase_price: Optional[float] = None
+    image_path: Optional[str] = None
+    notes: Optional[str] = None
+
+
+@app.get("/api/stamps")
+async def list_stamps(
+    query: str = "",
+    country: str = "",
+    year_from: int = 0,
+    year_to: int = 0,
+    catalog_type: str = "",
+    condition: str = "",
+    sort_by: str = "country",
+    sort_order: str = "asc",
+    page: int = 1,
+    per_page: int = 20,
+):
+    results, total = search_stamps(
+        query=query, country=country, year_from=year_from, year_to=year_to,
+        catalog_type=catalog_type, condition=condition,
+        sort_by=sort_by, sort_order=sort_order, page=page, per_page=per_page,
+    )
+    return {"stamps": results, "total": total, "page": page, "per_page": per_page}
+
+
+@app.get("/api/stamps/stats")
+async def collection_stats():
+    return get_collection_stats()
+
+
+@app.get("/api/stamps/{stamp_id}")
+async def get_stamp(stamp_id: str):
+    stamps = load_collection()
+    for s in stamps:
+        if s.get("id") == stamp_id:
+            return s
+    raise HTTPException(status_code=404, detail="Stamp not found")
+
+
+@app.post("/api/stamps")
+async def create_stamp(data: StampData):
+    return add_stamp(data.model_dump())
+
+
+@app.put("/api/stamps/{stamp_id}")
+async def edit_stamp(stamp_id: str, data: StampUpdate):
+    update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+    result = update_stamp(stamp_id, update_data)
+    if not result:
+        raise HTTPException(status_code=404, detail="Stamp not found")
+    return result
+
+
+@app.delete("/api/stamps/{stamp_id}")
+async def remove_stamp(stamp_id: str):
+    if delete_stamp(stamp_id):
+        return {"status": "deleted"}
+    raise HTTPException(status_code=404, detail="Stamp not found")
+
+
+@app.post("/api/stamps/import")
+async def import_stamps_csv(file: UploadFile = File(...)):
+    if not file.filename or not file.filename.lower().endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Please upload a .csv file")
+    content = await file.read()
+    try:
+        csv_text = content.decode("utf-8")
+    except UnicodeDecodeError:
+        csv_text = content.decode("latin-1")
+    count, errors = import_csv(csv_text)
+    return {"imported": count, "errors": errors}
+
+
+@app.get("/api/stamps/export/csv")
+async def export_collection_csv():
+    import csv, io
+    stamps = load_collection()
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=[
+        "id", "country", "year", "description", "catalog_number", "catalog_type",
+        "denomination", "condition", "purchase_price", "image_path", "notes",
+        "created_at", "updated_at",
+    ])
+    writer.writeheader()
+    for s in stamps:
+        writer.writerow(s)
+    return PlainTextResponse(
+        output.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=collection.csv"},
+    )
 
 
 if __name__ == "__main__":
