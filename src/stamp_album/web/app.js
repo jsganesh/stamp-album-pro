@@ -1813,3 +1813,70 @@ function applyFormatting(fmt) {
 }
 
 document.addEventListener("DOMContentLoaded", function() { initFormattingToolbar(); });
+
+// P2-6: Auto-Layout Engine UI
+var autoLayoutStrategies = [
+    { id: "row_first", name: "Row First", desc: "Fill rows left-to-right" },
+    { id: "balanced", name: "Balanced", desc: "Balance rows by width" },
+    { id: "grid", name: "Grid", desc: "Uniform grid layout" },
+    { id: "packing", name: "Packing", desc: "Pack tallest first" },
+    { id: "column_first", name: "Column First", desc: "Fill columns top-to-bottom" },
+];
+var autoLayoutMenu = null;
+
+function initAutoLayout() {
+    var btn = document.getElementById("btn-auto-layout");
+    if (!btn) return;
+    btn.addEventListener("click", function(e) {
+        e.stopPropagation();
+        if (autoLayoutMenu) { autoLayoutMenu.remove(); autoLayoutMenu = null; return; }
+        showAutoLayoutMenu(btn);
+    });
+    document.addEventListener("click", function() { if (autoLayoutMenu) { autoLayoutMenu.remove(); autoLayoutMenu = null; } });
+}
+
+function showAutoLayoutMenu(btn) {
+    var menu = document.createElement("div");
+    menu.id = "auto-layout-menu";
+    menu.style.cssText = "position:absolute;right:16px;top:80px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;padding:6px;min-width:200px;z-index:1000;box-shadow:0 4px 16px rgba(0,0,0,0.3);";
+    var html = '<div style="font-size:11px;font-weight:600;color:var(--text-muted);padding:4px 8px 8px;text-transform:uppercase">Auto-Layout Strategy</div>';
+    autoLayoutStrategies.forEach(function(s) {
+        html += '<button class="auto-layout-option" data-strategy="' + s.id + '" style="display:flex;flex-direction:column;align-items:flex-start;width:100%;padding:8px 12px;background:none;border:none;border-radius:4px;color:var(--text-primary);font-size:12px;cursor:pointer;text-align:left;" onmouseover="this.style.background=\'var(--bg-hover)\'" onmouseout="this.style.background=\'none\'"><strong>' + s.name + '</strong><small style="color:var(--text-muted);font-size:10px">' + s.desc + '</small></button>';
+    });
+    menu.innerHTML = html;
+    document.body.appendChild(menu);
+    autoLayoutMenu = menu;
+    menu.querySelectorAll(".auto-layout-option").forEach(function(opt) {
+        opt.addEventListener("click", function() {
+            runAutoLayout(opt.dataset.strategy);
+            menu.remove(); autoLayoutMenu = null;
+        });
+    });
+}
+
+async function runAutoLayout(strategy) {
+    var dsl = getEditorContent();
+    if (!dsl.trim()) { showToast("Nothing to arrange", "error"); return; }
+    document.getElementById("status-left").textContent = "Auto-arranging...";
+    try {
+        var response = await fetch(API_BASE + "/api/auto-layout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ dsl: dsl, strategy: strategy, page_idx: 0 }),
+        });
+        if (!response.ok) { var err = await response.json(); throw new Error(err.detail || "Auto-layout failed"); }
+        var result = await response.json();
+        editor.setValue(result.dsl);
+        saveUndoState();
+        schedulePreview();
+        var msg = "Arranged " + result.stamps_arranged + " stamps in " + result.rows_created + " rows";
+        if (!result.fits_on_page) msg += " (overflow!)";
+        showToast(msg, result.fits_on_page ? "success" : "info");
+        document.getElementById("status-left").textContent = "Auto-layout complete";
+    } catch (err) {
+        document.getElementById("status-left").textContent = "Auto-layout failed";
+        showToast("Error: " + err.message, "error");
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function() { initAutoLayout(); });

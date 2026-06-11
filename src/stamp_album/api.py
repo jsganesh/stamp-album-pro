@@ -467,5 +467,42 @@ async def export_collection_csv():
     )
 
 
+class AutoLayoutRequest(BaseModel):
+    dsl: str
+    strategy: str = "row_first"
+    page_idx: int = 0
+    spacing: float = 6.0
+
+
+@app.post("/api/auto-layout")
+async def auto_layout(request: AutoLayoutRequest):
+    """Auto-arrange stamps on a page using the specified layout strategy."""
+    from stamp_album.engines.layout_engine import LayoutStrategy
+    try:
+        album = parser.parse(request.dsl)
+    except ParseError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    if request.page_idx >= len(album.pages):
+        raise HTTPException(status_code=400, detail="Page index out of range")
+    page = album.pages[request.page_idx]
+    all_stamps = []
+    for row in page.rows:
+        for stamp in row.stamps:
+            all_stamps.append(stamp)
+    if not all_stamps:
+        raise HTTPException(status_code=400, detail="No stamps on page")
+    strategy_map = {"row_first": LayoutStrategy.ROW_FIRST, "column_first": LayoutStrategy.COLUMN_FIRST, "grid": LayoutStrategy.GRID, "packing": LayoutStrategy.PACKING, "balanced": LayoutStrategy.BALANCED}
+    strategy = strategy_map.get(request.strategy, LayoutStrategy.ROW_FIRST)
+    ps = album.page_setup
+    content_width = ps.width - ps.margin_left - ps.margin_right
+    from stamp_album.engines.layout_engine import LayoutEngine
+    engine = LayoutEngine(ps)
+    result = engine.auto_arrange_stamps(all_stamps, max_width=content_width, spacing=request.spacing, strategy=strategy)
+    page.rows = result.rows
+    page.content_flow = [("row", row) for row in result.rows]
+    updated_dsl = serializer.to_dsl(album)
+    return {"dsl": updated_dsl, "strategy": request.strategy, "rows_created": len(result.rows), "stamps_arranged": sum(len(r.stamps) for r in result.rows), "fits_on_page": result.fits_on_page}
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080)

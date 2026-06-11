@@ -715,7 +715,8 @@
         .fmt-btn strong { font-weight: 700; }
         .fmt-btn em { font-style: italic; }
         .fmt-btn s { text-decoration: line-through; }
-        .fmt-btn code { font-family: monospace; background: rgba(0,0,0,0.1); padding: 0 2px; border-radius: 2px; }
+        .stamp-modal-footer button { flex: 1; }
+        #auto-layout-menu .auto-layout-option:hover { background: var(--bg-hover) !important; }
     </style>
 </head>
 <body>
@@ -1136,6 +1137,15 @@
                 <div class="preview-toolbar">
                     <span id="preview-status">Ready</span>
                     <div class="preview-actions">
+                        <button id="btn-auto-layout" title="Auto-arrange stamps on current page">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"/>
+                                <rect x="14" y="3" width="7" height="7"/>
+                                <rect x="3" y="14" width="7" height="7"/>
+                                <rect x="14" y="14" width="7" height="7"/>
+                            </svg>
+                            Auto-Layout
+                        </button>
                         <button id="btn-refresh-preview" title="Refresh Preview">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="23 4 23 10 17 10"/>
