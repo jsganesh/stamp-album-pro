@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import os
 import platform
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
@@ -26,6 +26,8 @@ class FontInfo:
     font_index: int = -1  # -1 for TTF, >= 0 for TTC
     is_valid: bool = True
     error_message: str = ""
+    is_variable: bool = False
+    variable_axes: list = field(default_factory=list)
 
 
 class FontManager:
@@ -176,6 +178,21 @@ class FontManager:
             )
             self._fonts.append(font_info)
 
+            # Check for variable font (fvar table)
+            if 'fvar' in font:
+                font_info.is_variable = True
+                try:
+                    fvar = font['fvar']
+                    for axis in fvar.axes:
+                        font_info.variable_axes.append({
+                            'name': axis.axisNameID,
+                            'tag': axis.axisTag,
+                            'min': axis.minValue,
+                            'max': axis.maxValue,
+                            'default': axis.defaultValue,
+                        })
+                except Exception:
+                    pass
             font.close()
         except Exception:
             self._bad_fonts.append(str(file_path))
@@ -202,6 +219,21 @@ class FontManager:
                     )
                     self._fonts.append(font_info)
 
+            # Check for variable font (fvar table)
+            if 'fvar' in font:
+                font_info.is_variable = True
+                try:
+                    fvar = font['fvar']
+                    for axis in fvar.axes:
+                        font_info.variable_axes.append({
+                            'name': axis.axisNameID,
+                            'tag': axis.axisTag,
+                            'min': axis.minValue,
+                            'max': axis.maxValue,
+                            'default': axis.defaultValue,
+                        })
+                except Exception:
+                    pass
             font.close()
         except Exception:
             self._bad_fonts.append(str(file_path))

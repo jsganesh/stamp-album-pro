@@ -594,6 +594,8 @@ class FontDefinition:
 
     font_id: str
     font_name: str
+    is_variable: bool = False
+    variable_axes: list = field(default_factory=list)
 
 
 @dataclass

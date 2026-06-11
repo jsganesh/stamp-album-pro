@@ -400,6 +400,25 @@ class AlbumParser:
                 )
             elif cmd == "ALBUM_DEFINE_FONT":
                 album.fonts.append(FontDefinition(font_id=unquote(params[0]), font_name=unquote(params[1])))
+            elif cmd == "ALBUM_DEFINE_VARIABLE_FONT":
+                # ALBUM_DEFINE_VARIABLE_FONT (ID "FontName" axis_tag min max default)
+                # e.g., ALBUM_DEFINE_VARIABLE_FONT (VF "My Font" wght 100 900 400)
+                axes = []
+                i = 2
+                while i + 3 < len(params):
+                    axes.append({
+                        'tag': params[i],
+                        'min': float(params[i+1]),
+                        'max': float(params[i+2]),
+                        'default': float(params[i+3]),
+                    })
+                    i += 4
+                album.fonts.append(FontDefinition(
+                    font_id=unquote(params[0]),
+                    font_name=unquote(params[1]),
+                    is_variable=True,
+                    variable_axes=axes,
+                ))
 
             # -- Color commands --
             elif cmd in ("COLOUR_ALBUM_BORDER", "COLOR_ALBUM_BORDER"):
