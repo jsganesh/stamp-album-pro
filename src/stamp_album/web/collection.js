@@ -82,6 +82,16 @@
             });
         }
 
+        // Import Excel
+        var importExcelBtn = document.getElementById("collection-import-excel-btn");
+        var excelInput = document.getElementById("collection-excel-input");
+        if (importExcelBtn && excelInput) {
+            importExcelBtn.addEventListener("click", function() { excelInput.click(); });
+            excelInput.addEventListener("change", function() {
+                if (excelInput.files.length > 0) importExcel(excelInput.files[0]);
+            });
+        }
+
         // Modal
         var modalClose = document.getElementById("stamp-modal-close");
         var modalCancel = document.getElementById("stamp-modal-cancel");
@@ -298,6 +308,29 @@
         }
         // Reset input
         document.getElementById("collection-csv-input").value = "";
+    }
+
+    async function importExcel(file) {
+        try {
+            var formData = new FormData();
+            formData.append("file", file);
+            var response = await fetch(API_BASE + "/api/stamps/import-excel", {
+                method: "POST",
+                body: formData,
+            });
+            if (!response.ok) {
+                var err = await response.json();
+                throw new Error(err.detail || "Import failed");
+            }
+            var result = await response.json();
+            var msg = "Imported " + result.imported + " stamps from Excel";
+            if (result.errors.length > 0) msg += " (" + result.errors.length + " errors)";
+            showToast(msg, result.errors.length > 0 ? "info" : "success");
+            loadCollection();
+        } catch (e) {
+            showToast("Import error: " + e.message, "error");
+        }
+        document.getElementById("collection-excel-input").value = "";
     }
 
     // Initialize on DOM ready

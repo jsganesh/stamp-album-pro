@@ -258,7 +258,7 @@ class ExportRequest(BaseModel):
 async def export_album(request: ExportRequest):
     """Export album to PDF, PNG, SVG, or HTML gallery."""
     fmt = request.format.lower()
-    if fmt not in ("pdf", "png", "svg", "html"):
+    if fmt not in ("pdf", "png", "svg", "html", "epub"):
         raise HTTPException(status_code=400, detail=f"Unsupported format: {fmt}")
 
     try:
@@ -308,6 +308,13 @@ async def export_album(request: ExportRequest):
                 tmp.write(gallery_html)
                 tmp.flush()
                 return FileResponse(tmp.name, media_type="text/html", filename="album-gallery.html")
+
+        elif fmt == "epub":
+            epub_html = _build_html_gallery(html_content, album)
+            with tempfile.NamedTemporaryFile(suffix=".epub", delete=False, mode="w", encoding="utf-8") as tmp:
+                tmp.write(epub_html)
+                tmp.flush()
+                return FileResponse(tmp.name, media_type="application/epub+zip", filename="album.epub")
 
     except ParseError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -506,3 +513,33 @@ async def auto_layout(request: AutoLayoutRequest):
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080)
+
+
+@app.post("/api/stamps/import-excel")
+async def import_stamps_excel(file: UploadFile = File(...)):
+    """Import stamps from an Excel (.xlsx) file."""
+    if not file.filename or not file.filename.lower().endswith((".xlsx", ".xls")):
+        raise HTTPException(status_code=400, detail="Please upload an Excel file (.xlsx)")
+    try:
+        import openpyxl
+    except ImportError:
+        raise HTTPException(status_code=500, detail="openpyxl not installed. Run: pip install openpyxl")
+    content = await file.read()
+    try:
+        wb = openpyxl.load_workbook(filename=__import__("io").BytesIO(content))
+        ws = wb.active
+        rows = list(ws.iter_rows(values_only=True))
+        if len(rows) < 2:
+            raise HTTPException(status_code=400, detail="Excel file must have a header row and at least one data row")
+        import csv, io
+        output = io.StringIO()
+        writer = csv.writer(output)
+        for row in rows:
+            writer.writerow(row)
+        csv_text = output.getvalue()
+        count, errors = import_csv(csv_text)
+        return {"imported": count, "errors": errors}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to parse Excel file: {e}")

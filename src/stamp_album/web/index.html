@@ -799,6 +799,13 @@
                                 <small>Self-contained web gallery</small>
                             </div>
                         </button>
+                        <button class="export-option" data-format="epub" title="EPUB e-book format">
+                            <span class="export-icon">📚</span>
+                            <div>
+                                <strong>Export EPUB</strong>
+                                <small>E-book format for reading</small>
+                            </div>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1189,8 +1196,10 @@
         <div class="collection-actions-bar">
             <button id="collection-add-btn" class="collection-action-btn">+ Add Stamp</button>
             <button id="collection-import-btn" class="collection-action-btn">Import CSV</button>
+            <button id="collection-import-excel-btn" class="collection-action-btn">Import Excel</button>
             <button id="collection-export-btn" class="collection-action-btn">Export CSV</button>
             <input type="file" id="collection-csv-input" accept=".csv" hidden>
+            <input type="file" id="collection-excel-input" accept=".xlsx,.xls" hidden>
         </div>
         <div id="collection-list" class="collection-list">
             <div class="collection-empty">No stamps in collection. Add your first stamp or import from CSV.</div>
@@ -1522,6 +1531,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
     <script src="collection.js"></script>
+    <script src="color_palette.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
