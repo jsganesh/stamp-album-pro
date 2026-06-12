@@ -39,7 +39,8 @@ document.addEventListener("DOMContentLoaded", () => {
     initEditor();
     initButtons();
     initKeyboardShortcuts();
-    initWizard();
+    initSidebarBuilder();
+    initDragDrop();
     loadFileList();
     initImageDragDrop();
     document.getElementById("btn-export").disabled = false;
@@ -126,8 +127,8 @@ function initKeyboardShortcuts() {
     });
 }
 
-// Wizard
-function initWizard() {
+// Sidebar accordion builder (paper / border / columns / elements panel)
+function initSidebarBuilder() {
     // Accordion toggle
     document.querySelectorAll(".section-header").forEach((header) => {
         header.addEventListener("click", () => {
@@ -1406,10 +1407,30 @@ async function doExport(format) {
         });
         if (!response.ok) { const err = await response.json(); throw new Error(err.detail || "Export failed"); }
         const blob = await response.blob();
+        const filename = (currentFile ? currentFile.replace(/\.(slbum|txt)$/, "") : "album") + "." + format;
+
+        // Desktop app (pywebview): hand bytes to Python for a native Save dialog.
+        // This avoids navigating the single webview window to the file, which
+        // would close the whole app when the document viewer is closed.
+        if (window.pywebview && window.pywebview.api && window.pywebview.api.save_export) {
+            const b64 = await blobToBase64(blob);
+            const result = await window.pywebview.api.save_export(format, b64, filename);
+            if (result && result.ok) {
+                document.getElementById("status-left").textContent = format.toUpperCase() + " saved";
+                showToast(format.toUpperCase() + " saved to " + result.path, "success");
+            } else if (result && result.cancelled) {
+                document.getElementById("status-left").textContent = "Export cancelled";
+            } else {
+                throw new Error((result && result.error) || "Save failed");
+            }
+            return;
+        }
+
+        // Browser: standard blob download
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = (currentFile ? currentFile.replace(/\.(slbum|txt)$/, "") : "album") + "." + format;
+        a.download = filename;
         a.click();
         URL.revokeObjectURL(url);
         document.getElementById("status-left").textContent = format.toUpperCase() + " exported";
@@ -1418,6 +1439,20 @@ async function doExport(format) {
         document.getElementById("status-left").textContent = "Export failed";
         showToast("Export failed: " + err.message, "error");
     }
+}
+
+// Convert a Blob to a base64 string (without the data: prefix) for the pywebview bridge.
+function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const result = reader.result || "";
+            const comma = result.indexOf(",");
+            resolve(comma >= 0 ? result.slice(comma + 1) : result);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
 }
 
 // ============================================================

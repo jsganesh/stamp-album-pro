@@ -15,13 +15,20 @@ def main():
     if str(src_path) not in sys.path:
         sys.path.insert(0, str(src_path))
 
-    # Check for CLI mode
+    # CLI mode (headless PDF generation)
     if len(sys.argv) > 1 and sys.argv[1] in ("-c", "--cli"):
         _run_cli(sys.argv[2:])
         return
 
-    # Run GUI mode
-    _run_gui()
+    # Legacy PyQt6 desktop editor (kept for reference; no longer the default)
+    if len(sys.argv) > 1 and sys.argv[1] in ("--legacy-qt", "--qt"):
+        _run_gui()
+        return
+
+    # Default: launch the cross-platform desktop web app (Windows/macOS/Linux)
+    from stamp_album.desktop import main as desktop_main
+
+    sys.exit(desktop_main())
 
 
 def _run_gui():

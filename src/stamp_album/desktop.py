@@ -108,19 +108,65 @@ def main() -> int:
         except KeyboardInterrupt:
             return 0
 
-    window = webview.create_window(
+    # ------------------------------------------------------------------
+    # Native export bridge.
+    #
+    # In a browser, exports use an <a download> blob click. Inside a
+    # WKWebView that NAVIGATES the single window to the file, so closing
+    # the opened document closes the whole app. Instead we expose a
+    # Python API the page can call to save bytes to a user-chosen path
+    # via a native "Save As" dialog. The window never navigates away.
+    # ------------------------------------------------------------------
+    class _Api:
+        def save_export(self, fmt: str, b64_data: str, suggested_name: str) -> dict:
+            """Save base64-encoded export bytes to a user-chosen file."""
+            import base64
+
+            try:
+                data = base64.b64decode(b64_data)
+            except Exception as e:
+                return {"ok": False, "error": f"decode failed: {e}"}
+
+            ext_map = {
+                "pdf": ("PDF", "*.pdf"),
+                "png": ("PNG image", "*.png"),
+                "svg": ("SVG image", "*.svg"),
+                "html": ("HTML gallery", "*.html"),
+                "epub": ("EPUB book", "*.epub"),
+            }
+            label, pattern = ext_map.get(fmt, ("File", "*.*"))
+            result = _window.create_file_dialog(
+                webview.SAVE_DIALOG,
+                save_filename=suggested_name,
+                file_types=(f"{label} ({pattern})", "All files (*.*)"),
+            )
+            if not result:
+                return {"ok": False, "cancelled": True}
+
+            path = result if isinstance(result, str) else result[0]
+            try:
+                with open(path, "wb") as f:
+                    f.write(data)
+                return {"ok": True, "path": path}
+            except Exception as e:
+                return {"ok": False, "error": str(e)}
+
+    api = _Api()
+
+    _window = webview.create_window(
         "StampAlbum Pro",
         base_url,
         width=1400,
         height=900,
         min_size=(900, 600),
         text_select=True,
+        js_api=api,
     )
 
     def _on_closed() -> None:
         server.stop()
 
-    window.events.closed += _on_closed
+    _window.events.closed += _on_closed
 
     # webview.start() blocks until the window is closed.
     # gui=None lets pywebview auto-pick the best native backend per OS
