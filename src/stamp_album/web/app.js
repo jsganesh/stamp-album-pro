@@ -66,6 +66,36 @@ function initEditor() {
         updateSaveStatus("Modified");
         schedulePreview();
     });
+
+    // Intercept build-item drops onto the editor and convert them to DSL.
+    // Without this, CodeMirror's native text-drop inserts the raw JSON payload.
+    editor.on("drop", (cm, e) => {
+        const raw = e.dataTransfer ? e.dataTransfer.getData("text/plain") : "";
+        if (!raw) return; // let CodeMirror handle normal text/image drops
+        let data;
+        try {
+            data = JSON.parse(raw);
+        } catch (_) {
+            return; // not our payload — allow default behaviour
+        }
+        if (!data || !data.type) return;
+        // It's a build-item: cancel the default text insertion and add DSL instead
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof CodeMirror !== "undefined" && CodeMirror.e_stop) CodeMirror.e_stop(e);
+        insertBuildItem(data);
+    });
+}
+
+// Insert a build-item (text / stamp / row) into the DSL from a drop payload.
+function insertBuildItem(data) {
+    if (data.type === "text") {
+        insertTextElement(data.align);
+    } else if (data.type === "stamp") {
+        insertStampElement(data.shape, data.width, data.height);
+    } else if (data.type === "row") {
+        insertRowElement(data.style);
+    }
 }
 
 function initButtons() {
@@ -304,6 +334,19 @@ function initDragDrop() {
             item.style.opacity = "1";
             removeDropIndicator();
         });
+
+        // Click-to-add: simpler than dragging, works the same way.
+        item.addEventListener("click", () => {
+            insertBuildItem({
+                type: item.dataset.type,
+                align: item.dataset.align || "left",
+                shape: item.dataset.shape || "rectangle",
+                width: parseFloat(item.dataset.w) || 40,
+                height: parseFloat(item.dataset.h) || 30,
+                style: item.dataset.style || "FS",
+            });
+        });
+        item.title = "Click to add, or drag into the editor";
     });
 
     const overlay = document.getElementById("visual-overlay");
