@@ -33,6 +33,11 @@ dependencies = [
     "fonttools>=4.40",
     "PyYAML>=6.0",
     "lark>=1.1",
+    "PyMuPDF>=1.23",
+    "fastapi>=0.110",
+    "uvicorn>=0.27",
+    "pywebview>=5.0",
+    "openpyxl>=3.1",
 ]
 
 [project.optional-dependencies]
@@ -47,6 +52,7 @@ dev = [
 
 [project.scripts]
 stamp-album = "stamp_album.__main__:main"
+stamp-album-desktop = "stamp_album.desktop:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

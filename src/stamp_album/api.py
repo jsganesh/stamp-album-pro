@@ -257,9 +257,18 @@ class ExportRequest(BaseModel):
 @app.post("/export")
 async def export_album(request: ExportRequest):
     """Export album to PDF, PNG, SVG, or HTML gallery."""
+    from starlette.background import BackgroundTask
+
     fmt = request.format.lower()
     if fmt not in ("pdf", "png", "svg", "html", "epub"):
         raise HTTPException(status_code=400, detail=f"Unsupported format: {fmt}")
+
+    def _cleanup(path: str):
+        """Delete a temp file after the response has been sent."""
+        try:
+            os.unlink(path)
+        except OSError:
+            pass
 
     try:
         album = parser.parse(request.dsl, request.source_path)
@@ -277,47 +286,75 @@ async def export_album(request: ExportRequest):
             with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
                 pdf_path = tmp.name
                 generator.generate(album, pdf_path, base_url="http://localhost:8080")
-            return FileResponse(pdf_path, media_type="application/pdf", filename="album.pdf")
+            return FileResponse(
+                pdf_path, media_type="application/pdf", filename="album.pdf",
+                background=BackgroundTask(_cleanup, pdf_path),
+            )
 
         elif fmt == "png":
+            # WeasyPrint 60+ dropped PNG output; render PDF then rasterize with PyMuPDF
+            import fitz
             from weasyprint import HTML as WPHTML
-            doc = WPHTML(string=html_content, base_url="http://localhost:8080").render()
-            if not doc.pages:
+            pdf_bytes = WPHTML(string=html_content, base_url="http://localhost:8080").write_pdf()
+            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+            if doc.page_count == 0:
+                doc.close()
                 raise HTTPException(status_code=400, detail="No pages to export")
-            # Export first page as PNG
-            png_bytes = doc.pages[0].write_png(resolution=request.dpi)
+            zoom = max(0.5, request.dpi / 72.0)
+            pix = doc[0].get_pixmap(matrix=fitz.Matrix(zoom, zoom), alpha=False)
+            png_bytes = pix.tobytes("png")
+            doc.close()
             with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
                 tmp.write(png_bytes)
-                tmp.flush()
-                return FileResponse(tmp.name, media_type="image/png", filename="album.png")
+                png_path = tmp.name
+            return FileResponse(
+                png_path, media_type="image/png", filename="album.png",
+                background=BackgroundTask(_cleanup, png_path),
+            )
 
         elif fmt == "svg":
+            # WeasyPrint 60+ dropped SVG output; rasterize PDF page to SVG via PyMuPDF
+            import fitz
             from weasyprint import HTML as WPHTML
-            doc = WPHTML(string=html_content, base_url="http://localhost:8080").render()
-            if not doc.pages:
+            pdf_bytes = WPHTML(string=html_content, base_url="http://localhost:8080").write_pdf()
+            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+            if doc.page_count == 0:
+                doc.close()
                 raise HTTPException(status_code=400, detail="No pages to export")
-            svg_bytes = doc.pages[0].write_svg()
-            with tempfile.NamedTemporaryFile(suffix=".svg", delete=False) as tmp:
-                tmp.write(svg_bytes)
-                tmp.flush()
-                return FileResponse(tmp.name, media_type="image/svg+xml", filename="album.svg")
+            svg_text = doc[0].get_svg_image()
+            doc.close()
+            with tempfile.NamedTemporaryFile(suffix=".svg", delete=False, mode="w", encoding="utf-8") as tmp:
+                tmp.write(svg_text)
+                svg_path = tmp.name
+            return FileResponse(
+                svg_path, media_type="image/svg+xml", filename="album.svg",
+                background=BackgroundTask(_cleanup, svg_path),
+            )
 
         elif fmt == "html":
             gallery_html = _build_html_gallery(html_content, album)
             with tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode="w", encoding="utf-8") as tmp:
                 tmp.write(gallery_html)
-                tmp.flush()
-                return FileResponse(tmp.name, media_type="text/html", filename="album-gallery.html")
+                html_path = tmp.name
+            return FileResponse(
+                html_path, media_type="text/html", filename="album-gallery.html",
+                background=BackgroundTask(_cleanup, html_path),
+            )
 
         elif fmt == "epub":
             epub_html = _build_html_gallery(html_content, album)
             with tempfile.NamedTemporaryFile(suffix=".epub", delete=False, mode="w", encoding="utf-8") as tmp:
                 tmp.write(epub_html)
-                tmp.flush()
-                return FileResponse(tmp.name, media_type="application/epub+zip", filename="album.epub")
+                epub_path = tmp.name
+            return FileResponse(
+                epub_path, media_type="application/epub+zip", filename="album.epub",
+                background=BackgroundTask(_cleanup, epub_path),
+            )
 
     except ParseError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Export error: {e}")
 

@@ -154,7 +154,12 @@ class PreviewPanel(QWidget):
         self._update_display()
 
     def _render_pages(self):
-        """Render HTML pages to QPixmap images using WeasyPrint."""
+        """Render HTML pages to QPixmap images via WeasyPrint PDF + PyMuPDF.
+
+        WeasyPrint 60+ removed per-page PNG rendering (write_to_image),
+        so we render to PDF in memory and rasterize pages with PyMuPDF.
+        This path is cross-platform (Windows/macOS/Linux) and arm64-safe.
+        """
         from weasyprint import HTML
 
         self._page_images = []
@@ -165,18 +170,27 @@ class PreviewPanel(QWidget):
             return
 
         try:
-            # Render HTML to PNG images using WeasyPrint
-            html_doc = HTML(string=self._html_content)
-            doc = html_doc.render()
+            # Render HTML to an in-memory PDF (the only output WeasyPrint 68 supports)
+            pdf_bytes = HTML(string=self._html_content).write_pdf()
 
-            self._page_count = len(doc.pages)
+            # Rasterize each PDF page to a QPixmap using PyMuPDF
+            import fitz  # PyMuPDF
 
-            for page in doc.pages:
-                # Render each page to PNG
-                png_bytes = page.write_to_image().write_png()
+            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+            self._page_count = doc.page_count
+
+            # Render at ~144 DPI (2x of 72) for a crisp preview
+            zoom = 2.0
+            matrix = fitz.Matrix(zoom, zoom)
+
+            for page in doc:
+                pix = page.get_pixmap(matrix=matrix, alpha=False)
+                png_bytes = pix.tobytes("png")
                 pixmap = QPixmap()
                 pixmap.loadFromData(png_bytes)
                 self._page_images.append(pixmap)
+
+            doc.close()
         except Exception as e:
             self._page_count = 0
             self._page_images = []

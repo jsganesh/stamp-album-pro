@@ -16,8 +16,10 @@ block_cipher = None
 # Get the project root directory (spec file location)
 project_root = Path(os.getcwd())
 
-# WeasyPrint native dependencies (Homebrew paths on Apple Silicon macOS)
-HOMEBREW_LIB = "/opt/homebrew/lib"
+# WeasyPrint native dependencies — support both Apple Silicon (/opt/homebrew)
+# and Intel (/usr/local) Homebrew prefixes. Whichever exists wins.
+_HOMEBREW_PREFIXES = ["/opt/homebrew/lib", "/usr/local/lib"]
+HOMEBREW_LIB = next((p for p in _HOMEBREW_PREFIXES if os.path.isdir(p)), "/opt/homebrew/lib")
 WEASYPRINT_LIBS = [
     "libgobject-2.0.0.dylib",
     "libglib-2.0.0.dylib",
