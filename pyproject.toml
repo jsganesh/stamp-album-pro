@@ -29,6 +29,7 @@ classifiers = [
 dependencies = [
     "PyQt6>=6.4",
     "WeasyPrint>=59.0",
+    "tinycss2>=1.5",
     "Pillow>=10.0",
     "fonttools>=4.40",
     "PyYAML>=6.0",
