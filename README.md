@@ -48,21 +48,38 @@ brew install pango glib gdk-pixbuf libffi harfbuzz fribidi cairo
 
 ## Quick Start
 
-### Web Application (Recommended)
+### Run the app (recommended — works on Windows, macOS, Linux)
 
 ```bash
-# Start the web server
-python -m stamp_album.api
-
-# Open in your browser
-open http://localhost:8080
+stamp-album
 ```
 
-The web app provides:
-- **Left panel**: CodeMirror editor for DSL editing
-- **Right panel**: Live preview that auto-updates as you type
-- **Sidebar**: File browser to manage `.slbum` files
-- **Toolbar**: New, Open, Save, Export PDF actions
+This starts the app and **opens it automatically in your default web browser**.
+No native GUI toolkit needed — it just works everywhere. Press `Ctrl+C` in the
+terminal to stop it.
+
+Alternative commands:
+
+```bash
+stamp-album-web        # same as above (explicit)
+stamp-album --desktop  # open in a native desktop window (pywebview)
+stamp-album --legacy-qt  # old PyQt6 desktop editor (legacy)
+```
+
+Environment overrides:
+
+```bash
+STAMP_ALBUM_PORT=9000 stamp-album       # use a specific port
+STAMP_ALBUM_NO_BROWSER=1 stamp-album    # start server without opening a browser
+```
+
+### Run directly from source
+
+```bash
+python -m stamp_album            # browser (default)
+python -m stamp_album.serve      # browser (explicit)
+python -m stamp_album.api        # server only, then open http://localhost:8080
+```
 
 ### Command Line
 

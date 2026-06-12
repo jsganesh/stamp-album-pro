@@ -20,15 +20,22 @@ def main():
         _run_cli(sys.argv[2:])
         return
 
+    # Native desktop window (pywebview) — opt-in
+    if len(sys.argv) > 1 and sys.argv[1] in ("--desktop", "--window"):
+        from stamp_album.desktop import main as desktop_main
+        sys.exit(desktop_main())
+
     # Legacy PyQt6 desktop editor (kept for reference; no longer the default)
     if len(sys.argv) > 1 and sys.argv[1] in ("--legacy-qt", "--qt"):
         _run_gui()
         return
 
-    # Default: launch the cross-platform desktop web app (Windows/macOS/Linux)
-    from stamp_album.desktop import main as desktop_main
+    # Default: serve the web app and open it in the user's browser.
+    # This is the simplest cross-platform path — works on Windows/macOS/Linux
+    # with no native GUI toolkit required.
+    from stamp_album.serve import main as serve_main
 
-    sys.exit(desktop_main())
+    sys.exit(serve_main())
 
 
 def _run_gui():
