@@ -4,204 +4,184 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StampAlbum Pro</title>
-        <style>
-        /* ── Reset & Base ── */
+    <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
-            --bg-primary: #1a1a2e; --bg-secondary: #16213e; --bg-tertiary: #0f3460;
-            --accent: #e94560; --accent-hover: #ff6b6b; --text-primary: #eee; --text-muted: #888;
-            --border: #333; --success: #4caf50;
-            --sidebar-w: 220px; --props-w: 240px; --toolbar-h: 48px;
+            --bg1: #1a1a2e; --bg2: #16213e; --bg3: #0f3460;
+            --accent: #e94560; --accent2: #ff6b6b;
+            --text: #eee; --text2: #aaa; --border: #333;
+            --sidebar: 200px; --props: 260px; --toolbar: 44px;
         }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-primary); color: var(--text-primary); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg1); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-size: 13px; }
 
-        /* ── Top Toolbar ── */
-        #toolbar { height: var(--toolbar-h); background: var(--bg-secondary); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; padding: 0 12px; flex-shrink: 0; }
-        #toolbar .logo { font-weight: 700; font-size: 16px; color: var(--accent); margin-right: 16px; }
-        #toolbar button { background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-        #toolbar button:hover { background: var(--accent); }
-        #toolbar .spacer { flex: 1; }
-        #toolbar .toggle-dsl { font-size: 11px; }
+        /* ── Toolbar ── */
+        #tb { height: var(--toolbar); background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; padding: 0 10px; flex-shrink: 0; }
+        #tb .logo { font-weight: 700; font-size: 15px; color: var(--accent); margin-right: 12px; }
+        #tb button { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        #tb button:hover { background: var(--accent); }
+        #tb .spacer { flex: 1; }
 
-        /* ── Main Layout ── */
+        /* ── Main ── */
         #main { display: flex; flex: 1; overflow: hidden; }
 
-        /* ── Left Sidebar: Element Palette ── */
-        #sidebar { width: var(--sidebar-w); background: var(--bg-secondary); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
-        #sidebar .section-title { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; padding: 12px 12px 6px; }
-        #sidebar .element-palette { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 0 8px 12px; }
-        .palette-item { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; padding: 8px 4px; text-align: center; cursor: grab; transition: all 0.15s; user-select: none; }
-        .palette-item:hover { border-color: var(--accent); background: rgba(233,69,96,0.1); }
-        .palette-item .icon { font-size: 18px; display: block; margin-bottom: 2px; }
-        .palette-item .label { font-size: 9px; color: var(--text-muted); }
+        /* ── Sidebar ── */
+        #sidebar { width: var(--sidebar); background: var(--bg2); border-right: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; }
+        .sec-title { font-size: 9px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 8px 4px; }
+        .palette { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 0 6px 10px; }
+        .p-item { background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 8px 4px; text-align: center; cursor: grab; transition: all 0.15s; user-select: none; }
+        .p-item:hover { border-color: var(--accent); background: rgba(233,69,96,0.15); transform: scale(1.03); }
+        .p-item .icon { font-size: 20px; display: block; margin-bottom: 3px; line-height: 1; }
+        .p-item .lbl { font-size: 9px; color: var(--text2); display: block; }
+        .p-item.wide { grid-column: 1 / -1; }
 
         /* ── Canvas Area ── */
-        #canvas-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
-        #canvas-toolbar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--bg-secondary); border-bottom: 1px solid var(--border); }
-        #canvas-toolbar label { font-size: 11px; color: var(--text-muted); }
-        #canvas-toolbar select, #canvas-toolbar input[type="color"] { background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 4px 8px; border-radius: 4px; font-size: 11px; }
-        #canvas-toolbar input[type="color"] { width: 32px; height: 24px; padding: 2px; cursor: pointer; }
-        #canvas-toolbar .spacer { flex: 1; }
+        #ca { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        #ca-toolbar { display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        #ca-toolbar label { font-size: 10px; color: var(--text2); }
+        #ca-toolbar select, #ca-toolbar input { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 3px 6px; border-radius: 3px; font-size: 11px; }
+        #ca-toolbar input[type="color"] { width: 28px; height: 22px; padding: 1px; cursor: pointer; }
+        #ca-toolbar .spacer { flex: 1; }
 
-        #page-canvas { flex: 1; overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 20px; background: #2a2a2a; }
-        .page { background: white; box-shadow: 0 4px 24px rgba(0,0,0,0.4); position: relative; flex-shrink: 0; }
-        .page.a4 { width: 595px; height: 842px; }  /* 210mm x 297mm at 72dpi */
+        #page-wrap { flex: 1; overflow: auto; display: flex; justify-content: center; padding: 16px; background: #2a2a3a; }
+        .page { background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.5); position: relative; flex-shrink: 0; }
+        .page.a4 { width: 595px; height: 842px; }
         .page.letter { width: 612px; height: 792px; }
-
-        /* ── Canvas Elements ── */
-        .canvas-el { position: absolute; cursor: move; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .canvas-el:hover { outline: 2px dashed var(--accent); outline-offset: 2px; }
-        .canvas-el.selected { outline: 2px solid var(--accent); outline-offset: 2px; z-index: 100; }
-        .canvas-el .el-label { font-size: 9px; color: #333; text-align: center; pointer-events: none; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .canvas-el .el-img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-        .canvas-el .resize-handle { position: absolute; width: 8px; height: 8px; background: var(--accent); border: 1px solid #fff; border-radius: 1px; z-index: 200; display: none; }
-        .canvas-el.selected .resize-handle { display: block; }
-        .resize-handle.nw { top: -4px; left: -4px; cursor: nw-resize; }
-        .resize-handle.ne { top: -4px; right: -4px; cursor: ne-resize; }
-        .resize-handle.sw { bottom: -4px; left: -4px; cursor: sw-resize; }
-        .resize-handle.se { bottom: -4px; right: -4px; cursor: se-resize; }
-        .resize-handle.n { top: -4px; left: 50%; margin-left: -4px; cursor: n-resize; }
-        .resize-handle.s { bottom: -4px; left: 50%; margin-left: -4px; cursor: s-resize; }
-        .resize-handle.e { right: -4px; top: 50%; margin-top: -4px; cursor: e-resize; }
-        .resize-handle.w { left: -4px; top: 50%; margin-top: -4px; cursor: w-resize; }
-
-        /* ── Shapes ── */
-        .canvas-el.shape-oval { border-radius: 50%; }
-        .canvas-el.shape-diamond { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
-        .canvas-el.shape-triangle { clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
-        .canvas-el.shape-hexagon { clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); }
-        .canvas-el.shape-octagon { clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%); }
-        .canvas-el.shape-pentagon { clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); }
-
-        /* ── Right Panel: Properties ── */
-        #props-panel { width: var(--props-w); background: var(--bg-secondary); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
-        #props-panel .section-title { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; padding: 12px 12px 6px; }
-        #props-panel .prop-row { display: flex; align-items: center; gap: 8px; padding: 6px 12px; }
-        #props-panel .prop-row label { font-size: 11px; color: var(--text-muted); min-width: 60px; }
-        #props-panel .prop-row input, #props-panel .prop-row select { flex: 1; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 4px 8px; border-radius: 4px; font-size: 11px; }
-        #props-panel .prop-row input[type="color"] { width: 32px; height: 24px; padding: 2px; cursor: pointer; flex: none; }
-        #props-panel .prop-row input[type="number"] { width: 60px; flex: none; }
-        #props-panel .no-selection { padding: 20px; text-align: center; color: var(--text-muted); font-size: 12px; }
-
-        /* ── DSL Panel (Bottom, Collapsible) ── */
-        #dsl-panel { height: 0; overflow: hidden; background: var(--bg-secondary); border-top: 1px solid var(--border); display: flex; flex-direction: column; transition: height 0.3s; }
-        #dsl-panel.open { height: 200px; }
-        #dsl-panel .dsl-header { display: flex; align-items: center; padding: 8px 12px; gap: 8px; border-bottom: 1px solid var(--border); }
-        #dsl-panel .dsl-header span { font-size: 12px; font-weight: 600; }
-        #dsl-panel .dsl-header button { background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
-        #dsl-panel .dsl-header .spacer { flex: 1; }
-        #dsl-editor { flex: 1; overflow: auto; }
-        #dsl-editor textarea { width: 100%; height: 100%; background: var(--bg-primary); color: var(--text-primary); border: none; resize: none; font-family: monospace; font-size: 12px; padding: 12px; outline: none; }
-
-        /* ── Drop Zone Highlight ── */
         .page.drag-over { outline: 3px dashed var(--accent); outline-offset: -3px; }
 
+        /* ── Canvas Elements ── */
+        .cel { position: absolute; cursor: move; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .cel:hover { outline: 2px dashed var(--accent); outline-offset: 2px; }
+        .cel.selected { outline: 2px solid var(--accent); outline-offset: 2px; z-index: 100; }
+        .cel .elbl { font-size: 9px; color: #333; text-align: center; pointer-events: none; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px; }
+        .cel .eimg { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+        .cel .dim { position: absolute; bottom: -18px; left: 0; font-size: 9px; color: var(--accent); background: rgba(0,0,0,0.7); padding: 1px 4px; border-radius: 2px; pointer-events: none; white-space: nowrap; display: none; }
+        .cel.selected .dim, .cel:hover .dim { display: block; }
+        .rh { position: absolute; width: 8px; height: 8px; background: var(--accent); border: 1px solid #fff; border-radius: 1px; z-index: 200; display: none; }
+        .cel.selected .rh { display: block; }
+        .rh.nw { top:-4px; left:-4px; cursor:nw-resize; } .rh.ne { top:-4px; right:-4px; cursor:ne-resize; }
+        .rh.sw { bottom:-4px; left:-4px; cursor:sw-resize; } .rh.se { bottom:-4px; right:-4px; cursor:se-resize; }
+        .rh.n { top:-4px; left:50%; margin-left:-4px; cursor:n-resize; } .rh.s { bottom:-4px; left:50%; margin-left:-4px; cursor:s-resize; }
+        .rh.e { right:-4px; top:50%; margin-top:-4px; cursor:e-resize; } .rh.w { left:-4px; top:50%; margin-top:-4px; cursor:w-resize; }
+
+        /* ── Shapes ── */
+        .cel.shape-oval { border-radius: 50%; }
+        .cel.shape-diamond { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+        .cel.shape-triangle { clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+        .cel.shape-hexagon { clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); }
+        .cel.shape-octagon { clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%); }
+        .cel.shape-pentagon { clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); }
+
+        /* ── Right Panel ── */
+        #rp { width: var(--props); background: var(--bg2); border-left: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; }
+        .rp-sec { font-size: 9px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 10px 4px; border-bottom: 1px solid var(--border); }
+        .rp-row { display: flex; align-items: center; gap: 6px; padding: 4px 10px; }
+        .rp-row label { font-size: 10px; color: var(--text2); min-width: 45px; }
+        .rp-row input, .rp-row select { flex: 1; background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 3px 6px; border-radius: 3px; font-size: 11px; }
+        .rp-row input[type="color"] { width: 28px; height: 22px; padding: 1px; cursor: pointer; flex: none; }
+        .rp-row input[type="number"] { width: 55px; flex: none; }
+        .rp-row input[type="range"] { flex: 1; }
+        .rp-row .unit { font-size: 9px; color: var(--text2); }
+        .rp-none { padding: 20px; text-align: center; color: var(--text2); font-size: 12px; }
+        .rp-hint { font-size: 9px; color: var(--text2); padding: 4px 10px; font-style: italic; }
+
+        /* ── DSL Panel ── */
+        #dsl-panel { height: 0; overflow: hidden; background: var(--bg2); border-top: 1px solid var(--border); display: flex; flex-direction: column; transition: height 0.2s; flex-shrink: 0; }
+        #dsl-panel.open { height: 180px; }
+        #dsl-panel .dsl-hdr { display: flex; align-items: center; padding: 6px 10px; gap: 6px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        #dsl-panel .dsl-hdr span { font-size: 11px; font-weight: 600; }
+        #dsl-panel .dsl-hdr button { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 3px 8px; border-radius: 3px; cursor: pointer; font-size: 10px; }
+        #dsl-panel .dsl-hdr .spacer { flex: 1; }
+        #dsl-editor { flex: 1; overflow: hidden; }
+        #dsl-editor textarea { width: 100%; height: 100%; background: var(--bg1); color: var(--text); border: none; resize: none; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px; padding: 8px; outline: none; }
+
         /* ── Scrollbar ── */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-primary); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg1); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
     </style>
 </head>
 <body>
 
-<!-- Top Toolbar -->
-<header id="toolbar">
+<header id="tb">
     <span class="logo">StampAlbum Pro</span>
     <button id="btn-new">✚ New</button>
-    <button id="btn-open">📂 Open</button>
-    <button id="btn-save">💾 Save</button>
-    <button id="btn-export-pdf">📄 Export PDF</button>
+    <button id="btn-undo">↩</button>
+    <button id="btn-redo">↪</button>
+    <button id="btn-del">🗑</button>
     <span class="spacer"></span>
-    <button id="btn-toggle-dsl" class="toggle-dsl">🔧 Show DSL</button>
+    <button id="btn-dsl">🔧 DSL</button>
+    <button id="btn-pdf">📄 PDF</button>
 </header>
 
-<!-- Main Content -->
 <div id="main">
-
-    <!-- Left Sidebar: Element Palette -->
     <aside id="sidebar">
-        <div class="section-title">Stamps</div>
-        <div class="element-palette" id="stamp-palette">
-            <div class="palette-item" draggable="true" data-type="stamp" data-shape="rectangle"><span class="icon">▬</span><span class="label">Rectangle</span></div>
-            <div class="palette-item" draggable="true" data-type="stamp" data-shape="oval"><span class="icon">●</span><span class="label">Oval</span></div>
-            <div class="palette-item" draggable="true" data-type="stamp" data-shape="diamond"><span class="icon">◆</span><span class="label">Diamond</span></div>
-            <div class="palette-item" draggable="true" data-type="stamp" data-shape="triangle"><span class="icon">▲</span><span class="label">Triangle</span></div>
-            <div class="palette-item" draggable="true" data-type="stamp" data-shape="hexagon"><span class="icon">⬡</span><span class="label">Hexagon</span></div>
-            <div class="palette-item" draggable="true" data-type="stamp" data-shape="octagon"><span class="icon">⯃</span><span class="label">Octagon</span></div>
-            <div class="palette-item" draggable="true" data-type="stamp" data-shape="pentagon"><span class="icon">⬠</span><span class="label">Pentagon</span></div>
+        <div class="sec-title">Stamp Shapes</div>
+        <div class="palette">
+            <div class="p-item" draggable="true" data-t="stamp" data-s="rectangle"><span class="icon">▬</span><span class="lbl">Rectangle</span></div>
+            <div class="p-item" draggable="true" data-t="stamp" data-s="oval"><span class="icon">●</span><span class="lbl">Oval</span></div>
+            <div class="p-item" draggable="true" data-t="stamp" data-s="diamond"><span class="icon">◆</span><span class="lbl">Diamond</span></div>
+            <div class="p-item" draggable="true" data-t="stamp" data-s="triangle"><span class="icon">▲</span><span class="lbl">Triangle</span></div>
+            <div class="p-item" draggable="true" data-t="stamp" data-s="hexagon"><span class="icon">⬡</span><span class="lbl">Hexagon</span></div>
+            <div class="p-item" draggable="true" data-t="stamp" data-s="octagon"><span class="icon">⯃</span><span class="lbl">Octagon</span></div>
+            <div class="p-item" draggable="true" data-t="stamp" data-s="pentagon"><span class="icon">⬠</span><span class="lbl">Pentagon</span></div>
         </div>
-        <div class="section-title">Text</div>
-        <div class="element-palette" id="text-palette">
-            <div class="palette-item" draggable="true" data-type="text" data-subtype="label"><span class="icon">T</span><span class="label">Label</span></div>
-            <div class="palette-item" draggable="true" data-type="text" data-subtype="heading"><span class="icon">H</span><span class="label">Heading</span></div>
-            <div class="palette-item" draggable="true" data-type="text" data-subtype="description"><span class="icon">¶</span><span class="label">Description</span></div>
+        <div class="sec-title">Text Boxes</div>
+        <div class="palette">
+            <div class="p-item wide" draggable="true" data-t="text" data-st="label" data-w="120" data-h="18"><span class="icon">🏷</span><span class="lbl">Label — HN 12pt</span></div>
+            <div class="p-item wide" draggable="true" data-t="text" data-st="heading" data-w="140" data-h="24"><span class="icon">H</span><span class="lbl">Heading — HB 16pt</span></div>
+            <div class="p-item wide" draggable="true" data-t="text" data-st="desc" data-w="160" data-h="16"><span class="icon">¶</span><span class="lbl">Description — HN 10pt</span></div>
         </div>
-        <div class="section-title">Images</div>
-        <div class="element-palette" id="image-palette">
-            <div class="palette-item" draggable="true" data-type="image"><span class="icon">🖼</span><span class="label">Stamp Image</span></div>
-            <div class="palette-item" id="btn-upload-img"><span class="icon">📤</span><span class="label">Upload...</span></div>
+        <div class="sec-title">Images</div>
+        <div class="palette">
+            <div class="p-item wide" draggable="true" data-t="image" data-w="80" data-h="60"><span class="icon">🖼</span><span class="lbl">Stamp Image Box</span></div>
+            <div class="p-item wide" id="btn-upl"><span class="icon">📤</span><span class="lbl">Upload Image...</span></div>
         </div>
-        <input type="file" id="img-upload-input" accept="image/*" hidden>
+        <input type="file" id="upl-inp" accept="image/*" hidden>
     </aside>
 
-    <!-- Canvas Area -->
-    <section id="canvas-area">
-        <div id="canvas-toolbar">
+    <section id="ca">
+        <div id="ca-toolbar">
             <label>Page:</label>
-            <select id="page-size">
-                <option value="a4">A4 (210×297mm)</option>
-                <option value="letter">Letter (8.5×11")</option>
-                <option value="a3">A3 (297×420mm)</option>
-            </select>
-            <label>Grid:</label>
-            <select id="grid-snap">
-                <option value="0">Off</option>
-                <option value="5">5mm</option>
-                <option value="10">10mm</option>
-            </select>
+            <select id="pg-size"><option value="a4">A4</option><option value="letter">Letter</option><option value="a3">A3</option></select>
+            <label>Snap:</label>
+            <select id="grid"><option value="0">Off</option><option value="5">5mm</option><option value="10">10mm</option></select>
             <span class="spacer"></span>
-            <button id="btn-undo">↩ Undo</button>
-            <button id="btn-redo">↪ Redo</button>
-            <button id="btn-delete-el">🗑 Delete</button>
+            <label>Border:</label>
+            <select id="def-bdr"><option value="solid">Solid</option><option value="double">Double</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option><option value="none">None</option></select>
+            <input type="color" id="def-bdr-c" value="#666" title="Border color">
+            <label>Fill:</label>
+            <input type="color" id="def-fill-c" value="#ffffff" title="Fill color">
         </div>
-        <div id="page-canvas">
-            <div class="page a4" id="page"></div>
-        </div>
+        <div id="page-wrap"><div class="page a4" id="page"></div></div>
     </section>
 
-    <!-- Right Panel: Properties -->
-    <aside id="props-panel">
-        <div class="no-selection">Select an element to edit its properties</div>
-        <div id="props-content" style="display:none">
-            <div class="section-title">Position & Size</div>
-            <div class="prop-row"><label>X</label><input type="number" id="prop-x" step="1"><label>Y</label><input type="number" id="prop-y" step="1"></div>
-            <div class="prop-row"><label>W</label><input type="number" id="prop-w" step="1"><label>H</label><input type="number" id="prop-h" step="1"></div>
-            <div class="section-title">Border</div>
-            <div class="prop-row"><label>Style</label><select id="prop-border-style"><option value="solid">Solid</option><option value="double">Double</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option><option value="none">None</option></select></div>
-            <div class="prop-row"><label>Color</label><input type="color" id="prop-border-color" value="#000000"><label>Width</label><input type="number" id="prop-border-width" value="1" min="0" max="5" step="0.5">pt</div>
-            <div class="section-title">Fill</div>
-            <div class="prop-row"><label>Color</label><input type="color" id="prop-fill-color" value="#ffffff"><label>Opacity</label><input type="range" id="prop-fill-opacity" min="0" max="100" value="100">%</div>
-            <div class="section-title">Label</div>
-            <div class="prop-row"><label>Text</label><input type="text" id="prop-label" placeholder="Stamp description"></div>
-            <div class="section-title" id="img-section" style="display:none">Image</div>
-            <div class="prop-row" id="img-row" style="display:none"><button id="btn-change-img" style="flex:1">Change Image</button><button id="btn-remove-img">✕</button></div>
+    <aside id="rp">
+        <div class="rp-none" id="rp-none">Select an element to edit</div>
+        <div id="rp-content" style="display:none">
+            <div class="rp-sec">Position</div>
+            <div class="rp-row"><label>X</label><input type="number" id="px" step="1"><label>Y</label><input type="number" id="py" step="1"><span class="unit">mm</span></div>
+            <div class="rp-row"><label>W</label><input type="number" id="pw" step="1"><label>H</label><input type="number" id="ph" step="1"><span class="unit">mm</span></div>
+            <div class="rp-sec">Border</div>
+            <div class="rp-row"><label>Style</label><select id="pbs"><option value="solid">Solid</option><option value="double">Double</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option><option value="none">None</option></select></div>
+            <div class="rp-row"><label>Color</label><input type="color" id="pbc" value="#666"><label>W</label><input type="number" id="pbw" value="1" min="0" max="5" step="0.5"><span class="unit">pt</span></div>
+            <div class="rp-sec">Fill</div>
+            <div class="rp-row"><label>Color</label><input type="color" id="pfc" value="#fff"><label>Alpha</label><input type="range" id="pfa" min="0" max="100" value="100"><span class="unit" id="pfa-v">100%</span></div>
+            <div class="rp-sec">Text</div>
+            <div class="rp-row"><label>Label</label><input type="text" id="plbl" placeholder="Description"></div>
+            <div class="rp-row"><label>Font</label><select id="pfnt"><option value="HN">Helvetica</option><option value="HB">Helvetica Bold</option><option value="TN">Times</option><option value="TB">Times Bold</option><option value="CN">Courier</option></select></div>
+            <div class="rp-row"><label>Size</label><input type="number" id="pfs" value="12" min="6" max="72" step="1"><span class="unit">pt</span></div>
+            <div class="rp-sec" id="img-sec" style="display:none">Image</div>
+            <div class="rp-row" id="img-row" style="display:none"><button id="btn-chg-img" style="flex:1">Change Image</button><button id="btn-rm-img">✕</button></div>
         </div>
     </aside>
-
 </div>
 
-<!-- DSL Panel (Bottom, Collapsible) -->
 <div id="dsl-panel">
-    <div class="dsl-header">
-        <span>DSL Editor (Advanced)</span>
-        <span class="spacer"></span>
-        <button id="btn-apply-dsl">Apply DSL</button>
-        <button id="btn-close-dsl">✕ Close</button>
-    </div>
-    <div id="dsl-editor"><textarea id="dsl-textarea" spellcheck="false"></textarea></div>
+    <div class="dsl-hdr"><span>DSL Editor (Advanced)</span><span class="spacer"></span><button id="btn-app-dsl">Apply</button><button id="btn-cls-dsl">✕</button></div>
+    <div id="dsl-editor"><textarea id="dsl-ta" spellcheck="false"></textarea></div>
 </div>
 
 <script src="app.js"></script>
-<input type="file" id="file-input" accept=".slbum,.txt" hidden>
+<input type="file" id="file-inp" accept=".slbum,.txt" hidden>
 </body>
 </html>
