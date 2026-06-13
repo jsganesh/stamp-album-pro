@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from stamp_album.core.parser import AlbumParser, ParseError
 from stamp_album.core.serializer import AlbumSerializer
 from stamp_album.engines.pdf_generator import HTMLRenderer, PDFGenerator
+from stamp_album.templates import TEMPLATES
 
 app = FastAPI(title="StampAlbum Pro")
 parser = AlbumParser()
@@ -796,6 +797,25 @@ async def api_revoke_share(share_id: str, request: Request):
     if revoke_share(share_id, username):
         return {"status": "revoked"}
     raise HTTPException(status_code=404, detail="Share not found")
+
+
+# ── Templates API ──
+@app.get("/api/templates")
+async def list_templates():
+    """List all available album templates."""
+    return [
+        {"id": t["id"], "name": t["name"], "description": t["description"], "category": t.get("category", "General")}
+        for t in TEMPLATES
+    ]
+
+
+@app.get("/api/templates/{template_id}")
+async def get_template(template_id: str):
+    """Get a specific template by ID."""
+    for t in TEMPLATES:
+        if t["id"] == template_id:
+            return {"id": t["id"], "name": t["name"], "description": t["description"], "dsl": t["content"]}
+    raise HTTPException(status_code=404, detail="Template not found")
 
 
 # Catch-all: serve static JS/CSS/image files from the web directory.

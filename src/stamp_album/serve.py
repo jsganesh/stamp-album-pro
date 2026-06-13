@@ -72,6 +72,13 @@ def _wait_and_open(url: str, timeout: float = 20.0) -> None:
 
 def main() -> int:
     """Start the server and open the app in the default browser."""
+    # macOS: ensure WeasyPrint can find Homebrew native libraries
+    if sys.platform == "darwin":
+        for brew_prefix in ("/opt/homebrew", "/usr/local"):
+            lib_dir = os.path.join(brew_prefix, "lib")
+            if os.path.isdir(lib_dir):
+                os.environ.setdefault("DYLD_FALLBACK_LIBRARY_PATH", lib_dir)
+
     host = os.environ.get("STAMP_ALBUM_HOST", "127.0.0.1")
     preferred = int(os.environ.get("STAMP_ALBUM_PORT", "8080"))
     port = _pick_port(host, preferred)
