@@ -67,6 +67,9 @@ function initEditor() {
         schedulePreview();
     });
 
+    // Expose editor globally for canvas and other modules
+    window.editor = editor;
+
     // Intercept build-item drops onto the editor and convert them to DSL.
     // Without this, CodeMirror's native text-drop inserts the raw JSON payload.
     editor.on("drop", (cm, e) => {
