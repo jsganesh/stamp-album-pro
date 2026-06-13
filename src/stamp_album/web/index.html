@@ -4,1622 +4,204 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StampAlbum Pro</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' rx='8' fill='%23161b22' stroke='%2358a6ff' stroke-width='4'/><rect x='25' y='25' width='50' height='50' rx='4' fill='none' stroke='%2358a6ff' stroke-width='2'/><line x1='25' y1='40' x2='75' y2='40' stroke='%2358a6ff' stroke-width='2'/><line x1='25' y1='55' x2='75' y2='55' stroke='%2358a6ff' stroke-width='2'/></svg>">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
-    <style>
-        /* Error line highlight in CodeMirror */
-        .cm-error-line {
-            background-color: rgba(248, 81, 73, 0.15) !important;
-            border-left: 3px solid #f85149 !important;
-        }
-        /* Toast notifications */
-        .toast {
-            position: fixed;
-            bottom: 40px;
-            right: 20px;
-            padding: 12px 20px;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 13px;
-            z-index: 10000;
-            animation: toast-in 0.3s ease;
-            max-width: 400px;
-        }
-        .toast.success { background: #3fb950; }
-        .toast.error { background: #f85149; }
-        .toast.info { background: #58a6ff; }
-        @keyframes toast-in {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        /* Spinner */
-        .spinner {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border: 2px solid #8b949e;
-            border-top-color: #58a6ff;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-right: 6px;
-            vertical-align: middle;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        /* Tutorial overlay */
-        .tutorial-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            z-index: 9999;
-        }
-        .tutorial-overlay.active {
-            display: block;
-        }
-        .tutorial-highlight {
-            position: relative;
-            z-index: 10000 !important;
-            box-shadow: 0 0 0 4px rgba(88, 166, 255, 0.5), 0 0 20px rgba(88, 166, 255, 0.3);
-            border-radius: 4px;
-        }
-        .tutorial-backdrop {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 9999;
-        }
-        .tutorial-tooltip {
-            position: absolute;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            max-width: 380px;
-            z-index: 10001;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            animation: tutorial-in 0.3s ease;
-        }
-        @keyframes tutorial-in {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .tutorial-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        .tutorial-header span {
-            font-size: 11px;
-            color: var(--text-muted);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .tutorial-skip {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 12px;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-        .tutorial-skip:hover {
-            background: var(--bg-hover);
-            color: var(--text-primary);
-        }
-        .tutorial-tooltip h3 {
-            margin: 0 0 8px 0;
-            font-size: 16px;
-            color: var(--text-primary);
-        }
-        .tutorial-tooltip p {
-            margin: 0 0 16px 0;
-            font-size: 13px;
-            color: var(--text-secondary);
-            line-height: 1.5;
-        }
-        .tutorial-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-        }
-        .tutorial-btn {
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 13px;
-            cursor: pointer;
-            border: 1px solid var(--border-color);
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-            transition: all 0.15s;
-        }
-        .tutorial-btn:hover:not(:disabled) {
-            background: var(--bg-hover);
-        }
-        .tutorial-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-        .tutorial-btn.tutorial-next {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: #fff;
-        }
-        .tutorial-btn.tutorial-next:hover {
-            background: var(--accent-hover);
-        }
-        .tutorial-dots {
-            display: flex;
-            gap: 6px;
-        }
-        .tutorial-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--bg-hover);
-            transition: all 0.2s;
-        }
-        .tutorial-dot.active {
-            background: var(--accent);
-            transform: scale(1.2);
-        }
-        .tutorial-start-btn {
-            margin-left: 8px;
-            padding: 4px 10px;
-            background: var(--accent);
-            border: none;
-            border-radius: 4px;
-            color: #fff;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        .tutorial-start-btn:hover {
-            background: var(--accent-hover);
-        }
-        /* Album Creation Wizard */
-        .album-wizard {
-            position: fixed;
-            top: 0;
-            right: -420px;
-            width: 400px;
-            height: 100vh;
-            background: var(--bg-secondary);
-            border-left: 1px solid var(--border-color);
-            z-index: 9998;
-            display: flex;
-            flex-direction: column;
-            transition: right 0.3s ease;
-            box-shadow: -4px 0 20px rgba(0,0,0,0.3);
-        }
-        .album-wizard.open {
-            right: 0;
-        }
-        .wizard-panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .wizard-panel-header h3 {
-            margin: 0;
-            font-size: 16px;
-            color: var(--text-primary);
-        }
-        .wizard-close {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 18px;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-        .wizard-close:hover {
-            background: var(--bg-hover);
-            color: var(--text-primary);
-        }
-        .wizard-steps {
-            display: flex;
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
-            gap: 4px;
-        }
-        .wizard-step-indicator {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            opacity: 0.4;
-            transition: opacity 0.2s;
-        }
-        .wizard-step-indicator.active {
-            opacity: 1;
-        }
-        .wizard-step-indicator.done {
-            opacity: 0.7;
-        }
-        .wizard-step-indicator .step-num {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: var(--bg-tertiary);
-            color: var(--text-secondary);
-            font-size: 11px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .wizard-step-indicator.active .step-num {
-            background: var(--accent);
-            color: #fff;
-        }
-        .wizard-step-indicator.done .step-num {
-            background: var(--success);
-            color: #fff;
-        }
-        .wizard-step-indicator .step-label {
-            font-size: 10px;
-            color: var(--text-muted);
-        }
-        .wizard-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-        }
-        .wizard-pane {
-            display: none;
-        }
-        .wizard-pane.active {
-            display: block;
-        }
-        .wizard-pane h4 {
-            margin: 0 0 8px 0;
-            font-size: 15px;
-            color: var(--text-primary);
-        }
-        .wizard-help {
-            margin: 0 0 16px 0;
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-        .wizard-field {
-            margin-bottom: 16px;
-        }
-        .wizard-field label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 6px;
-        }
-        .wizard-field input[type="text"],
-        .wizard-field input[type="number"] {
-            width: 100%;
-            padding: 8px 12px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: var(--text-primary);
-            font-size: 13px;
-            box-sizing: border-box;
-        }
-        .wizard-field input:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-        .wizard-paper-options {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-        }
-        .wizard-option-btn {
-            padding: 10px 8px;
-            background: var(--bg-tertiary);
-            border: 2px solid transparent;
-            border-radius: 6px;
-            color: var(--text-secondary);
-            font-size: 12px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.15s;
-        }
-        .wizard-option-btn:hover {
-            background: var(--bg-hover);
-        }
-        .wizard-option-btn.active {
-            border-color: var(--accent);
-            background: rgba(88, 166, 255, 0.1);
-            color: var(--text-primary);
-        }
-        .wizard-option-btn small {
-            font-size: 10px;
-            color: var(--text-muted);
-        }
-        .wizard-margins {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-        }
-        .wizard-margins input {
-            text-align: center;
-        }
-        .wizard-style-options {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-        .wizard-style-options .wizard-option-btn {
-            flex: 1;
-            min-width: 60px;
-        }
-        .wizard-color-options {
-            display: flex;
-            gap: 8px;
-        }
-        .wizard-color-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 3px solid transparent;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .wizard-color-btn:hover {
-            transform: scale(1.1);
-        }
-        .wizard-color-btn.active {
-            border-color: var(--text-primary);
-            box-shadow: 0 0 0 2px var(--bg-secondary), 0 0 0 4px var(--accent);
-        }
-        .wizard-template-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .wizard-template-card {
-            padding: 12px 14px;
-            background: var(--bg-tertiary);
-            border: 2px solid transparent;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .wizard-template-card:hover {
-            background: var(--bg-hover);
-        }
-        .wizard-template-card.selected {
-            border-color: var(--accent);
-            background: rgba(88, 166, 255, 0.1);
-        }
-        .wizard-template-card strong {
-            display: block;
-            font-size: 13px;
-            color: var(--text-primary);
-        }
-        .wizard-template-card small {
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-        .wizard-stamp-entry {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 8px;
-            align-items: center;
-        }
-        .wizard-stamp-entry input {
-            padding: 6px 8px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            color: var(--text-primary);
-            font-size: 12px;
-        }
-        .wizard-stamp-desc { flex: 2; }
-        .wizard-stamp-cat { flex: 1; }
-        .wizard-stamp-w, .wizard-stamp-h { width: 50px; text-align: center; }
-        .wizard-remove-stamp {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 4px;
-            font-size: 14px;
-        }
-        .wizard-remove-stamp:hover {
-            color: var(--error);
-        }
-        .wizard-add-btn {
-            width: 100%;
-            padding: 10px;
-            background: var(--bg-tertiary);
-            border: 1px dashed var(--border-color);
-            border-radius: 6px;
-            color: var(--text-secondary);
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .wizard-add-btn:hover {
-            background: var(--bg-hover);
-            color: var(--text-primary);
-        }
-        .wizard-summary {
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-            padding: 16px;
-            font-size: 13px;
-            line-height: 1.8;
-        }
-        .wizard-summary strong {
-            color: var(--text-primary);
-        }
-        .wizard-summary .summary-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 4px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .wizard-summary .summary-row:last-child {
-            border-bottom: none;
-        }
-        .wizard-nav {
-            display: flex;
-            justify-content: space-between;
-            padding: 16px 20px;
-            border-top: 1px solid var(--border-color);
-        }
-        .wizard-backdrop {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.3);
-            z-index: 9997;
-        }
-        .wizard-backdrop.active {
-            display: block;
-        }
-        /* Export dropdown */
-        .export-dropdown {
-            position: relative;
-        }
-        .export-dropdown > button {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 10px;
-            background: transparent;
-            border: none;
-            border-radius: 6px;
-            color: var(--text-secondary);
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .export-dropdown > button:hover:not(:disabled) {
-            background: var(--bg-hover);
-            color: var(--text-primary);
-        }
-        .export-dropdown > button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-        .export-menu {
-            display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 4px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 6px;
-            min-width: 240px;
-            z-index: 1000;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-        }
-        .export-menu.open {
-            display: block;
-        }
-        .export-option {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-            padding: 10px 12px;
-            background: none;
-            border: none;
-            border-radius: 6px;
-            color: var(--text-primary);
-            font-size: 13px;
-            cursor: pointer;
-            text-align: left;
-            transition: background 0.15s;
-        }
-        .export-option:hover {
-            background: var(--bg-hover);
-        }
-        .export-icon {
-            font-size: 20px;
-            width: 28px;
-            text-align: center;
-        }
-        .export-option div {
-            display: flex;
-            flex-direction: column;
-        }
-        .export-option strong {
-            font-size: 13px;
-            font-weight: 500;
-        }
-        .export-option small {
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-        /* Responsive */
-        @media (max-width: 1024px) {
-            #wizard-panel { width: 180px; }
-            .paper-options { grid-template-columns: repeat(2, 1fr); }
-            .border-options { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 768px) {
-            #main-content { flex-direction: column; }
-            #wizard-panel {
-                width: 100%;
-                height: auto;
-                max-height: 200px;
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
-                flex-shrink: 0;
-            }
-            #sidebar {
-                width: 100%;
-                height: auto;
-                max-height: 200px;
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
-            }
-            #editor-panel, #preview-panel {
-                flex: 1;
-                min-height: 200px;
-            }
-            .toolbar-center { display: none; }
-            .export-dropdown > button span { display: none; }
-        }
-        @media (max-width: 480px) {
-            #toolbar { padding: 0 6px; }
-            .logo span { display: none; }
-            .toggle-visual span, .toggle-wizard span, .toggle-sidebar span { display: none; }
-        }
-        /* Touch-friendly */
-        body.is-touch #toolbar button { padding: 10px 14px; }
-        body.is-touch .build-item { padding: 10px 12px; }
-        body.is-touch .paper-option, body.is-touch .border-option, body.is-touch .layout-option { padding: 12px 8px; }
-        /* Language selector */
-        .lang-selector {
-            display: flex;
-            gap: 2px;
-            margin-right: 8px;
-        }
-        .lang-btn {
-            padding: 2px 6px;
-            background: transparent;
-            border: 1px solid transparent;
-            border-radius: 4px;
-            color: var(--text-muted);
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .lang-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
-        .lang-btn.active { color: var(--accent); border-color: var(--accent); }
-        /* Visual Property Panel */
-        .visual-property-panel {
-            position: fixed;
-            right: -320px;
-            top: 48px;
-            width: 300px;
-            height: calc(100vh - 72px);
-            background: var(--bg-secondary);
-            border-left: 1px solid var(--border-color);
-            z-index: 9996;
-            display: flex;
-            flex-direction: column;
-            transition: right 0.3s ease;
-            box-shadow: -2px 0 12px rgba(0,0,0,0.2);
-        }
-        .visual-property-panel.open { right: 0; }
-        .vpp-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .vpp-header h4 { margin: 0; font-size: 14px; color: var(--text-primary); }
-        .vpp-content { flex: 1; overflow-y: auto; padding: 16px; }
-        .vpp-field { margin-bottom: 12px; }
-        .vpp-field label { display: block; font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
-        .vpp-field input, .vpp-field textarea, .vpp-field select {
-            width: 100%; padding: 6px 10px; background: var(--bg-tertiary);
-            border: 1px solid var(--border-color); border-radius: 4px;
-            color: var(--text-primary); font-size: 12px; box-sizing: border-box;
-        }
-        .vpp-field input:focus, .vpp-field textarea:focus, .vpp-field select:focus {
-            outline: none; border-color: var(--accent);
-        }
-        .vpp-row { display: flex; gap: 8px; }
-        .vpp-row .vpp-field { flex: 1; }
-        .vpp-footer {
-            display: flex; gap: 8px; padding: 12px 16px;
-            border-top: 1px solid var(--border-color);
-        }
-        .vpp-footer button { flex: 1; }
-        /* Stamp highlight in preview */
-        .stamp-selected { outline: 2px solid var(--accent) !important; outline-offset: 2px; }
-        .stamp-hover:hover { outline: 2px dashed var(--accent); outline-offset: 2px; cursor: pointer; }
-        /* DSL line highlight */
-        .cm-dsl-stamp-line { background-color: rgba(88, 166, 255, 0.08) !important; border-left: 3px solid var(--accent) !important; }
-        /* Collection Panel */
-        .collection-panel {
-            position: fixed; top: 48px; right: 0; width: 380px; height: calc(100vh - 72px);
-            background: var(--bg-secondary); border-left: 1px solid var(--border-color);
-            z-index: 9995; display: none; flex-direction: column;
-        }
-        .collection-panel.open { display: flex; }
-        .collection-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border-color); }
-        .collection-header h3 { margin: 0; font-size: 14px; color: var(--text-primary); }
-        .collection-header-actions { display: flex; align-items: center; gap: 8px; }
-        .collection-stats { font-size: 11px; color: var(--text-muted); }
-        .collection-toolbar { display: flex; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--border-color); }
-        .collection-search { flex: 1; padding: 6px 10px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); font-size: 12px; }
-        .collection-sort-select { padding: 6px 8px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); font-size: 12px; }
-        .collection-actions-bar { display: flex; gap: 6px; padding: 8px 16px; border-bottom: 1px solid var(--border-color); }
-        .collection-action-btn { padding: 5px 10px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-secondary); font-size: 11px; cursor: pointer; }
-        .collection-action-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
-        .collection-list { flex: 1; overflow-y: auto; padding: 8px; }
-        .collection-empty { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 13px; }
-        .collection-item { display: flex; gap: 10px; padding: 10px 12px; background: var(--bg-tertiary); border: 1px solid transparent; border-radius: 6px; margin-bottom: 6px; cursor: pointer; transition: all 0.15s; }
-        .collection-item:hover { background: var(--bg-hover); border-color: var(--border-color); }
-        .collection-item.selected { border-color: var(--accent); background: rgba(88,166,255,0.1); }
-        .collection-item-img { width: 40px; height: 30px; background: var(--bg-primary); border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-        .collection-item-info { flex: 1; min-width: 0; }
-        .collection-item-title { font-size: 12px; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .collection-item-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-        .collection-item-price { font-size: 11px; color: var(--success); font-weight: 500; }
-        .collection-pagination { display: flex; justify-content: center; align-items: center; gap: 8px; padding: 8px 16px; border-top: 1px solid var(--border-color); }
-        .collection-page-btn { padding: 4px 10px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-secondary); font-size: 11px; cursor: pointer; }
-        .collection-page-btn:hover { background: var(--bg-hover); }
-        .collection-page-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-        .collection-page-info { font-size: 11px; color: var(--text-muted); }
-        .stamp-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 10002; }
-        .stamp-modal.open { display: flex; align-items: center; justify-content: center; }
-        .stamp-modal-backdrop { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); }
-        .stamp-modal-content { position: relative; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; width: 480px; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
-        .stamp-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--border-color); }
-        .stamp-modal-header h4 { margin: 0; font-size: 15px; color: var(--text-primary); }
-        .stamp-modal-body { flex: 1; overflow-y: auto; padding: 18px; }
-        .stamp-modal-footer { display: flex; gap: 8px; padding: 14px 18px; border-top: 1px solid var(--border-color); }
-        .stamp-modal-footer button { flex: 1; }
-        .formatting-toolbar { display: flex; gap: 2px; padding: 4px 8px; background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color); }
-        .fmt-btn { padding: 4px 8px; background: transparent; border: 1px solid transparent; border-radius: 4px; color: var(--text-secondary); font-size: 12px; cursor: pointer; transition: all 0.15s; }
-        .fmt-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
-        .fmt-btn strong { font-weight: 700; }
-        .fmt-btn em { font-style: italic; }
-        .fmt-btn s { text-decoration: line-through; }
-        .stamp-modal-footer button { flex: 1; }
-        #auto-layout-menu .auto-layout-option:hover { background: var(--bg-hover) !important; }
-        .history-item { display: flex; gap: 10px; padding: 8px 12px; background: var(--bg-tertiary); border: 1px solid transparent; border-radius: 6px; margin-bottom: 4px; cursor: pointer; transition: all 0.15s; }
-        .history-item:hover { background: var(--bg-hover); border-color: var(--border-color); }
-        .history-item.current { border-color: var(--accent); background: rgba(88,166,255,0.1); }
-        .history-item-info { flex: 1; min-width: 0; }
-        .history-item-time { font-size: 11px; font-weight: 500; color: var(--text-primary); }
-        .history-item-meta { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
-        .history-item-comment { font-size: 10px; color: var(--text-secondary); font-style: italic; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .history-item-actions { display: flex; gap: 4px; align-items: flex-start; }
-        .history-action-btn { padding: 2px 6px; background: none; border: 1px solid var(--border-color); border-radius: 3px; color: var(--text-muted); font-size: 10px; cursor: pointer; }
-        .history-action-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
-        .history-action-btn.restore:hover { background: var(--success); color: #fff; border-color: var(--success); }
+        <style>
+        /* ── Reset & Base ── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #1a1a2e; --bg-secondary: #16213e; --bg-tertiary: #0f3460;
+            --accent: #e94560; --accent-hover: #ff6b6b; --text-primary: #eee; --text-muted: #888;
+            --border: #333; --success: #4caf50;
+            --sidebar-w: 220px; --props-w: 240px; --toolbar-h: 48px;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-primary); color: var(--text-primary); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-        .layout-canvas { position:absolute; top:0; left:0; cursor:crosshair; overflow:hidden; box-shadow:inset 0 0 0 1px rgba(128,128,128,0.15); }
-        .layout-canvas.drop-target { box-shadow:inset 0 0 0 2px var(--accent); }
-        .canvas-stamp { position:absolute; border:1.5pt solid #666; background:rgba(255,255,255,0.85); cursor:move; display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:2px; transition:box-shadow 0.15s, border-color 0.15s; }
-        .canvas-stamp:hover { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
-        .canvas-stamp.selected { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent), 0 2px 8px rgba(0,0,0,0.15); z-index:10; }
-        .canvas-stamp-label { font-size:9px; color:var(--text-muted); pointer-events:none; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:90%; user-select:none; }
-        .canvas-handle { position:absolute; width:8px; height:8px; background:var(--accent); border:1px solid #fff; border-radius:1px; z-index:20; }
-        .canvas-handle-nw { top:-4px; left:-4px; cursor:nw-resize; }
-        .canvas-handle-ne { top:-4px; right:-4px; cursor:ne-resize; }
-        .canvas-handle-sw { bottom:-4px; left:-4px; cursor:sw-resize; }
-        .canvas-handle-se { bottom:-4px; right:-4px; cursor:se-resize; }
-        .canvas-handle-n  { top:-4px; left:50%; margin-left:-4px; cursor:n-resize; }
-        .canvas-handle-s  { bottom:-4px; left:50%; margin-left:-4px; cursor:s-resize; }
-        .canvas-handle-e  { right:-4px; top:50%; margin-top:-4px; cursor:e-resize; }
-        .canvas-handle-w  { left:-4px; top:50%; margin-top:-4px; cursor:w-resize; }
-        .canvas-stamp:not(.selected) .canvas-handle { display:none; }
-        .canvas-stamp.shape-rectangle { border-radius:2px; }
-        .canvas-stamp.shape-oval { border-radius:50%; }
-        .canvas-stamp.shape-diamond { clip-path:polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
-        .canvas-stamp.shape-triangle { clip-path:polygon(50% 0%, 0% 100%, 100% 100%); }
-        .canvas-stamp.shape-hexagon { clip-path:polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); }
-        .canvas-stamp.shape-octagon { clip-path:polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%); }
-        .canvas-stamp.shape-pentagon { clip-path:polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); }
+        /* ── Top Toolbar ── */
+        #toolbar { height: var(--toolbar-h); background: var(--bg-secondary); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; padding: 0 12px; flex-shrink: 0; }
+        #toolbar .logo { font-weight: 700; font-size: 16px; color: var(--accent); margin-right: 16px; }
+        #toolbar button { background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        #toolbar button:hover { background: var(--accent); }
+        #toolbar .spacer { flex: 1; }
+        #toolbar .toggle-dsl { font-size: 11px; }
 
-        /* ── Layout mode (free-form canvas) ─────────────────────────────── */
-        body.layout-mode #visual-overlay {
-            display: block;
-            pointer-events: auto;
-            border: 2px dashed rgba(88,166,255,0.3);
-            top: 20px;
-            left: 50%;
-            margin-left: -400px;
-            width: 800px;
-            bottom: 20px;
-        }
-        body.layout-mode #preview-frame {
-            pointer-events: none;
-            user-select: none;
-            opacity: 0.85;
-        }
+        /* ── Main Layout ── */
+        #main { display: flex; flex: 1; overflow: hidden; }
+
+        /* ── Left Sidebar: Element Palette ── */
+        #sidebar { width: var(--sidebar-w); background: var(--bg-secondary); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+        #sidebar .section-title { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; padding: 12px 12px 6px; }
+        #sidebar .element-palette { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 0 8px 12px; }
+        .palette-item { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; padding: 8px 4px; text-align: center; cursor: grab; transition: all 0.15s; user-select: none; }
+        .palette-item:hover { border-color: var(--accent); background: rgba(233,69,96,0.1); }
+        .palette-item .icon { font-size: 18px; display: block; margin-bottom: 2px; }
+        .palette-item .label { font-size: 9px; color: var(--text-muted); }
+
+        /* ── Canvas Area ── */
+        #canvas-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        #canvas-toolbar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--bg-secondary); border-bottom: 1px solid var(--border); }
+        #canvas-toolbar label { font-size: 11px; color: var(--text-muted); }
+        #canvas-toolbar select, #canvas-toolbar input[type="color"] { background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 4px 8px; border-radius: 4px; font-size: 11px; }
+        #canvas-toolbar input[type="color"] { width: 32px; height: 24px; padding: 2px; cursor: pointer; }
+        #canvas-toolbar .spacer { flex: 1; }
+
+        #page-canvas { flex: 1; overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 20px; background: #2a2a2a; }
+        .page { background: white; box-shadow: 0 4px 24px rgba(0,0,0,0.4); position: relative; flex-shrink: 0; }
+        .page.a4 { width: 595px; height: 842px; }  /* 210mm x 297mm at 72dpi */
+        .page.letter { width: 612px; height: 792px; }
+
+        /* ── Canvas Elements ── */
+        .canvas-el { position: absolute; cursor: move; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .canvas-el:hover { outline: 2px dashed var(--accent); outline-offset: 2px; }
+        .canvas-el.selected { outline: 2px solid var(--accent); outline-offset: 2px; z-index: 100; }
+        .canvas-el .el-label { font-size: 9px; color: #333; text-align: center; pointer-events: none; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .canvas-el .el-img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+        .canvas-el .resize-handle { position: absolute; width: 8px; height: 8px; background: var(--accent); border: 1px solid #fff; border-radius: 1px; z-index: 200; display: none; }
+        .canvas-el.selected .resize-handle { display: block; }
+        .resize-handle.nw { top: -4px; left: -4px; cursor: nw-resize; }
+        .resize-handle.ne { top: -4px; right: -4px; cursor: ne-resize; }
+        .resize-handle.sw { bottom: -4px; left: -4px; cursor: sw-resize; }
+        .resize-handle.se { bottom: -4px; right: -4px; cursor: se-resize; }
+        .resize-handle.n { top: -4px; left: 50%; margin-left: -4px; cursor: n-resize; }
+        .resize-handle.s { bottom: -4px; left: 50%; margin-left: -4px; cursor: s-resize; }
+        .resize-handle.e { right: -4px; top: 50%; margin-top: -4px; cursor: e-resize; }
+        .resize-handle.w { left: -4px; top: 50%; margin-top: -4px; cursor: w-resize; }
+
+        /* ── Shapes ── */
+        .canvas-el.shape-oval { border-radius: 50%; }
+        .canvas-el.shape-diamond { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+        .canvas-el.shape-triangle { clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+        .canvas-el.shape-hexagon { clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); }
+        .canvas-el.shape-octagon { clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%); }
+        .canvas-el.shape-pentagon { clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); }
+
+        /* ── Right Panel: Properties ── */
+        #props-panel { width: var(--props-w); background: var(--bg-secondary); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+        #props-panel .section-title { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; padding: 12px 12px 6px; }
+        #props-panel .prop-row { display: flex; align-items: center; gap: 8px; padding: 6px 12px; }
+        #props-panel .prop-row label { font-size: 11px; color: var(--text-muted); min-width: 60px; }
+        #props-panel .prop-row input, #props-panel .prop-row select { flex: 1; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 4px 8px; border-radius: 4px; font-size: 11px; }
+        #props-panel .prop-row input[type="color"] { width: 32px; height: 24px; padding: 2px; cursor: pointer; flex: none; }
+        #props-panel .prop-row input[type="number"] { width: 60px; flex: none; }
+        #props-panel .no-selection { padding: 20px; text-align: center; color: var(--text-muted); font-size: 12px; }
+
+        /* ── DSL Panel (Bottom, Collapsible) ── */
+        #dsl-panel { height: 0; overflow: hidden; background: var(--bg-secondary); border-top: 1px solid var(--border); display: flex; flex-direction: column; transition: height 0.3s; }
+        #dsl-panel.open { height: 200px; }
+        #dsl-panel .dsl-header { display: flex; align-items: center; padding: 8px 12px; gap: 8px; border-bottom: 1px solid var(--border); }
+        #dsl-panel .dsl-header span { font-size: 12px; font-weight: 600; }
+        #dsl-panel .dsl-header button { background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        #dsl-panel .dsl-header .spacer { flex: 1; }
+        #dsl-editor { flex: 1; overflow: auto; }
+        #dsl-editor textarea { width: 100%; height: 100%; background: var(--bg-primary); color: var(--text-primary); border: none; resize: none; font-family: monospace; font-size: 12px; padding: 12px; outline: none; }
+
+        /* ── Drop Zone Highlight ── */
+        .page.drag-over { outline: 3px dashed var(--accent); outline-offset: -3px; }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
     </style>
 </head>
 <body>
-    <div id="app">
-        <!-- Toolbar -->
-        <header id="toolbar">
-            <div class="toolbar-left">
-                <div class="logo">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="18" height="18" rx="2"/>
-                        <line x1="3" y1="9" x2="21" y2="9"/>
-                        <line x1="9" y1="9" x2="9" y2="21"/>
-                    </svg>
-                    <span>StampAlbum Pro</span>
-                </div>
-                <div class="toolbar-divider"></div>
-                <button id="btn-new" title="New Album (Ctrl+N)">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14 2 14 8 20 8"/>
-                        <line x1="12" y1="18" x2="12" y2="12"/>
-                        <line x1="9" y1="15" x2="15" y2="15"/>
-                    </svg>
-                    New
-                </button>
-                <button id="btn-open" title="Open File (Ctrl+O)">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                    </svg>
-                    Open
-                </button>
-                <button id="btn-save" title="Save File (Ctrl+S)" disabled>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                        <polyline points="17 21 17 13 7 13 7 21"/>
-                        <polyline points="7 3 7 8 15 8"/>
-                    </svg>
-                    Save
-                </button>
-                <div class="toolbar-divider"></div>
-                <div class="export-dropdown">
-                    <button id="btn-export" title="Export (Ctrl+E)" disabled>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"/>
-                            <line x1="12" y1="18" x2="12" y2="12"/>
-                            <polyline points="9 15 12 18 15 15"/>
-                        </svg>
-                        Export
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                            <polyline points="6 9 12 15 18 9"/>
-                        </svg>
-                    </button>
-                    <div id="export-menu" class="export-menu">
-                        <button class="export-option" data-format="pdf" title="Print-ready PDF with precise typography">
-                            <span class="export-icon">📄</span>
-                            <div>
-                                <strong>Export PDF</strong>
-                                <small>Print-ready, professional quality</small>
-                            </div>
-                        </button>
-                        <button class="export-option" data-format="png" title="Image of the first page">
-                            <span class="export-icon">🖼</span>
-                            <div>
-                                <strong>Export PNG</strong>
-                                <small>Image of the first page</small>
-                            </div>
-                        </button>
-                        <button class="export-option" data-format="svg" title="Scalable vector graphic">
-                            <span class="export-icon">📐</span>
-                            <div>
-                                <strong>Export SVG</strong>
-                                <small>Scalable vector graphic</small>
-                            </div>
-                        </button>
-                        <button class="export-option" data-format="html" title="Web gallery of all pages">
-                            <span class="export-icon">🌐</span>
-                            <div>
-                                <strong>Export HTML Gallery</strong>
-                                <small>Self-contained web gallery</small>
-                            </div>
-                        </button>
-                        <button class="export-option" data-format="epub" title="EPUB e-book format">
-                            <span class="export-icon">📚</span>
-                            <div>
-                                <strong>Export EPUB</strong>
-                                <small>E-book format for reading</small>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="toolbar-center">
-                <span id="file-name">Untitled</span>
-                <span id="save-status" class="save-status"></span>
-            </div>
-            <div class="toolbar-right">
-                <label class="toggle-visual">
-                    <input type="checkbox" id="toggle-visual">
-                    <span>Visual</span>
-                </label>
-                <label class="toggle-layout">
-                    <input type="checkbox" id="toggle-layout">
-                    <span>Layout</span>
-                </label>
-                <label class="toggle-wizard">
-                    <input type="checkbox" id="toggle-wizard" checked>
-                    <span>Setup</span>
-                </label>
-                <label class="toggle-sidebar">
-                    <input type="checkbox" id="toggle-sidebar">
-                    <span>Files</span>
-                </label>
-                <label class="toggle-collection">
-                    <input type="checkbox" id="toggle-collection">
-                    <span>Collection</span>
-                </label>
-                <label class="toggle-history">
-                    <input type="checkbox" id="toggle-history">
-                    <span>History</span>
-                </label>
-                <button id="btn-tutorial" class="tutorial-start-btn" title="Start the interactive tutorial">?</button>
-                <div class="lang-selector">
-                    <button class="lang-btn active" data-lang="en" title="English">EN</button>
-                    <button class="lang-btn" data-lang="fr" title="Français">FR</button>
-                    <button class="lang-btn" data-lang="de" title="Deutsch">DE</button>
-                    <button class="lang-btn" data-lang="nl" title="Nederlands">NL</button>
-                    <button class="lang-btn" data-lang="it" title="Italiano">IT</button>
-                </div>
-            </div>
-        </header>
 
-        <!-- Main Content -->
-        <main id="main-content">
-            <!-- Wizard Panel -->
-            <aside id="wizard-panel">
-                <div class="wizard-header">
-                    <h3>Album Setup</h3>
-                </div>
+<!-- Top Toolbar -->
+<header id="toolbar">
+    <span class="logo">StampAlbum Pro</span>
+    <button id="btn-new">✚ New</button>
+    <button id="btn-open">📂 Open</button>
+    <button id="btn-save">💾 Save</button>
+    <button id="btn-export-pdf">📄 Export PDF</button>
+    <span class="spacer"></span>
+    <button id="btn-toggle-dsl" class="toggle-dsl">🔧 Show DSL</button>
+</header>
 
-                <!-- Section 1: Paper Size -->
-                <div class="wizard-section open" id="section-paper">
-                    <div class="section-header" data-section="paper">
-                        <span class="section-icon">📄</span>
-                        <span class="section-title">Paper Size</span>
-                        <span class="section-value" id="val-paper">Not set</span>
-                        <svg class="section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 12 15 18 9"/>
-                        </svg>
-                    </div>
-                    <div class="section-content">
-                        <div class="paper-options">
-                            <div class="paper-option" data-size="A4" data-w="210" data-h="297">
-                                <div class="paper-preview a4"></div>
-                                <span>A4</span>
-                                <small>210 × 297mm</small>
-                            </div>
-                            <div class="paper-option" data-size="A3" data-w="297" data-h="420">
-                                <div class="paper-preview a3"></div>
-                                <span>A3</span>
-                                <small>297 × 420mm</small>
-                            </div>
-                            <div class="paper-option" data-size="Letter" data-w="216" data-h="279">
-                                <div class="paper-preview letter"></div>
-                                <span>Letter</span>
-                                <small>216 × 279mm</small>
-                            </div>
-                            <div class="paper-option" data-size="Legal" data-w="216" data-h="356">
-                                <div class="paper-preview legal"></div>
-                                <span>Legal</span>
-                                <small>216 × 356mm</small>
-                            </div>
-                            <div class="paper-option" data-size="A5" data-w="148" data-h="210">
-                                <div class="paper-preview a5"></div>
-                                <span>A5</span>
-                                <small>148 × 210mm</small>
-                            </div>
-                            <div class="paper-option" data-size="Custom" data-w="250" data-h="300">
-                                <div class="paper-preview custom"></div>
-                                <span>Custom</span>
-                                <small>250 × 300mm</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<!-- Main Content -->
+<div id="main">
 
-                <!-- Section 2: Border -->
-                <div class="wizard-section" id="section-border">
-                    <div class="section-header" data-section="border">
-                        <span class="section-icon">🖼</span>
-                        <span class="section-title">Border</span>
-                        <span class="section-value" id="val-border">Not set</span>
-                        <svg class="section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 12 15 18 9"/>
-                        </svg>
-                    </div>
-                    <div class="section-content">
-                    <div class="border-options">
-                        <div class="border-option" data-border="none">
-                            <div class="border-preview none"></div>
-                            <span>None</span>
-                        </div>
-                        <div class="border-option" data-border="single">
-                            <div class="border-preview single"></div>
-                            <span>Single</span>
-                        </div>
-                        <div class="border-option" data-border="double">
-                            <div class="border-preview double"></div>
-                            <span>Double</span>
-                        </div>
-                        <div class="border-option" data-border="triple">
-                            <div class="border-preview triple"></div>
-                            <span>Triple</span>
-                        </div>
-                        <div class="border-option" data-border="heritage">
-                            <div class="border-preview heritage"></div>
-                            <span>Heritage</span>
-                        </div>
-                        <div class="border-option" data-border="geometric">
-                            <div class="border-preview geometric"></div>
-                            <span>Geometric</span>
-                        </div>
-                        <div class="border-option" data-border="vine">
-                            <div class="border-preview vine"></div>
-                            <span>Vine</span>
-                        </div>
-                        <div class="border-option" data-border="elegant">
-                            <div class="border-preview elegant"></div>
-                            <span>Elegant</span>
-                        </div>
-                        <div class="border-option" data-border="accent">
-                            <div class="border-preview accent"></div>
-                            <span>Accent</span>
-                        </div>
-                        <div class="border-option" data-border="dashed">
-                            <div class="border-preview dashed"></div>
-                            <span>Dashed</span>
-                        </div>
-                        <div class="border-option" data-border="dotted">
-                            <div class="border-preview dotted"></div>
-                            <span>Dotted</span>
-                        </div>
-                        <div class="border-option" data-border="diamond">
-                            <div class="border-preview diamond-border"></div>
-                            <span>Diamond</span>
-                        </div>
-                        <div class="border-option" data-border="greek">
-                            <div class="border-preview greek"></div>
-                            <span>Greek Key</span>
-                        </div>
-                        <div class="border-option" data-border="zigzag">
-                            <div class="border-preview zigzag"></div>
-                            <span>Zigzag</span>
-                        </div>
-                    </div>
-                    </div>
-                </div>
-
-                <!-- Section 3: Layout -->
-                <div class="wizard-section" id="section-layout">
-                    <div class="section-header" data-section="layout">
-                        <span class="section-icon">📐</span>
-                        <span class="section-title">Columns</span>
-                        <span class="section-value" id="val-layout">Not set</span>
-                        <svg class="section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 12 15 18 9"/>
-                        </svg>
-                    </div>
-                    <div class="section-content">
-                        <div class="layout-options">
-                            <div class="layout-option" data-columns="1">
-                                <div class="layout-preview one-col"></div>
-                                <span>Single</span>
-                            </div>
-                            <div class="layout-option" data-columns="2">
-                                <div class="layout-preview two-col"></div>
-                                <span>Two</span>
-                            </div>
-                            <div class="layout-option" data-columns="3">
-                                <div class="layout-preview three-col"></div>
-                                <span>Three</span>
-                            </div>
-                            <div class="layout-option" data-columns="0">
-                                <div class="layout-preview free"></div>
-                                <span>Free</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Section 4: Build -->
-                <div class="wizard-section" id="section-build">
-                    <div class="section-header" data-section="build">
-                        <span class="section-icon">🔧</span>
-                        <span class="section-title">Elements</span>
-                        <span class="section-value">Click or drag to add</span>
-                        <svg class="section-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 12 15 18 9"/>
-                        </svg>
-                    </div>
-                    <div class="section-content">
-                        <div class="build-toolbox">
-                            <div class="build-section">
-                                <h5>Text</h5>
-                                <div class="build-item" draggable="true" data-type="text" data-align="left">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="4 7 4 4 20 4 20 7"/>
-                                        <line x1="12" y1="20" x2="12" y2="4"/>
-                                    </svg>
-                                    <span>Left</span>
-                                </div>
-                                <div class="build-item" draggable="true" data-type="text" data-align="center">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="4 7 4 4 20 4 20 7"/>
-                                        <line x1="12" y1="20" x2="12" y2="4"/>
-                                    </svg>
-                                    <span>Center</span>
-                                </div>
-                                <div class="build-item" draggable="true" data-type="text" data-align="right">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="4 7 4 4 20 4 20 7"/>
-                                        <line x1="12" y1="20" x2="12" y2="4"/>
-                                    </svg>
-                                    <span>Right</span>
-                                </div>
-                            </div>
-                            <div class="build-section">
-                                <h5>Stamps</h5>
-                                <div class="build-item" draggable="true" data-type="stamp" data-shape="rectangle" data-w="40" data-h="30">
-                                    <div class="stamp-preview rect"></div>
-                                    <span>Rectangle</span>
-                                </div>
-                                <div class="build-item" draggable="true" data-type="stamp" data-shape="rectangle" data-w="30" data-h="30">
-                                    <div class="stamp-preview square"></div>
-                                    <span>Square</span>
-                                </div>
-                                <div class="build-item" draggable="true" data-type="stamp" data-shape="oval" data-w="40" data-h="30">
-                                    <div class="stamp-preview oval"></div>
-                                    <span>Oval</span>
-                                </div>
-                                <div class="build-item" draggable="true" data-type="stamp" data-shape="diamond" data-w="40" data-h="30">
-                                    <div class="stamp-preview diamond"></div>
-                                    <span>Diamond</span>
-                                </div>
-                                <div class="build-item" draggable="true" data-type="stamp" data-shape="triangle" data-w="40" data-h="30">
-                                    <div class="stamp-preview triangle"></div>
-                                    <span>Triangle</span>
-                                </div>
-                            </div>
-                            <div class="build-section">
-                                <h5>Rows</h5>
-                                <div class="build-item" draggable="true" data-type="row" data-style="FS">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <rect x="3" y="3" width="18" height="18" rx="2"/>
-                                        <line x1="3" y1="9" x2="21" y2="9"/>
-                                    </svg>
-                                    <span>Fixed Row</span>
-                                </div>
-                                <div class="build-item" draggable="true" data-type="row" data-style="ES">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <rect x="3" y="3" width="18" height="18" rx="2"/>
-                                        <line x1="3" y1="9" x2="21" y2="9"/>
-                                        <line x1="9" y1="9" x2="9" y2="21"/>
-                                    </svg>
-                                    <span>Equal Row</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- File Browser Sidebar -->
-            <aside id="sidebar" class="sidebar-hidden">
-                <div class="sidebar-header">
-                    <h3>Files</h3>
-                    <div class="sidebar-actions">
-                        <button id="btn-upload-dsl" title="Upload .slbum file">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                                <polyline points="14 2 14 8 20 8"/>
-                                <line x1="12" y1="18" x2="12" y2="12"/>
-                                <line x1="9" y1="15" x2="15" y2="15"/>
-                            </svg>
-                        </button>
-                        <button id="btn-upload-img" title="Upload image files">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                                <circle cx="8.5" cy="8.5" r="1.5"/>
-                                <polyline points="21 15 16 10 5 21"/>
-                            </svg>
-                        </button>
-                        <button id="btn-upload-folder" title="Upload album + images from folder">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                                <line x1="12" y1="11" x2="12" y2="17"/>
-                                <line x1="9" y1="14" x2="15" y2="14"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <div class="sidebar-section">
-                    <h4>Album Files</h4>
-                    <div id="file-list" class="file-list"></div>
-                </div>
-                <div class="sidebar-section">
-                    <h4>Images</h4>
-                    <div id="image-list" class="image-list"></div>
-                </div>
-                <input type="file" id="file-input" accept=".slbum,.txt" hidden>
-                <input type="file" id="image-input" accept="image/*" multiple hidden>
-                <input type="file" id="folder-input" webkitdirectory multiple hidden>
-            </aside>
-
-            <!-- Editor Panel -->
-            <section id="editor-panel">
-                <div class="formatting-toolbar">
-                    <button class="fmt-btn" data-fmt="bold" title="Bold (Ctrl+B)"><strong>B</strong></button>
-                    <button class="fmt-btn" data-fmt="italic" title="Italic (Ctrl+I)"><em>I</em></button>
-                    <button class="fmt-btn" data-fmt="underline" title="Underline (Ctrl+U)"><u>U</u></button>
-                    <button class="fmt-btn" data-fmt="strikethrough" title="Strikethrough"><s>S</s></button>
-                    <button class="fmt-btn" data-fmt="code" title="Code"><code>`</code></button>
-                    <button class="fmt-btn" data-fmt="superscript" title="Superscript">x<sup>2</sup></button>
-                    <button class="fmt-btn" data-fmt="subscript" title="Subscript">x<sub>2</sub></button>
-                    <span style="flex:1"></span>
-                    <button class="fmt-btn" data-fmt="help" title="Formatting help">?</button>
-                </div>
-                <div id="editor-container"></div>
-            </section>
-
-            <!-- Preview Panel -->
-            <section id="preview-panel">
-                <div class="preview-toolbar">
-                    <span id="preview-status">Ready</span>
-                    <div class="preview-actions">
-                        <button id="btn-auto-layout" title="Auto-arrange stamps on current page">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="3" width="7" height="7"/>
-                                <rect x="14" y="3" width="7" height="7"/>
-                                <rect x="3" y="14" width="7" height="7"/>
-                                <rect x="14" y="14" width="7" height="7"/>
-                            </svg>
-                            Auto-Layout
-                        </button>
-                        <button id="btn-refresh-preview" title="Refresh Preview">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="23 4 23 10 17 10"/>
-                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <div id="preview-container">
-                    <iframe id="preview-frame" sandbox="allow-same-origin"></iframe>
-                    <div id="visual-overlay" class="visual-hidden"></div>
-                </div>
-            </section>
-        </main>
-
-        <!-- Status Bar -->
-        <footer id="status-bar">
-            <span id="status-left">Ready</span>
-            <span id="status-right"></span>
-        </footer>
-    </div>
-
-    <!-- Stamp Collection Manager Panel -->
-    <aside id="collection-panel" class="collection-panel">
-        <div class="collection-header">
-            <h3>Stamp Collection</h3>
-            <div class="collection-header-actions">
-                <span id="collection-stats" class="collection-stats">0 stamps</span>
-                <button id="collection-close" class="wizard-close">✕</button>
-            </div>
+    <!-- Left Sidebar: Element Palette -->
+    <aside id="sidebar">
+        <div class="section-title">Stamps</div>
+        <div class="element-palette" id="stamp-palette">
+            <div class="palette-item" draggable="true" data-type="stamp" data-shape="rectangle"><span class="icon">▬</span><span class="label">Rectangle</span></div>
+            <div class="palette-item" draggable="true" data-type="stamp" data-shape="oval"><span class="icon">●</span><span class="label">Oval</span></div>
+            <div class="palette-item" draggable="true" data-type="stamp" data-shape="diamond"><span class="icon">◆</span><span class="label">Diamond</span></div>
+            <div class="palette-item" draggable="true" data-type="stamp" data-shape="triangle"><span class="icon">▲</span><span class="label">Triangle</span></div>
+            <div class="palette-item" draggable="true" data-type="stamp" data-shape="hexagon"><span class="icon">⬡</span><span class="label">Hexagon</span></div>
+            <div class="palette-item" draggable="true" data-type="stamp" data-shape="octagon"><span class="icon">⯃</span><span class="label">Octagon</span></div>
+            <div class="palette-item" draggable="true" data-type="stamp" data-shape="pentagon"><span class="icon">⬠</span><span class="label">Pentagon</span></div>
         </div>
-        <div class="collection-toolbar">
-            <input type="text" id="collection-search" placeholder="Search stamps..." class="collection-search">
-            <select id="collection-sort" class="collection-sort-select">
-                <option value="country">Sort: Country</option>
-                <option value="year">Sort: Year</option>
-                <option value="description">Sort: Description</option>
-                <option value="updated">Sort: Updated</option>
-            </select>
+        <div class="section-title">Text</div>
+        <div class="element-palette" id="text-palette">
+            <div class="palette-item" draggable="true" data-type="text" data-subtype="label"><span class="icon">T</span><span class="label">Label</span></div>
+            <div class="palette-item" draggable="true" data-type="text" data-subtype="heading"><span class="icon">H</span><span class="label">Heading</span></div>
+            <div class="palette-item" draggable="true" data-type="text" data-subtype="description"><span class="icon">¶</span><span class="label">Description</span></div>
         </div>
-        <div class="collection-actions-bar">
-            <button id="collection-add-btn" class="collection-action-btn">+ Add Stamp</button>
-            <button id="collection-import-btn" class="collection-action-btn">Import CSV</button>
-            <button id="collection-import-excel-btn" class="collection-action-btn">Import Excel</button>
-            <button id="collection-export-btn" class="collection-action-btn">Export CSV</button>
-            <input type="file" id="collection-csv-input" accept=".csv" hidden>
-            <input type="file" id="collection-excel-input" accept=".xlsx,.xls" hidden>
+        <div class="section-title">Images</div>
+        <div class="element-palette" id="image-palette">
+            <div class="palette-item" draggable="true" data-type="image"><span class="icon">🖼</span><span class="label">Stamp Image</span></div>
+            <div class="palette-item" id="btn-upload-img"><span class="icon">📤</span><span class="label">Upload...</span></div>
         </div>
-        <div id="collection-list" class="collection-list">
-            <div class="collection-empty">No stamps in collection. Add your first stamp or import from CSV.</div>
-        </div>
-        <div id="collection-pagination" class="collection-pagination"></div>
+        <input type="file" id="img-upload-input" accept="image/*" hidden>
     </aside>
 
-    <!-- Add/Edit Stamp Modal -->
-    <div id="stamp-modal" class="stamp-modal">
-        <div class="stamp-modal-backdrop"></div>
-        <div class="stamp-modal-content">
-            <div class="stamp-modal-header">
-                <h4 id="stamp-modal-title">Add Stamp</h4>
-                <button id="stamp-modal-close" class="wizard-close">✕</button>
-            </div>
-            <div class="stamp-modal-body">
-                <div class="vpp-row">
-                    <div class="vpp-field">
-                        <label>Country *</label>
-                        <input type="text" id="sm-country" placeholder="e.g., Great Britain">
-                    </div>
-                    <div class="vpp-field">
-                        <label>Year</label>
-                        <input type="number" id="sm-year" placeholder="e.g., 1840" min="1800" max="2100">
-                    </div>
-                </div>
-                <div class="vpp-field">
-                    <label>Description *</label>
-                    <textarea id="sm-description" rows="2" placeholder="e.g., Penny Black, used"></textarea>
-                </div>
-                <div class="vpp-row">
-                    <div class="vpp-field">
-                        <label>Catalog #</label>
-                        <input type="text" id="sm-catalog" placeholder="e.g., SG 1">
-                    </div>
-                    <div class="vpp-field">
-                        <label>Catalog Type</label>
-                        <select id="sm-catalog-type">
-                            <option value="SG">SG</option>
-                            <option value="Scott">Scott</option>
-                            <option value="Michel">Michel</option>
-                            <option value="Yvert">Yvert</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="vpp-row">
-                    <div class="vpp-field">
-                        <label>Denomination</label>
-                        <input type="text" id="sm-denomination" placeholder="e.g., 1d">
-                    </div>
-                    <div class="vpp-field">
-                        <label>Condition</label>
-                        <select id="sm-condition">
-                            <option value="">Select...</option>
-                            <option value="Mint">Mint</option>
-                            <option value="MH">Mint Hinged</option>
-                            <option value="MLH">Mint Lightly Hinged</option>
-                            <option value="Used">Used</option>
-                            <option value="FDC">First Day Cover</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="vpp-row">
-                    <div class="vpp-field">
-                        <label>Purchase Price</label>
-                        <input type="number" id="sm-price" placeholder="0.00" min="0" step="0.01">
-                    </div>
-                    <div class="vpp-field">
-                        <label>Image</label>
-                        <select id="sm-image">
-                            <option value="">No image</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="vpp-field">
-                    <label>Notes</label>
-                    <textarea id="sm-notes" rows="2" placeholder="Additional notes..."></textarea>
-                </div>
-            </div>
-            <div class="stamp-modal-footer">
-                <button id="stamp-modal-save" class="tutorial-btn tutorial-next">Save Stamp</button>
-                <button id="stamp-modal-cancel" class="tutorial-btn">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Version History Panel -->
-    <aside id="history-panel" class="collection-panel">
-        <div class="collection-header">
-            <h3>Version History</h3>
-            <div class="collection-header-actions">
-                <span id="history-stats" class="collection-stats">0 versions</span>
-                <button id="history-close" class="wizard-close">&#x2715;</button>
-            </div>
-        </div>
-        <div class="collection-toolbar">
-            <input type="text" id="history-filter" placeholder="Filter versions..." class="collection-search">
-            <select id="history-file" class="collection-sort-select">
-                <option value="">Current file</option>
+    <!-- Canvas Area -->
+    <section id="canvas-area">
+        <div id="canvas-toolbar">
+            <label>Page:</label>
+            <select id="page-size">
+                <option value="a4">A4 (210×297mm)</option>
+                <option value="letter">Letter (8.5×11")</option>
+                <option value="a3">A3 (297×420mm)</option>
             </select>
+            <label>Grid:</label>
+            <select id="grid-snap">
+                <option value="0">Off</option>
+                <option value="5">5mm</option>
+                <option value="10">10mm</option>
+            </select>
+            <span class="spacer"></span>
+            <button id="btn-undo">↩ Undo</button>
+            <button id="btn-redo">↪ Redo</button>
+            <button id="btn-delete-el">🗑 Delete</button>
         </div>
-        <div class="collection-actions-bar">
-            <button id="history-save-btn" class="collection-action-btn">+ Save Version</button>
-            <input type="text" id="history-comment" placeholder="Version comment..." class="collection-search" style="flex:1">
+        <div id="page-canvas">
+            <div class="page a4" id="page"></div>
         </div>
-        <div id="history-list" class="collection-list">
-            <div class="collection-empty">No versions saved yet. Save your first version.</div>
+    </section>
+
+    <!-- Right Panel: Properties -->
+    <aside id="props-panel">
+        <div class="no-selection">Select an element to edit its properties</div>
+        <div id="props-content" style="display:none">
+            <div class="section-title">Position & Size</div>
+            <div class="prop-row"><label>X</label><input type="number" id="prop-x" step="1"><label>Y</label><input type="number" id="prop-y" step="1"></div>
+            <div class="prop-row"><label>W</label><input type="number" id="prop-w" step="1"><label>H</label><input type="number" id="prop-h" step="1"></div>
+            <div class="section-title">Border</div>
+            <div class="prop-row"><label>Style</label><select id="prop-border-style"><option value="solid">Solid</option><option value="double">Double</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option><option value="none">None</option></select></div>
+            <div class="prop-row"><label>Color</label><input type="color" id="prop-border-color" value="#000000"><label>Width</label><input type="number" id="prop-border-width" value="1" min="0" max="5" step="0.5">pt</div>
+            <div class="section-title">Fill</div>
+            <div class="prop-row"><label>Color</label><input type="color" id="prop-fill-color" value="#ffffff"><label>Opacity</label><input type="range" id="prop-fill-opacity" min="0" max="100" value="100">%</div>
+            <div class="section-title">Label</div>
+            <div class="prop-row"><label>Text</label><input type="text" id="prop-label" placeholder="Stamp description"></div>
+            <div class="section-title" id="img-section" style="display:none">Image</div>
+            <div class="prop-row" id="img-row" style="display:none"><button id="btn-change-img" style="flex:1">Change Image</button><button id="btn-remove-img">✕</button></div>
         </div>
     </aside>
 
-    <!-- Tutorial Overlay -->
-    <div id="tutorial-overlay" class="tutorial-overlay">
-        <div id="tutorial-tooltip" class="tutorial-tooltip">
-            <div class="tutorial-header">
-                <span id="tutorial-step-num">1/6</span>
-                <button id="tutorial-skip" class="tutorial-skip">Skip</button>
-            </div>
-            <h3 id="tutorial-title"></h3>
-            <p id="tutorial-text"></p>
-            <div class="tutorial-footer">
-                <button id="tutorial-prev" class="tutorial-btn tutorial-prev">← Back</button>
-                <div id="tutorial-dots" class="tutorial-dots"></div>
-                <button id="tutorial-next" class="tutorial-btn tutorial-next">Next →</button>
-            </div>
-        </div>
-    </div>
+</div>
 
-    <!-- Album Creation Wizard -->
-    <div id="album-wizard" class="album-wizard">
-        <div class="wizard-panel-header">
-            <h3>Create New Album</h3>
-            <button id="wizard-close" class="wizard-close">✕</button>
-        </div>
-        <div class="wizard-steps">
-            <div class="wizard-step-indicator active" data-wizard-step="1">
-                <span class="step-num">1</span>
-                <span class="step-label">Info</span>
-            </div>
-            <div class="wizard-step-indicator" data-wizard-step="2">
-                <span class="step-num">2</span>
-                <span class="step-label">Paper</span>
-            </div>
-            <div class="wizard-step-indicator" data-wizard-step="3">
-                <span class="step-num">3</span>
-                <span class="step-label">Style</span>
-            </div>
-            <div class="wizard-step-indicator" data-wizard-step="4">
-                <span class="step-num">4</span>
-                <span class="step-label">Template</span>
-            </div>
-            <div class="wizard-step-indicator" data-wizard-step="5">
-                <span class="step-num">5</span>
-                <span class="step-label">Stamps</span>
-            </div>
-            <div class="wizard-step-indicator" data-wizard-step="6">
-                <span class="step-num">6</span>
-                <span class="step-label">Finish</span>
-            </div>
-        </div>
-        <div class="wizard-content">
-            <!-- Step 1: Album Info -->
-            <div class="wizard-pane active" data-pane="1">
-                <h4>Album Information</h4>
-                <p class="wizard-help">Give your album a title and author name.</p>
-                <div class="wizard-field">
-                    <label for="wizard-title">Album Title</label>
-                    <input type="text" id="wizard-title" placeholder="e.g., My British Collection">
-                </div>
-                <div class="wizard-field">
-                    <label for="wizard-author">Author Name</label>
-                    <input type="text" id="wizard-author" placeholder="e.g., John Smith">
-                </div>
-            </div>
-            <!-- Step 2: Paper Setup -->
-            <div class="wizard-pane" data-pane="2">
-                <h4>Paper Setup</h4>
-                <p class="wizard-help">Choose your page size and margins.</p>
-                <div class="wizard-field">
-                    <label>Page Size</label>
-                    <div class="wizard-paper-options">
-                        <button class="wizard-option-btn active" data-size="A4" data-w="210" data-h="297">A4<br><small>210×297mm</small></button>
-                        <button class="wizard-option-btn" data-size="A3" data-w="297" data-h="420">A3<br><small>297×420mm</small></button>
-                        <button class="wizard-option-btn" data-size="Letter" data-w="216" data-h="279">Letter<br><small>216×279mm</small></button>
-                        <button class="wizard-option-btn" data-size="Legal" data-w="216" data-h="356">Legal<br><small>216×356mm</small></button>
-                    </div>
-                </div>
-                <div class="wizard-field">
-                    <label>Margins (mm)</label>
-                    <div class="wizard-margins">
-                        <input type="number" id="wizard-ml" value="20" min="5" max="50" title="Left">
-                        <input type="number" id="wizard-mt" value="15" min="5" max="50" title="Top">
-                        <input type="number" id="wizard-mr" value="15" min="5" max="50" title="Right">
-                        <input type="number" id="wizard-mb" value="15" min="5" max="50" title="Bottom">
-                    </div>
-                </div>
-            </div>
-            <!-- Step 3: Style -->
-            <div class="wizard-pane" data-pane="3">
-                <h4>Page Style</h4>
-                <p class="wizard-help">Choose a border and color scheme.</p>
-                <div class="wizard-field">
-                    <label>Border Style</label>
-                    <div class="wizard-style-options">
-                        <button class="wizard-option-btn active" data-border="none">None</button>
-                        <button class="wizard-option-btn" data-border="single">Single</button>
-                        <button class="wizard-option-btn" data-border="double">Double</button>
-                        <button class="wizard-option-btn" data-border="triple">Triple</button>
-                        <button class="wizard-option-btn" data-border="elegant">Elegant</button>
-                    </div>
-                </div>
-                <div class="wizard-field">
-                    <label>Color Scheme</label>
-                    <div class="wizard-color-options">
-                        <button class="wizard-color-btn active" data-title="black" data-border="black" style="background:#333"></button>
-                        <button class="wizard-color-btn" data-title="darkblue" data-border="darkblue" style="background:#00008b"></button>
-                        <button class="wizard-color-btn" data-title="darkred" data-border="darkred" style="background:#8b0000"></button>
-                        <button class="wizard-color-btn" data-title="darkgreen" data-border="darkgreen" style="background:#006400"></button>
-                        <button class="wizard-color-btn" data-title="navy" data-border="navy" style="background:#000080"></button>
-                    </div>
-                <div class="wizard-field">
-                    <label>Font Pairing</label>
-                    <select id="wizard-font-pairing" class="collection-sort-select">
-                        <option value="">Custom fonts</option>
-                        <option value="classic_serif">Classic Serif (Times)</option>
-                        <option value="modern_sans">Modern Sans (Helvetica)</option>
-                        <option value="elegant_contrast">Elegant Contrast</option>
-                        <option value="uniform_helvetica">Uniform Helvetica</option>
-                        <option value="uniform_times">Uniform Times</option>
-                        <option value="mono_accent">Monospace Accent</option>
-                        <option value="bold_impact">Bold Impact</option>
-                        <option value="italic_emphasis">Italic Emphasis</option>
-                        <option value="vintage_typewriter">Vintage Typewriter</option>
-                        <option value="minimal_light">Minimal Light</option>
-                    </select>
-                </div>
-            </div>
-            <!-- Step 4: Template -->
-            <div class="wizard-pane" data-pane="4">
-                <h4>Choose a Template</h4>
-                <p class="wizard-help">Start with a pre-built template or create from scratch.</p>
-                <div class="wizard-template-list">
-                    <div class="wizard-template-card selected" data-template="blank">
-                        <strong>Blank Page</strong>
-                        <small>Start from scratch</small>
-                    </div>
-                    <div class="wizard-template-card" data-template="classic">
-                        <strong>Classic Album</strong>
-                        <small>Triple border, centered title</small>
-                    </div>
-                    <div class="wizard-template-card" data-template="competition">
-                        <strong>Competition</strong>
-                        <small>FIP-standard exhibition layout</small>
-                    </div>
-                    <div class="wizard-template-card" data-template="modern">
-                        <strong>Modern Minimal</strong>
-                        <small>Clean, generous white space</small>
-                    </div>
-                    <div class="wizard-template-card" data-template="two_column">
-                        <strong>Two Column</strong>
-                        <small>Dense information layout</small>
-                    </div>
-                    <div class="wizard-template-card" data-template="thematic">
-                        <strong>Thematic</strong>
-                        <small>Color-coded sections</small>
-                    </div>
-                </div>
-            </div>
-            <!-- Step 5: Stamps -->
-            <div class="wizard-pane" data-pane="5">
-                <h4>Add Your First Stamps</h4>
-                <p class="wizard-help">Add stamps to your first page. You can always add more later.</p>
-                <div id="wizard-stamp-entries">
-                    <div class="wizard-stamp-entry">
-                        <input type="text" placeholder="Stamp description" class="wizard-stamp-desc">
-                        <input type="text" placeholder="Catalog #" class="wizard-stamp-cat">
-                        <input type="number" placeholder="W" class="wizard-stamp-w" value="32" min="5" max="200">
-                        <input type="number" placeholder="H" class="wizard-stamp-h" value="37" min="5" max="200">
-                        <button class="wizard-remove-stamp" title="Remove">✕</button>
-                    </div>
-                </div>
-                <button id="wizard-add-stamp" class="wizard-add-btn">+ Add Another Stamp</button>
-            </div>
-            <!-- Step 6: Finish -->
-            <div class="wizard-pane" data-pane="6">
-                <h4>Review & Create</h4>
-                <p class="wizard-help">Review your album settings and create.</p>
-                <div id="wizard-summary" class="wizard-summary"></div>
-            </div>
-        </div>
-        <div class="wizard-nav">
-            <button id="wizard-prev" class="tutorial-btn" disabled>← Back</button>
-            <button id="wizard-next" class="tutorial-btn tutorial-next">Next →</button>
-        </div>
+<!-- DSL Panel (Bottom, Collapsible) -->
+<div id="dsl-panel">
+    <div class="dsl-header">
+        <span>DSL Editor (Advanced)</span>
+        <span class="spacer"></span>
+        <button id="btn-apply-dsl">Apply DSL</button>
+        <button id="btn-close-dsl">✕ Close</button>
     </div>
-    <div id="wizard-backdrop" class="wizard-backdrop"></div>
+    <div id="dsl-editor"><textarea id="dsl-textarea" spellcheck="false"></textarea></div>
+</div>
 
-    <!-- Visual Editor Property Panel -->
-    <div id="visual-property-panel" class="visual-property-panel">
-        <div class="vpp-header">
-            <h4>Stamp Properties</h4>
-            <button id="vpp-close" class="wizard-close">✕</button>
-        </div>
-        <div class="vpp-content">
-            <div class="vpp-field">
-                <label>Description</label>
-                <textarea id="vpp-desc" rows="2" placeholder="Stamp description"></textarea>
-            </div>
-            <div class="vpp-field">
-                <label>Catalog Reference</label>
-                <input type="text" id="vpp-cat" placeholder="e.g., SG 1">
-            </div>
-            <div class="vpp-row">
-                <div class="vpp-field">
-                    <label>Width (mm)</label>
-                    <input type="number" id="vpp-width" min="5" max="200" step="0.5">
-                </div>
-                <div class="vpp-field">
-                    <label>Height (mm)</label>
-                    <input type="number" id="vpp-height" min="5" max="200" step="0.5">
-                </div>
-            </div>
-            <div class="vpp-field">
-                <label>Shape</label>
-                <select id="vpp-shape">
-                    <option value="rectangle">Rectangle</option>
-                    <option value="oval">Oval</option>
-                    <option value="diamond">Diamond</option>
-                    <option value="triangle">Triangle</option>
-                    <option value="hexagon">Hexagon</option>
-                    <option value="octagon">Octagon</option>
-                    <option value="pentagon">Pentagon</option>
-                </select>
-            </div>
-            <div class="vpp-field">
-                <label>Heading</label>
-                <input type="text" id="vpp-heading" placeholder="Optional heading text">
-            </div>
-            <div class="vpp-field">
-                <label>Image</label>
-                <select id="vpp-image">
-                    <option value="">No image</option>
-                </select>
-            </div>
-        </div>
-        <div class="vpp-footer">
-            <button id="vpp-apply" class="tutorial-btn tutorial-next">Apply</button>
-            <button id="vpp-delete" class="tutorial-btn" style="background:var(--error);color:#fff;border-color:var(--error)">Delete Stamp</button>
-        </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
-    <script src="collection.js"></script>
-    <script src="color_palette.js"></script>
-    <script src="websocket_preview.js"></script>
-    <script src="drag_drop_builder.js"></script>
-    <script src="canvas.js?v=3"></script>
-    <script src="version_history.js"></script>
-    <script src="app.js"></script>
+<script src="app.js"></script>
+<input type="file" id="file-input" accept=".slbum,.txt" hidden>
 </body>
 </html>
