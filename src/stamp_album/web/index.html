@@ -728,6 +728,46 @@
         .history-action-btn { padding: 2px 6px; background: none; border: 1px solid var(--border-color); border-radius: 3px; color: var(--text-muted); font-size: 10px; cursor: pointer; }
         .history-action-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
         .history-action-btn.restore:hover { background: var(--success); color: #fff; border-color: var(--success); }
+
+        .layout-canvas { position:absolute; top:0; left:0; cursor:crosshair; overflow:hidden; box-shadow:inset 0 0 0 1px rgba(128,128,128,0.15); }
+        .layout-canvas.drop-target { box-shadow:inset 0 0 0 2px var(--accent); }
+        .canvas-stamp { position:absolute; border:1.5pt solid #666; background:rgba(255,255,255,0.85); cursor:move; display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:2px; transition:box-shadow 0.15s, border-color 0.15s; }
+        .canvas-stamp:hover { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+        .canvas-stamp.selected { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent), 0 2px 8px rgba(0,0,0,0.15); z-index:10; }
+        .canvas-stamp-label { font-size:9px; color:var(--text-muted); pointer-events:none; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:90%; user-select:none; }
+        .canvas-handle { position:absolute; width:8px; height:8px; background:var(--accent); border:1px solid #fff; border-radius:1px; z-index:20; }
+        .canvas-handle-nw { top:-4px; left:-4px; cursor:nw-resize; }
+        .canvas-handle-ne { top:-4px; right:-4px; cursor:ne-resize; }
+        .canvas-handle-sw { bottom:-4px; left:-4px; cursor:sw-resize; }
+        .canvas-handle-se { bottom:-4px; right:-4px; cursor:se-resize; }
+        .canvas-handle-n  { top:-4px; left:50%; margin-left:-4px; cursor:n-resize; }
+        .canvas-handle-s  { bottom:-4px; left:50%; margin-left:-4px; cursor:s-resize; }
+        .canvas-handle-e  { right:-4px; top:50%; margin-top:-4px; cursor:e-resize; }
+        .canvas-handle-w  { left:-4px; top:50%; margin-top:-4px; cursor:w-resize; }
+        .canvas-stamp:not(.selected) .canvas-handle { display:none; }
+        .canvas-stamp.shape-rectangle { border-radius:2px; }
+        .canvas-stamp.shape-oval { border-radius:50%; }
+        .canvas-stamp.shape-diamond { clip-path:polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+        .canvas-stamp.shape-triangle { clip-path:polygon(50% 0%, 0% 100%, 100% 100%); }
+        .canvas-stamp.shape-hexagon { clip-path:polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); }
+        .canvas-stamp.shape-octagon { clip-path:polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%); }
+        .canvas-stamp.shape-pentagon { clip-path:polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); }
+
+        /* ── Layout mode (free-form canvas) ─────────────────────────────── */
+        body.layout-mode #visual-overlay {
+            display: block;
+            pointer-events: auto;
+            border: 2px dashed rgba(88,166,255,0.3);
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+        }
+        body.layout-mode #preview-frame {
+            pointer-events: none;
+            user-select: none;
+            opacity: 0.85;
+        }
     </style>
 </head>
 <body>
@@ -828,6 +868,10 @@
                 <label class="toggle-visual">
                     <input type="checkbox" id="toggle-visual">
                     <span>Visual</span>
+                </label>
+                <label class="toggle-layout">
+                    <input type="checkbox" id="toggle-layout">
+                    <span>Layout</span>
                 </label>
                 <label class="toggle-wizard">
                     <input type="checkbox" id="toggle-wizard" checked>
@@ -1573,6 +1617,7 @@
     <script src="color_palette.js"></script>
     <script src="websocket_preview.js"></script>
     <script src="drag_drop_builder.js"></script>
+    <script src="canvas.js?v=3"></script>
     <script src="version_history.js"></script>
     <script src="app.js"></script>
 </body>

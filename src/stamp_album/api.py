@@ -798,5 +798,26 @@ async def api_revoke_share(share_id: str, request: Request):
     raise HTTPException(status_code=404, detail="Share not found")
 
 
+# Catch-all: serve static JS/CSS/image files from the web directory.
+# Must be LAST so that /files, /images, /render, /export, /api, etc. match first.
+@app.get("/{static_file:path}")
+async def serve_static(static_file: str):
+    if not static_file or "/" in static_file:
+        raise HTTPException(status_code=404)
+    fp = WEB_DIR / static_file
+    if fp.exists() and fp.is_file():
+        mt = None
+        if static_file.endswith(".css"):
+            mt = "text/css"
+        elif static_file.endswith(".js"):
+            mt = "application/javascript"
+        elif static_file.endswith(".html"):
+            mt = "text/html"
+        elif static_file.endswith((".png", ".jpg", ".jpeg", ".gif", ".svg")):
+            mt = "image/png"
+        return FileResponse(fp, media_type=mt)
+    raise HTTPException(status_code=404)
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080)
