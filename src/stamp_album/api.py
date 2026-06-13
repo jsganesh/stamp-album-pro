@@ -27,12 +27,15 @@ _CSRF_TOKEN = secrets.token_urlsafe(32)
 async def security_headers(request: Request, call_next):
     """Add security headers to all responses."""
     response = await call_next(request)
+    # Allow frame-src 'self' for the preview iframe. The preview iframe
+    # receives a synthetic HTML document via document.write() — it doesn't
+    # load a URL, so CSP frame-src and X-Frame-Options cover it.
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
-        "script-src 'self' https://cdnjs.cloudflare.com; "
-        "style-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; "
-        "img-src 'self' data:; "
-        "font-src 'self' https://cdnjs.cloudflare.com; "
+        "script-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data: blob:; "
+        "font-src 'self' data:; "
         "connect-src 'self'; "
         "frame-src 'self'; "
         "object-src 'none'; "
@@ -40,7 +43,7 @@ async def security_headers(request: Request, call_next):
         "form-action 'self'"
     )
     response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     return response
@@ -384,6 +387,168 @@ def _build_html_gallery(html_content: str, album: "Album") -> str:
     </div>
 </body>
 </html>"""
+
+
+# ============================================================
+# Direct Canvas State → Render/Export (bypasses DSL parser)
+# ============================================================
+
+class CanvasElementState(BaseModel):
+    id: str = ""
+    t: str = "stamp"
+    s: str = "rectangle"
+    x: float = 0
+    y: float = 0
+    w: float = 80
+    h: float = 60
+    lbl: str = ""
+    font: str = "HN"
+    fs: float = 12
+    align: str = "left"
+    bdr: str = "solid"
+    bdrC: str = "#666"
+    bdrW: float = 1
+    fill: str = "#fff"
+    fillA: int = 100
+    img: str = ""
+
+
+class CanvasStateRequest(BaseModel):
+    elements: list[CanvasElementState]
+    pages: list[list[CanvasElementState]] = []
+    page_width_px: float = 595
+    page_height_px: float = 842
+    scale: float = 2.5
+    source_path: str = "album.slbum"
+    format: str = "html"
+    title: str = "My Album"
+    author: str = ""
+
+
+def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
+    """Convert canvas state directly to Album model, bypassing DSL text."""
+    from stamp_album.core.models import (
+        Album, Page, PageSetup, Stamp, StampShape,
+        FormattedText, TextAlignment, Color,
+    )
+
+    SCALE = req.scale
+    w_mm = req.page_width_px / SCALE
+    h_mm = req.page_height_px / SCALE
+
+    shape_map = {
+        "rectangle": StampShape.RECTANGLE,
+        "oval": StampShape.OVAL,
+        "diamond": StampShape.DIAMOND,
+        "triangle": StampShape.TRIANGLE,
+        "hexagon": StampShape.HEXAGON,
+        "octagon": StampShape.OCTAGON,
+        "pentagon": StampShape.PENTAGON,
+    }
+    align_map = {
+        "center": TextAlignment.CENTER,
+        "right": TextAlignment.RIGHT,
+        "left": TextAlignment.LEFT,
+    }
+
+    def build_page(elements: list[CanvasElementState]) -> Page:
+        page = Page()
+        for el in elements:
+            if el.t == "text":
+                page.text_elements.append(FormattedText(
+                    content=el.lbl or "Text",
+                    font_id=el.font or "HN",
+                    size=el.fs or 12,
+                    alignment=align_map.get(el.align, TextAlignment.LEFT),
+                ))
+            else:
+                stamp = Stamp(
+                    abs_x=el.x / SCALE,
+                    abs_y=el.y / SCALE,
+                    width=max(1.0, el.w / SCALE),
+                    height=max(1.0, el.h / SCALE),
+                    description=el.lbl or "",
+                    shape=shape_map.get(el.s, StampShape.RECTANGLE),
+                    image_path=el.img if el.img else None,
+                )
+                page.absolute_stamps.append(stamp)
+        return page
+
+    pages = [build_page(req.elements)]
+    for pg in req.pages:
+        pages.append(build_page(pg))
+
+    album = Album(
+        title=req.title or "My Album",
+        author=req.author or "",
+        source_path=req.source_path or "album.slbum",
+        page_setup=PageSetup(width=w_mm, height=h_mm),
+        pages=pages,
+    )
+    album.color_stamp_border = Color(r=0.5, g=0.5, b=0.5)
+    album.color_stamp_background = Color(r=1.0, g=1.0, b=1.0)
+    return album
+
+
+@app.post("/render-from-state", response_class=HTMLResponse)
+async def render_from_state(req: CanvasStateRequest):
+    """Render canvas state directly to HTML preview (bypasses DSL)."""
+    try:
+        album = _canvas_state_to_album(req)
+        renderer = HTMLRenderer(album, None)
+        html = renderer.render()
+        import re
+        html = re.sub(
+            r'src="([^\"/"][^"]*\.(?:png|jpg|jpeg|gif|bmp|tiff|tif|webp))"',
+            r'src="/images/\1"',
+            html,
+        )
+        return html
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Render error: {e}")
+
+
+@app.post("/export-from-state")
+async def export_from_state(req: CanvasStateRequest):
+    """Export canvas state directly to PDF (bypasses DSL)."""
+    from starlette.background import BackgroundTask
+
+    fmt = req.format.lower()
+    if fmt not in ("pdf", "html"):
+        raise HTTPException(status_code=400, detail=f"Unsupported format: {fmt}")
+
+    def _cleanup(path: str):
+        try:
+            os.unlink(path)
+        except OSError:
+            pass
+
+    try:
+        album = _canvas_state_to_album(req)
+        generator = PDFGenerator()
+
+        if fmt == "pdf":
+            import tempfile
+            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+                pdf_path = tmp.name
+                generator.generate(album, pdf_path, base_url="http://localhost:8080")
+            filename = req.source_path.replace(".slbum", ".pdf").replace(".txt", ".pdf") or "album.pdf"
+            return FileResponse(
+                pdf_path, media_type="application/pdf", filename=filename,
+                background=BackgroundTask(_cleanup, pdf_path),
+            )
+        else:
+            html = generator.get_html_preview(album)
+            import re
+            html = re.sub(
+                r'src="([^\"/"][^"]*\.(?:png|jpg|jpeg|gif|bmp|tiff|tif|webp))"',
+                r'src="/images/\1"',
+                html,
+            )
+            return HTMLResponse(html)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Export error: {e}")
 
 
 # ============================================================

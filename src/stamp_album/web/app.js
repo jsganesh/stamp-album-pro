@@ -249,6 +249,7 @@ function init() {
         _dragEl.h = Math.min(oh, _ph - _dragEl.y);
         render();
         updateProps();
+        if (h === "move") drawAlignmentGuides(_dragEl);
     });
 
     document.addEventListener("mouseup", function() {
@@ -256,6 +257,7 @@ function init() {
         _drg = false;
         _dragEl = null;
         _dragH = null;
+        clearAlignmentGuides();
     });
 
     // ── Props Panel ──
@@ -494,6 +496,13 @@ function init() {
 
     // ── Load templates ──
     loadTemplateList();
+    // Auto-load template on selection change
+    $("wiz-template").addEventListener("change", function() {
+        var val = this.value;
+        if (val && val !== "blank") {
+            $("btn-wiz-template").click();
+        }
+    });
 
     // ── Wizard Apply ──
     $("btn-wiz-apply").addEventListener("click", applyWizard);
@@ -518,6 +527,85 @@ function init() {
 
     // ── New file button ──
     $("btn-new-file").addEventListener("click", newAlbum);
+
+    // ── Touch / Pointer support for iPad ──
+    // Palette drag via touch (iPad Safari lacks HTML DnD)
+    document.querySelectorAll(".p-item[draggable]").forEach(function(it) {
+        it.addEventListener("touchstart", function(e) {
+            var touch = e.touches[0];
+            _ds = { t: it.dataset.t, s: it.dataset.s || "rectangle", st: it.dataset.st || "",
+                w: parseFloat(it.dataset.w) || 80, h: parseFloat(it.dataset.h) || 60,
+                font: "HN", fs: 12, tx: touch.clientX, ty: touch.clientY };
+            e.preventDefault();
+        }, { passive: false });
+    });
+    document.addEventListener("touchmove", function(e) {
+        if (!_ds || !_ds.t) return;
+        e.preventDefault();
+    }, { passive: false });
+    document.addEventListener("touchend", function(e) {
+        if (!_ds || !_ds.t) return;
+        var touch = e.changedTouches[0];
+        var pg = $("page");
+        if (pg) {
+            var r = pg.getBoundingClientRect();
+            var cx = touch.clientX, cy = touch.clientY;
+            if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+                var x = Math.max(0, Math.min(Math.round((cx - r.left) / _sn) * _sn, _pw - 40));
+                var y = Math.max(0, Math.min(Math.round((cy - r.top) / _sn) * _sn, _ph - 30));
+                var d = _ds;
+                var w = d.w || 80, h = d.h || 60;
+                if (d.t === "text") { w = 120; h = d.st === "heading" ? 24 : d.st === "desc" ? 16 : 18; }
+                if (d.t === "freehand") { w = 100; h = 80; }
+                add({ t: d.t || "stamp", s: d.s || "rectangle", x: x, y: y, w: w, h: h,
+                    lbl: d.t === "text" ? (d.st === "heading" ? "Heading" : d.st === "desc" ? "Description" : "Label") : "",
+                    font: d.font || "HN", fs: d.st === "heading" ? 16 : d.st === "desc" ? 10 : 12,
+                    bdr: _defBdr, bdrC: _defBdrC, bdrW: 1, fill: _defFillC, fillA: 100, img: "" });
+            }
+        }
+        _ds = {};
+    });
+    // Canvas element touch drag (iPad)
+    document.addEventListener("touchstart", function(e) {
+        var el = e.target.closest(".cel");
+        if (!el) return;
+        var obj = E.find(function(x) { return x.id === el.dataset.id; });
+        if (!obj) return;
+        var touch = e.touches[0];
+        _dragH = e.target.classList.contains("rh") ? e.target.dataset.h : "move";
+        select(obj.id);
+        _drg = true;
+        _dragEl = obj;
+        _ds = { x: touch.clientX, y: touch.clientY, ox: obj.x, oy: obj.y, ow: obj.w, oh: obj.h };
+    }, { passive: true });
+    document.addEventListener("touchmove", function(e) {
+        if (!_drg || !_dragEl) return;
+        var touch = e.touches[0];
+        var dx = Math.round((touch.clientX - _ds.x) / _sn) * _sn;
+        var dy = Math.round((touch.clientY - _ds.y) / _sn) * _sn;
+        var h = _dragH, x = _ds.ox, y = _ds.oy, w = _ds.ow, oh = _ds.oh;
+        if (h === "move") { x += dx; y += dy; } else {
+            if (h.indexOf("w") >= 0) { x += dx; w -= dx; }
+            if (h.indexOf("e") >= 0) { w += dx; }
+            if (h.indexOf("n") >= 0) { y += dy; oh -= dy; }
+            if (h.indexOf("s") >= 0) { oh += dy; }
+            if (w < 10) w = 10;
+            if (oh < 10) oh = 10;
+        }
+        _dragEl.x = Math.max(0, Math.min(x, _pw - _dragEl.w));
+        _dragEl.y = Math.max(0, Math.min(y, _ph - _dragEl.h));
+        _dragEl.w = Math.min(w, _pw - _dragEl.x);
+        _dragEl.h = Math.min(oh, _ph - _dragEl.y);
+        render();
+        updateProps();
+        e.preventDefault();
+    }, { passive: false });
+    document.addEventListener("touchend", function() {
+        if (_drg && _dragEl) { pushUndo(); }
+        _drg = false;
+        _dragEl = null;
+        _dragH = null;
+    });
 
     // ── Before unload ──
     window.addEventListener("beforeunload", function(e) {
@@ -563,6 +651,69 @@ function populateFonts() {
         styles.appendChild(o);
     });
     pfnt.appendChild(styles);
+}
+
+// ── Alignment guide lines ──
+var _guideLines = [];
+var GUIDE_THRESHOLD = 5;
+
+function drawAlignmentGuides(el) {
+    clearAlignmentGuides();
+    if (!el) return;
+    var guides = [];
+    var edges = [
+        { pos: el.x, type: "v" },                          // left
+        { pos: el.x + el.w, type: "v" },                   // right
+        { pos: el.x + el.w / 2, type: "v" },               // h-center
+        { pos: el.y, type: "h" },                          // top
+        { pos: el.y + el.h, type: "h" },                   // bottom
+        { pos: el.y + el.h / 2, type: "h" },               // v-center
+    ];
+    E.forEach(function(other) {
+        if (other.id === el.id) return;
+        var oEdges = [
+            { pos: other.x, type: "v" },
+            { pos: other.x + other.w, type: "v" },
+            { pos: other.x + other.w / 2, type: "v" },
+            { pos: other.y, type: "h" },
+            { pos: other.y + other.h, type: "h" },
+            { pos: other.y + other.h / 2, type: "h" },
+        ];
+        edges.forEach(function(e) {
+            oEdges.forEach(function(oe) {
+                if (e.type !== oe.type) return;
+                if (Math.abs(e.pos - oe.pos) > GUIDE_THRESHOLD) return;
+                guides.push({ pos: oe.pos, dir: e.type === "v" ? "v" : "h",
+                    spanStart: Math.min(e.type === "v" ? el.y : el.x, oe.type === "v" ? other.y : other.x),
+                    spanEnd: Math.max(e.type === "v" ? el.y + el.h : el.x + el.w, oe.type === "v" ? other.y + other.h : other.x + other.w) });
+            });
+        });
+    });
+    var pg = $("page");
+    if (!pg) return;
+    guides.forEach(function(g) {
+        // Extend span across the page for clarity
+        var line = document.createElement("div");
+        line.className = "guide-line";
+        if (g.dir === "v") {
+            line.style.left = g.pos + "px";
+            line.style.top = "0px";
+            line.style.width = "1px";
+            line.style.height = "100%";
+        } else {
+            line.style.left = "0px";
+            line.style.top = g.pos + "px";
+            line.style.width = "100%";
+            line.style.height = "1px";
+        }
+        pg.appendChild(line);
+        _guideLines.push(line);
+    });
+}
+
+function clearAlignmentGuides() {
+    _guideLines.forEach(function(l) { if (l.parentNode) l.parentNode.removeChild(l); });
+    _guideLines = [];
 }
 
 // ── Add element ──
@@ -886,18 +1037,39 @@ function loadImageList() {
         });
 }
 
-// ── Preview ──
+// ── Build canvas state for direct render/export ──
+function buildCanvasState(format) {
+    var allPages = _pages.slice();
+    allPages[_currentPage] = JSON.parse(JSON.stringify(E));
+    var firstPage = allPages.length > 0 ? allPages[0] : [];
+    var restPages = allPages.slice(1);
+    while (restPages.length > 0 && restPages[restPages.length - 1].length === 0) {
+        restPages.pop();
+    }
+    return {
+        elements: firstPage,
+        pages: restPages,
+        page_width_px: _pw, page_height_px: _ph,
+        scale: _sc,
+        source_path: _currentFile || "album.slbum",
+        format: format || "html",
+        title: (_currentFile || "My Album").replace(/\.(slbum|txt)$/, ""),
+        author: ""
+    };
+}
+
+// ── Preview (direct — no DSL parser) ──
 function openPreview() {
     var overlay = $("preview-overlay");
     var frame = $("preview-frame");
     if (!overlay || !frame) return;
     overlay.classList.add("open");
     showToast("Generating preview...", "info");
-    var dsl = buildDSL();
-    fetch("/render", {
+    var state = buildCanvasState("html");
+    fetch("/render-from-state", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dsl: dsl, source_path: _currentFile || "album.slbum" })
+        body: JSON.stringify(state)
     })
     .then(function(r) {
         if (!r.ok) throw new Error("Render failed (" + r.status + ")");
@@ -907,7 +1079,6 @@ function openPreview() {
         frame.contentDocument.open();
         frame.contentDocument.write(html);
         frame.contentDocument.close();
-        // Adjust iframe size to match page
         var body = frame.contentDocument.body;
         if (body) {
             var firstPage = body.querySelector(".page");
@@ -923,15 +1094,15 @@ function openPreview() {
     });
 }
 
-// ── Export PDF ──
+// ── Export PDF (direct — no DSL parser) ──
 function exportPDF() {
-    var dsl = buildDSL();
     showToast("Generating PDF...", "info");
     var filename = _currentFile ? _currentFile.replace(/\.(slbum|txt)$/, ".pdf") : "album.pdf";
-    fetch("/export", {
+    var state = buildCanvasState("pdf");
+    fetch("/export-from-state", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dsl: dsl, format: "pdf", source_path: _currentFile || "album.slbum" })
+        body: JSON.stringify(state)
     })
     .then(function(r) {
         if (!r.ok) throw new Error("Export failed (" + r.status + ")");
@@ -942,7 +1113,7 @@ function exportPDF() {
         a.href = URL.createObjectURL(b);
         a.download = filename;
         a.click();
-        URL.revokeObjectURL(a.href);
+        setTimeout(function() { URL.revokeObjectURL(a.href); }, 100);
         showToast("PDF exported: " + filename, "success");
     })
     .catch(function(err) { showToast("Export failed: " + err, "error"); });
@@ -1020,14 +1191,14 @@ function buildDSL() {
     ];
     E.forEach(function(el) {
         if (el.t === "image") {
-            lines.push('STAMP_ADD_IMG(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + (el.img || "") + '" "' + (el.lbl || "") + '" "" "")');
+            lines.push('STAMP_ADD_IMG(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.img || "") + '" "' + (el.lbl || "") + '" "" "")');
         } else if (el.t === "text") {
             var cmd = el.align === "center" ? "PAGE_TEXT_CENTRE" : el.align === "right" ? "PAGE_TEXT_RIGHT" : "PAGE_TEXT";
             lines.push(cmd + '("' + (el.font || "HN") + '" ' + (el.fs || 12) + ' "' + (el.lbl || "Text") + '")');
         } else if (el.t === "freehand") {
-            lines.push('STAMP_ADD_AT(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + (el.lbl || "") + '" "freehand" "' + el.bdr + '" "' + el.fill + '")');
+            lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "freehand" "' + el.bdr + '" "' + el.fill + '")');
         } else {
-            lines.push('STAMP_ADD_AT(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + (el.lbl || "") + '" "' + el.s + '" "' + el.bdr + '" "' + el.fill + '")');
+            lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "' + el.s + '" "' + el.bdr + '" "' + el.fill + '")');
         }
     });
     // Add page management DSL
@@ -1037,14 +1208,14 @@ function buildDSL() {
             lines.push("PAGE_START");
             pgEls.forEach(function(el) {
                 if (el.t === "image") {
-                    lines.push('STAMP_ADD_IMG(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + (el.img || "") + '" "' + (el.lbl || "") + '" "" "")');
+                    lines.push('STAMP_ADD_IMG(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.img || "") + '" "' + (el.lbl || "") + '" "" "")');
                 } else if (el.t === "text") {
                     var cmd = el.align === "center" ? "PAGE_TEXT_CENTRE" : el.align === "right" ? "PAGE_TEXT_RIGHT" : "PAGE_TEXT";
                     lines.push(cmd + '("' + (el.font || "HN") + '" ' + (el.fs || 12) + ' "' + (el.lbl || "Text") + '")');
                 } else if (el.t === "freehand") {
-                    lines.push('STAMP_ADD_AT(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + (el.lbl || "") + '" "freehand" "' + el.bdr + '" "' + el.fill + '")');
+                    lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "freehand" "' + el.bdr + '" "' + el.fill + '")');
                 } else {
-                    lines.push('STAMP_ADD_AT(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + (el.lbl || "") + '" "' + el.s + '" "' + el.bdr + '" "' + el.fill + '")');
+                    lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "' + el.s + '" "' + el.bdr + '" "' + el.fill + '")');
                 }
             });
         }
@@ -1081,7 +1252,7 @@ function parseDSL(dsl) {
         var m = t.match(/^(STAMP_ADD_AT|STAMP_ADD_IMG)\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"([^"]*)"\s+"([^"]*)"/);
         if (m) {
             var isImg = m[1] === "STAMP_ADD_IMG";
-            E.push({ id: "el" + (nid++), t: isImg ? "image" : "stamp", s: m[7] || "rectangle", x: parseFloat(m[2]), y: parseFloat(m[3]), w: parseFloat(m[4]), h: parseFloat(m[5]), lbl: m[6] || "", bdr: "solid", bdrC: "#666", bdrW: 1, fill: "#fff", fillA: 100, img: isImg ? m[6] : "", font: "HN", fs: 12 });
+            E.push({ id: "el" + (nid++), t: isImg ? "image" : "stamp", s: m[7] || "rectangle", x: px(parseFloat(m[2])), y: px(parseFloat(m[3])), w: px(parseFloat(m[4])), h: px(parseFloat(m[5])), lbl: m[6] || "", bdr: "solid", bdrC: "#666", bdrW: 1, fill: "#fff", fillA: 100, img: isImg ? m[6] : "", font: "HN", fs: 12 });
             continue;
         }
         var m2 = t.match(/^(PAGE_TEXT|PAGE_TEXT_CENTRE|PAGE_TEXT_CENTER|PAGE_TEXT_RIGHT)\(\s*"([^"]*)"\s+(\d+)\s+"([^"]*)"\)/);
