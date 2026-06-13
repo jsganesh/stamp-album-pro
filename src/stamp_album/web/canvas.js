@@ -85,7 +85,12 @@ function onCanvasKey(e){if(!_active)return;var s=getSelected();if(!s)return;if(e
 function syncToDSL() {
     var ed = window.editor; if (!ed) return;
     var lines = ed.getValue().split("\n"), out = [];
-    for (var i=0;i<lines.length;i++){var t=lines[i].trim();if(!t.startsWith("STAMP_ADD_AT(")&&!t.startsWith("PAGE_TEXT_AT(")&&!t.startsWith("ROW_START_AT("))out.push(lines[i]);}
+    for (var i=0;i<lines.length;i++){
+        var t=lines[i].trim();
+        // Remove ALL layout commands (old row-based and canvas absolute)
+        if(t.startsWith("ROW_START")||t.startsWith("STAMP_ADD")||t.startsWith("PAGE_TEXT")||t==="ROW_SPACE") continue;
+        out.push(lines[i]);
+    }
     var ins=out.length;
     for(var j=out.length-1;j>=0;j--){var lt=out[j].trim();if(lt==="PAGE_START"||lt.startsWith("ROW_START")||lt.startsWith("STAMP_ADD")||lt.startsWith("PAGE_TEXT")){ins=j+1;break;}}
     _stamps.forEach(function(s){
