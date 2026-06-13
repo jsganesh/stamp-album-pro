@@ -81,11 +81,31 @@ def main() -> int:
 
     host = os.environ.get("STAMP_ALBUM_HOST", "127.0.0.1")
     preferred = int(os.environ.get("STAMP_ALBUM_PORT", "8080"))
+
+    # Kill any existing server on the preferred port first
+    if not _port_is_free(host, preferred):
+        import subprocess
+        try:
+            subprocess.run(["lsof", "-ti", f":{preferred}"], capture_output=True, text=True)
+            result = subprocess.run(
+                ["lsof", "-ti", f":{preferred}"], capture_output=True, text=True
+            )
+            if result.stdout.strip():
+                pid = result.stdout.strip().split("\n")[0]
+                os.kill(int(pid), 9)
+                time.sleep(0.3)
+        except Exception:
+            pass
+
     port = _pick_port(host, preferred)
     url = f"http://{host}:{port}"
 
-    print(f"StampAlbum Pro is running at {url}")
-    print("Opening in your browser… (press Ctrl+C to stop)")
+    print(f"")
+    print(f"  ╔══════════════════════════════════╗")
+    print(f"  ║  StampAlbum Pro                  ║")
+    print(f"  ║  {url}  ║")
+    print(f"  ╚══════════════════════════════════╝")
+    print(f"")
 
     # Open the browser once the server is ready (background thread)
     opener = threading.Thread(target=_wait_and_open, args=(url + "/",), daemon=True)
