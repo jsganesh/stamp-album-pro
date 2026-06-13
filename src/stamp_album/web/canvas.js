@@ -87,6 +87,7 @@ function addElement(params) {
     _stamps.push(s);
     selectStamp(s.id);
     syncToDSL();
+    trySyncWhenReady();
 }
 
 function buildStampDOM(s) {
@@ -181,10 +182,10 @@ function onCanvasMouseMove(e) {
 
 function onCanvasMouseUp(e) { _drag = null; }
 function onCanvasKey(e) { if (!_active) return; var s = getSelected(); if (!s) return; if (e.key === "Delete" || e.key === "Backspace") removeStamp(s.id); if (e.key === "Escape") selectStamp(null); }
-
 function syncToDSL() {
-    if (!window.editor) return;
-    var lines = window.editor.getValue().split("\n"), out = [];
+    var ed = window.editor;
+    if (!ed) return;
+    var lines = ed.getValue().split("\n"), out = [];
     for (var i = 0; i < lines.length; i++) { var t = lines[i].trim(); if (!t.startsWith("STAMP_ADD_AT(") && !t.startsWith("PAGE_TEXT_AT(") && !t.startsWith("ROW_START_AT(")) out.push(lines[i]); }
     var ins = out.length;
     for (var j = out.length - 1; j >= 0; j--) { var lt = out[j].trim(); if (lt === "PAGE_START" || lt.startsWith("ROW_START") || lt.startsWith("STAMP_ADD") || lt.startsWith("PAGE_TEXT")) { ins = j + 1; break; } }
@@ -198,8 +199,17 @@ function syncToDSL() {
             out.splice(ins++, 0, "STAMP_ADD_AT(" + s.x.toFixed(1) + " " + s.y.toFixed(1) + " " + s.w.toFixed(1) + " " + s.h.toFixed(1) + " \"" + (s.description || "") + "\" \"\" \"\"\")");
         }
     });
-    window.editor.setValue(out.join("\n"));
+    ed.setValue(out.join("\n"));
     if (typeof schedulePreview === "function") schedulePreview();
+}
+
+// Retry sync when editor becomes available
+function trySyncWhenReady() {
+    if (window.editor && _stamps.length > 0) {
+        syncToDSL();
+    } else if (_stamps.length > 0) {
+        setTimeout(trySyncWhenReady, 200);
+    }
 }
 
 function syncFromDSL() {

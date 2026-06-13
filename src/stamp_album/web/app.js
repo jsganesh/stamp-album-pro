@@ -89,6 +89,17 @@ function initEditor() {
 
 // Insert a build-item (text / stamp / row) into the DSL from a drop payload.
 function insertBuildItem(data) {
+    // If layout mode is active, add to the canvas instead of creating row-based DSL
+    if (document.body.classList.contains("layout-mode")) {
+        if (data.type === "text" && typeof window.addTextToCanvas === "function") {
+            window.addTextToCanvas(10 + Math.random() * 50, 10 + Math.random() * 50, data.align || "left");
+        } else if (data.type === "row" && typeof window.addRowToCanvas === "function") {
+            window.addRowToCanvas(10 + Math.random() * 50, 10 + Math.random() * 50, data.style || "FS");
+        } else if (typeof window.addStampToCanvas === "function") {
+            window.addStampToCanvas(data.shape || "rectangle", data.width || 40, data.height || 30, 10 + Math.random() * 50, 10 + Math.random() * 50, "");
+        }
+        return;
+    }
     if (data.type === "text") {
         insertTextElement(data.align);
     } else if (data.type === "stamp") {
