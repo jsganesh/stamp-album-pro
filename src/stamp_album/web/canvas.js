@@ -89,7 +89,7 @@ function syncToDSL() {
     var ins=out.length;
     for(var j=out.length-1;j>=0;j--){var lt=out[j].trim();if(lt==="PAGE_START"||lt.startsWith("ROW_START")||lt.startsWith("STAMP_ADD")||lt.startsWith("PAGE_TEXT")){ins=j+1;break;}}
     _stamps.forEach(function(s){
-        if(s.type==="text"){var a=s.align==="center"?"_CENTRE":s.align==="right"?"_RIGHT":"";out.splice(ins++,0,"PAGE_TEXT_AT("+s.x.toFixed(1)+" "+s.y.toFixed(1)+" \"HN\" 12 \""+(s.description||"Text")+"\""+a+")");}
+        if(s.type==="text"){var cmd=s.align==="center"?"PAGE_TEXT_CENTRE":s.align==="right"?"PAGE_TEXT_RIGHT":"PAGE_TEXT";out.splice(ins++,0,cmd+"(\"HN\" 12 \""+(s.description||"Text")+"\")");}
         else if(s.type==="row"){out.splice(ins++,0,"ROW_START_AT("+s.x.toFixed(1)+" "+s.y.toFixed(1)+" \""+(s.style||"FS")+"\" \"HN\" 10 5 180)");}
         else{out.splice(ins++,0,"STAMP_ADD_AT("+s.x.toFixed(1)+" "+s.y.toFixed(1)+" "+s.w.toFixed(1)+" "+s.h.toFixed(1)+" \""+(s.description||"")+"\" \"\" \"\"\")");}
     });
@@ -105,8 +105,8 @@ function syncFromDSL() {
         var t=lines[i].trim();
         var m=t.match(/^STAMP_ADD_AT\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"([^"]*)"/);
         if(m){addElement({type:"stamp",shape:"rectangle",x:parseFloat(m[1]),y:parseFloat(m[2]),w:parseFloat(m[3]),h:parseFloat(m[4]),description:m[5]||""});continue;}
-        var m2=t.match(/^PAGE_TEXT_AT\(\s*([\d.]+)\s+([\d.]+)\s+"HN"\s+(\d+)\s+"([^"]*)"(\w*)/);
-        if(m2){addElement({type:"text",shape:"text",x:parseFloat(m2[1]),y:parseFloat(m2[2]),w:60,h:10,description:m2[4]||"Text",align:m2[5]?m2[5].replace("_CENTRE","center").replace("_RIGHT","right"):"left"});continue;}
+        var m2=t.match(/^(PAGE_TEXT|PAGE_TEXT_CENTRE|PAGE_TEXT_CENTER|PAGE_TEXT_RIGHT)\(\s*"HN"\s+(\d+)\s+"([^"]*)"/);
+        if(m2){var align=m2[1]==="PAGE_TEXT_CENTRE"?"center":m2[1]==="PAGE_TEXT_RIGHT"?"right":"left";addElement({type:"text",shape:"text",x:parseFloat(m2[2]),y:0,w:60,h:10,description:m2[3]||"Text",align:align});continue;}
         var m3=t.match(/^ROW_START_AT\(\s*([\d.]+)\s+([\d.]+)\s+"(\w+)"/);
         if(m3){addElement({type:"row",shape:"row",x:parseFloat(m3[1]),y:parseFloat(m3[2]),w:180,h:30,description:"Row",style:m3[3]});}
     }
@@ -122,6 +122,11 @@ var _toggleHandler = function(e) {
         _canvasEl.style.pointerEvents = "auto";
         var f = document.getElementById("preview-frame");
         if (f) f.style.pointerEvents = "none";
+        // Clear the default template and start fresh for free-form layout
+        if (window.editor) {
+            window.editor.setValue("PAGE_START");
+        }
+        _stamps = [];
         if (typeof showToast === "function") showToast("Layout mode ON — click or drag stamps", "info");
     } else {
         document.body.classList.remove("layout-mode");
