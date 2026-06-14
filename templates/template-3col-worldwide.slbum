@@ -1,0 +1,53 @@
+ALBUM_TITLE ("Three-Column Layout: Worldwide Issues")
+ALBUM_AUTHOR ("Collector")
+
+ALBUM_PAGES_SIZE (210.0 297.0)
+ALBUM_PAGES_MARGINS (15.0 15.0 15.0 15.0)
+ALBUM_PAGES_BORDER (0.1 0.5 0.1 1.0)
+
+PAGE_START
+
+PAGE_TEXT_CENTRE (HB 14 "Recent Worldwide Stamps")
+
+PAGE_COLUMN_START (3 8.0)
+
+PAGE_TEXT (HB 11 "Column 1: Americas")
+ROW_START_FS (HN 8 1.0 35.0)
+STAMP_ADD (28.0 33.0 "USA" "US-1" "" "")
+STAMP_ADD (28.0 33.0 "Canada" "CA-1" "" "")
+ROW_END
+
+ROW_START_FS (HN 8 1.0 35.0)
+STAMP_ADD (28.0 33.0 "Mexico" "MX-1" "" "")
+STAMP_ADD (28.0 33.0 "Brazil" "BR-1" "" "")
+ROW_END
+
+PAGE_COLUMN_NEXT
+
+PAGE_TEXT (HB 11 "Column 2: Europe")
+ROW_START_FS (HN 8 1.0 35.0)
+STAMP_ADD (28.0 33.0 "UK" "GB-1" "" "")
+STAMP_ADD (28.0 33.0 "France" "FR-1" "" "")
+ROW_END
+
+ROW_START_FS (HN 8 1.0 35.0)
+STAMP_ADD (28.0 33.0 "Germany" "DE-1" "" "")
+STAMP_ADD (28.0 33.0 "Spain" "ES-1" "" "")
+ROW_END
+
+PAGE_COLUMN_NEXT
+
+PAGE_TEXT (HB 11 "Column 3: Asia-Pacific")
+ROW_START_FS (HN 8 1.0 35.0)
+STAMP_ADD (28.0 33.0 "Japan" "JP-1" "" "")
+STAMP_ADD (28.0 33.0 "China" "CN-1" "" "")
+ROW_END
+
+ROW_START_FS (HN 8 1.0 35.0)
+STAMP_ADD (28.0 33.0 "Australia" "AU-1" "" "")
+STAMP_ADD (28.0 33.0 "India" "IN-1" "" "")
+ROW_END
+
+PAGE_COLUMN_STOP
+
+PAGE_END

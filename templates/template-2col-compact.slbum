@@ -1,0 +1,55 @@
+ALBUM_TITLE ("Compact Two-Column: Compact Gap")
+ALBUM_AUTHOR ("Collector")
+
+ALBUM_PAGES_SIZE (210.0 297.0)
+ALBUM_PAGES_MARGINS (15.0 12.0 12.0 12.0)
+
+PAGE_START
+
+PAGE_TEXT_CENTRE (HB 14 "Dense Layout (5mm gap)")
+
+PAGE_COLUMN_START (2 5.0)
+
+PAGE_TEXT (HB 11 "Left Column")
+ROW_START_ES (HN 8 0.5 50.0)
+STAMP_ADD (28.0 33.0 "1" "1" "" "")
+STAMP_ADD (28.0 33.0 "2" "2" "" "")
+STAMP_ADD (28.0 33.0 "3" "3" "" "")
+ROW_END
+
+ROW_START_ES (HN 8 0.5 50.0)
+STAMP_ADD (28.0 33.0 "4" "4" "" "")
+STAMP_ADD (28.0 33.0 "5" "5" "" "")
+STAMP_ADD (28.0 33.0 "6" "6" "" "")
+ROW_END
+
+ROW_START_ES (HN 8 0.5 50.0)
+STAMP_ADD (28.0 33.0 "7" "7" "" "")
+STAMP_ADD (28.0 33.0 "8" "8" "" "")
+STAMP_ADD (28.0 33.0 "9" "9" "" "")
+ROW_END
+
+PAGE_COLUMN_NEXT
+
+PAGE_TEXT (HB 11 "Right Column")
+ROW_START_ES (HN 8 0.5 50.0)
+STAMP_ADD (28.0 33.0 "10" "10" "" "")
+STAMP_ADD (28.0 33.0 "11" "11" "" "")
+STAMP_ADD (28.0 33.0 "12" "12" "" "")
+ROW_END
+
+ROW_START_ES (HN 8 0.5 50.0)
+STAMP_ADD (28.0 33.0 "13" "13" "" "")
+STAMP_ADD (28.0 33.0 "14" "14" "" "")
+STAMP_ADD (28.0 33.0 "15" "15" "" "")
+ROW_END
+
+ROW_START_ES (HN 8 0.5 50.0)
+STAMP_ADD (28.0 33.0 "16" "16" "" "")
+STAMP_ADD (28.0 33.0 "17" "17" "" "")
+STAMP_ADD (28.0 33.0 "18" "18" "" "")
+ROW_END
+
+PAGE_COLUMN_STOP
+
+PAGE_END

@@ -6,6 +6,7 @@ var _defBdr = "solid", _defBdrC = "#666", _defFillC = "#fff";
 var _collapsed = { sb: false, rp: false };
 var _currentFile = null, _currentPage = 0, _pages = [ [] ];
 var _dirty = false;
+var _colMode = 1, _colGap = 10.0;  // Column layout mode and gap (mm)
 
 // ── Undo/redo system ──
 var _undoStack = [], _redoStack = [], _undoMax = 50, _undoPaused = false;
@@ -441,6 +442,16 @@ function init() {
     $("grid").addEventListener("change", function() {
         _sn = parseInt(this.value) || 0;
         updateGrid();
+    });
+
+    // ── Column layout ──
+    $("col-mode").addEventListener("change", function() {
+        _colMode = parseInt(this.value) || 1;
+        render();
+    });
+    $("col-gap").addEventListener("change", function() {
+        _colGap = parseFloat(this.value) || 10.0;
+        render();
     });
 
     // ── Default colors ──
@@ -919,6 +930,27 @@ function render() {
 
         pg.appendChild(d);
     });
+
+    // Draw column guides if columns are enabled
+    if (_colMode > 1) {
+        var pageWidth = _pw - 30 * _sc; // Content width (approx)
+        var pageMargin = 20 * _sc; // Page margin
+        var colWidth = (pageWidth - (_colMode - 1) * _colGap * _sc) / _colMode;
+
+        for (var i = 1; i < _colMode; i++) {
+            var guide = document.createElement("div");
+            guide.className = "col-guide";
+            guide.style.position = "absolute";
+            guide.style.left = (pageMargin + i * (colWidth + _colGap * _sc)) + "px";
+            guide.style.top = "0";
+            guide.style.width = "1px";
+            guide.style.height = _ph + "px";
+            guide.style.backgroundColor = "rgba(100, 150, 255, 0.3)";
+            guide.style.pointerEvents = "none";
+            guide.style.zIndex = "1";
+            pg.appendChild(guide);
+        }
+    }
 }
 
 // ── New album ──
@@ -1222,6 +1254,12 @@ function buildDSL() {
         "ALBUM_PAGES_MARGINS(15 15 15 15)",
         "PAGE_START"
     ];
+
+    // Add column start if columns enabled
+    if (_colMode > 1) {
+        lines.push("PAGE_COLUMN_START(" + _colMode + " " + _colGap.toFixed(1) + ")");
+    }
+
     E.forEach(function(el) {
         if (el.t === "image") {
             lines.push('STAMP_ADD_IMG(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.img || "") + '" "' + (el.lbl || "") + '" "" "")');
@@ -1234,11 +1272,23 @@ function buildDSL() {
             lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "' + el.s + '" "' + el.bdr + '" "' + el.fill + '")');
         }
     });
+
+    // Add column stop if columns were enabled
+    if (_colMode > 1) {
+        lines.push("PAGE_COLUMN_STOP");
+    }
+
     // Add page management DSL
     for (var i = 1; i < _pages.length; i++) {
         var pgEls = _pages[i];
         if (pgEls && pgEls.length > 0) {
             lines.push("PAGE_START");
+
+            // Add column start for additional pages
+            if (_colMode > 1) {
+                lines.push("PAGE_COLUMN_START(" + _colMode + " " + _colGap.toFixed(1) + ")");
+            }
+
             pgEls.forEach(function(el) {
                 if (el.t === "image") {
                     lines.push('STAMP_ADD_IMG(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.img || "") + '" "' + (el.lbl || "") + '" "" "")');
@@ -1251,6 +1301,11 @@ function buildDSL() {
                     lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "' + el.s + '" "' + el.bdr + '" "' + el.fill + '")');
                 }
             });
+
+            // Add column stop for additional pages
+            if (_colMode > 1) {
+                lines.push("PAGE_COLUMN_STOP");
+            }
         }
     }
     return lines.join("\n");
@@ -1288,6 +1343,27 @@ function parseDSL(dsl) {
             _currentPage = _pages.length - 1;
             _rowX = _pageMargin;
             _rowY = 12;
+            continue;
+        }
+        // PAGE_COLUMN_START — set column mode
+        var mColStart = t.match(/^PAGE_COLUMN_START\(\s*(\d+)(?:\s+([\d.]+))?\)/);
+        if (mColStart) {
+            _colMode = parseInt(mColStart[1]) || 1;
+            _colGap = mColStart[2] ? parseFloat(mColStart[2]) : 10.0;
+            $("col-mode").value = _colMode;
+            $("col-gap").value = _colGap;
+            continue;
+        }
+        // PAGE_COLUMN_NEXT — column break marker (no-op in visual builder)
+        if (t.match(/^PAGE_COLUMN_NEXT/)) {
+            continue;
+        }
+        // PAGE_COLUMN_STOP — reset to single column
+        if (t.match(/^PAGE_COLUMN_STOP/)) {
+            _colMode = 1;
+            _colGap = 10.0;
+            $("col-mode").value = 1;
+            $("col-gap").value = 10.0;
             continue;
         }
         // PAGE_VSPACE — vertical spacing in row layout

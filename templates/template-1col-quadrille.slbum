@@ -1,0 +1,46 @@
+ALBUM_TITLE ("Single Column with Grid: Quadrille Background")
+ALBUM_AUTHOR ("Collector")
+
+ALBUM_PAGES_SIZE (210.0 297.0)
+ALBUM_PAGES_MARGINS (20.0 15.0 15.0 15.0)
+
+PAGE_START
+
+PAGE_TEXT_CENTRE (HB 16 "Collection on Graph Paper")
+
+PAGE_QUADRILLE (5.0 5.0 10.0 "#e0e0e0" "#f5f5f5" "#ffffff")
+
+PAGE_VSPACE (10.0)
+
+PAGE_TEXT (HB 12 "Regular Issues (1950-1960)")
+
+ROW_START_FS (HN 8 2.0 45.0)
+STAMP_ADD (32.0 37.0 "Issue 1" "1950-1" "" "")
+STAMP_ADD (32.0 37.0 "Issue 2" "1950-2" "" "")
+ROW_END
+
+ROW_START_FS (HN 8 2.0 45.0)
+STAMP_ADD (32.0 37.0 "Issue 3" "1951-1" "" "")
+STAMP_ADD (32.0 37.0 "Issue 4" "1951-2" "" "")
+ROW_END
+
+ROW_START_FS (HN 8 2.0 45.0)
+STAMP_ADD (32.0 37.0 "Issue 5" "1952-1" "" "")
+STAMP_ADD (32.0 37.0 "Issue 6" "1952-2" "" "")
+ROW_END
+
+PAGE_VSPACE (15.0)
+
+PAGE_TEXT (HB 12 "Commemoratives (1960-1970)")
+
+ROW_START_FS (HN 8 2.0 45.0)
+STAMP_ADD (32.0 37.0 "Comm 1" "1960-C1" "" "")
+STAMP_ADD (32.0 37.0 "Comm 2" "1960-C2" "" "")
+ROW_END
+
+ROW_START_FS (HN 8 2.0 45.0)
+STAMP_ADD (32.0 37.0 "Comm 3" "1965-C1" "" "")
+STAMP_ADD (32.0 37.0 "Comm 4" "1965-C2" "" "")
+ROW_END
+
+PAGE_END
