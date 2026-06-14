@@ -570,7 +570,10 @@ class AlbumParser:
                         current_page.column_mode = ColumnMode.THREE
                     else:
                         current_page.column_mode = ColumnMode.NONE
-                    current_page.column_gap = float(params[0]) if params else 10.0
+                    current_page.column_gap = float(params[1]) if len(params) > 1 else 10.0
+            elif cmd == "PAGE_COLUMN_NEXT":
+                # Column break marker - no-op, content flows to next column automatically in CSS grid
+                pass
             elif cmd == "PAGE_COLUMN_STOP":
                 if current_page:
                     from stamp_album.core.models import ColumnMode

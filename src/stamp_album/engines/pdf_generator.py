@@ -385,7 +385,8 @@ class HTMLRenderer:
         elif page.column_mode == ColumnMode.THREE:
             content_class = "column-container cols-3"
         if content_class:
-            parts.append(f'<div class="{content_class}">')
+            gap_mm = round(page.column_gap, 2) if page.column_gap > 0 else 10.0
+            parts.append(f'<div class="{content_class}" style="gap: {gap_mm}mm;">')
 
         # Quadrille
         if page.quadrille:
