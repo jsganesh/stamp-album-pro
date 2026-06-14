@@ -27,11 +27,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .panel-handle.collapsed::after { content: '\203a'; font-size: 14px; }
 
 /* Sidebar */
-#sidebar { width: var(--sidebar); background: var(--bg2); border-right: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; transition: width 0.2s; display: flex; flex-direction: column; }
+#sidebar { width: var(--sidebar); background: var(--bg2); border-right: 1px solid var(--border); overflow-y: auto; overflow-x: hidden; flex-shrink: 0; transition: width 0.2s; display: flex; flex-direction: column; min-width: 0; }
 #sidebar.collapsed { width: 0; overflow: hidden; }
-.sec-title { font-size: 9px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 8px 4px; display: flex; align-items: center; justify-content: space-between; }
+.sec-title { font-size: 9px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 8px 4px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
 .sec-title .sec-toggle { cursor: pointer; color: var(--text2); font-size: 10px; }
-.sec-body { overflow-y: auto; }
+.sec-body { overflow-y: auto; min-height: 0; flex: 1; }
 .sec-body.collapsed { display: none; }
 
 /* Palette (stamps + text + images) */
@@ -203,14 +203,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     :root { --sidebar: 180px; --props: 220px; }
     #tb button { padding: 4px 6px; font-size: 10px; }
 }
-@media (max-width: 700px) {
-    :root { --sidebar: 0; --props: 260px; }
-    #sidebar { border-right: none; }
+@media (max-width: 800px) {
+    :root { --sidebar: 180px; --props: 240px; }
+    #tb button { padding: 4px 6px; font-size: 10px; }
+}
+@media (max-width: 600px) {
+    :root { --sidebar: 160px; --props: 200px; }
     #sidebar.collapsible { width: 100%; position: fixed; z-index: 900; height: 100%; top: 0; left: 0; }
     #tb .logo { font-size: 13px; margin-right: 6px; }
     #tb button { padding: 3px 5px; font-size: 9px; }
-}
-@media (max-width: 500px) {
     #ca-toolbar { flex-wrap: wrap; gap: 3px; }
     #ca-toolbar label { font-size: 9px; }
     .palette { grid-template-columns: 1fr 1fr; }
