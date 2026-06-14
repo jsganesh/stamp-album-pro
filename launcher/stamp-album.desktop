@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=StampAlbum Pro
+Comment=Visual stamp album designer
+Exec=sh -c "cd $(dirname %k) && python3 -m stamp_album.serve"
+Icon=stamp-album
+Terminal=true
+Type=Application
+Categories=Graphics;Office;
+StartupNotify=false
