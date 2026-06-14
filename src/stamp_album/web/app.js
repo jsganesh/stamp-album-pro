@@ -18,8 +18,8 @@ function pushUndo() {
     updateTitle();
 }
 function undo() {
-    if (_undoStack.length === 0) return;
-    _redoStack.push(JSON.stringify(E));
+    if (_undoStack.length < 2) return;
+    _redoStack.push(_undoStack.pop());
     var state = JSON.parse(_undoStack.pop());
     loadElements(state);
     updateTitle();
@@ -33,6 +33,25 @@ function redo() {
 }
 function loadElements(arr) { E = arr; sel = null; switchPage(_currentPage, true); render(); updateProps(); }
 function loadElementsNoPush(arr) { _undoPaused = true; loadElements(arr); _undoPaused = false; }
+
+// ── Font CSS resolver ──
+function fontCSS(fid) {
+    var F = {
+        "HN": { family: "Helvetica,Arial,sans-serif", weight: "normal", style: "normal" },
+        "HB": { family: "Helvetica,Arial,sans-serif", weight: "bold", style: "normal" },
+        "HI": { family: "Helvetica,Arial,sans-serif", weight: "normal", style: "italic" },
+        "HS": { family: "Helvetica,Arial,sans-serif", weight: "bold", style: "italic" },
+        "TN": { family: "'Times New Roman',Times,serif", weight: "normal", style: "normal" },
+        "TB": { family: "'Times New Roman',Times,serif", weight: "bold", style: "normal" },
+        "TI": { family: "'Times New Roman',Times,serif", weight: "normal", style: "italic" },
+        "TS": { family: "'Times New Roman',Times,serif", weight: "bold", style: "italic" },
+        "CN": { family: "Courier,monospace", weight: "normal", style: "normal" },
+        "CB": { family: "Courier,monospace", weight: "bold", style: "normal" },
+        "CI": { family: "Courier,monospace", weight: "normal", style: "italic" },
+        "CS": { family: "Courier,monospace", weight: "bold", style: "italic" },
+    };
+    return F[fid] || { family: fid, weight: "normal", style: "normal" };
+}
 
 // ── Toast ──
 function showToast(msg, type) {
@@ -627,30 +646,34 @@ function populateFonts() {
     var pfnt = $("pfnt");
     if (!pfnt) return;
     pfnt.innerHTML = "";
-    var groups = [
-        { label: "System Fonts", fonts: SYSTEM_FONTS },
-        { label: "Web Safe", fonts: ["Arial","Helvetica","Times New Roman","Courier New","Georgia","Verdana","Trebuchet MS","Impact","Comic Sans MS"] }
+    var stdFonts = [
+        { v: "HN", t: "Helvetica" },
+        { v: "HB", t: "Helvetica Bold" },
+        { v: "HI", t: "Helvetica Italic" },
+        { v: "HS", t: "Helvetica Bold Italic" },
+        { v: "TN", t: "Times New Roman" },
+        { v: "TB", t: "Times New Roman Bold" },
+        { v: "TI", t: "Times New Roman Italic" },
+        { v: "TS", t: "Times New Roman Bold Italic" },
+        { v: "CN", t: "Courier New" },
+        { v: "CB", t: "Courier New Bold" },
+        { v: "CI", t: "Courier New Italic" },
+        { v: "CS", t: "Courier New Bold Italic" },
     ];
-    groups.forEach(function(g) {
-        var og = document.createElement("optgroup");
-        og.label = g.label;
-        g.fonts.forEach(function(f) {
-            var o = document.createElement("option");
-            o.value = f;
-            o.textContent = f;
-            og.appendChild(o);
-        });
-        pfnt.appendChild(og);
-    });
-    var styles = document.createElement("optgroup");
-    styles.label = "Styles";
-    [{ v: "normal", t: "Normal" }, { v: "bold", t: "Bold" }, { v: "italic", t: "Italic" }, { v: "bolditalic", t: "Bold Italic" }].forEach(function(s) {
-        var o = document.createElement("option");
-        o.value = s.v;
-        o.textContent = s.t;
-        styles.appendChild(o);
-    });
-    pfnt.appendChild(styles);
+    var og = document.createElement("optgroup");
+    og.label = "Standard Fonts";
+    stdFonts.forEach(function(f) { var o = document.createElement("option"); o.value = f.v; o.textContent = f.t; og.appendChild(o); });
+    pfnt.appendChild(og);
+    if (SYSTEM_FONTS && SYSTEM_FONTS.length) {
+        var og2 = document.createElement("optgroup");
+        og2.label = "System Fonts";
+        SYSTEM_FONTS.forEach(function(f) { var o = document.createElement("option"); o.value = f; o.textContent = f; og2.appendChild(o); });
+        pfnt.appendChild(og2);
+    }
+    var ws = document.createElement("optgroup");
+    ws.label = "Web Safe";
+    ["Arial","Helvetica","Times New Roman","Courier New","Georgia","Verdana","Trebuchet MS","Impact","Comic Sans MS"].forEach(function(f) { var o = document.createElement("option"); o.value = f; o.textContent = f; ws.appendChild(o); });
+    pfnt.appendChild(ws);
 }
 
 // ── Alignment guide lines ──
@@ -848,10 +871,11 @@ function render() {
             l.textContent = el.lbl;
             l.contentEditable = "true";
             l.spellcheck = false;
-            l.style.fontFamily = el.font || "Helvetica,Arial,sans-serif";
+            var fc = fontCSS(el.font || "HN");
+            l.style.fontFamily = fc.family;
             l.style.fontSize = (el.fs || 12) + "px";
-            l.style.fontWeight = el.font === "HB" || el.font === "TB" ? "bold" : "normal";
-            l.style.fontStyle = el.font === "TI" ? "italic" : "normal";
+            l.style.fontWeight = fc.weight;
+            l.style.fontStyle = fc.style;
             l.addEventListener("blur", function() {
                 el.lbl = this.textContent;
                 var p = this.parentNode;

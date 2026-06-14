@@ -448,10 +448,11 @@ class HTMLRenderer:
         for stamp in page.absolute_stamps:
             if stamp.is_text_element:
                 txt = (stamp.description or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>")
+                font_css = self._font_to_css(stamp.font_id, stamp.font_size)
                 parts.append(
                     f'<div style="position:absolute;left:{stamp.abs_x}mm;top:{stamp.abs_y}mm;'
                     f'width:{stamp.width}mm;height:{stamp.height}mm;'
-                    f'font-family:Helvetica,Arial,sans-serif;font-size:10pt;'
+                    f'{font_css};'
                     f'color:#333;word-wrap:break-word;overflow:hidden;'
                     f'display:flex;align-items:center;justify-content:center;'
                     f'text-align:center;white-space:pre-wrap;line-height:1.3;">'
@@ -470,7 +471,10 @@ class HTMLRenderer:
             elif stamp.shape == StampShape.HEXAGON: shape_class = "shape-hexagon"
             elif stamp.shape == StampShape.OCTAGON: shape_class = "shape-octagon"
             elif stamp.shape == StampShape.PENTAGON: shape_class = "shape-pentagon"
+            desc_font = self._font_to_css(stamp.font_id, round(stamp.font_size * 0.9, 1)) if stamp.font_id else ""
             desc = self._format_text(stamp.description) if stamp.description else ""
+            if desc:
+                desc = f'<div style="{desc_font};padding:1mm 2mm;text-align:center;line-height:1.3;">{desc}</div>'
             parts.append(
                 f'<div class="stamp" style="position:absolute;left:{stamp.abs_x}mm;top:{stamp.abs_y}mm;width:{width}mm;">'
                 f'<div class="stamp-box {shape_class}" style="width:{width}mm;height:{height}mm;'
@@ -1066,8 +1070,9 @@ class HTMLRenderer:
             if font_info:
                 return f"font-family: '{font_info.name}'; font-size: {size}pt"
 
-        # Fallback
-        return f"font-family: Helvetica, Arial, sans-serif; font-size: {size}pt"
+        # Fallback — use the font_id as a family name with system fallback
+        safe_name = font_id.replace("'", "\\'")
+        return f"font-family: '{safe_name}', Helvetica, Arial, sans-serif; font-size: {size}pt"
 
     def _color_to_css(self, color: Optional[Color]) -> str:
         """Convert a Color object to CSS color string."""

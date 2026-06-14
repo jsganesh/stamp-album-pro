@@ -459,6 +459,8 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
                 shape=shape_map.get(el.s, StampShape.RECTANGLE),
                 image_path=el.img if el.img else None,
                 is_text_element=is_text,
+                font_id=el.font or "HN",
+                font_size=el.fs or 12.0,
             )
             page.absolute_stamps.append(stamp)
         return page

@@ -456,6 +456,8 @@ class Stamp:
     heading: Optional[StampHeading] = None
     footer_text: str = ""
     is_text_element: bool = False  # True for canvas text elements (render without stamp box)
+    font_id: str = "HN"  # Font identifier (e.g. HN=Helvetica, HB=Helvetica Bold, HR=Helvetica Roman)
+    font_size: float = 10.0  # Font size in points
 
 
 # ---------------------------------------------------------------------------
