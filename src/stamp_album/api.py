@@ -430,8 +430,7 @@ class CanvasStateRequest(BaseModel):
 def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
     """Convert canvas state directly to Album model, bypassing DSL text."""
     from stamp_album.core.models import (
-        Album, Page, PageSetup, Stamp, StampShape,
-        FormattedText, TextAlignment, Color,
+        Album, Page, PageSetup, Stamp, StampShape, Color,
     )
 
     SCALE = req.scale
@@ -447,33 +446,21 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
         "octagon": StampShape.OCTAGON,
         "pentagon": StampShape.PENTAGON,
     }
-    align_map = {
-        "center": TextAlignment.CENTER,
-        "right": TextAlignment.RIGHT,
-        "left": TextAlignment.LEFT,
-    }
-
     def build_page(elements: list[CanvasElementState]) -> Page:
         page = Page()
         for el in elements:
-            if el.t == "text":
-                page.text_elements.append(FormattedText(
-                    content=el.lbl or "Text",
-                    font_id=el.font or "HN",
-                    size=el.fs or 12,
-                    alignment=align_map.get(el.align, TextAlignment.LEFT),
-                ))
-            else:
-                stamp = Stamp(
-                    abs_x=el.x / SCALE,
-                    abs_y=el.y / SCALE,
-                    width=max(1.0, el.w / SCALE),
-                    height=max(1.0, el.h / SCALE),
-                    description=el.lbl or "",
-                    shape=shape_map.get(el.s, StampShape.RECTANGLE),
-                    image_path=el.img if el.img else None,
-                )
-                page.absolute_stamps.append(stamp)
+            is_text = el.t == "text"
+            stamp = Stamp(
+                abs_x=el.x / SCALE,
+                abs_y=el.y / SCALE,
+                width=max(1.0, el.w / SCALE),
+                height=max(1.0, el.h / SCALE),
+                description=el.lbl or "",
+                shape=shape_map.get(el.s, StampShape.RECTANGLE),
+                image_path=el.img if el.img else None,
+                is_text_element=is_text,
+            )
+            page.absolute_stamps.append(stamp)
         return page
 
     pages = [build_page(req.elements)]

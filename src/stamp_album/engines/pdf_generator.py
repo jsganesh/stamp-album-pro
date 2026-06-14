@@ -446,6 +446,18 @@ class HTMLRenderer:
 
         # Absolutely positioned stamps (drag-and-drop)
         for stamp in page.absolute_stamps:
+            if stamp.is_text_element:
+                txt = (stamp.description or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>")
+                parts.append(
+                    f'<div style="position:absolute;left:{stamp.abs_x}mm;top:{stamp.abs_y}mm;'
+                    f'width:{stamp.width}mm;height:{stamp.height}mm;'
+                    f'font-family:Helvetica,Arial,sans-serif;font-size:10pt;'
+                    f'color:#333;word-wrap:break-word;overflow:hidden;'
+                    f'display:flex;align-items:center;justify-content:center;'
+                    f'text-align:center;white-space:pre-wrap;line-height:1.3;">'
+                    f'{txt}</div>'
+                )
+                continue
             ps = self.album.page_setup
             width = stamp.width + ps.stamp_box_adjust
             height = stamp.height + ps.stamp_box_adjust

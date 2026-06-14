@@ -455,6 +455,7 @@ class Stamp:
     abs_y: float = 0.0  # Absolute Y position (mm) for drag-and-drop
     heading: Optional[StampHeading] = None
     footer_text: str = ""
+    is_text_element: bool = False  # True for canvas text elements (render without stamp box)
 
 
 # ---------------------------------------------------------------------------

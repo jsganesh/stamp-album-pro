@@ -852,8 +852,14 @@ function render() {
             l.style.fontSize = (el.fs || 12) + "px";
             l.style.fontWeight = el.font === "HB" || el.font === "TB" ? "bold" : "normal";
             l.style.fontStyle = el.font === "TI" ? "italic" : "normal";
-            l.addEventListener("blur", function() { el.lbl = this.textContent; pushUndo(); });
-            l.addEventListener("keydown", function(e) { if (e.key === "Enter") { e.preventDefault(); this.blur(); } });
+            l.addEventListener("blur", function() {
+                el.lbl = this.textContent;
+                var p = this.parentNode;
+                this.style.minHeight = "";
+                var nh = this.scrollHeight + 4;
+                if (nh > p.offsetHeight) p.style.height = nh + "px";
+                pushUndo();
+            });
             d.appendChild(l);
         }
         if (el.t === "freehand") {
@@ -967,10 +973,13 @@ function saveFile() {
             body: JSON.stringify({ content: dsl })
         }).then(function(r) {
             if (r.ok) {
-                _dirty = false;
-                updateTitle();
-                showToast("Saved " + _currentFile, "success");
-            } else { showToast("Save failed", "error"); }
+                return r.json();
+            }
+            throw new Error("Save failed");
+        }).then(function(data) {
+            _dirty = false;
+            updateTitle();
+            showToast("Saved to " + (data.path || _currentFile), "success");
         }).catch(function() { showToast("Save failed", "error"); });
     } else {
         var name = prompt("File name:", "album.slbum");
@@ -1114,7 +1123,7 @@ function exportPDF() {
         a.download = filename;
         a.click();
         setTimeout(function() { URL.revokeObjectURL(a.href); }, 100);
-        showToast("PDF exported: " + filename, "success");
+        showToast("PDF saved to Downloads/" + filename, "success");
     })
     .catch(function(err) { showToast("Export failed: " + err, "error"); });
 }
@@ -1228,14 +1237,21 @@ function parseDSL(dsl) {
     var lines = dsl.split("\n");
     _pages = [[]];
     _currentPage = 0;
+    var _rowX = 0, _rowY = 12, _rowSpacing = 6, _pageMargin = 15;
     for (var i = 0; i < lines.length; i++) {
         var t = lines[i].trim();
+        if (!t || t.charAt(0) === "#") continue;
         // Page setup commands
         var mSize = t.match(/^ALBUM_PAGES_SIZE\(\s*([\d.]+)\s+([\d.]+)\)/);
         if (mSize) {
             _pw = px(parseFloat(mSize[1]));
             _ph = px(parseFloat(mSize[2]));
             $("pg-size").value = "a4";
+            continue;
+        }
+        var mMargin = t.match(/^ALBUM_PAGES_MARGINS\(\s*([\d.]+)\s/);
+        if (mMargin) {
+            _pageMargin = parseFloat(mMargin[1]);
             continue;
         }
         // PAGE_START — new page
@@ -1246,6 +1262,21 @@ function parseDSL(dsl) {
             }
             _pages.push([]);
             _currentPage = _pages.length - 1;
+            _rowX = _pageMargin;
+            _rowY = 12;
+            continue;
+        }
+        // PAGE_VSPACE — vertical spacing in row layout
+        var mVspace = t.match(/^PAGE_VSPACE\(\s*([\d.]+)\)/);
+        if (mVspace) {
+            _rowY += parseFloat(mVspace[1]);
+            continue;
+        }
+        // ROW_START_FS — start a row of stamps
+        var mRow = t.match(/^ROW_START_FS\(\s*"([^"]*)"\s+(\d+)\s+([\d.]+)\s+([\d.]+)\)/);
+        if (mRow) {
+            _rowX = _pageMargin;
+            _rowSpacing = parseFloat(mRow[4]);
             continue;
         }
         // Commands
@@ -1255,10 +1286,18 @@ function parseDSL(dsl) {
             E.push({ id: "el" + (nid++), t: isImg ? "image" : "stamp", s: m[7] || "rectangle", x: px(parseFloat(m[2])), y: px(parseFloat(m[3])), w: px(parseFloat(m[4])), h: px(parseFloat(m[5])), lbl: m[6] || "", bdr: "solid", bdrC: "#666", bdrW: 1, fill: "#fff", fillA: 100, img: isImg ? m[6] : "", font: "HN", fs: 12 });
             continue;
         }
+        // STAMP_ADD — row-based stamp (from template DSL)
+        var mRowStamp = t.match(/^STAMP_ADD\(\s*([\d.]+)\s+([\d.]+)\s+"([^"]*)"(?:\s+"([^"]*)")?(?:\s+"([^"]*)")?\)/);
+        if (mRowStamp) {
+            E.push({ id: "el" + (nid++), t: "stamp", s: "rectangle", x: px(_rowX), y: px(_rowY), w: px(parseFloat(mRowStamp[1])), h: px(parseFloat(mRowStamp[2])), lbl: mRowStamp[3] || "", bdr: "solid", bdrC: "#666", bdrW: 1, fill: "#fff", fillA: 100, img: "", font: "HN", fs: 12 });
+            _rowX += parseFloat(mRowStamp[1]) + _rowSpacing;
+            continue;
+        }
         var m2 = t.match(/^(PAGE_TEXT|PAGE_TEXT_CENTRE|PAGE_TEXT_CENTER|PAGE_TEXT_RIGHT)\(\s*"([^"]*)"\s+(\d+)\s+"([^"]*)"\)/);
         if (m2) {
             var align = m2[1] === "PAGE_TEXT_CENTRE" || m2[1] === "PAGE_TEXT_CENTER" ? "center" : m2[1] === "PAGE_TEXT_RIGHT" ? "right" : "left";
-            E.push({ id: "el" + (nid++), t: "text", s: "text", x: 10, y: 10, w: 100, h: 20, lbl: m2[4] || "Text", font: m2[2] || "HN", fs: parseFloat(m2[3]) || 12, align: align, bdr: "none", fill: "transparent", fillA: 0 });
+            E.push({ id: "el" + (nid++), t: "text", s: "text", x: 10, y: _rowY > 12 ? _rowY + 2 : 10, w: 100, h: 20, lbl: m2[4] || "Text", font: m2[2] || "HN", fs: parseFloat(m2[3]) || 12, align: align, bdr: "none", fill: "transparent", fillA: 0 });
+            _rowY += 8;
         }
     }
     // Save current page
