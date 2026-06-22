@@ -27,7 +27,6 @@ classifiers = [
 ]
 
 dependencies = [
-    "PyQt6>=6.4",
     "WeasyPrint>=59.0",
     "tinycss2>=1.5",
     "Pillow>=10.0",
@@ -49,6 +48,9 @@ dev = [
     "ruff>=0.1.0",
     "mypy>=1.0",
     "pyinstaller>=6.0",
+]
+legacy = [
+    "PyQt6>=6.4",
 ]
 
 [project.scripts]

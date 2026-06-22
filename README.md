@@ -8,20 +8,19 @@ StampAlbum Pro is a web application for creating professional stamp album pages 
 
 ## Features
 
-- **Web-based editor**: CodeMirror-powered DSL editor with dark theme, live preview, and file management
-- **Live preview**: Auto-renders HTML preview 400ms after you stop typing
+- **Web-based editor**: Visual canvas with drag-and-drop, SVG shapes, and live preview
+- **Live preview**: Auto-renders HTML preview as you design
 - **File management**: Create, open, save, and delete `.slbum` album files from the browser sidebar
 - **PDF export**: One-click PDF generation and download
-- **Text-based DSL**: Define albums using a simple, readable command language
-- **Rich typography**: Full font support including TrueType and OpenType
-- **Color control**: RGB and named colors for all elements
+- **Visual canvas**: Free-form stamp positioning with drag, resize, and alignment guides
 - **Stamp shapes**: Rectangle, triangle, diamond, oval, hexagon, octagon, pentagon
-- **Decorative borders**: Line borders and image-based decorative borders
-- **Headers & footers**: Page numbers, dates, custom text
-- **Column layouts**: Single or two-column page layouts
-- **Grid patterns**: Quadrille/graph paper support
-- **Conditional compilation**: $DEFINE, $IFDEF, $INCLUDE support
-- **REST API**: FastAPI backend with `/render`, `/parse`, `/export`, and `/visual-update` endpoints
+- **Text elements**: Labels, headings, and descriptions with inline editing
+- **Grid fill**: Duplicate stamps in a grid pattern
+- **Undo/redo**: Full history with Ctrl+Z / Ctrl+Y
+- **Templates**: Pre-built album templates by country and era
+- **Quick Setup Wizard**: Create a new album with page size, border, and template selection
+- **Image support**: Upload and place images on album pages
+- **Responsive layout**: Works on desktop and tablet browsers
 
 ## Installation
 
@@ -36,6 +35,14 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -e ".[dev]"
+```
+
+### Legacy Desktop Editor (optional)
+
+The legacy PyQt6 desktop editor is optional. Install it with:
+
+```bash
+pip install -e ".[legacy]"
 ```
 
 ### macOS Native Dependencies
@@ -61,9 +68,9 @@ terminal to stop it.
 Alternative commands:
 
 ```bash
-stamp-album-web        # same as above (explicit)
-stamp-album --desktop  # open in a native desktop window (pywebview)
-stamp-album --legacy-qt  # old PyQt6 desktop editor (legacy)
+stamp-album-web          # same as above (explicit)
+stamp-album --desktop    # open in a native desktop window (pywebview)
+stamp-album --legacy-qt  # legacy PyQt6 editor (requires: pip install ".[legacy]")
 ```
 
 Environment overrides:

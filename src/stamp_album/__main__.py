@@ -39,8 +39,17 @@ def main():
 
 
 def _run_gui():
-    """Run the graphical user interface."""
-    from PyQt6.QtWidgets import QApplication
+    """Run the graphical user interface (legacy PyQt6 editor)."""
+    try:
+        from PyQt6.QtWidgets import QApplication
+    except ImportError:
+        print(
+            "ERROR: PyQt6 is required for the legacy desktop editor.\n"
+            "Install it with: pip install stamp-album-pro[legacy]\n"
+            "Or use the web app instead: stamp-album",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
     from stamp_album.ui.main_window import MainWindow
 
