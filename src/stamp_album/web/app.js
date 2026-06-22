@@ -390,14 +390,25 @@ function init() {
     });
     $("btn-cls-dsl").addEventListener("click", function() { $("dsl-panel").classList.remove("open"); });
 
+    // ── DSL Reference Panel ──
+    $("btn-dsl-ref").addEventListener("click", function() {
+        var refPanel = $("dsl-ref-panel");
+        if (refPanel) refPanel.classList.toggle("open");
+    });
+
     // ── Preview ──
     $("btn-preview").addEventListener("click", openPreview);
     $("btn-preview-close").addEventListener("click", function() { $("preview-overlay").classList.remove("open"); });
     $("btn-preview-refresh").addEventListener("click", openPreview);
-    $("btn-preview-export").addEventListener("click", exportPDF);
+    $("btn-preview-export").addEventListener("click", function() { exportFormat("pdf"); });
 
     // ── Export ──
-    $("btn-export").addEventListener("click", exportPDF);
+    $("btn-export").addEventListener("click", function() { exportFormat("pdf"); });
+    document.querySelectorAll(".export-dd-item").forEach(function(item) {
+        item.addEventListener("click", function() {
+            exportFormat(this.dataset.fmt);
+        });
+    });
 
     // ── Image Upload ──
     $("img-upl-btn").addEventListener("click", function() { $("upl-inp").click(); });
@@ -1237,11 +1248,13 @@ function openPreview() {
     });
 }
 
-// ── Export PDF (direct — no DSL parser) ──
-function exportPDF() {
-    showToast("Generating PDF...", "info");
-    var filename = _currentFile ? _currentFile.replace(/\.(slbum|txt)$/, ".pdf") : "album.pdf";
-    var state = buildCanvasState("pdf");
+// ── Export (PDF / PNG / SVG / HTML) ──
+function exportFormat(fmt) {
+    var labels = { pdf: "PDF", png: "PNG", svg: "SVG", html: "HTML" };
+    var exts = { pdf: ".pdf", png: ".png", svg: ".svg", html: ".html" };
+    showToast("Generating " + (labels[fmt] || fmt) + "...", "info");
+    var filename = _currentFile ? _currentFile.replace(/\.(slbum|txt)$/, exts[fmt] || ".pdf") : "album" + (exts[fmt] || ".pdf");
+    var state = buildCanvasState(fmt);
     fetch("/export-from-state", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1249,15 +1262,22 @@ function exportPDF() {
     })
     .then(function(r) {
         if (!r.ok) throw new Error("Export failed (" + r.status + ")");
+        if (fmt === "html") return r.text();
         return r.blob();
     })
-    .then(function(b) {
-        var a = document.createElement("a");
-        a.href = URL.createObjectURL(b);
-        a.download = filename;
-        a.click();
-        setTimeout(function() { URL.revokeObjectURL(a.href); }, 100);
-        showToast("PDF saved to Downloads/" + filename, "success");
+    .then(function(data) {
+        if (fmt === "html") {
+            var w = window.open("", "_blank");
+            if (w) { w.document.write(data); w.document.close(); }
+            else { showToast("Popup blocked — allow popups for HTML export", "error"); }
+        } else {
+            var a = document.createElement("a");
+            a.href = URL.createObjectURL(data);
+            a.download = filename;
+            a.click();
+            setTimeout(function() { URL.revokeObjectURL(a.href); }, 100);
+        }
+        showToast((labels[fmt] || fmt) + " saved to Downloads/" + filename, "success");
     })
     .catch(function(err) { showToast("Export failed: " + err, "error"); });
 }

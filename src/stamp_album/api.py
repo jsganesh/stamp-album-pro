@@ -501,11 +501,11 @@ async def render_from_state(req: CanvasStateRequest):
 
 @app.post("/export-from-state")
 async def export_from_state(req: CanvasStateRequest):
-    """Export canvas state directly to PDF (bypasses DSL)."""
+    """Export canvas state directly to PDF, PNG, SVG, or HTML (bypasses DSL)."""
     from starlette.background import BackgroundTask
 
     fmt = req.format.lower()
-    if fmt not in ("pdf", "html"):
+    if fmt not in ("pdf", "png", "svg", "html"):
         raise HTTPException(status_code=400, detail=f"Unsupported format: {fmt}")
 
     def _cleanup(path: str):
@@ -528,11 +528,52 @@ async def export_from_state(req: CanvasStateRequest):
                 pdf_path, media_type="application/pdf", filename=filename,
                 background=BackgroundTask(_cleanup, pdf_path),
             )
-        else:
+        elif fmt == "png":
+            import fitz
+            from weasyprint import HTML as WPHTML
+            import tempfile
+            html_content = generator.get_html_preview(album)
+            pdf_bytes = WPHTML(string=html_content, base_url="http://localhost:8080").write_pdf()
+            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+            if doc.page_count == 0:
+                doc.close()
+                raise HTTPException(status_code=400, detail="No pages to export")
+            pix = doc[0].get_pixmap(matrix=fitz.Matrix(2.0, 2.0), alpha=False)
+            png_bytes = pix.tobytes("png")
+            doc.close()
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+                tmp.write(png_bytes)
+                png_path = tmp.name
+            filename = req.source_path.replace(".slbum", ".png").replace(".txt", ".png") or "album.png"
+            return FileResponse(
+                png_path, media_type="image/png", filename=filename,
+                background=BackgroundTask(_cleanup, png_path),
+            )
+        elif fmt == "svg":
+            import fitz
+            from weasyprint import HTML as WPHTML
+            import tempfile
+            html_content = generator.get_html_preview(album)
+            pdf_bytes = WPHTML(string=html_content, base_url="http://localhost:8080").write_pdf()
+            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+            if doc.page_count == 0:
+                doc.close()
+                raise HTTPException(status_code=400, detail="No pages to export")
+            svg_text = doc[0].get_svg_image()
+            doc.close()
+            with tempfile.NamedTemporaryFile(suffix=".svg", delete=False, mode="w", encoding="utf-8") as tmp:
+                tmp.write(svg_text)
+                svg_path = tmp.name
+            filename = req.source_path.replace(".slbum", ".svg").replace(".txt", ".svg") or "album.svg"
+            return FileResponse(
+                svg_path, media_type="image/svg+xml", filename=filename,
+                background=BackgroundTask(_cleanup, svg_path),
+            )
+        else:  # html
             html = generator.get_html_preview(album)
             import re
             html = re.sub(
-                r'src="([^\"/"][^"]*\.(?:png|jpg|jpeg|gif|bmp|tiff|tif|webp))"',
+                r'src="([^\/"][^"]*\.(?:png|jpg|jpeg|gif|bmp|tiff|tif|webp))"',
                 r'src="/images/\1"',
                 html,
             )

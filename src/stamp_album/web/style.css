@@ -13,6 +13,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 #tb button { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; white-space: nowrap; }
 #tb button:hover { background: var(--accent); }
 #tb button.active { background: var(--accent); border-color: var(--accent2); }
+
+/* Export dropdown */
+.export-dd { position: relative; display: inline-block; }
+.export-dd-menu { display: none; position: absolute; top: 100%; right: 0; background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; min-width: 160px; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+.export-dd:hover .export-dd-menu, .export-dd:focus-within .export-dd-menu { display: block; }
+.export-dd-item { padding: 6px 12px; font-size: 11px; color: var(--text); cursor: pointer; white-space: nowrap; }
+.export-dd-item:hover { background: var(--accent); }
+.export-dd-item + .export-dd-item { border-top: 1px solid var(--border); }
 #tb .spacer { flex: 1; }
 #tb #file-name { font-size: 11px; color: var(--text2); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -176,6 +184,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 #dsl-panel .dsl-hdr .spacer { flex: 1; }
 #dsl-editor { flex: 1; overflow: hidden; }
 #dsl-editor textarea { width: 100%; height: 100%; background: var(--bg1); color: var(--text); border: none; resize: none; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px; padding: 8px; outline: none; }
+
+/* ── DSL Reference Panel ── */
+#dsl-ref-panel { display: none; position: absolute; top: 0; right: 0; width: 320px; height: 100%; background: var(--bg1); border-left: 1px solid var(--border); overflow-y: auto; z-index: 2; }
+#dsl-ref-panel.open { display: block; }
+#dsl-editor { position: relative; }
+.dsl-ref-hdr { font-size: 10px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 10px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg1); z-index: 1; }
+.dsl-ref-body { padding: 4px 0; }
+.dsl-ref-cat { font-size: 9px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 10px 2px; }
+.dsl-ref-item { display: flex; align-items: baseline; gap: 8px; padding: 2px 10px; font-size: 10px; }
+.dsl-ref-item code { font-family: 'SF Mono', 'Fira Code', monospace; color: #a8d8ea; font-size: 9px; white-space: nowrap; flex-shrink: 0; max-width: 55%; overflow: hidden; text-overflow: ellipsis; }
+.dsl-ref-item span { color: var(--text2); font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Toast notifications */
 #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 6px; }

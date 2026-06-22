@@ -23,7 +23,15 @@
     <button id="btn-del" title="Delete selected element (Del)">🗑</button>
     <button id="btn-wizard" title="Quick Setup Wizard — create a new album with templates">⚡ Wizard</button>
     <button id="btn-preview" title="Live preview (F5)">👁 Preview</button>
-    <button id="btn-export" title="Export to PDF">📄 PDF</button>
+    <div class="export-dd">
+        <button id="btn-export" title="Export album page">📄 Export</button>
+        <div class="export-dd-menu">
+            <div class="export-dd-item" data-fmt="pdf">📄 PDF</div>
+            <div class="export-dd-item" data-fmt="png">🖼 PNG Image</div>
+            <div class="export-dd-item" data-fmt="svg">🔷 SVG Image</div>
+            <div class="export-dd-item" data-fmt="html">🌐 HTML Gallery</div>
+        </div>
+    </div>
     <button id="btn-dsl" title="DSL Editor (advanced)">🔧 DSL</button>
     <button id="btn-help" title="Keyboard shortcuts (?)">?</button>
 </header>
@@ -161,8 +169,64 @@
 
 <!-- DSL Panel (bottom) -->
 <div id="dsl-panel">
-    <div class="dsl-hdr"><span>DSL Editor (Advanced)</span><span class="spacer"></span><button id="btn-app-dsl">Apply</button><button id="btn-cls-dsl">✕</button></div>
-    <div id="dsl-editor"><textarea id="dsl-ta" spellcheck="false"></textarea></div>
+    <div class="dsl-hdr">
+        <span>DSL Editor (Advanced)</span>
+        <span class="spacer"></span>
+        <button id="btn-dsl-ref" title="Toggle DSL reference">📖 Ref</button>
+        <button id="btn-app-dsl">Apply</button>
+        <button id="btn-cls-dsl">✕</button>
+    </div>
+    <div id="dsl-editor">
+        <textarea id="dsl-ta" spellcheck="false"></textarea>
+        <div id="dsl-ref-panel">
+            <div class="dsl-ref-hdr">DSL Command Reference</div>
+            <div class="dsl-ref-body">
+                <div class="dsl-ref-cat">Document</div>
+                <div class="dsl-ref-item"><code>ALBUM_TITLE("name")</code><span>Set album title</span></div>
+                <div class="dsl-ref-item"><code>ALBUM_AUTHOR("name")</code><span>Set author</span></div>
+                <div class="dsl-ref-cat">Page Setup</div>
+                <div class="dsl-ref-item"><code>ALBUM_PAGES_SIZE(w h)</code><span>Page dimensions in mm</span></div>
+                <div class="dsl-ref-item"><code>ALBUM_PAGES_MARGINS(l r t b)</code><span>Page margins in mm</span></div>
+                <div class="dsl-ref-item"><code>ALBUM_PAGES_BORDER(w1 w2 w3 w4)</code><span>Triple line border</span></div>
+                <div class="dsl-ref-item"><code>ALBUM_PAGES_SPACING(h v)</code><span>Horizontal / vertical gap</span></div>
+                <div class="dsl-ref-cat">Pages &amp; Content</div>
+                <div class="dsl-ref-item"><code>PAGE_START</code><span>Begin a new page</span></div>
+                <div class="dsl-ref-item"><code>PAGE_TEXT("FS" size "text")</code><span>Left-aligned text</span></div>
+                <div class="dsl-ref-item"><code>PAGE_TEXT_CENTRE("FS" size "text")</code><span>Centered text</span></div>
+                <div class="dsl-ref-item"><code>PAGE_TEXT_RIGHT("FS" size "text")</code><span>Right-aligned text</span></div>
+                <div class="dsl-ref-item"><code>PAGE_VSPACE(mm)</code><span>Vertical spacing</span></div>
+                <div class="dsl-ref-item"><code>PAGE_RULE_H</code><span>Horizontal rule line</span></div>
+                <div class="dsl-ref-cat">Stamps</div>
+                <div class="dsl-ref-item"><code>STAMP_ADD(w h "desc" "cat" "cond" "acc")</code><span>Add stamp in row</span></div>
+                <div class="dsl-ref-item"><code>STAMP_ADD_AT(x y w h "desc" "shape" "bdr" "fill")</code><span>Stamp at position</span></div>
+                <div class="dsl-ref-item"><code>STAMP_ADD_IMG(x y w h "img" "desc" "" "")</code><span>Image at position</span></div>
+                <div class="dsl-ref-item"><code>STAMP_ADD_TRIANGLE(w h "desc")</code><span>Triangle stamp</span></div>
+                <div class="dsl-ref-item"><code>STAMP_ADD_DIAMOND(w h "desc")</code><span>Diamond stamp</span></div>
+                <div class="dsl-ref-item"><code>STAMP_ADD_OVAL(w h "desc")</code><span>Oval stamp</span></div>
+                <div class="dsl-ref-cat">Rows</div>
+                <div class="dsl-ref-item"><code>ROW_START_FS("FS" size gap width)</code><span>Fixed-space row</span></div>
+                <div class="dsl-ref-item"><code>ROW_START_ES("FS" size gap width)</code><span>Equal-space row</span></div>
+                <div class="dsl-ref-item"><code>ROW_START_JS("FS" size gap width)</code><span>Justified row</span></div>
+                <div class="dsl-ref-cat">Columns</div>
+                <div class="dsl-ref-item"><code>PAGE_COLUMN_START(n gap)</code><span>Start n-column layout</span></div>
+                <div class="dsl-ref-item"><code>PAGE_COLUMN_NEXT</code><span>Next column</span></div>
+                <div class="dsl-ref-item"><code>PAGE_COLUMN_STOP</code><span>End column layout</span></div>
+                <div class="dsl-ref-cat">Fonts</div>
+                <div class="dsl-ref-item"><code>ALBUM_DEFINE_FONT("ID" "Name")</code><span>Define custom font</span></div>
+                <div class="dsl-ref-item"><code>HN / HB / HI / HS</code><span>Helvetica variants</span></div>
+                <div class="dsl-ref-item"><code>TN / TB / TI / TS</code><span>Times variants</span></div>
+                <div class="dsl-ref-item"><code>CN / CB / CI / CS</code><span>Courier variants</span></div>
+                <div class="dsl-ref-cat">Colors</div>
+                <div class="dsl-ref-item"><code>COLOUR_ALBUM_BORDER("color")</code><span>Border color</span></div>
+                <div class="dsl-ref-item"><code>COLOUR_ALBUM_TITLE("color")</code><span>Title color</span></div>
+                <div class="dsl-ref-item"><code>COLOUR_STAMP_BORDER("color")</code><span>Stamp border color</span></div>
+                <div class="dsl-ref-item"><code>COLOUR_STAMP_BACKGROUND("color")</code><span>Stamp fill color</span></div>
+                <div class="dsl-ref-cat">Headers &amp; Footers</div>
+                <div class="dsl-ref-item"><code>ALBUM_PAGES_TITLE("FS" size "text")</code><span>Page title</span></div>
+                <div class="dsl-ref-item"><code>ALBUM_PAGES_FOOTER_NUMBER("FS" size align "pre" "post")</code><span>Page numbers</span></div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Preview Overlay -->
