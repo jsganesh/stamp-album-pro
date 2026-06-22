@@ -5,24 +5,22 @@
     --text: #eee; --text2: #aaa; --border: #333;
     --sidebar: 220px; --props: 280px; --toolbar: 44px;
 }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg1); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-size: 13px; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg1); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-size: 14px; }
 
 /* Toolbar */
-#tb { height: var(--toolbar); background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; padding: 0 10px; flex-shrink: 0; }
-#tb .logo { font-weight: 700; font-size: 15px; color: var(--accent); margin-right: 12px; }
-#tb button { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; white-space: nowrap; }
+#tb { height: var(--toolbar); background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; padding: 0 12px; flex-shrink: 0; }
+#tb .logo { font-weight: 700; font-size: 16px; color: var(--accent); margin-right: 14px; }
+#tb button { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; white-space: nowrap; }
 #tb button:hover { background: var(--accent); }
 #tb button.active { background: var(--accent); border-color: var(--accent2); }
-
-/* Export dropdown */
+#tb .spacer { flex: 1; }
+#tb #file-name { font-size: 13px; color: var(--text2); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .export-dd { position: relative; display: inline-block; }
 .export-dd-menu { display: none; position: absolute; top: 100%; right: 0; background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; min-width: 160px; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
 .export-dd:hover .export-dd-menu, .export-dd:focus-within .export-dd-menu { display: block; }
-.export-dd-item { padding: 6px 12px; font-size: 11px; color: var(--text); cursor: pointer; white-space: nowrap; }
+.export-dd-item { padding: 8px 14px; font-size: 13px; color: var(--text); cursor: pointer; white-space: nowrap; }
 .export-dd-item:hover { background: var(--accent); }
 .export-dd-item + .export-dd-item { border-top: 1px solid var(--border); }
-#tb .spacer { flex: 1; }
-#tb #file-name { font-size: 11px; color: var(--text2); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Main layout */
 #main { display: flex; flex: 1; overflow: hidden; }

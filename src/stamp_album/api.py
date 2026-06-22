@@ -13,11 +13,16 @@ from pydantic import BaseModel
 from stamp_album.core.parser import AlbumParser, ParseError
 from stamp_album.core.serializer import AlbumSerializer
 from stamp_album.engines.pdf_generator import HTMLRenderer, PDFGenerator
+from stamp_album.engines.font_manager import FontManager
 from stamp_album.templates import TEMPLATES
 
 app = FastAPI(title="StampAlbum Pro")
 parser = AlbumParser()
 serializer = AlbumSerializer()
+
+# ── Font manager: scan system fonts once at startup ──
+_font_manager = FontManager()
+_font_manager.scan_fonts()
 
 # Security: CSRF token for session validation
 _CSRF_TOKEN = secrets.token_urlsafe(32)
@@ -278,7 +283,7 @@ async def export_album(request: ExportRequest):
 
     try:
         album = parser.parse(request.dsl, request.source_path)
-        generator = PDFGenerator()
+        generator = PDFGenerator(font_manager=_font_manager)
         html_content = generator.get_html_preview(album)
 
         import re
@@ -516,7 +521,7 @@ async def export_from_state(req: CanvasStateRequest):
 
     try:
         album = _canvas_state_to_album(req)
-        generator = PDFGenerator()
+        generator = PDFGenerator(font_manager=_font_manager)
 
         if fmt == "pdf":
             import tempfile

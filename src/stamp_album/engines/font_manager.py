@@ -59,6 +59,16 @@ class FontManager:
         self._bundled_font_dir: Optional[Path] = None
         self._include_system_fonts = True
 
+    @property
+    def fonts(self) -> list[FontInfo]:
+        """Return list of discovered fonts."""
+        return self._fonts
+
+    @property
+    def font_map(self) -> dict[str, FontInfo]:
+        """Return font name → FontInfo lookup map."""
+        return self._font_map
+
     def set_bundled_font_dir(self, path: Path) -> None:
         """Set the directory containing bundled fonts."""
         self._bundled_font_dir = path

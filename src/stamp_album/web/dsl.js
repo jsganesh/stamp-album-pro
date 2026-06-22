@@ -2,7 +2,7 @@
 (function(){
 var S = window.StampAlbum;
 var $ = S.$, mm = S.mm, px = S.px, showToast = S.showToast;
-var pushUndo = S.pushUndo, render = S.render, parseDSL = S.parseDSL;
+var pushUndo = S.pushUndo, render = S.render;
 
 // ── Escape user strings for DSL embedding ──
 function escapeDSL(s) {
@@ -150,6 +150,7 @@ function parseDSL(dsl) {
     while (S._pages.length > 1 && S._pages[S._pages.length - 1].length === 0) {
         S._pages.pop();
     }
+    if (S._currentPage >= S._pages.length) S._currentPage = S._pages.length - 1;
     S.E = JSON.parse(JSON.stringify(S._pages[S._currentPage]));
     S.sel = null;
     S.renderPageDots();
