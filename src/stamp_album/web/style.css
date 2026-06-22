@@ -198,6 +198,20 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 /* Hidden file input */
 .hidden { display: none; }
 
+/* ── Keyboard Shortcut Help Overlay ── */
+#help-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; display: none; justify-content: center; align-items: center; }
+#help-overlay.open { display: flex; }
+#help-overlay .help-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; width: 420px; max-width: 90vw; box-shadow: 0 8px 40px rgba(0,0,0,0.5); }
+#help-overlay .help-hdr { display: flex; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 600; }
+#help-overlay .help-hdr .spacer { flex: 1; }
+#help-overlay .help-hdr button { background: none; border: none; color: var(--text2); font-size: 14px; cursor: pointer; padding: 2px 6px; }
+#help-overlay .help-hdr button:hover { color: var(--accent); }
+#help-overlay .help-body { display: flex; gap: 20px; padding: 12px 14px; }
+#help-overlay .help-col { flex: 1; }
+#help-overlay .help-sec { font-size: 9px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; padding: 4px 0 2px; }
+#help-overlay .help-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 11px; }
+#help-overlay .help-row kbd { background: var(--bg3); border: 1px solid var(--border); border-radius: 3px; padding: 1px 5px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 10px; color: var(--text); min-width: 40px; text-align: center; }
+
 /* ── Responsive / small-screen tweaks ── */
 @media (max-width: 900px) {
     :root { --sidebar: 180px; --props: 220px; }
