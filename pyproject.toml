@@ -27,7 +27,6 @@ classifiers = [
 ]
 
 dependencies = [
-    "WeasyPrint>=59.0",
     "tinycss2>=1.5",
     "Pillow>=10.0",
     "fonttools>=4.40",

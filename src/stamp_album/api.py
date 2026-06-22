@@ -13,16 +13,11 @@ from pydantic import BaseModel
 from stamp_album.core.parser import AlbumParser, ParseError
 from stamp_album.core.serializer import AlbumSerializer
 from stamp_album.engines.pdf_generator import HTMLRenderer, PDFGenerator
-from stamp_album.engines.font_manager import FontManager
 from stamp_album.templates import TEMPLATES
 
 app = FastAPI(title="StampAlbum Pro")
 parser = AlbumParser()
 serializer = AlbumSerializer()
-
-# ── Font manager: scan system fonts once at startup ──
-_font_manager = FontManager()
-_font_manager.scan_fonts()
 
 # Security: CSRF token for session validation
 _CSRF_TOKEN = secrets.token_urlsafe(32)
@@ -283,7 +278,7 @@ async def export_album(request: ExportRequest):
 
     try:
         album = parser.parse(request.dsl, request.source_path)
-        generator = PDFGenerator(font_manager=_font_manager)
+        generator = PDFGenerator()
         html_content = generator.get_html_preview(album)
 
         import re
@@ -303,10 +298,8 @@ async def export_album(request: ExportRequest):
             )
 
         elif fmt == "png":
-            # WeasyPrint 60+ dropped PNG output; render PDF then rasterize with PyMuPDF
             import fitz
-            from weasyprint import HTML as WPHTML
-            pdf_bytes = WPHTML(string=html_content, base_url="http://localhost:8080").write_pdf()
+            pdf_bytes = generator.generate_to_bytes(album)
             doc = fitz.open(stream=pdf_bytes, filetype="pdf")
             if doc.page_count == 0:
                 doc.close()
@@ -324,10 +317,8 @@ async def export_album(request: ExportRequest):
             )
 
         elif fmt == "svg":
-            # WeasyPrint 60+ dropped SVG output; rasterize PDF page to SVG via PyMuPDF
             import fitz
-            from weasyprint import HTML as WPHTML
-            pdf_bytes = WPHTML(string=html_content, base_url="http://localhost:8080").write_pdf()
+            pdf_bytes = generator.generate_to_bytes(album)
             doc = fitz.open(stream=pdf_bytes, filetype="pdf")
             if doc.page_count == 0:
                 doc.close()
@@ -521,7 +512,7 @@ async def export_from_state(req: CanvasStateRequest):
 
     try:
         album = _canvas_state_to_album(req)
-        generator = PDFGenerator(font_manager=_font_manager)
+        generator = PDFGenerator()
 
         if fmt == "pdf":
             import tempfile
@@ -535,10 +526,8 @@ async def export_from_state(req: CanvasStateRequest):
             )
         elif fmt == "png":
             import fitz
-            from weasyprint import HTML as WPHTML
             import tempfile
-            html_content = generator.get_html_preview(album)
-            pdf_bytes = WPHTML(string=html_content, base_url="http://localhost:8080").write_pdf()
+            pdf_bytes = generator.generate_to_bytes(album)
             doc = fitz.open(stream=pdf_bytes, filetype="pdf")
             if doc.page_count == 0:
                 doc.close()
@@ -556,10 +545,8 @@ async def export_from_state(req: CanvasStateRequest):
             )
         elif fmt == "svg":
             import fitz
-            from weasyprint import HTML as WPHTML
             import tempfile
-            html_content = generator.get_html_preview(album)
-            pdf_bytes = WPHTML(string=html_content, base_url="http://localhost:8080").write_pdf()
+            pdf_bytes = generator.generate_to_bytes(album)
             doc = fitz.open(stream=pdf_bytes, filetype="pdf")
             if doc.page_count == 0:
                 doc.close()

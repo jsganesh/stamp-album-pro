@@ -75,7 +75,7 @@ class TestBuildItemDSL:
         album = parser.parse(dsl)
         html = HTMLRenderer(album, None).render()
         assert "stamp" in html.lower()
-        assert "New Text" in html
+        assert "New Stamp" in html
 
     def test_raw_json_is_not_valid_dsl(self, parser):
         """Sanity check: the leaked JSON payload should NOT parse as stamps.
