@@ -61,15 +61,15 @@ brew install pango glib gdk-pixbuf libffi harfbuzz fribidi cairo
 stamp-album
 ```
 
-This starts the app and **opens it automatically in your default web browser**.
-No native GUI toolkit needed — it just works everywhere. Press `Ctrl+C` in the
-terminal to stop it.
+This opens StampAlbum Pro in a **native desktop window** — no browser tabs, no
+address bar, native Save dialogs for exports. Just a clean app window.
 
 Alternative commands:
 
 ```bash
-stamp-album-web          # same as above (explicit)
-stamp-album --desktop    # open in a native desktop window (pywebview)
+stamp-album --browser    # open in your default web browser instead
+stamp-album-web          # same as --browser
+stamp-album-browser      # same as --browser
 stamp-album --legacy-qt  # legacy PyQt6 editor (requires: pip install ".[legacy]")
 ```
 
@@ -78,13 +78,15 @@ Environment overrides:
 ```bash
 STAMP_ALBUM_PORT=9000 stamp-album       # use a specific port
 STAMP_ALBUM_NO_BROWSER=1 stamp-album    # start server without opening a browser
+STAMP_ALBUM_RELOAD=1 stamp-album        # auto-reload on code changes (development)
 ```
 
 ### Run directly from source
 
 ```bash
-python -m stamp_album            # browser (default)
-python -m stamp_album.serve      # browser (explicit)
+python -m stamp_album            # desktop window (default)
+python -m stamp_album --browser  # browser mode
+python -m stamp_album.serve      # browser mode (explicit)
 python -m stamp_album.api        # server only, then open http://localhost:8080
 ```
 

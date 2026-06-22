@@ -114,8 +114,16 @@ def main() -> int:
     # Run uvicorn in the foreground (blocks until Ctrl+C)
     from stamp_album.api import app
 
+    reload = os.environ.get("STAMP_ALBUM_RELOAD", "") == "1"
+
     try:
-        uvicorn.run(app, host=host, port=port, log_level="warning")
+        uvicorn.run(
+            app,
+            host=host,
+            port=port,
+            log_level="warning",
+            reload=reload,
+        )
     except KeyboardInterrupt:
         pass
     print("\nStampAlbum Pro stopped.")

@@ -57,6 +57,7 @@ legacy = [
 stamp-album = "stamp_album.__main__:main"
 stamp-album-web = "stamp_album.serve:main"
 stamp-album-desktop = "stamp_album.desktop:main"
+stamp-album-browser = "stamp_album.serve:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -20,22 +20,31 @@ def main():
         _run_cli(sys.argv[2:])
         return
 
-    # Native desktop window (pywebview) — opt-in
-    if len(sys.argv) > 1 and sys.argv[1] in ("--desktop", "--window"):
-        from stamp_album.desktop import main as desktop_main
-        sys.exit(desktop_main())
-
-    # Legacy PyQt6 desktop editor (kept for reference; no longer the default)
+    # Legacy PyQt6 desktop editor
     if len(sys.argv) > 1 and sys.argv[1] in ("--legacy-qt", "--qt"):
         _run_gui()
         return
 
-    # Default: serve the web app and open it in the user's browser.
-    # This is the simplest cross-platform path — works on Windows/macOS/Linux
-    # with no native GUI toolkit required.
-    from stamp_album.serve import main as serve_main
+    # Browser mode (opt-in via flag)
+    if len(sys.argv) > 1 and sys.argv[1] in ("--browser", "--web", "-w"):
+        from stamp_album.serve import main as serve_main
+        sys.exit(serve_main())
 
-    sys.exit(serve_main())
+    # Default: native desktop window via pywebview.
+    # This gives a single-window app experience — no browser tabs,
+    # no address bar, native Save dialog for exports.
+    try:
+        from stamp_album.desktop import main as desktop_main
+    except ImportError:
+        print(
+            "ERROR: pywebview is required for the desktop window.\n"
+            "Install it with: pip install pywebview\n"
+            "Or use browser mode instead: stamp-album --browser",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    sys.exit(desktop_main())
 
 
 def _run_gui():
@@ -143,8 +152,11 @@ def _run_cli(args: list[str]):
 
     # Generate PDF
     from stamp_album.engines.pdf_generator import PDFGenerator
+    from stamp_album.engines.font_manager import FontManager
 
-    generator = PDFGenerator()
+    fm = FontManager()
+    fm.scan_fonts()
+    generator = PDFGenerator(font_manager=fm)
     generator.generate(album, output_path)
 
     print(f"PDF generated: {output_path}")
