@@ -134,8 +134,8 @@ class HTMLRenderer:
                     f'font-size:{font_size}pt;padding:1mm;word-wrap:break-word;">{desc}</div>'
                 )
             else:
-                border_color = _color_to_rgb(getattr(stamp, 'border_color', None)) or (0.5, 0.5, 0.5)
-                bg_color = _color_to_rgb(getattr(stamp, 'fill_color', None)) or (1, 1, 1)
+                border_color = _color_to_rgb(getattr(stamp, 'border_color', None)) if getattr(stamp, 'border_color', None) else (0.5, 0.5, 0.5)
+                bg_color = _color_to_rgb(getattr(stamp, 'fill_color', None)) if getattr(stamp, 'fill_color', None) else (1, 1, 1)
                 bc = f"rgb({int(border_color[0]*255)},{int(border_color[1]*255)},{int(border_color[2]*255)})"
                 bg = f"rgb({int(bg_color[0]*255)},{int(bg_color[1]*255)},{int(bg_color[2]*255)})"
                 shape_class = ""

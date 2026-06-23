@@ -1,14 +1,20 @@
 "use strict";
 (function(){
 var S = window.StampAlbum;
-var showToast = S.showToast;
+var $ = S.$, showToast = S.showToast;
 
 // ── Build canvas state for direct render/export ──
 function buildCanvasState(format) {
     var allPages = S._pages.slice();
     allPages[S._currentPage] = JSON.parse(JSON.stringify(S.E));
-    var firstPage = allPages.length > 0 ? allPages[0] : [];
-    var restPages = allPages.slice(1);
+    // Skip empty leading pages (parseDSL creates an empty page at index 0
+    // when PAGE_START is the first command)
+    var firstIdx = 0;
+    while (firstIdx < allPages.length && allPages[firstIdx].length === 0) {
+        firstIdx++;
+    }
+    var firstPage = firstIdx < allPages.length ? allPages[firstIdx] : [];
+    var restPages = allPages.slice(firstIdx + 1);
     while (restPages.length > 0 && restPages[restPages.length - 1].length === 0) {
         restPages.pop();
     }
