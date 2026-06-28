@@ -6,7 +6,7 @@ var pushUndo = S.pushUndo, render = S.render, updateProps = S.updateProps;
 var select = S.select, add = S.add, undo = S.undo, redo = S.redo;
 var newAlbum = S.newAlbum, saveFile = S.saveFile, loadFileList = S.loadFileList;
 var loadImageList = S.loadImageList, uploadImageFile = S.uploadImageFile;
-var openPreview = S.openPreview, exportFormat = S.exportFormat;
+var openPreview = S.openPreview, exportPDF = S.exportPDF;
 var applyWizard = S.applyWizard, loadTemplateList = S.loadTemplateList;
 var buildDSL = S.buildDSL, parseDSL = S.parseDSL;
 var initTutorial = S.initTutorial, _wireTutorialEvents = S._wireTutorialEvents;
@@ -266,15 +266,10 @@ function init() {
     $("btn-preview").addEventListener("click", openPreview);
     $("btn-preview-close").addEventListener("click", function() { $("preview-overlay").classList.remove("open"); });
     $("btn-preview-refresh").addEventListener("click", openPreview);
-    $("btn-preview-export").addEventListener("click", function() { exportFormat("pdf"); });
+    $("btn-preview-export").addEventListener("click", function() { if (exportPDF) exportPDF(); });
 
     // ── Export ──
-    $("btn-export").addEventListener("click", function() { exportFormat("pdf"); });
-    document.querySelectorAll(".export-dd-item").forEach(function(item) {
-        item.addEventListener("click", function() {
-            exportFormat(this.dataset.fmt);
-        });
-    });
+    $("btn-export").addEventListener("click", function() { if (exportPDF) exportPDF(); });
 
     // ── Image Upload ──
     $("img-upl-btn").addEventListener("click", function() { $("upl-inp").click(); });
@@ -409,6 +404,27 @@ function init() {
     $("help-overlay").addEventListener("click", function(e) {
         if (e.target === this) this.classList.remove("open");
     });
+
+    // ── Alignment toolbar ──
+    $("btn-align-l").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("left"); });
+    $("btn-align-c").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("center"); });
+    $("btn-align-r").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("right"); });
+    $("btn-align-t").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("top"); });
+    $("btn-align-m").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("middle"); });
+    $("btn-align-b").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("bottom"); });
+    $("btn-dist-h").addEventListener("click", function() { if (S.distributeSelected) S.distributeSelected("h"); });
+    $("btn-dist-v").addEventListener("click", function() { if (S.distributeSelected) S.distributeSelected("v"); });
+    $("btn-match-w").addEventListener("click", function() { if (S.matchSize) S.matchSize("w"); });
+    $("btn-match-h").addEventListener("click", function() { if (S.matchSize) S.matchSize("h"); });
+    $("btn-snap").addEventListener("click", function() { if (S.toggleSnap) S.toggleSnap(); });
+
+    // Show alignment group when element is selected
+    var origSelect = S.select;
+    S.select = function(id) {
+        origSelect(id);
+        var group = $("align-group");
+        if (group) group.style.display = id ? "flex" : "none";
+    };
 
     // ── Font population ──
     S.populateFonts();

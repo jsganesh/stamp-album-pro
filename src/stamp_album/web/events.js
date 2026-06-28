@@ -231,6 +231,53 @@ function init() {
         $("wizard-panel").classList.remove("open");
     });
 
+    // ── Preview & Export ──
+    $("btn-preview").addEventListener("click", function() {
+        if (S.openPreview) S.openPreview();
+    });
+    $("btn-export").addEventListener("click", function() {
+        if (S.exportPDF) S.exportPDF();
+    });
+    $("btn-dsl").addEventListener("click", function() {
+        var panel = $("dsl-panel");
+        if (panel) panel.classList.toggle("open");
+    });
+    $("btn-preview-close").addEventListener("click", function() {
+        $("preview-overlay").classList.remove("open");
+    });
+    $("btn-preview-refresh").addEventListener("click", function() {
+        if (S.openPreview) S.openPreview();
+    });
+    $("btn-preview-export").addEventListener("click", function() {
+        if (S.exportPDF) S.exportPDF();
+    });
+    var previewOverlay$ = $("preview-overlay");
+    if (previewOverlay$) previewOverlay$.classList.remove("open");
+
+    // ── Canvas toolbar controls ──
+    $("grid").addEventListener("change", function() {
+        S._sn = parseInt(this.value) || 0;
+        S.updateGrid();
+    });
+    $("col-mode").addEventListener("change", function() {
+        S._colMode = parseInt(this.value) || 1;
+        S.render();
+    });
+    $("col-gap").addEventListener("change", function() {
+        S._colGap = parseFloat(this.value) || 10;
+    });
+    $("def-bdr").addEventListener("change", function() { S._defBdr = this.value; });
+    $("def-bdr-c").addEventListener("change", function() { S._defBdrC = this.value; });
+    $("def-fill-c").addEventListener("change", function() { S._defFillC = this.value; });
+    $("pg-size").addEventListener("change", function() {
+        var sizes = { a4: [595, 842], letter: [612, 792], a3: [842, 1191] };
+        var v = sizes[this.value] || sizes.a4;
+        S._pw = v[0]; S._ph = v[1];
+        $("page").className = "page " + this.value;
+        S.render();
+        S.updateGrid();
+    });
+
     // ── Alignment toolbar ──
     $("btn-align-l").addEventListener("click", function() { S.alignSelected("left"); });
     $("btn-align-c").addEventListener("click", function() { S.alignSelected("center"); });
@@ -264,7 +311,7 @@ function init() {
         else if (cmd && e.key === "s") { e.preventDefault(); if (S.saveFile) S.saveFile(); }
         else if (cmd && e.key === "n") { e.preventDefault(); if (S.newAlbum) S.newAlbum(); }
         else if (cmd && e.key === "o") { e.preventDefault(); var fi = $("file-inp"); if (fi) fi.click(); }
-        else if (cmd && e.key === "p") { e.preventDefault(); if (S.previewAlbum) S.previewAlbum(); }
+        else if (cmd && e.key === "p") { e.preventDefault(); if (S.openPreview) S.openPreview(); }
         else if (cmd && e.key === "d") { e.preventDefault(); $("btn-dup-el").click(); }
         else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); if (S.sel) $("btn-del").click(); }
         else if (e.key === "Escape") { if (S.select) S.select(null); }

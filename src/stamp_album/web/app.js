@@ -217,143 +217,144 @@ function updateGrid() {
     } else {
         svg.style.display = "none";
     }
-
-        // ── Font population ──
-        populateFonts();
-
-    // ── Load templates ──
-    loadTemplateList();
-    // Auto-load template on selection change
-    $("wiz-template").addEventListener("change", function() {
-        var val = this.value;
-        if (val && val !== "blank") {
-            $("btn-wiz-template").click();
-        }
-    });
-
-    // ── Wizard Apply ──
-    $("btn-wiz-apply").addEventListener("click", applyWizard);
-    $("btn-app-wiz").addEventListener("click", applyWizard);
-    $("btn-wiz-template").addEventListener("click", function() {
-        var selTpl = $("wiz-template").value;
-        if (selTpl && selTpl !== "blank") {
-            fetch("/api/templates/" + selTpl)
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    if (data.dsl) {
-                        parseDSL(data.dsl);
-                        pushUndo();
-                        render();
-                        showToast("Template loaded: " + data.name, "success");
-                        $("wizard-panel").classList.remove("open");
-                    }
-                })
-                .catch(function(err) { showToast("Failed to load template: " + err, "error"); });
-        }
-    });
-
-    // ── New file button ──
-    $("btn-new-file").addEventListener("click", newAlbum);
-
-    // ── Touch / Pointer support for iPad ──
-    // Palette drag via touch (iPad Safari lacks HTML DnD)
-    document.querySelectorAll(".p-item[draggable]").forEach(function(it) {
-        it.addEventListener("touchstart", function(e) {
-            var touch = e.touches[0];
-            _ds = { t: it.dataset.t, s: it.dataset.s || "rectangle", st: it.dataset.st || "",
-                w: parseFloat(it.dataset.w) || 80, h: parseFloat(it.dataset.h) || 60,
-                font: "HN", fs: 12, tx: touch.clientX, ty: touch.clientY };
-            e.preventDefault();
-        }, { passive: false });
-    });
-    document.addEventListener("touchmove", function(e) {
-        if (!_ds || !_ds.t) return;
-        e.preventDefault();
-    }, { passive: false });
-    document.addEventListener("touchend", function(e) {
-        if (!_ds || !_ds.t) return;
-        var touch = e.changedTouches[0];
-        var pg = $("page");
-        if (pg) {
-            var r = pg.getBoundingClientRect();
-            var cx = touch.clientX, cy = touch.clientY;
-            if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
-                var x = Math.max(0, Math.min(Math.round((cx - r.left) / _sn) * _sn, _pw - 40));
-                var y = Math.max(0, Math.min(Math.round((cy - r.top) / _sn) * _sn, _ph - 30));
-                var d = _ds;
-                var w = d.w || 80, h = d.h || 60;
-                if (d.t === "text") { w = 120; h = d.st === "heading" ? 24 : d.st === "desc" ? 16 : 18; }
-                if (d.t === "freehand") { w = 100; h = 80; }
-                add({ t: d.t || "stamp", s: d.s || "rectangle", x: x, y: y, w: w, h: h,
-                    lbl: d.t === "text" ? (d.st === "heading" ? "Heading" : d.st === "desc" ? "Description" : "Label") : "",
-                    font: d.font || "HN", fs: d.st === "heading" ? 16 : d.st === "desc" ? 10 : 12,
-                    bdr: _defBdr, bdrC: _defBdrC, bdrW: 1, fill: _defFillC, fillA: 100, img: "" });
-            }
-        }
-        _ds = {};
-    });
-    // Canvas element touch drag (iPad)
-    document.addEventListener("touchstart", function(e) {
-        var el = e.target.closest(".cel");
-        if (!el) return;
-        var obj = E.find(function(x) { return x.id === el.dataset.id; });
-        if (!obj) return;
-        var touch = e.touches[0];
-        _dragH = e.target.classList.contains("rh") ? e.target.dataset.h : "move";
-        select(obj.id);
-        _drg = true;
-        _dragEl = obj;
-        _ds = { x: touch.clientX, y: touch.clientY, ox: obj.x, oy: obj.y, ow: obj.w, oh: obj.h };
-    }, { passive: true });
-    document.addEventListener("touchmove", function(e) {
-        if (!_drg || !_dragEl) return;
-        var touch = e.touches[0];
-        var dx = Math.round((touch.clientX - _ds.x) / _sn) * _sn;
-        var dy = Math.round((touch.clientY - _ds.y) / _sn) * _sn;
-        var h = _dragH, x = _ds.ox, y = _ds.oy, w = _ds.ow, oh = _ds.oh;
-        if (h === "move") { x += dx; y += dy; } else {
-            if (h.indexOf("w") >= 0) { x += dx; w -= dx; }
-            if (h.indexOf("e") >= 0) { w += dx; }
-            if (h.indexOf("n") >= 0) { y += dy; oh -= dy; }
-            if (h.indexOf("s") >= 0) { oh += dy; }
-            if (w < 10) w = 10;
-            if (oh < 10) oh = 10;
-        }
-        _dragEl.x = Math.max(0, Math.min(x, _pw - _dragEl.w));
-        _dragEl.y = Math.max(0, Math.min(y, _ph - _dragEl.h));
-        _dragEl.w = Math.min(w, _pw - _dragEl.x);
-        _dragEl.h = Math.min(oh, _ph - _dragEl.y);
-        render();
-        updateProps();
-        e.preventDefault();
-    }, { passive: false });
-    document.addEventListener("touchend", function() {
-        if (_drg && _dragEl) { pushUndo(); }
-        _drg = false;
-        _dragEl = null;
-        _dragH = null;
-    });
-
-    // ── Before unload ──
-    window.addEventListener("beforeunload", function(e) {
-        if (_dirty) { e.preventDefault(); e.returnValue = ""; }
-    });
-
-    // ── Restore draft from localStorage ──
-    var restored = loadDraft();
-    if (restored) {
-        console.log("StampAlbum Pro: restored draft from localStorage");
-    }
-
-    // ── Init ──
-    renderPageDots();
-    updateGrid();
-    loadFileList();
-    loadImageList();
-    updateTitle();
-
-    console.log("StampAlbum Pro: ready");
 }
+
+// ── Font population ──
+populateFonts();
+
+// ── Load templates ──
+loadTemplateList();
+// Auto-load template on selection change
+$("wiz-template").addEventListener("change", function() {
+    var val = this.value;
+    if (val && val !== "blank") {
+        $("btn-wiz-template").click();
+    }
+});
+
+// ── Wizard Apply ──
+$("btn-wiz-apply").addEventListener("click", applyWizard);
+$("btn-app-wiz").addEventListener("click", applyWizard);
+$("btn-wiz-template").addEventListener("click", function() {
+    var selTpl = $("wiz-template").value;
+    if (selTpl && selTpl !== "blank") {
+        fetch("/api/templates/" + selTpl)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.dsl) {
+                    parseDSL(data.dsl);
+                    pushUndo();
+                    render();
+                    showToast("Template loaded: " + data.name, "success");
+                    $("wizard-panel").classList.remove("open");
+                }
+            });
+    }
+});
+
+
+// ── New file button ──
+$("btn-new-file").addEventListener("click", newAlbum);
+
+// ── Touch / Pointer support for iPad ──
+// Palette drag via touch (iPad Safari lacks HTML DnD)
+document.querySelectorAll(".p-item[draggable]").forEach(function(it) {
+    it.addEventListener("touchstart", function(e) {
+        var touch = e.touches[0];
+        _ds = { t: it.dataset.t, s: it.dataset.s || "rectangle", st: it.dataset.st || "",
+            w: parseFloat(it.dataset.w) || 80, h: parseFloat(it.dataset.h) || 60,
+            font: "HN", fs: 12, tx: touch.clientX, ty: touch.clientY };
+        e.preventDefault();
+    }, { passive: false });
+});
+document.addEventListener("touchmove", function(e) {
+    if (!_ds || !_ds.t) return;
+    e.preventDefault();
+}, { passive: false });
+document.addEventListener("touchend", function(e) {
+    if (!_ds || !_ds.t) return;
+    var touch = e.changedTouches[0];
+    var pg = $("page");
+    if (pg) {
+        var r = pg.getBoundingClientRect();
+        var cx = touch.clientX, cy = touch.clientY;
+        if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+            var x = Math.max(0, Math.min(Math.round((cx - r.left) / _sn) * _sn, _pw - 40));
+            var y = Math.max(0, Math.min(Math.round((cy - r.top) / _sn) * _sn, _ph - 30));
+            var d = _ds;
+            var w = d.w || 80, h = d.h || 60;
+            if (d.t === "text") { w = 120; h = d.st === "heading" ? 24 : d.st === "desc" ? 16 : 18; }
+            if (d.t === "freehand") { w = 100; h = 80; }
+            add({ t: d.t || "stamp", s: d.s || "rectangle", x: x, y: y, w: w, h: h,
+                lbl: d.t === "text" ? (d.st === "heading" ? "Heading" : d.st === "desc" ? "Description" : "Label") : "",
+                font: d.font || "HN", fs: d.st === "heading" ? 16 : d.st === "desc" ? 10 : 12,
+                bdr: _defBdr, bdrC: _defBdrC, bdrW: 1, fill: _defFillC, fillA: 100, img: "" });
+        }
+    }
+    _ds = {};
+});
+// Canvas element touch drag (iPad)
+document.addEventListener("touchstart", function(e) {
+    var el = e.target.closest(".cel");
+    if (!el) return;
+    var obj = E.find(function(x) { return x.id === el.dataset.id; });
+    if (!obj) return;
+    var touch = e.touches[0];
+    _dragH = e.target.classList.contains("rh") ? e.target.dataset.h : "move";
+    select(obj.id);
+    _drg = true;
+    _dragEl = obj;
+    _ds = { x: touch.clientX, y: touch.clientY, ox: obj.x, oy: obj.y, ow: obj.w, oh: obj.h };
+}, { passive: true });
+document.addEventListener("touchmove", function(e) {
+    if (!_drg || !_dragEl) return;
+    var touch = e.touches[0];
+    var dx = Math.round((touch.clientX - _ds.x) / _sn) * _sn;
+    var dy = Math.round((touch.clientY - _ds.y) / _sn) * _sn;
+    var h = _dragH, x = _ds.ox, y = _ds.oy, w = _ds.ow, oh = _ds.oh;
+    if (h === "move") { x += dx; y += dy; } else {
+        if (h.indexOf("w") >= 0) { x += dx; w -= dx; }
+        if (h.indexOf("e") >= 0) { w += dx; }
+        if (h.indexOf("n") >= 0) { y += dy; oh -= dy; }
+        if (h.indexOf("s") >= 0) { oh += dy; }
+        if (w < 10) w = 10;
+        if (oh < 10) oh = 10;
+    }
+    _dragEl.x = Math.max(0, Math.min(x, _pw - _dragEl.w));
+    _dragEl.y = Math.max(0, Math.min(y, _ph - _dragEl.h));
+    _dragEl.w = Math.min(w, _pw - _dragEl.x);
+    _dragEl.h = Math.min(oh, _ph - _dragEl.y);
+    render();
+    updateProps();
+    e.preventDefault();
+}, { passive: false });
+document.addEventListener("touchend", function() {
+    if (_drg && _dragEl) { pushUndo(); }
+    _drg = false;
+    _dragEl = null;
+    _dragH = null;
+});
+
+// ── Before unload ──
+window.addEventListener("beforeunload", function(e) {
+    if (_dirty) { e.preventDefault(); e.returnValue = ""; }
+});
+
+// ── Restore draft from localStorage ──
+var restored = loadDraft();
+if (restored) {
+    console.log("StampAlbum Pro: restored draft from localStorage");
+}
+
+// ── Init ──
+renderPageDots();
+updateGrid();
+loadFileList();
+loadImageList();
+updateTitle();
+
+console.log("StampAlbum Pro: ready");
+
 
 // ── New album ──
 function newAlbum() {
