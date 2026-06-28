@@ -361,26 +361,17 @@ class AlbumParser:
                     arms=defaults[3],
                 )
             elif cmd == "ALBUM_PAGES_MARGIN_TXT":
+                # Margin text applies to page setup level (shown on every page)
                 align = TextAlignment.CENTER
                 direction = "up"
-                if len(params) > 5:
-                    # Check if params[4] is alignment or direction
+                if len(params) > 4:
                     if params[4].upper() in (
-                        "LEFT",
-                        "CENTER",
-                        "CENTRE",
-                        "RIGHT",
-                        "JUSTIFY",
-                        "TOP",
-                        "BOTTOM",
+                        "LEFT", "CENTER", "CENTRE", "RIGHT", "JUSTIFY", "TOP", "BOTTOM",
                     ):
                         align_map = {
-                            "LEFT": TextAlignment.LEFT,
-                            "CENTER": TextAlignment.CENTER,
-                            "CENTRE": TextAlignment.CENTER,
-                            "RIGHT": TextAlignment.RIGHT,
-                            "JUSTIFY": TextAlignment.JUSTIFY,
-                            "TOP": TextAlignment.TOP,
+                            "LEFT": TextAlignment.LEFT, "CENTER": TextAlignment.CENTER,
+                            "CENTRE": TextAlignment.CENTER, "RIGHT": TextAlignment.RIGHT,
+                            "JUSTIFY": TextAlignment.JUSTIFY, "TOP": TextAlignment.TOP,
                             "BOTTOM": TextAlignment.BOTTOM,
                         }
                         align = align_map.get(params[4].upper(), TextAlignment.CENTER)
@@ -388,7 +379,8 @@ class AlbumParser:
                             direction = params[5].lower()
                     else:
                         direction = params[4].lower()
-                album.page_setup.margin_texts.append(
+                # Store as global margin text setting (used by all pages)
+                album.margin_texts.append(
                     MarginTextItem(
                         font_id=unquote(params[0]),
                         size=float(params[1]),
@@ -857,6 +849,48 @@ class AlbumParser:
                     album.page_setup.default_text_style = params[0]
                 elif len(tokens) > 1:
                     album.page_setup.default_text_style = tokens[1]
+            # --- AlbumEasy compatibility: VSpace text variants ---
+            elif cmd in ("PAGE_TEXT_VSPACE", "PAGE_TEXT_CENTRE_VSPACE",
+                         "PAGE_TEXT_CENTER_VSPACE", "PAGE_TEXT_RIGHT_VSPACE"):
+                if current_page:
+                    # Two forms: (vspace_val) or (FONT_ID SIZE "text" vspace)
+                    # Detect: if first param is a number, it's the simple form
+                    try:
+                        vspace_val = float(params[0])
+                        # Simple form: just vertical space
+                        current_page.vspace = vspace_val
+                        current_page.content_flow.append(("vspace", vspace_val))
+                    except ValueError:
+                        # Text form: (FONT_ID SIZE "text" [vspace])
+                        # Render as centered text with vspace
+                        vspace_val = float(params[-1]) if len(params) > 3 else 0.0
+                        text_content = unquote(params[2]) if len(params) > 2 else ""
+                        alignment = TextAlignment.CENTER
+                        if "RIGHT" in cmd:
+                            alignment = TextAlignment.RIGHT
+                        ft = FormattedText(
+                            font_id=unquote(params[0]),
+                            size=float(params[1]) if len(params) > 1 else 10.0,
+                            content=text_content,
+                            alignment=alignment,
+                            color=album.color_page_text,
+                            vspace=vspace_val,
+                        )
+                        current_page.text_elements.append(ft)
+                        current_page.content_flow.append(("text", ft))
+            elif cmd in ("PAGE_START_GROUP_BEGIN", "PAGE_START_GROUP_END", "PAGE_START_INFO"):
+                pass  # Exhibition grouping — not needed with DnD canvas
+            elif cmd in ("ALBUM_PAGES_DATE", "ALBUM_PAGES_NUMBER", "INC_PG_COUNT"):
+                pass  # Header/footer metadata — not needed with DnD canvas
+            elif cmd in ("STAMP_ADDX", "STAMP_ADDX_IMG"):
+                # Extended stamp add — same as STAMP_ADD/STAMP_ADD_IMG
+                pass  # Handled by absolute positioning system
+            elif cmd in ("STAMP_ADD_RT_TRIANGLE", "STAMP_ADD_TRIANGLE_INV"):
+                # Triangle orientation variants — same as STAMP_ADD_TRIANGLE
+                pass  # Orientation handled by image/content
+            elif cmd in ("STAMP_BOXES_ADJUST_RESTORE", "STAMP_BOXES_ADJUST_SAVE"):
+                pass  # Mount size state save/restore — single size in DnD
+
             elif cmd == "PAGE_TEXT_DROP_CAP":
                 # PAGE_TEXT_DROP_CAP (font_id size lines "text")
                 # lines = number of lines the drop cap spans (default 2)
