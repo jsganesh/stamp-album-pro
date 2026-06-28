@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StampAlbum Pro</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css">
+    <style>
+        .cm-editor { height: 300px; font-size: 13px; border: 1px solid var(--border); border-radius: 4px; }
+        .cm-editor .cm-gutters { background: var(--bg2); border-right: 1px solid var(--border); }
+        .cm-editor .cm-activeLineGutter { background: var(--bg3); }
+        .cm-editor .cm-activeLine { background: rgba(233,69,96,0.08); }
+        .cm-editor.cm-focused { outline: none; border-color: var(--accent); }
+    </style>
 </head>
 <body>
 
@@ -185,6 +193,7 @@
 <!-- Hidden inputs -->
 <input type="file" id="file-inp" accept=".slbum,.txt" hidden>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -203,19 +203,58 @@ function init() {
     $("btn-cls-wiz").addEventListener("click", function() {
         $("wizard-panel").classList.remove("open");
     });
+    // ── DSL Editor (CodeMirror 6) ──
+    var _cmEditor = null;
+    function initCodeMirror() {
+        if (_cmEditor) return _cmEditor;
+        if (typeof CodeMirror === "undefined") return null;
+        var ta = $("dsl-ta");
+        if (!ta) return null;
+        _cmEditor = CodeMirror.fromTextArea(ta, {
+            mode: "text/x-stampalbum",
+            theme: "default",
+            lineNumbers: true,
+            lineWrapping: true,
+            indentUnit: 2,
+            tabSize: 2,
+            autofocus: false,
+            placeholder: '# Enter DSL commands here...\nALBUM_TITLE("My Album")\nPAGE_START\nSTAMP_ADD(40 30 "Description" "" "" "")',
+        });
+        // Custom DSL highlighting (simple keyword-based)
+        CodeMirror.defineMode("text/x-stampalbum", function() {
+            return {
+                token: function(stream) {
+                    if (stream.match(/^#.*/)) return "comment";
+                    if (stream.match(/^(ALBUM_TITLE|ALBUM_AUTHOR|ALBUM_PAGES_SIZE|ALBUM_PAGES_MARGINS|ALBUM_PAGES_BORDER|ALBUM_PAGES_SPACING|ALBUM_PAGES_TITLE|ALBUM_DEFINE_FONT|PAGE_START|PAGE_TEXT|PAGE_TEXT_CENTRE|PAGE_TEXT_CENTER|PAGE_TEXT_RIGHT|PAGE_RULE_H|PAGE_VSPACE|PAGE_COLUMN_START|PAGE_COLUMN_NEXT|PAGE_COLUMN_STOP|ROW_START_FS|ROW_START_ES|ROW_START_JS|STAMP_ADD|STAMP_ADD_AT|STAMP_ADD_IMG|STAMP_ADD_TRIANGLE|STAMP_ADD_DIAMOND|STAMP_ADD_OVAL|STAMP_ADD_HEXAGON|STAMP_ADD_OCTAGON|STAMP_ADD_PENTAGON|STAMP_HEADING|COLOUR_|COLOR_|\$DEFINE|\$UNDEFINE|\$IFDEF|\$ELSEIF|\$ELSE|\$ENDIF|\$INCLUDE)/)) return "keyword";
+                    if (stream.match(/^"[^"]*"/)) return "string";
+                    if (stream.match(/^\d+(\.\d+)?/)) return "number";
+                    stream.next();
+                    return null;
+                }
+            };
+        });
+        _cmEditor.on("change", function() { _cmEditor.save(); });
+        return _cmEditor;
+    }
     $("btn-dsl").addEventListener("click", function() {
         $("dsl-panel").classList.toggle("open");
         if ($("dsl-panel").classList.contains("open")) {
-            $("dsl-ta").value = buildDSL();
+            var cm = initCodeMirror();
+            if (cm) { cm.setValue(buildDSL()); cm.refresh(); cm.focus(); }
+            else { $("dsl-ta").value = buildDSL(); }
         }
     });
     $("btn-app-dsl").addEventListener("click", function() {
-        parseDSL($("dsl-ta").value);
+        var dsl = _cmEditor ? _cmEditor.getValue() : $("dsl-ta").value;
+        parseDSL(dsl);
         pushUndo();
         render();
         showToast("DSL applied", "success");
     });
-    $("btn-cls-dsl").addEventListener("click", function() { $("dsl-panel").classList.remove("open"); });
+    $("btn-cls-dsl").addEventListener("click", function() {
+        $("dsl-panel").classList.remove("open");
+        if (_cmEditor) { _cmEditor.toTextArea(); _cmEditor = null; }
+    });
 
     // ── DSL Reference Panel ──
     $("btn-dsl-ref").addEventListener("click", function() {
