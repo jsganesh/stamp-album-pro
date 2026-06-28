@@ -159,7 +159,21 @@
         </div>
         <div class="wiz-group">
             <label>Border Style</label>
-            <select id="wiz-border"><option value="solid">Solid</option><option value="double">Double</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option><option value="none">None</option></select>
+            <select id="wiz-border">
+                <option value="none">None</option>
+                <option value="solid">Solid Line</option>
+                <option value="double" selected>Double Line</option>
+                <option value="dashed">Dashed</option>
+                <option value="dotted">Dotted</option>
+                <option value="classic">✦ Classic Ornate</option>
+                <option value="victorian">✦ Victorian Filigree</option>
+                <option value="artdeco">✦ Art Deco</option>
+                <option value="greek_key">✦ Greek Key</option>
+                <option value="rope">✦ Rope Twist</option>
+                <option value="laurel">✦ Laurel Wreath</option>
+                <option value="gothic">✦ Gothic Arch</option>
+                <option value="filigree">✦ Filigree Gold</option>
+            </select>
             <label>Columns</label>
             <select id="wiz-columns"><option value="0">Single</option><option value="2">Two Columns</option><option value="3">Three Columns</option></select>
         </div>
@@ -203,6 +217,7 @@
 <script src="app.js"></script>
 <script src="render.js"></script>
 <script src="events.js"></script>
+<script src="borders.js"></script>
 <script src="init.js"></script>
 </body>
 </html>

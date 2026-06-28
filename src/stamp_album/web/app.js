@@ -6,7 +6,7 @@ var _defBdr = "solid", _defBdrC = "#666", _defFillC = "#fff";
 var _collapsed = { sb: false, rp: false };
 var _currentFile = null, _currentPage = 0, _pages = [ [] ];
 var _dirty = false;
-var _colMode = 1, _colGap = 10.0;  // Column layout mode and gap (mm)
+var _colMode = 1, _colGap = 10.0, _pageBorder = "double";  // Column layout mode, gap (mm), page border style
 
 // ── Undo/redo system ──
 var _undoStack = [], _redoStack = [], _undoMax = 50, _undoPaused = false;
@@ -156,6 +156,7 @@ function switchPage(idx, silent) {
     sel = null;
     renderPageDots();
     render();
+    if (S.renderPageBorder) S.renderPageBorder(_pageBorder || "double");
     updateProps();
 }
 function addPage() {
@@ -644,6 +645,9 @@ function applyWizard() {
     parseDSL(lines.join("\n"));
     pushUndo();
     render();
+    // Apply ornamental border if selected
+    _pageBorder = border;
+    if (S.renderPageBorder) S.renderPageBorder(border);
     $("wizard-panel").classList.remove("open");
     showToast("Album created from wizard", "success");
 }
