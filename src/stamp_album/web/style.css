@@ -140,6 +140,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .cel .shape-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
 .cel .shape-svg path { fill: var(--el-fill, #fff); stroke: var(--el-bdr, #666); stroke-width: var(--el-bdr-w, 1); }
 
+/* ── Philatelic stamp mount ── */
+.stamp-mount { border-radius: 1px; }
+.stamp-mount .stamp-inner { pointer-events: auto; }
+.stamp-mount .elbl { color: #222; line-height: 1.2; }
+.stamp-mount.selected { outline: 2px solid var(--accent); outline-offset: 3px; }
+.stamp-mount:hover { outline: 2px dashed var(--accent); outline-offset: 3px; }
+
 /* Page indicator dots */
 #pg-dots { display: flex; gap: 4px; align-items: center; }
 .pg-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--bg3); border: 1px solid var(--border); cursor: pointer; font-size: 7px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }

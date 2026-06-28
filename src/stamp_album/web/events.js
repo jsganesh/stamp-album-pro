@@ -157,6 +157,28 @@ function init() {
         el.fs = parseFloat(this.value) || 12; pushUndo(); render();
     });
 
+    // ── Philatelic metadata fields ──
+    $("phdg").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.hdg = this.value; pushUndo(); render();
+    });
+    $("pcat").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.cat = this.value; pushUndo(); render();
+    });
+    $("pdenom").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.denom = this.value; pushUndo(); render();
+    });
+    $("pcond").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.cond = this.value; pushUndo(); render();
+    });
+    $("pperf").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.perf = this.value; pushUndo(); render();
+    });
+
     // ── Buttons ──
     $("btn-new").addEventListener("click", newAlbum);
     $("btn-open").addEventListener("click", function() { $("file-inp").click(); });

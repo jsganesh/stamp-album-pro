@@ -113,11 +113,17 @@ function add(p) {
         fs: p.fs || 12,
         align: p.align || "left",
         bdr: p.bdr || "solid",
-        bdrC: p.bdrC || "#666",
-        bdrW: p.bdrW || 1,
-        fill: p.fill || "#fff",
+        bdrC: p.bdrC || "#2C2C2C",
+        bdrW: p.bdrW || 0.5,
+        fill: p.fill || "#FEFEFE",
         fillA: p.fillA || 100,
-        img: p.img || ""
+        img: p.img || "",
+        /* Philatelic metadata */
+        hdg: p.hdg || "",
+        cat: p.cat || "",
+        denom: p.denom || "",
+        cond: p.cond || "",
+        perf: p.perf || ""
     };
     S.E.push(s);
     pushUndo();
@@ -143,9 +149,9 @@ function select(id) {
     $("ph").value = mm(el.h);
     $("plbl").value = el.lbl || "";
     $("pbs").value = el.bdr || "solid";
-    $("pbc").value = el.bdrC || "#666";
-    $("pbw").value = el.bdrW || 1;
-    $("pfc").value = el.fill || "#fff";
+    $("pbc").value = el.bdrC || "#2C2C2C";
+    $("pbw").value = el.bdrW || 0.5;
+    $("pfc").value = el.fill || "#FEFEFE";
     $("pfa").value = el.fillA || 100;
     $("pfa-v").textContent = (el.fillA || 100) + "%";
     $("pfnt").value = el.font || "HN";
@@ -153,6 +159,21 @@ function select(id) {
     var isImg = el.t === "image";
     $("img-sec").style.display = isImg ? "block" : "none";
     $("img-row").style.display = isImg ? "flex" : "none";
+    /* Philatelic fields — show for stamp type */
+    var isStamp = el.t === "stamp";
+    $("phil-sec").style.display = isStamp ? "block" : "none";
+    $("phil-hdg-row").style.display = isStamp ? "flex" : "none";
+    $("phil-cat-row").style.display = isStamp ? "flex" : "none";
+    $("phil-denom-row").style.display = isStamp ? "flex" : "none";
+    $("phil-cond-row").style.display = isStamp ? "flex" : "none";
+    $("phil-perf-row").style.display = isStamp ? "flex" : "none";
+    if (isStamp) {
+        $("phdg").value = el.hdg || "";
+        $("pcat").value = el.cat || "";
+        $("pdenom").value = el.denom || "";
+        $("pcond").value = el.cond || "";
+        $("pperf").value = el.perf || "";
+    }
 }
 
 function updateProps() {
@@ -189,7 +210,69 @@ function render() {
         d.style.width = el.w + "px";
         d.style.height = el.h + "px";
 
-        if (el.s && el.s !== "rectangle" && el.s !== "text" && el.s !== "freehand") {
+        /* ── Philatelic stamp mount rendering ── */
+        if (el.t === "stamp" && el.s === "rectangle") {
+            // Mount: thick black border (the album mount border)
+            d.style.border = "1.5pt solid " + (el.bdrC || "#2C2C2C");
+            d.style.backgroundColor = el.fill || "#FEFEFE";
+            d.style.boxShadow = "inset 0 0 0 3pt " + (el.fill || "#FEFEFE");
+            d.classList.add("stamp-mount");
+
+            // Inner content area
+            var inner = document.createElement("div");
+            inner.className = "stamp-inner";
+            inner.style.cssText = "position:absolute;inset:4pt;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;";
+
+            if (el.img) {
+                var img = document.createElement("img");
+                img.className = "eimg";
+                img.src = el.img;
+                img.style.maxWidth = "92%";
+                img.style.maxHeight = "60%";
+                inner.appendChild(img);
+            }
+
+            // Label text (color, catalog #)
+            if (el.lbl) {
+                var l = document.createElement("span");
+                l.className = "elbl";
+                l.textContent = el.lbl;
+                l.contentEditable = "true";
+                l.spellcheck = false;
+                var fc = S.fontCSS(el.font || "HN");
+                l.style.fontFamily = fc.family;
+                l.style.fontSize = Math.max(9, (el.fs || 10)) + "px";
+                l.style.fontWeight = fc.weight;
+                l.style.fontStyle = fc.style;
+                l.style.marginTop = "2px";
+                l.addEventListener("blur", function() {
+                    el.lbl = this.textContent;
+                    pushUndo();
+                });
+                inner.appendChild(l);
+            }
+
+            // Denomination below label
+            if (el.denom) {
+                var denom = document.createElement("span");
+                denom.className = "stamp-denom";
+                denom.textContent = el.denom;
+                denom.style.cssText = "font-size:9px;font-weight:600;color:#333;margin-top:1px;";
+                inner.appendChild(denom);
+            }
+
+            d.appendChild(inner);
+
+            // Heading below mount
+            if (el.hdg) {
+                var hdg = document.createElement("div");
+                hdg.className = "stamp-hdg";
+                hdg.textContent = el.hdg;
+                hdg.style.cssText = "position:absolute;bottom:-18px;left:0;right:0;text-align:center;font-size:9px;color:#333;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
+                d.appendChild(hdg);
+            }
+        }
+        else if (el.s && el.s !== "rectangle" && el.s !== "text" && el.s !== "freehand") {
             var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
             svg.setAttribute("class", "shape-svg");
             svg.setAttribute("viewBox", "0 0 " + el.w + " " + el.h);
@@ -220,14 +303,14 @@ function render() {
             d.style.border = (el.bdrW || 0) + "pt " + (el.bdr || "solid") + " " + (el.bdrC || "#666");
             d.style.backgroundColor = el.fill || "transparent";
         }
-        if (el.fillA !== undefined && el.fillA < 100) d.style.opacity = el.fillA / 100;
+        if (el.fillA !== undefined && el.fillA < 100 && el.t !== "stamp") d.style.opacity = el.fillA / 100;
 
-        if (el.img) {
+        if (el.img && el.t !== "stamp") {
             var img = document.createElement("img");
             img.className = "eimg";
             img.src = el.img;
             d.appendChild(img);
-        } else if (el.lbl) {
+        } else if (el.lbl && el.t !== "stamp") {
             var l = document.createElement("span");
             l.className = "elbl";
             l.textContent = el.lbl;
