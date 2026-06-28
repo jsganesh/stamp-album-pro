@@ -10,30 +10,21 @@
 
 <header id="tb">
     <span class="logo">StampAlbum Pro</span>
-    <button id="btn-new" title="New album">✚ New</button>
-    <button id="btn-open" title="Open file (Ctrl+O)">📂 Open</button>
-    <button id="btn-save" title="Save (Ctrl+S)">💾 Save</button>
-    <button id="btn-dup" title="Duplicate selected element (Ctrl+D)">⧉ Duplicate</button>
-    <button id="btn-grid" title="Grid fill — duplicate selected stamp in a grid pattern">⊞ Grid Fill</button>
+    <button id="btn-new">✚ New</button>
+    <button id="btn-open">📂 Open</button>
+    <button id="btn-save">💾 Save</button>
+    <button id="btn-dup">⧉ Duplicate</button>
+    <button id="btn-grid">⊞ Grid Fill</button>
     <span class="spacer"></span>
     <span id="file-name"></span>
     <span class="spacer"></span>
-    <button id="btn-undo" title="Undo (Ctrl+Z)">↩</button>
-    <button id="btn-redo" title="Redo (Ctrl+Y)">↪</button>
-    <button id="btn-del" title="Delete selected element (Del)">🗑</button>
-    <button id="btn-wizard" title="Quick Setup Wizard — create a new album with templates">⚡ Wizard</button>
-    <button id="btn-preview" title="Live preview (F5)">👁 Preview</button>
-    <div class="export-dd">
-        <button id="btn-export" title="Export album page">📄 Export</button>
-        <div class="export-dd-menu">
-            <div class="export-dd-item" data-fmt="pdf">📄 PDF</div>
-            <div class="export-dd-item" data-fmt="png">🖼 PNG Image</div>
-            <div class="export-dd-item" data-fmt="svg">🔷 SVG Image</div>
-            <div class="export-dd-item" data-fmt="html">🌐 HTML Gallery</div>
-        </div>
-    </div>
-    <button id="btn-dsl" title="DSL Editor (advanced)">🔧 DSL</button>
-    <button id="btn-help" title="Keyboard shortcuts (?)">?</button>
+    <button id="btn-undo">↩</button>
+    <button id="btn-redo">↪</button>
+    <button id="btn-del">🗑</button>
+    <button id="btn-wizard">⚡ Wizard</button>
+    <button id="btn-preview">👁 Preview</button>
+    <button id="btn-export">📄 PDF</button>
+    <button id="btn-dsl">🔧 DSL</button>
 </header>
 
 <div id="main">
@@ -169,124 +160,14 @@
 
 <!-- DSL Panel (bottom) -->
 <div id="dsl-panel">
-    <div class="dsl-hdr">
-        <span>DSL Editor (Advanced)</span>
-        <span class="spacer"></span>
-        <button id="btn-dsl-ref" title="Toggle DSL reference">📖 Ref</button>
-        <button id="btn-app-dsl">Apply</button>
-        <button id="btn-cls-dsl">✕</button>
-    </div>
-    <div id="dsl-editor">
-        <textarea id="dsl-ta" spellcheck="false"></textarea>
-        <div id="dsl-ref-panel">
-            <div class="dsl-ref-hdr">DSL Command Reference</div>
-            <div class="dsl-ref-body">
-                <div class="dsl-ref-cat">Document</div>
-                <div class="dsl-ref-item"><code>ALBUM_TITLE("name")</code><span>Set album title</span></div>
-                <div class="dsl-ref-item"><code>ALBUM_AUTHOR("name")</code><span>Set author</span></div>
-                <div class="dsl-ref-cat">Page Setup</div>
-                <div class="dsl-ref-item"><code>ALBUM_PAGES_SIZE(w h)</code><span>Page dimensions in mm</span></div>
-                <div class="dsl-ref-item"><code>ALBUM_PAGES_MARGINS(l r t b)</code><span>Page margins in mm</span></div>
-                <div class="dsl-ref-item"><code>ALBUM_PAGES_BORDER(w1 w2 w3 w4)</code><span>Triple line border</span></div>
-                <div class="dsl-ref-item"><code>ALBUM_PAGES_SPACING(h v)</code><span>Horizontal / vertical gap</span></div>
-                <div class="dsl-ref-cat">Pages &amp; Content</div>
-                <div class="dsl-ref-item"><code>PAGE_START</code><span>Begin a new page</span></div>
-                <div class="dsl-ref-item"><code>PAGE_TEXT("FS" size "text")</code><span>Left-aligned text</span></div>
-                <div class="dsl-ref-item"><code>PAGE_TEXT_CENTRE("FS" size "text")</code><span>Centered text</span></div>
-                <div class="dsl-ref-item"><code>PAGE_TEXT_RIGHT("FS" size "text")</code><span>Right-aligned text</span></div>
-                <div class="dsl-ref-item"><code>PAGE_VSPACE(mm)</code><span>Vertical spacing</span></div>
-                <div class="dsl-ref-item"><code>PAGE_RULE_H</code><span>Horizontal rule line</span></div>
-                <div class="dsl-ref-cat">Stamps</div>
-                <div class="dsl-ref-item"><code>STAMP_ADD(w h "desc" "cat" "cond" "acc")</code><span>Add stamp in row</span></div>
-                <div class="dsl-ref-item"><code>STAMP_ADD_AT(x y w h "desc" "shape" "bdr" "fill")</code><span>Stamp at position</span></div>
-                <div class="dsl-ref-item"><code>STAMP_ADD_IMG(x y w h "img" "desc" "" "")</code><span>Image at position</span></div>
-                <div class="dsl-ref-item"><code>STAMP_ADD_TRIANGLE(w h "desc")</code><span>Triangle stamp</span></div>
-                <div class="dsl-ref-item"><code>STAMP_ADD_DIAMOND(w h "desc")</code><span>Diamond stamp</span></div>
-                <div class="dsl-ref-item"><code>STAMP_ADD_OVAL(w h "desc")</code><span>Oval stamp</span></div>
-                <div class="dsl-ref-cat">Rows</div>
-                <div class="dsl-ref-item"><code>ROW_START_FS("FS" size gap width)</code><span>Fixed-space row</span></div>
-                <div class="dsl-ref-item"><code>ROW_START_ES("FS" size gap width)</code><span>Equal-space row</span></div>
-                <div class="dsl-ref-item"><code>ROW_START_JS("FS" size gap width)</code><span>Justified row</span></div>
-                <div class="dsl-ref-cat">Columns</div>
-                <div class="dsl-ref-item"><code>PAGE_COLUMN_START(n gap)</code><span>Start n-column layout</span></div>
-                <div class="dsl-ref-item"><code>PAGE_COLUMN_NEXT</code><span>Next column</span></div>
-                <div class="dsl-ref-item"><code>PAGE_COLUMN_STOP</code><span>End column layout</span></div>
-                <div class="dsl-ref-cat">Fonts</div>
-                <div class="dsl-ref-item"><code>ALBUM_DEFINE_FONT("ID" "Name")</code><span>Define custom font</span></div>
-                <div class="dsl-ref-item"><code>HN / HB / HI / HS</code><span>Helvetica variants</span></div>
-                <div class="dsl-ref-item"><code>TN / TB / TI / TS</code><span>Times variants</span></div>
-                <div class="dsl-ref-item"><code>CN / CB / CI / CS</code><span>Courier variants</span></div>
-                <div class="dsl-ref-cat">Colors</div>
-                <div class="dsl-ref-item"><code>COLOUR_ALBUM_BORDER("color")</code><span>Border color</span></div>
-                <div class="dsl-ref-item"><code>COLOUR_ALBUM_TITLE("color")</code><span>Title color</span></div>
-                <div class="dsl-ref-item"><code>COLOUR_STAMP_BORDER("color")</code><span>Stamp border color</span></div>
-                <div class="dsl-ref-item"><code>COLOUR_STAMP_BACKGROUND("color")</code><span>Stamp fill color</span></div>
-                <div class="dsl-ref-cat">Headers &amp; Footers</div>
-                <div class="dsl-ref-item"><code>ALBUM_PAGES_TITLE("FS" size "text")</code><span>Page title</span></div>
-                <div class="dsl-ref-item"><code>ALBUM_PAGES_FOOTER_NUMBER("FS" size align "pre" "post")</code><span>Page numbers</span></div>
-            </div>
-        </div>
-    </div>
+    <div class="dsl-hdr"><span>DSL Editor (Advanced)</span><span class="spacer"></span><button id="btn-app-dsl">Apply</button><button id="btn-cls-dsl">✕</button></div>
+    <div id="dsl-editor"><textarea id="dsl-ta" spellcheck="false"></textarea></div>
 </div>
 
 <!-- Preview Overlay -->
 <div id="preview-overlay">
     <div class="preview-hdr"><span>👁 Live Preview</span><span class="spacer"></span><button id="btn-preview-refresh">↻ Refresh</button><button id="btn-preview-export">📄 Export PDF</button><button id="btn-preview-close">✕ Close</button></div>
     <div id="preview-body"><iframe id="preview-frame" width="595" height="842"></iframe></div>
-</div>
-
-<!-- First-Run Tutorial Overlay -->
-<div id="tutorial-overlay">
-    <div class="tutorial-box">
-        <div class="tutorial-hdr"><span>Welcome to StampAlbum Pro</span></div>
-        <div class="tutorial-body">
-            <div class="tutorial-step active" data-step="1">
-                <div class="tutorial-step-num">1</div>
-                <div class="tutorial-step-text"><strong>Drag a stamp</strong> from the left palette and drop it on the white page</div>
-            </div>
-            <div class="tutorial-step" data-step="2">
-                <div class="tutorial-step-num">2</div>
-                <div class="tutorial-step-text"><strong>Move & resize</strong> — drag to reposition, use corner handles to resize</div>
-            </div>
-            <div class="tutorial-step" data-step="3">
-                <div class="tutorial-step-num">3</div>
-                <div class="tutorial-step-text"><strong>Edit properties</strong> — select a stamp to change border, fill, text, and font</div>
-            </div>
-            <div class="tutorial-step" data-step="4">
-                <div class="tutorial-step-num">4</div>
-                <div class="tutorial-step-text"><strong>Export</strong> — click the PDF button to generate your album page</div>
-            </div>
-        </div>
-        <div class="tutorial-actions">
-            <button id="btn-tutorial-skip">Skip</button>
-            <button id="btn-tutorial-next" class="primary">Next</button>
-        </div>
-    </div>
-</div>
-
-<!-- Keyboard Shortcut Help Overlay -->
-<div id="help-overlay">
-    <div class="help-box">
-        <div class="help-hdr"><span>⌨ Keyboard Shortcuts</span><button id="btn-help-close">✕</button></div>
-        <div class="help-body">
-            <div class="help-col">
-                <div class="help-sec">File</div>
-                <div class="help-row"><kbd>Ctrl+S</kbd><span>Save</span></div>
-                <div class="help-row"><kbd>Ctrl+O</kbd><span>Open file</span></div>
-                <div class="help-sec">Edit</div>
-                <div class="help-row"><kbd>Ctrl+Z</kbd><span>Undo</span></div>
-                <div class="help-row"><kbd>Ctrl+Y</kbd><span>Redo</span></div>
-                <div class="help-row"><kbd>Ctrl+D</kbd><span>Duplicate element</span></div>
-                <div class="help-row"><kbd>Del</kbd><span>Delete element</span></div>
-                <div class="help-row"><kbd>Esc</kbd><span>Deselect</span></div>
-            </div>
-            <div class="help-col">
-                <div class="help-sec">View</div>
-                <div class="help-row"><kbd>F5</kbd><span>Live preview</span></div>
-                <div class="help-row"><kbd>?</kbd><span>This help</span></div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <!-- Toast container -->
@@ -296,13 +177,5 @@
 <input type="file" id="file-inp" accept=".slbum,.txt" hidden>
 
 <script src="app.js"></script>
-<script src="undo.js"></script>
-<script src="canvas.js"></script>
-<script src="dsl.js"></script>
-<script src="files.js"></script>
-<script src="export.js"></script>
-<script src="tutorial.js"></script>
-<script src="wizard.js"></script>
-<script src="init.js"></script>
 </body>
 </html>
