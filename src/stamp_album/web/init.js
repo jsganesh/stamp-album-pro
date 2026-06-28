@@ -387,22 +387,51 @@ function init() {
     $("btn-wiz-apply").addEventListener("click", applyWizard);
     $("btn-app-wiz").addEventListener("click", applyWizard);
     $("btn-wiz-template").addEventListener("click", function() {
-        var selTpl = $("wiz-template").value;
-        if (selTpl && selTpl !== "blank") {
-            fetch("/api/templates/" + selTpl)
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    if (data.dsl) {
-                        parseDSL(data.dsl);
-                        pushUndo();
-                        render();
-                        showToast("Template loaded: " + data.name, "success");
-                        $("wizard-panel").classList.remove("open");
-                    }
-                })
-                .catch(function(err) { showToast("Failed to load template: " + err, "error"); });
-        }
+        openTemplateGallery();
     });
+
+    // ── Template Gallery panel ──
+    $("btn-tg-close").addEventListener("click", function() {
+        $("template-gallery-panel").classList.remove("open");
+    });
+
+    function openTemplateGallery() {
+        var grid = $("template-grid");
+        if (!grid) return;
+        grid.innerHTML = '<div class="tg-loading">Loading templates...</div>';
+        $("template-gallery-panel").classList.add("open");
+        fetch("/api/templates")
+            .then(function(r) { return r.json(); })
+            .then(function(templates) {
+                grid.innerHTML = "";
+                templates.forEach(function(t) {
+                    var card = document.createElement("div");
+                    card.className = "tg-card";
+                    card.innerHTML = '<div class="tg-card-title">' + t.name + '</div>' +
+                        '<div class="tg-card-desc">' + (t.description || "") + '</div>' +
+                        '<div class="tg-card-cat">' + (t.category || "") + "</div>";
+                    card.addEventListener("click", function() {
+                        fetch("/api/templates/" + t.id)
+                            .then(function(r) { return r.json(); })
+                            .then(function(data) {
+                                if (data.dsl) {
+                                    parseDSL(data.dsl);
+                                    pushUndo();
+                                    render();
+                                    showToast("Template loaded: " + data.name, "success");
+                                    $("template-gallery-panel").classList.remove("open");
+                                    $("wizard-panel").classList.remove("open");
+                                }
+                            })
+                            .catch(function(err) { showToast("Failed to load: " + err, "error"); });
+                    });
+                    grid.appendChild(card);
+                });
+            })
+            .catch(function() {
+                grid.innerHTML = '<div class="tg-error">Could not load templates</div>';
+            });
+    }
 
     // ── New file button ──
     $("btn-new-file").addEventListener("click", newAlbum);
