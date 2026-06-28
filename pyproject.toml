@@ -80,4 +80,5 @@ disallow_untyped_defs = false
 
 [tool.pytest.ini_options]
 testpaths = ["src/tests"]
-qt_api = "pyqt6"
+addopts = "-q"
+# qt_api removed — legacy PyQt6 UI is optional and triggers a warning
