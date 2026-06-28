@@ -399,6 +399,12 @@ class CanvasElementState(BaseModel):
     fill: str = "#fff"
     fillA: int = 100
     img: str = ""
+    # Philatelic metadata
+    hdg: str = ""
+    cat: str = ""
+    denom: str = ""
+    cond: str = ""
+    perf: str = ""
 
 
 class CanvasStateRequest(BaseModel):
@@ -416,7 +422,7 @@ class CanvasStateRequest(BaseModel):
 def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
     """Convert canvas state directly to Album model, bypassing DSL text."""
     from stamp_album.core.models import (
-        Album, Page, PageSetup, Stamp, StampShape, Color,
+        Album, Page, PageSetup, Stamp, StampShape, StampHeading, Color,
     )
 
     SCALE = req.scale
@@ -436,6 +442,15 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
         page = Page()
         for el in elements:
             is_text = el.t == "text"
+            # Build catalog_refs from cat field
+            catalog_refs = [el.cat] if el.cat else []
+            # Build heading from hdg field
+            heading = None
+            if el.hdg:
+                heading = StampHeading(text=el.hdg, font_id="HN", size=9.0)
+            # Compose footer with denomination + condition + perforation
+            footer_parts = [p for p in [el.denom, el.cond, el.perf] if p]
+            footer = " · ".join(footer_parts) if footer_parts else ""
             stamp = Stamp(
                 abs_x=el.x / SCALE,
                 abs_y=el.y / SCALE,
@@ -448,6 +463,9 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
                 font_id=el.font or "HN",
                 font_size=el.fs or 12.0,
             )
+            stamp.catalog_refs = catalog_refs
+            stamp.heading = heading
+            stamp.footer_text = footer
             page.absolute_stamps.append(stamp)
         return page
 
