@@ -862,7 +862,92 @@ Object.defineProperties(S, {
     buildCanvasState: { value: buildCanvasState }, openPreview: { value: openPreview },
     exportPDF: { value: exportPDF }, loadTemplateList: { value: loadTemplateList },
     applyWizard: { value: applyWizard }, buildDSL: { value: buildDSL }, parseDSL: { value: parseDSL },
+    // ── Alignment functions ──
+    alignSelected: { value: alignSelected },
+    distributeSelected: { value: distributeSelected },
+    matchSize: { value: matchSize },
+    toggleAlignGroup: { value: toggleAlignGroup },
+    toggleSnap: { value: toggleSnap },
 });
+
+// ── Alignment functions ──
+function getSelectedElements() {
+    if (!S.sel) return [];
+    return S.E.filter(function(el) { return el.id === S.sel; });
+}
+
+function alignSelected(direction) {
+    if (!S.sel) { showToast("Select an element first", "error"); return; }
+    var el = S.E.find(function(x) { return x.id === S.sel; });
+    if (!el) return;
+    var pw = S._pw, ph = S._ph;
+    switch (direction) {
+        case "left": el.x = 20; break;
+        case "center": el.x = Math.round((pw - el.w) / 2); break;
+        case "right": el.x = pw - el.w - 20; break;
+        case "top": el.y = 20; break;
+        case "middle": el.y = Math.round((ph - el.h) / 2); break;
+        case "bottom": el.y = ph - el.h - 20; break;
+    }
+    S.pushUndo();
+    S.render();
+    S.updateProps();
+    showToast("Aligned: " + direction, "success");
+}
+
+function distributeSelected(axis) {
+    if (!S.sel) { showToast("Select elements first", "error"); return; }
+    var sel = S.E.filter(function(el) { return el.id === S.sel; });
+    if (sel.length < 2) { showToast("Select at least 2 elements to distribute", "error"); return; }
+    var sorted = sel.slice().sort(function(a, b) {
+        return axis === "h" ? a.x - b.x : a.y - b.y;
+    });
+    var first = sorted[0], last = sorted[sorted.length - 1];
+    var span = axis === "h" ? (last.x + last.w - first.x) : (last.y + last.h - first.y);
+    var totalSize = sorted.reduce(function(s, el) {
+        return s + (axis === "h" ? el.w : el.h);
+    }, 0);
+    var gap = (span - totalSize) / (sorted.length - 1);
+    var cursor = axis === "h" ? first.x : first.y;
+    sorted.forEach(function(el) {
+        if (axis === "h") { el.x = Math.round(cursor); cursor += el.w + gap; }
+        else { el.y = Math.round(cursor); cursor += el.h + gap; }
+    });
+    S.pushUndo();
+    S.render();
+    showToast("Distributed: " + (axis === "h" ? "horizontally" : "vertically"), "success");
+}
+
+function matchSize(axis) {
+    if (!S.sel) { showToast("Select elements first", "error"); return; }
+    var sel = S.E.filter(function(el) { return el.id === S.sel; });
+    if (sel.length < 2) { showToast("Select at least 2 elements to match", "error"); return; }
+    var ref = sel[0];
+    sel.forEach(function(el) {
+        if (el.id === ref.id) return;
+        if (axis === "w") { el.w = ref.w; }
+        else { el.h = ref.h; }
+    });
+    S.pushUndo();
+    S.render();
+    S.updateProps();
+    showToast("Matched: " + (axis === "w" ? "width" : "height"), "success");
+}
+
+function toggleAlignGroup() {
+    var group = document.getElementById("align-group");
+    if (!group) return;
+    var isVisible = group.style.display !== "none";
+    group.style.display = isVisible ? "none" : "flex";
+}
+
+function toggleSnap() {
+    var btn = document.getElementById("btn-snap");
+    if (!btn) return;
+    btn.classList.toggle("active");
+    S._snapEnabled = btn.classList.contains("active");
+    showToast(S._snapEnabled ? "Snap-to-guide ON" : "Snap-to-guide OFF", "info");
+}
 window.StampAlbum = S;
 
 // ── Init (events.js provides S.init) ──

@@ -92,6 +92,14 @@ function init() {
             if (w < 10) w = 10;
             if (oh < 10) oh = 10;
         }
+
+        // Snap-to-guide: use centralized applySnap
+        if (h === "move") {
+            var snapped = S.applySnap(S._dragEl, x, y, w, oh);
+            x = snapped.x;
+            y = snapped.y;
+        }
+
         S._dragEl.x = Math.max(0, Math.min(x, S._pw - S._dragEl.w));
         S._dragEl.y = Math.max(0, Math.min(y, S._ph - S._dragEl.h));
         S._dragEl.w = Math.min(w, S._pw - S._dragEl.x);
@@ -222,6 +230,29 @@ function init() {
     $("btn-cls-wiz").addEventListener("click", function() {
         $("wizard-panel").classList.remove("open");
     });
+
+    // ── Alignment toolbar ──
+    $("btn-align-l").addEventListener("click", function() { S.alignSelected("left"); });
+    $("btn-align-c").addEventListener("click", function() { S.alignSelected("center"); });
+    $("btn-align-r").addEventListener("click", function() { S.alignSelected("right"); });
+    $("btn-align-t").addEventListener("click", function() { S.alignSelected("top"); });
+    $("btn-align-m").addEventListener("click", function() { S.alignSelected("middle"); });
+    $("btn-align-b").addEventListener("click", function() { S.alignSelected("bottom"); });
+    $("btn-dist-h").addEventListener("click", function() { S.distributeSelected("h"); });
+    $("btn-dist-v").addEventListener("click", function() { S.distributeSelected("v"); });
+    $("btn-match-w").addEventListener("click", function() { S.matchSize("w"); });
+    $("btn-match-h").addEventListener("click", function() { S.matchSize("h"); });
+    $("btn-snap").addEventListener("click", function() { S.toggleSnap(); });
+
+    // Show alignment group when element is selected
+    var origSelect = S.select;
+    S.select = function(id) {
+        origSelect(id);
+        var group = $("align-group");
+        if (group) {
+            group.style.display = id ? "flex" : "none";
+        }
+    };
 
     // ── Keyboard shortcuts ──
     document.addEventListener("keydown", function(e) {

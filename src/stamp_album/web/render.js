@@ -39,47 +39,115 @@ function populateFonts() {
     pfnt.appendChild(ws);
 }
 
-// ── Alignment guide lines ──
+// ── Alignment guide lines + snap + labels ──
 var _guideLines = [];
-var GUIDE_THRESHOLD = 5;
+var _guideLabels = [];
+var GUIDE_THRESHOLD = 5;  // px tolerance for snapping
+var SNAP_ENABLED = true;
+S.GUIDE_THRESHOLD = GUIDE_THRESHOLD;
 
 function drawAlignmentGuides(el) {
     clearAlignmentGuides();
     if (!el) return;
     var guides = [];
+    var pg = $("page");
+    if (!pg) return;
+    var pw = S._pw || 595;
+    var ph = S._ph || 842;
+
+    // Collect all edges: the dragged element + all other elements + page center
     var edges = [
-        { pos: el.x, type: "v" },
-        { pos: el.x + el.w, type: "v" },
-        { pos: el.x + el.w / 2, type: "v" },
-        { pos: el.y, type: "h" },
-        { pos: el.y + el.h, type: "h" },
-        { pos: el.y + el.h / 2, type: "h" },
+        { pos: el.x, type: "v", src: el.id },
+        { pos: el.x + el.w, type: "v", src: el.id },
+        { pos: el.x + el.w / 2, type: "v", src: el.id },
+        { pos: el.y, type: "h", src: el.id },
+        { pos: el.y + el.h, type: "h", src: el.id },
+        { pos: el.y + el.h / 2, type: "h", src: el.id },
     ];
+
+    // Page center and quarter lines (always present as reference)
+    var pageGuides = [
+        { pos: pw / 2, type: "v", label: "Page Center" },
+        { pos: ph / 2, type: "h", label: "Page Center" },
+        { pos: pw * 0.25, type: "v", label: "¼" },
+        { pos: pw * 0.75, type: "v", label: "¾" },
+    ];
+
+    // Other elements on page
     S.E.forEach(function(other) {
         if (other.id === el.id) return;
-        var oEdges = [
-            { pos: other.x, type: "v" },
-            { pos: other.x + other.w, type: "v" },
-            { pos: other.x + other.w / 2, type: "v" },
-            { pos: other.y, type: "h" },
-            { pos: other.y + other.h, type: "h" },
-            { pos: other.y + other.h / 2, type: "h" },
-        ];
-        edges.forEach(function(e) {
-            oEdges.forEach(function(oe) {
-                if (e.type !== oe.type) return;
-                if (Math.abs(e.pos - oe.pos) > GUIDE_THRESHOLD) return;
-                guides.push({ pos: oe.pos, dir: e.type === "v" ? "v" : "h",
-                    spanStart: Math.min(e.type === "v" ? el.y : el.x, oe.type === "v" ? other.y : other.x),
-                    spanEnd: Math.max(e.type === "v" ? el.y + el.h : el.x + el.w, oe.type === "v" ? other.y + other.h : other.x + other.w) });
+        edges.push({ pos: other.x, type: "v", src: other.id });
+        edges.push({ pos: other.x + other.w, type: "v", src: other.id });
+        edges.push({ pos: other.x + other.w / 2, type: "v", src: other.id });
+        edges.push({ pos: other.y, type: "h", src: other.id });
+        edges.push({ pos: other.y + other.h, type: "h", src: other.id });
+        edges.push({ pos: other.y + other.h / 2, type: "h", src: other.id });
+    });
+
+    // Find snaps: compare dragged element edges against all other edges + page guides
+    var snapped = { v: null, h: null };
+    var vLabel = null, hLabel = null;
+
+    // Vertical edges of dragged element
+    var vEdges = [
+        { pos: el.x, label: "Left edge" },
+        { pos: el.x + el.w / 2, label: "Center" },
+        { pos: el.x + el.w, label: "Right edge" },
+    ];
+    var hEdges = [
+        { pos: el.y, label: "Top edge" },
+        { pos: el.y + el.h / 2, label: "Middle" },
+        { pos: el.y + el.h, label: "Bottom edge" },
+    ];
+
+    vEdges.forEach(function(ve) {
+        // Check against page center first
+        pageGuides.forEach(function(pg) {
+            if (pg.type !== "v") return;
+            if (Math.abs(ve.pos - pg.pos) < GUIDE_THRESHOLD) {
+                guides.push({ pos: pg.pos, dir: "v", label: pg.label, isPage: true });
+                snapped.v = pg.pos;
+                vLabel = pg.label + " ↔ " + ve.label;
+            }
+        });
+        // Check other elements
+        S.E.forEach(function(other) {
+            if (other.id === el.id) return;
+            [other.x, other.x + other.w / 2, other.x + other.w].forEach(function(op) {
+                if (Math.abs(ve.pos - op) < GUIDE_THRESHOLD) {
+                    guides.push({ pos: op, dir: "v", label: "Aligned", isPage: false });
+                    snapped.v = op;
+                    vLabel = alignmentLabel(ve.pos, op, other, "v");
+                }
             });
         });
     });
-    var pg = $("page");
-    if (!pg) return;
+
+    hEdges.forEach(function(he) {
+        pageGuides.forEach(function(pg) {
+            if (pg.type !== "h") return;
+            if (Math.abs(he.pos - pg.pos) < GUIDE_THRESHOLD) {
+                guides.push({ pos: pg.pos, dir: "h", label: pg.label, isPage: true });
+                snapped.h = pg.pos;
+                hLabel = pg.label + " ↔ " + he.label;
+            }
+        });
+        S.E.forEach(function(other) {
+            if (other.id === el.id) return;
+            [other.y, other.y + other.h / 2, other.y + other.h].forEach(function(op) {
+                if (Math.abs(he.pos - op) < GUIDE_THRESHOLD) {
+                    guides.push({ pos: op, dir: "h", label: "Aligned", isPage: false });
+                    snapped.h = op;
+                    hLabel = alignmentLabel(he.pos, op, other, "h");
+                }
+            });
+        });
+    });
+
+    // Draw guide lines
     guides.forEach(function(g) {
         var line = document.createElement("div");
-        line.className = "guide-line";
+        line.className = "guide-line" + (g.isPage ? " guide-page" : "");
         if (g.dir === "v") {
             line.style.left = g.pos + "px";
             line.style.top = "0px";
@@ -94,11 +162,72 @@ function drawAlignmentGuides(el) {
         pg.appendChild(line);
         _guideLines.push(line);
     });
+
+    // Draw alignment labels
+    if (vLabel) {
+        var lbl = document.createElement("div");
+        lbl.className = "guide-label";
+        lbl.textContent = vLabel;
+        lbl.style.left = (snapped.v + 4) + "px";
+        lbl.style.top = (el.y - 18) + "px";
+        pg.appendChild(lbl);
+        _guideLabels.push(lbl);
+    }
+    if (hLabel) {
+        var lbl = document.createElement("div");
+        lbl.className = "guide-label";
+        lbl.textContent = hLabel;
+        lbl.style.left = (el.x + el.w / 2 - 30) + "px";
+        lbl.style.top = (snapped.h + 4) + "px";
+        pg.appendChild(lbl);
+        _guideLabels.push(lbl);
+    }
+
+    // Store snap targets for the drag handler to consume
+    S._snapTarget = snapped;
+}
+
+function alignmentLabel(myPos, otherPos, otherEl, dir) {
+    var diff = Math.abs(myPos - otherPos);
+    if (diff > GUIDE_THRESHOLD) return null;
+    var dirLabel = (dir === "v") ? "↕" : "↔";
+    if (otherEl && otherEl.lbl) {
+        return dirLabel + " " + otherEl.lbl;
+    }
+    return dirLabel + " Aligned";
 }
 
 function clearAlignmentGuides() {
     _guideLines.forEach(function(l) { if (l.parentNode) l.parentNode.removeChild(l); });
+    _guideLabels.forEach(function(l) { if (l.parentNode) l.parentNode.removeChild(l); });
     _guideLines = [];
+    _guideLabels = [];
+    S._snapTarget = { v: null, h: null };
+}
+
+// ── Snap during drag ──
+function applySnap(el, x, y, w, h) {
+    if (!S._snapEnabled) return { x: x, y: y };
+    var snap = S._snapTarget || { v: null, h: null };
+    var GUIDE_THRESHOLD = S.GUIDE_THRESHOLD || 5;
+
+    // Calculate where edges would be after move
+    var newLeft = x, newRight = x + w, newCenterX = x + w / 2;
+    var newTop = y, newBottom = y + h, newCenterY = y + h / 2;
+
+    // Snap vertical edges to guide
+    if (snap.v !== null) {
+        if (Math.abs(newLeft - snap.v) < GUIDE_THRESHOLD) { x = snap.v; }
+        else if (Math.abs(newRight - snap.v) < GUIDE_THRESHOLD) { x = snap.v - w; }
+        else if (Math.abs(newCenterX - snap.v) < GUIDE_THRESHOLD) { x = snap.v - w / 2; }
+    }
+    // Snap horizontal edges to guide
+    if (snap.h !== null) {
+        if (Math.abs(newTop - snap.h) < GUIDE_THRESHOLD) { y = snap.h; }
+        else if (Math.abs(newBottom - snap.h) < GUIDE_THRESHOLD) { y = snap.h - h; }
+        else if (Math.abs(newCenterY - snap.h) < GUIDE_THRESHOLD) { y = snap.h - h / 2; }
+    }
+    return { x: x, y: y };
 }
 
 // ── Add element ──
@@ -208,6 +337,25 @@ function updateStatusBar() {
             if (el) {
                 var label = el.lbl || el.hdg || (el.t === "text" ? "Text" : "Stamp");
                 $("sb-selection").textContent = el.t + " — " + label.substring(0, 30);
+            }
+        }
+    }
+    // Alignment info — show position + alignment state
+    if ($("sb-align")) {
+        if (!sel) {
+            $("sb-align").textContent = "";
+        } else {
+            var el = E.find(function(x) { return x.id === sel; });
+            if (el) {
+                var pw = S._pw || 595, ph = S._ph || 842;
+                var centerX = el.x + el.w / 2, centerY = el.y + el.h / 2;
+                var hPos = centerX < pw * 0.35 ? "Left" : centerX > pw * 0.65 ? "Right" : "Center";
+                var vPos = centerY < ph * 0.35 ? "Top" : centerY > ph * 0.65 ? "Bottom" : "Middle";
+                var alignLabel = vPos + " " + hPos;
+                if (S._snapTarget && (S._snapTarget.v !== null || S._snapTarget.h !== null)) {
+                    alignLabel += " • Snapped";
+                }
+                $("sb-align").textContent = alignLabel;
             }
         }
     }
@@ -420,6 +568,7 @@ function render() {
 S.populateFonts = populateFonts;
 S.drawAlignmentGuides = drawAlignmentGuides;
 S.clearAlignmentGuides = clearAlignmentGuides;
+S.applySnap = applySnap;
 S.add = add;
 S.select = select;
 S.updateStatusBar = updateStatusBar;
