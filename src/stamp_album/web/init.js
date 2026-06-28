@@ -436,6 +436,36 @@ function init() {
     // ── New file button ──
     $("btn-new-file").addEventListener("click", newAlbum);
 
+    // ── CSV / Excel Import ──
+    $("btn-import-csv").addEventListener("click", function() {
+        $("imp-inp").accept = ".csv";
+        $("imp-inp").click();
+    });
+    $("btn-import-excel").addEventListener("click", function() {
+        $("imp-inp").accept = ".xlsx,.xls";
+        $("imp-inp").click();
+    });
+    $("imp-inp").addEventListener("change", function() {
+        var file = this.files[0];
+        if (!file) return;
+        var isExcel = file.name.toLowerCase().endsWith(".xlsx") || file.name.toLowerCase().endsWith(".xls");
+        var endpoint = isExcel ? "/api/stamps/import-excel" : "/api/stamps/import";
+        var fd = new FormData();
+        fd.append("file", file);
+        showToast("Importing " + file.name + "...", "info");
+        fetch(endpoint, { method: "POST", body: fd })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.errors && data.errors.length > 0) {
+                    showToast("Imported " + data.imported + " stamps (" + data.errors.length + " errors)", "info");
+                } else {
+                    showToast("Imported " + data.imported + " stamps", "success");
+                }
+            })
+            .catch(function(err) { showToast("Import failed: " + err, "error"); });
+        this.value = "";
+    });
+
     // ── Touch / Pointer support for iPad ──
     document.querySelectorAll(".p-item[draggable]").forEach(function(it) {
         it.addEventListener("touchstart", function(e) {

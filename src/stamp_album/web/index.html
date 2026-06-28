@@ -54,6 +54,15 @@
                 <div class="img-upl-btn" id="img-upl-btn">📤 Upload Image</div>
                 <input type="file" id="upl-inp" accept="image/*" hidden>
             </div>
+            <div class="sec-title">Import <span class="sec-toggle" id="imp-toggle" data-target="imp-body">▼</span></div>
+            <div class="sec-body" id="imp-body">
+                <div class="imp-btns">
+                    <button class="file-btn" id="btn-import-csv">📊 Import CSV</button>
+                    <button class="file-btn" id="btn-import-excel">📈 Import Excel</button>
+                </div>
+                <div class="imp-hint">CSV or Excel file with columns: country, year, description, catalog_number, denomination, condition</div>
+                <input type="file" id="imp-inp" accept=".csv,.xlsx,.xls" hidden>
+            </div>
             <div class="sec-title">Files <span class="sec-toggle" id="file-toggle">▼</span></div>
             <div class="sec-body" id="file-body">
                 <div class="file-list" id="file-list"></div>
