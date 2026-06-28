@@ -210,359 +210,15 @@ function updateGrid() {
         pattern.setAttribute("height", gs);
         var path = pattern.querySelector("path");
         if (path) {
-            path.setAttribute("d", "M " + gs + " 0 L 0 0 0 " + gs);
+            path.setAttribute("d", "M " + gs + " L 0 0 0 " + gs);
         }
         svg.style.display = "block";
     } else {
         svg.style.display = "none";
     }
-}
 
-// ── Canvas init ──
-function init() {
-    if (_init) return;
-    _init = true;
-    var pg = $("page");
-    if (!pg) return;
-
-    // Palette drag
-    document.querySelectorAll(".p-item[draggable]").forEach(function(it) {
-        it.addEventListener("dragstart", function(e) {
-            e.dataTransfer.setData("text/plain", JSON.stringify({
-                t: it.dataset.t, s: it.dataset.s || "rectangle", st: it.dataset.st || "",
-                w: parseFloat(it.dataset.w) || 80, h: parseFloat(it.dataset.h) || 60,
-                font: "HN", fs: 12
-            }));
-            e.dataTransfer.effectAllowed = "copy";
-        });
-    });
-
-    // Page drop
-    pg.addEventListener("dragover", function(e) { e.preventDefault(); pg.classList.add("drag-over"); });
-    pg.addEventListener("dragleave", function() { pg.classList.remove("drag-over"); });
-    pg.addEventListener("drop", function(e) {
-        e.preventDefault();
-        pg.classList.remove("drag-over");
-        // Check for image file drop
-        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            for (var i = 0; i < e.dataTransfer.files.length; i++) {
-                var f = e.dataTransfer.files[i];
-                if (f.type.startsWith("image/")) {
-                    uploadImageFile(f, function(imgName) {
-                        var r = pg.getBoundingClientRect();
-                        var x = Math.max(0, Math.min(Math.round((e.clientX - r.left) / _sn) * _sn, _pw - 40));
-                        var y = Math.max(0, Math.min(Math.round((e.clientY - r.top) / _sn) * _sn, _ph - 30));
-                        add({ t: "image", s: "rectangle", x: x, y: y, w: 80, h: 60,
-                            lbl: f.name, img: "/images/" + imgName,
-                            bdr: "solid", bdrC: "#999", bdrW: 0.5, fill: "#fff", fillA: 100, font: "HN", fs: 12 });
-                    });
-                    return;
-                }
-            }
-        }
-        // Palette/text/row drop
-        var d;
-        try { d = JSON.parse(e.dataTransfer.getData("text/plain")); } catch (_) { return; }
-        var r = pg.getBoundingClientRect();
-        var x = Math.max(0, Math.min(Math.round((e.clientX - r.left) / _sn) * _sn, _pw - 40));
-        var y = Math.max(0, Math.min(Math.round((e.clientY - r.top) / _sn) * _sn, _ph - 30));
-        var w = d.w || 80, h = d.h || 60;
-        if (d.t === "text") { w = 120; h = d.st === "heading" ? 24 : d.st === "desc" ? 16 : 18; }
-        if (d.t === "freehand") { w = 100; h = 80; }
-        add({ t: d.t || "stamp", s: d.s || "rectangle", x: x, y: y, w: w, h: h,
-            lbl: d.t === "text" ? (d.st === "heading" ? "Heading" : d.st === "desc" ? "Description" : "Label") : "",
-            font: d.font || "HN", fs: d.st === "heading" ? 16 : d.st === "desc" ? 10 : 12,
-            bdr: _defBdr, bdrC: _defBdrC, bdrW: 1, fill: _defFillC, fillA: 100, img: "" });
-    });
-
-    // Mouse on canvas
-    pg.addEventListener("mousedown", function(e) {
-        var el = e.target.closest(".cel");
-        if (!el) { sel = null; render(); return; }
-        var obj = E.find(function(x) { return x.id === el.dataset.id; });
-        if (!obj) return;
-        if (e.target.classList.contains("rh")) { _dragH = e.target.dataset.h; } else { _dragH = "move"; }
-        select(obj.id);
-        _drg = true;
-        _dragEl = obj;
-        _ds = { x: e.clientX, y: e.clientY, ox: obj.x, oy: obj.y, ow: obj.w, oh: obj.h };
-        e.preventDefault();
-        e.stopPropagation();
-    });
-
-    document.addEventListener("mousemove", function(e) {
-        if (!_drg || !_dragEl) return;
-        var dx = Math.round((e.clientX - _ds.x) / _sn) * _sn;
-        var dy = Math.round((e.clientY - _ds.y) / _sn) * _sn;
-        var h = _dragH, x = _ds.ox, y = _ds.oy, w = _ds.ow, oh = _ds.oh;
-        if (h === "move") { x += dx; y += dy; } else {
-            if (h.indexOf("w") >= 0) { x += dx; w -= dx; }
-            if (h.indexOf("e") >= 0) { w += dx; }
-            if (h.indexOf("n") >= 0) { y += dy; oh -= dy; }
-            if (h.indexOf("s") >= 0) { oh += dy; }
-            if (w < 10) w = 10;
-            if (oh < 10) oh = 10;
-        }
-        _dragEl.x = Math.max(0, Math.min(x, _pw - _dragEl.w));
-        _dragEl.y = Math.max(0, Math.min(y, _ph - _dragEl.h));
-        _dragEl.w = Math.min(w, _pw - _dragEl.x);
-        _dragEl.h = Math.min(oh, _ph - _dragEl.y);
-        render();
-        updateProps();
-        if (h === "move") drawAlignmentGuides(_dragEl);
-    });
-
-    document.addEventListener("mouseup", function() {
-        if (_drg && _dragEl) { pushUndo(); }
-        _drg = false;
-        _dragEl = null;
-        _dragH = null;
-        clearAlignmentGuides();
-    });
-
-    // ── Props Panel ──
-    function bindProp(id, key, transform) {
-        $(id).addEventListener("change", function() {
-            var el = E.find(function(x) { return x.id === sel; });
-            if (!el) return;
-            el[key] = transform ? transform(this.value) : mm(parseFloat(this.value) || 0);
-            pushUndo();
-            render();
-        });
-    }
-    bindProp("px", "x");
-    bindProp("py", "y");
-    bindProp("pw", "w");
-    bindProp("ph", "h");
-    $("plbl").addEventListener("change", function() {
-        var el = E.find(function(x) { return x.id === sel; }); if (!el) return;
-        el.lbl = this.value; pushUndo(); render();
-    });
-    $("pbs").addEventListener("change", function() {
-        var el = E.find(function(x) { return x.id === sel; }); if (!el) return;
-        el.bdr = this.value; pushUndo(); render();
-    });
-    $("pbc").addEventListener("change", function() {
-        var el = E.find(function(x) { return x.id === sel; }); if (!el) return;
-        el.bdrC = this.value; pushUndo(); render();
-    });
-    $("pbw").addEventListener("change", function() {
-        var el = E.find(function(x) { return x.id === sel; }); if (!el) return;
-        el.bdrW = parseFloat(this.value) || 0; pushUndo(); render();
-    });
-    $("pfc").addEventListener("change", function() {
-        var el = E.find(function(x) { return x.id === sel; }); if (!el) return;
-        el.fill = this.value; pushUndo(); render();
-    });
-    $("pfa").addEventListener("input", function() {
-        var el = E.find(function(x) { return x.id === sel; }); if (!el) return;
-        el.fillA = parseInt(this.value); $("pfa-v").textContent = this.value + "%";
-    });
-    $("pfa").addEventListener("change", function() { pushUndo(); render(); });
-    $("pfnt").addEventListener("change", function() {
-        var el = E.find(function(x) { return x.id === sel; }); if (!el) return;
-        el.font = this.value; pushUndo(); render();
-    });
-    $("pfs").addEventListener("change", function() {
-        var el = E.find(function(x) { return x.id === sel; }); if (!el) return;
-        el.fs = parseFloat(this.value) || 12; pushUndo(); render();
-    });
-
-    // ── Buttons ──
-    $("btn-new").addEventListener("click", newAlbum);
-    $("btn-open").addEventListener("click", function() { $("file-inp").click(); });
-    $("btn-save").addEventListener("click", saveFile);
-    $("btn-dup").addEventListener("click", function() {
-        if (!sel) { showToast("Select an element first", "error"); return; }
-        var el = E.find(function(x) { return x.id === sel; }); if (!el) return;
-        add(Object.assign({}, el, { id: "el" + (nid++), x: el.x + 20, y: el.y + 20 }));
-    });
-    $("btn-grid").addEventListener("click", function() {
-        if (!sel) { showToast("Select a stamp to duplicate in grid", "error"); return; }
-        var el = E.find(function(x) { return x.id === sel; }); if (!el) return;
-        var cols = parseInt(prompt("Number of columns:", "3")) || 3;
-        var rows = parseInt(prompt("Number of rows:", "3")) || 3;
-        var gapX = parseFloat(prompt("Horizontal gap (mm):", "5")) || 5;
-        var gapY = parseFloat(prompt("Vertical gap (mm):", "5")) || 5;
-        var startX = el.x, startY = el.y;
-        for (var r = 0; r < rows; r++) {
-            for (var c = 0; c < cols; c++) {
-                if (r === 0 && c === 0) continue;
-                add(Object.assign({}, el, { id: "el" + (nid++),
-                    x: startX + c * (el.w + px(gapX)),
-                    y: startY + r * (el.h + px(gapY)),
-                    lbl: el.label ? el.label + " (" + (r + 1) + "," + (c + 1) + ")" : "" }));
-            }
-        }
-    });
-    $("btn-del").addEventListener("click", function() {
-        if (!sel) return;
-        E = E.filter(function(x) { return x.id !== sel; });
-        sel = null;
-        pushUndo();
-        render();
-        updateProps();
-    });
-    $("btn-undo").addEventListener("click", undo);
-    $("btn-redo").addEventListener("click", redo);
-    $("btn-wizard").addEventListener("click", function() {
-        $("wizard-panel").classList.toggle("open");
-    });
-    $("btn-cls-wiz").addEventListener("click", function() {
-        $("wizard-panel").classList.remove("open");
-    });
-    $("btn-dsl").addEventListener("click", function() {
-        $("dsl-panel").classList.toggle("open");
-        if ($("dsl-panel").classList.contains("open")) {
-            $("dsl-ta").value = buildDSL();
-        }
-    });
-    $("btn-app-dsl").addEventListener("click", function() {
-        parseDSL($("dsl-ta").value);
-        pushUndo();
-        render();
-        showToast("DSL applied", "success");
-    });
-    $("btn-cls-dsl").addEventListener("click", function() { $("dsl-panel").classList.remove("open"); });
-
-    // ── Preview ──
-    $("btn-preview").addEventListener("click", openPreview);
-    $("btn-preview-close").addEventListener("click", function() { $("preview-overlay").classList.remove("open"); });
-    $("btn-preview-refresh").addEventListener("click", openPreview);
-    $("btn-preview-export").addEventListener("click", exportPDF);
-
-    // ── Export ──
-    $("btn-export").addEventListener("click", exportPDF);
-
-    // ── Image Upload ──
-    $("img-upl-btn").addEventListener("click", function() { $("upl-inp").click(); });
-    $("upl-inp").addEventListener("change", function(e) {
-        if (e.target.files.length === 0) return;
-        var f = e.target.files[0];
-        uploadImageFile(f, function(imgName) {
-            var r = $("page").getBoundingClientRect();
-            var x = 50, y = 50;
-            add({ t: "image", s: "rectangle", x: x, y: y, w: 80, h: 60,
-                lbl: f.name, img: "/images/" + imgName,
-                bdr: "solid", bdrC: "#999", bdrW: 0.5, fill: "#fff", fillA: 100, font: "HN", fs: 12 });
-            loadImageList();
-        });
-        e.target.value = "";
-    });
-
-    // ── Change / Remove Image ──
-    $("btn-chg-img").addEventListener("click", function() {
-        var el = E.find(function(x) { return x.id === sel; }); if (!el) return;
-        var inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*";
-        inp.onchange = function(ev) {
-            var f = ev.target.files[0]; if (!f) return;
-            uploadImageFile(f, function(imgName) {
-                el.img = "/images/" + imgName;
-                pushUndo();
-                render();
-                loadImageList();
-            });
-        };
-        inp.click();
-    });
-    $("btn-rm-img").addEventListener("click", function() {
-        var el = E.find(function(x) { return x.id === sel; }); if (!el) return;
-        el.img = ""; pushUndo(); render();
-    });
-
-    // ── Page Size / Grid ──
-    $("pg-size").addEventListener("change", function() {
-        var s = { a4: [595, 842], letter: [612, 792], a3: [842, 1191] };
-        var v = s[this.value] || s.a4;
-        _pw = v[0]; _ph = v[1];
-        $("page").className = "page " + this.value;
-        render();
-        updateGrid();
-    });
-    $("grid").addEventListener("change", function() {
-        _sn = parseInt(this.value) || 0;
-        updateGrid();
-    });
-
-    // ── Column layout ──
-    $("col-mode").addEventListener("change", function() {
-        _colMode = parseInt(this.value) || 1;
-        render();
-    });
-    $("col-gap").addEventListener("change", function() {
-        _colGap = parseFloat(this.value) || 10.0;
-        render();
-    });
-
-    // ── Default colors ──
-    $("def-bdr").addEventListener("change", function() { _defBdr = this.value; });
-    $("def-bdr-c").addEventListener("change", function() { _defBdrC = this.value; });
-    $("def-fill-c").addEventListener("change", function() { _defFillC = this.value; });
-
-    // ── Collapsible Panels ──
-    $("sb-toggle").addEventListener("click", function() {
-        _collapsed.sb = !_collapsed.sb;
-        $("sidebar").classList.toggle("collapsed", _collapsed.sb);
-        this.textContent = _collapsed.sb ? "▶" : "◀";
-    });
-    $("rp-toggle").addEventListener("click", function() {
-        _collapsed.rp = !_collapsed.rp;
-        $("rp").classList.toggle("collapsed", _collapsed.rp);
-        this.textContent = _collapsed.rp ? "◀" : "▶";
-    });
-    $("sb-handle").addEventListener("click", function() { $("sb-toggle").click(); });
-    $("rp-handle").addEventListener("click", function() { $("rp-toggle").click(); });
-
-    // ── Collapsible sections ──
-    $("file-toggle").addEventListener("click", function() {
-        var b = $("file-body");
-        b.classList.toggle("collapsed");
-        this.textContent = b.classList.contains("collapsed") ? "▶" : "▼";
-    });
-    $("img-toggle").addEventListener("click", function() {
-        var b = $("img-body");
-        b.classList.toggle("collapsed");
-        this.textContent = b.classList.contains("collapsed") ? "▶" : "▼";
-    });
-
-    // ── File input ──
-    $("file-inp").addEventListener("change", function(e) {
-        if (e.target.files.length === 0) return;
-        var f = e.target.files[0];
-        var reader = new FileReader();
-        reader.onload = function(ev) {
-            var dsl = ev.target.result;
-            _currentFile = f.name;
-            parseDSL(dsl);
-            _dirty = false;
-            updateTitle();
-            loadFileList();
-            showToast("Opened " + f.name, "success");
-        };
-        reader.readAsText(f);
-        e.target.value = "";
-    });
-
-    // ── Keyboard shortcuts ──
-    document.addEventListener("keydown", function(e) {
-        if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
-        if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); return; }
-        if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.key === "z" && e.shiftKey))) { e.preventDefault(); redo(); return; }
-        if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); saveFile(); return; }
-        if ((e.ctrlKey || e.metaKey) && e.key === "o") { e.preventDefault(); $("file-inp").click(); return; }
-        if (e.key === "Delete" || e.key === "Backspace") {
-            if (sel) { E = E.filter(function(x) { return x.id !== sel; }); sel = null; pushUndo(); render(); updateProps(); }
-        }
-        if (e.key === "Escape") { sel = null; render(); updateProps(); }
-        if ((e.ctrlKey || e.metaKey) && e.key === "d" && sel) {
-            e.preventDefault();
-            var el = E.find(function(x) { return x.id === sel; }); if (el) add(Object.assign({}, el, { id: "el" + (nid++), x: el.x + 20, y: el.y + 20 }));
-        }
-        if (e.key === "F5") { e.preventDefault(); openPreview(); }
-    });
-
-    // ── Font population ──
-    populateFonts();
+        // ── Font population ──
+        populateFonts();
 
     // ── Load templates ──
     loadTemplateList();
@@ -696,307 +352,6 @@ function init() {
     updateTitle();
 
     console.log("StampAlbum Pro: ready");
-}
-
-// ── Font population ──
-function populateFonts() {
-    var pfnt = $("pfnt");
-    if (!pfnt) return;
-    pfnt.innerHTML = "";
-    var stdFonts = [
-        { v: "HN", t: "Helvetica" },
-        { v: "HB", t: "Helvetica Bold" },
-        { v: "HI", t: "Helvetica Italic" },
-        { v: "HS", t: "Helvetica Bold Italic" },
-        { v: "TN", t: "Times New Roman" },
-        { v: "TB", t: "Times New Roman Bold" },
-        { v: "TI", t: "Times New Roman Italic" },
-        { v: "TS", t: "Times New Roman Bold Italic" },
-        { v: "CN", t: "Courier New" },
-        { v: "CB", t: "Courier New Bold" },
-        { v: "CI", t: "Courier New Italic" },
-        { v: "CS", t: "Courier New Bold Italic" },
-    ];
-    var og = document.createElement("optgroup");
-    og.label = "Standard Fonts";
-    stdFonts.forEach(function(f) { var o = document.createElement("option"); o.value = f.v; o.textContent = f.t; og.appendChild(o); });
-    pfnt.appendChild(og);
-    if (SYSTEM_FONTS && SYSTEM_FONTS.length) {
-        var og2 = document.createElement("optgroup");
-        og2.label = "System Fonts";
-        SYSTEM_FONTS.forEach(function(f) { var o = document.createElement("option"); o.value = f; o.textContent = f; og2.appendChild(o); });
-        pfnt.appendChild(og2);
-    }
-    var ws = document.createElement("optgroup");
-    ws.label = "Web Safe";
-    ["Arial","Helvetica","Times New Roman","Courier New","Georgia","Verdana","Trebuchet MS","Impact","Comic Sans MS"].forEach(function(f) { var o = document.createElement("option"); o.value = f; o.textContent = f; ws.appendChild(o); });
-    pfnt.appendChild(ws);
-}
-
-// ── Alignment guide lines ──
-var _guideLines = [];
-var GUIDE_THRESHOLD = 5;
-
-function drawAlignmentGuides(el) {
-    clearAlignmentGuides();
-    if (!el) return;
-    var guides = [];
-    var edges = [
-        { pos: el.x, type: "v" },                          // left
-        { pos: el.x + el.w, type: "v" },                   // right
-        { pos: el.x + el.w / 2, type: "v" },               // h-center
-        { pos: el.y, type: "h" },                          // top
-        { pos: el.y + el.h, type: "h" },                   // bottom
-        { pos: el.y + el.h / 2, type: "h" },               // v-center
-    ];
-    E.forEach(function(other) {
-        if (other.id === el.id) return;
-        var oEdges = [
-            { pos: other.x, type: "v" },
-            { pos: other.x + other.w, type: "v" },
-            { pos: other.x + other.w / 2, type: "v" },
-            { pos: other.y, type: "h" },
-            { pos: other.y + other.h, type: "h" },
-            { pos: other.y + other.h / 2, type: "h" },
-        ];
-        edges.forEach(function(e) {
-            oEdges.forEach(function(oe) {
-                if (e.type !== oe.type) return;
-                if (Math.abs(e.pos - oe.pos) > GUIDE_THRESHOLD) return;
-                guides.push({ pos: oe.pos, dir: e.type === "v" ? "v" : "h",
-                    spanStart: Math.min(e.type === "v" ? el.y : el.x, oe.type === "v" ? other.y : other.x),
-                    spanEnd: Math.max(e.type === "v" ? el.y + el.h : el.x + el.w, oe.type === "v" ? other.y + other.h : other.x + other.w) });
-            });
-        });
-    });
-    var pg = $("page");
-    if (!pg) return;
-    guides.forEach(function(g) {
-        // Extend span across the page for clarity
-        var line = document.createElement("div");
-        line.className = "guide-line";
-        if (g.dir === "v") {
-            line.style.left = g.pos + "px";
-            line.style.top = "0px";
-            line.style.width = "1px";
-            line.style.height = "100%";
-        } else {
-            line.style.left = "0px";
-            line.style.top = g.pos + "px";
-            line.style.width = "100%";
-            line.style.height = "1px";
-        }
-        pg.appendChild(line);
-        _guideLines.push(line);
-    });
-}
-
-function clearAlignmentGuides() {
-    _guideLines.forEach(function(l) { if (l.parentNode) l.parentNode.removeChild(l); });
-    _guideLines = [];
-}
-
-// ── Add element ──
-function add(p) {
-    var s = {
-        id: "el" + (nid++),
-        t: p.t || "stamp",
-        s: p.s || "rectangle",
-        x: p.x || 50, y: p.y || 50, w: p.w || 80, h: p.h || 60,
-        lbl: p.lbl || "",
-        font: p.font || "HN",
-        fs: p.fs || 12,
-        align: p.align || "left",
-        bdr: p.bdr || "solid",
-        bdrC: p.bdrC || "#666",
-        bdrW: p.bdrW || 1,
-        fill: p.fill || "#fff",
-        fillA: p.fillA || 100,
-        img: p.img || ""
-    };
-    E.push(s);
-    pushUndo();
-    select(s.id);
-    render();
-}
-
-// ── Select ──
-function select(id) {
-    sel = id;
-    render();
-    var el = E.find(function(x) { return x.id === id; });
-    if (!el) {
-        $("rp-content").style.display = "none";
-        $("rp-none").style.display = "block";
-        return;
-    }
-    $("rp-content").style.display = "block";
-    $("rp-none").style.display = "none";
-    $("px").value = mm(el.x);
-    $("py").value = mm(el.y);
-    $("pw").value = mm(el.w);
-    $("ph").value = mm(el.h);
-    $("plbl").value = el.lbl || "";
-    $("pbs").value = el.bdr || "solid";
-    $("pbc").value = el.bdrC || "#666";
-    $("pbw").value = el.bdrW || 1;
-    $("pfc").value = el.fill || "#fff";
-    $("pfa").value = el.fillA || 100;
-    $("pfa-v").textContent = (el.fillA || 100) + "%";
-    $("pfnt").value = el.font || "HN";
-    $("pfs").value = el.fs || 12;
-    var isImg = el.t === "image";
-    $("img-sec").style.display = isImg ? "block" : "none";
-    $("img-row").style.display = isImg ? "flex" : "none";
-}
-
-function updateProps() {
-    var el = E.find(function(x) { return x.id === sel; });
-    if (!el) return;
-    $("px").value = mm(el.x);
-    $("py").value = mm(el.y);
-    $("pw").value = mm(el.w);
-    $("ph").value = mm(el.h);
-}
-
-// ── Shape paths ──
-function getShapePath(shape, w, h) {
-    var hw = w / 2, hh = h / 2;
-    if (shape === "oval") return "M " + hw + " 0 A " + hw + " " + hh + " 0 1 0 " + hw + " " + h + " A " + hw + " " + hh + " 0 1 0 " + hw + " 0 Z";
-    if (shape === "diamond") return "M " + hw + " 0 L " + w + " " + hh + " L " + hw + " " + h + " L 0 " + hh + " Z";
-    if (shape === "triangle") return "M " + hw + " 0 L " + w + " " + h + " L 0 " + h + " Z";
-    if (shape === "hexagon") { var x1 = w * 0.25, x2 = w * 0.75, y2 = h * 0.5; return "M " + x1 + " 0 L " + x2 + " 0 L " + w + " " + y2 + " L " + x2 + " " + h + " L " + x1 + " " + h + " L 0 " + y2 + " Z"; }
-    if (shape === "octagon") { var a = w * 0.3, b = h * 0.3; return "M " + a + " 0 L " + (w - a) + " 0 L " + w + " " + b + " L " + w + " " + (h - b) + " L " + (w - a) + " " + h + " L " + a + " " + h + " L 0 " + (h - b) + " L 0 " + b + " Z"; }
-    if (shape === "pentagon") { var cx = w / 2; return "M " + cx + " 0 L " + w + " " + (h * 0.38) + " L " + (w * 0.82) + " " + h + " L " + (w * 0.18) + " " + h + " L 0 " + (h * 0.38) + " Z"; }
-    return "M 0 0 L " + w + " 0 L " + w + " " + h + " L 0 " + h + " Z";
-}
-
-// ── Render canvas ──
-function render() {
-    var pg = $("page");
-    pg.querySelectorAll(".cel").forEach(function(el) { el.remove(); });
-    E.forEach(function(el) {
-        var d = document.createElement("div");
-        d.className = "cel shape-" + (el.s || "rectangle") + (el.id === sel ? " selected" : "");
-        d.dataset.id = el.id;
-        d.style.left = el.x + "px";
-        d.style.top = el.y + "px";
-        d.style.width = el.w + "px";
-        d.style.height = el.h + "px";
-
-        if (el.s && el.s !== "rectangle" && el.s !== "text" && el.s !== "freehand") {
-            var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-            svg.setAttribute("class", "shape-svg");
-            svg.setAttribute("viewBox", "0 0 " + el.w + " " + el.h);
-            svg.style.position = "absolute";
-            svg.style.top = "0";
-            svg.style.left = "0";
-            svg.style.width = "100%";
-            svg.style.height = "100%";
-            var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            path.setAttribute("d", getShapePath(el.s, el.w, el.h));
-            path.setAttribute("fill", el.fill || "#fff");
-            path.setAttribute("stroke", el.bdrC || "#666");
-            path.setAttribute("stroke-width", (el.bdrW || 1) * 2);
-            if (el.bdr === "dashed") path.setAttribute("stroke-dasharray", "4,2");
-            if (el.bdr === "dotted") path.setAttribute("stroke-dasharray", "1,2");
-            if (el.bdr === "double") {
-                path.setAttribute("stroke-width", 1);
-                var path2 = path.cloneNode();
-                path2.setAttribute("transform", "translate(3,3) scale(0.95)");
-                path2.setAttribute("fill", "none");
-                path2.setAttribute("stroke-width", 1);
-                svg.appendChild(path2);
-            }
-            svg.appendChild(path);
-            d.appendChild(svg);
-            d.style.border = "none";
-        } else {
-            d.style.border = (el.bdrW || 0) + "pt " + (el.bdr || "solid") + " " + (el.bdrC || "#666");
-            d.style.backgroundColor = el.fill || "transparent";
-        }
-        if (el.fillA !== undefined && el.fillA < 100) d.style.opacity = el.fillA / 100;
-
-        if (el.img) {
-            var img = document.createElement("img");
-            img.className = "eimg";
-            img.src = el.img;
-            d.appendChild(img);
-        } else if (el.lbl) {
-            var l = document.createElement("span");
-            l.className = "elbl";
-            l.textContent = el.lbl;
-            l.contentEditable = "true";
-            l.spellcheck = false;
-            var fc = fontCSS(el.font || "HN");
-            l.style.fontFamily = fc.family;
-            l.style.fontSize = (el.fs || 12) + "px";
-            l.style.fontWeight = fc.weight;
-            l.style.fontStyle = fc.style;
-            l.addEventListener("blur", function() {
-                el.lbl = this.textContent;
-                var p = this.parentNode;
-                this.style.minHeight = "";
-                var nh = this.scrollHeight + 4;
-                if (nh > p.offsetHeight) p.style.height = nh + "px";
-                pushUndo();
-            });
-            d.appendChild(l);
-        }
-        if (el.t === "freehand") {
-            d.style.border = "1pt dashed #999";
-            d.style.backgroundColor = "rgba(200,200,200,0.1)";
-            var fh = document.createElement("div");
-            fh.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:10px;color:#999;text-align:center;";
-            fh.innerHTML = "✎ Free Shape<br><small>Draw custom shape</small>";
-            d.appendChild(fh);
-        }
-
-        var dim = document.createElement("span");
-        dim.className = "dim";
-        dim.textContent = mm(el.w) + "×" + mm(el.h) + "mm";
-        d.appendChild(dim);
-
-        ["nw", "ne", "sw", "se", "n", "s", "e", "w"].forEach(function(h) {
-            var ha = document.createElement("div");
-            ha.className = "rh " + h;
-            ha.dataset.h = h;
-            d.appendChild(ha);
-        });
-
-        d.addEventListener("mousedown", function(e) {
-            if (e.target.classList.contains("rh")) return;
-            e.stopPropagation();
-            select(el.id);
-            _drg = true;
-            _dragEl = el;
-            _dragH = "move";
-            _ds = { x: e.clientX, y: e.clientY, ox: el.x, oy: el.y, ow: el.w, oh: el.h };
-        });
-
-        pg.appendChild(d);
-    });
-
-    // Draw column guides if columns are enabled
-    if (_colMode > 1) {
-        var pageWidth = _pw - 30 * _sc; // Content width (approx)
-        var pageMargin = 20 * _sc; // Page margin
-        var colWidth = (pageWidth - (_colMode - 1) * _colGap * _sc) / _colMode;
-
-        for (var i = 1; i < _colMode; i++) {
-            var guide = document.createElement("div");
-            guide.className = "col-guide";
-            guide.style.position = "absolute";
-            guide.style.left = (pageMargin + i * (colWidth + _colGap * _sc)) + "px";
-            guide.style.top = "0";
-            guide.style.width = "1px";
-            guide.style.height = _ph + "px";
-            guide.style.backgroundColor = "rgba(100, 150, 255, 0.3)";
-            guide.style.pointerEvents = "none";
-            guide.style.zIndex = "1";
-            pg.appendChild(guide);
-        }
-    }
 }
 
 // ── New album ──
@@ -1464,7 +819,49 @@ function parseDSL(dsl) {
     updateTitle();
 }
 
-// ── Init ──
-if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
-else init();
+// ── Exports (shared state + functions for render.js, events.js, init.js) ──
+var S = {};
+Object.defineProperties(S, {
+    E: { get: function(){ return E; }, set: function(v){ E = v; } },
+    sel: { get: function(){ return sel; }, set: function(v){ sel = v; } },
+    nid: { get: function(){ return nid; }, set: function(v){ nid = v; } },
+    _sc: { get: function(){ return _sc; }, set: function(v){ _sc = v; } },
+    _sn: { get: function(){ return _sn; }, set: function(v){ _sn = v; } },
+    _pw: { get: function(){ return _pw; }, set: function(v){ _pw = v; } },
+    _ph: { get: function(){ return _ph; }, set: function(v){ _ph = v; } },
+    _drg: { get: function(){ return _drg; }, set: function(v){ _drg = v; } },
+    _dragEl: { get: function(){ return _dragEl; }, set: function(v){ _dragEl = v; } },
+    _dragH: { get: function(){ return _dragH; }, set: function(v){ _dragH = v; } },
+    _ds: { get: function(){ return _ds; }, set: function(v){ _ds = v; } },
+    _defBdr: { get: function(){ return _defBdr; }, set: function(v){ _defBdr = v; } },
+    _defBdrC: { get: function(){ return _defBdrC; }, set: function(v){ _defBdrC = v; } },
+    _defFillC: { get: function(){ return _defFillC; }, set: function(v){ _defFillC = v; } },
+    _collapsed: { get: function(){ return _collapsed; }, set: function(v){ _collapsed = v; } },
+    _currentFile: { get: function(){ return _currentFile; }, set: function(v){ _currentFile = v; } },
+    _currentPage: { get: function(){ return _currentPage; }, set: function(v){ _currentPage = v; } },
+    _pages: { get: function(){ return _pages; }, set: function(v){ _pages = v; } },
+    _dirty: { get: function(){ return _dirty; }, set: function(v){ _dirty = v; } },
+    _colMode: { get: function(){ return _colMode; }, set: function(v){ _colMode = v; } },
+    _colGap: { get: function(){ return _colGap; }, set: function(v){ _colGap = v; } },
+    _init: { get: function(){ return _init; }, set: function(v){ _init = v; } },
+    SYSTEM_FONTS: { get: function(){ return SYSTEM_FONTS; }, set: function(v){ SYSTEM_FONTS = v; } },
+    $: { value: $ }, mm: { value: mm }, px: { value: px }, clamp: { value: clamp },
+    fontCSS: { value: fontCSS }, showToast: { value: showToast },
+    pushUndo: { value: pushUndo }, undo: { value: undo }, redo: { value: redo },
+    loadElements: { value: loadElements }, loadElementsNoPush: { value: loadElementsNoPush },
+    saveDraft: { value: saveDraft }, loadDraft: { value: loadDraft }, clearDraft: { value: clearDraft },
+    updateTitle: { value: updateTitle }, switchPage: { value: switchPage },
+    addPage: { value: addPage }, deletePage: { value: deletePage },
+    renderPageDots: { value: renderPageDots }, updateGrid: { value: updateGrid },
+    newAlbum: { value: newAlbum }, loadFileList: { value: loadFileList }, saveFile: { value: saveFile },
+    uploadImageFile: { value: uploadImageFile }, loadImageList: { value: loadImageList },
+    buildCanvasState: { value: buildCanvasState }, openPreview: { value: openPreview },
+    exportPDF: { value: exportPDF }, loadTemplateList: { value: loadTemplateList },
+    applyWizard: { value: applyWizard }, buildDSL: { value: buildDSL }, parseDSL: { value: parseDSL },
+});
+window.StampAlbum = S;
+
+// ── Init (events.js provides S.init) ──
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function(){ if (S.init) S.init(); });
+else if (S.init) S.init();
 })();
