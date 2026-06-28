@@ -24,6 +24,15 @@ StampAlbum Pro is a web application for creating professional stamp album pages 
 
 ## Installation
 
+### Option 1: Install from PyPI (recommended)
+
+```bash
+pip install stamp-album-pro
+stamp-album
+```
+
+### Option 2: Install from source
+
 ```bash
 # Clone the repository
 git clone https://github.com/jsganesh/stamp-album-pro.git
@@ -97,14 +106,18 @@ python -m stamp_album -c examples/sample.txt -o output.pdf
 python -m stamp_album -c examples/sample.txt -p
 ```
 
-### Desktop App (macOS)
+### Desktop App (macOS / Windows / Linux)
 
 ```bash
-# Build the macOS app bundle
-./build.sh
+# Build the desktop binary with PyInstaller
+pip install pyinstaller
+pyinstaller stamp-album.spec
 
 # Run the app
+# macOS:
 open "dist/StampAlbum Pro.app"
+# Windows: dist\StampAlbumPro\StampAlbumPro.exe
+# Linux: ./dist/StampAlbumPro/StampAlbumPro
 ```
 
 ## Web App Screenshots
