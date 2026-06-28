@@ -223,6 +223,22 @@ function init() {
         $("wizard-panel").classList.remove("open");
     });
 
+    // ── Keyboard shortcuts ──
+    document.addEventListener("keydown", function(e) {
+        // Don't trigger shortcuts while typing in inputs
+        if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
+        var cmd = e.metaKey || e.ctrlKey;
+        if (cmd && e.key === "z") { e.preventDefault(); if (S.undo) S.undo(); }
+        else if (cmd && e.key === "y") { e.preventDefault(); if (S.redo) S.redo(); }
+        else if (cmd && e.key === "s") { e.preventDefault(); if (S.saveFile) S.saveFile(); }
+        else if (cmd && e.key === "n") { e.preventDefault(); if (S.newAlbum) S.newAlbum(); }
+        else if (cmd && e.key === "o") { e.preventDefault(); var fi = $("file-inp"); if (fi) fi.click(); }
+        else if (cmd && e.key === "p") { e.preventDefault(); if (S.previewAlbum) S.previewAlbum(); }
+        else if (cmd && e.key === "d") { e.preventDefault(); $("btn-dup-el").click(); }
+        else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); if (S.sel) $("btn-del").click(); }
+        else if (e.key === "Escape") { if (S.select) S.select(null); }
+    });
+
     // ── Before unload ──
     window.addEventListener("beforeunload", function(e) {
         if (S._dirty) { e.preventDefault(); e.returnValue = ""; }

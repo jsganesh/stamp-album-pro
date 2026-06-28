@@ -185,6 +185,34 @@ function updateProps() {
     $("ph").value = mm(el.h);
 }
 
+// ── Status bar ──
+function updateStatusBar() {
+    if (!window.StampAlbum) return;
+    var E = S.E;
+    var sel = S.sel;
+    // Page info
+    if ($("sb-page")) {
+        $("sb-page").textContent = "Page " + (S._currentPage + 1) + " of " + (S._pages ? S._pages.length : 1);
+    }
+    // Element count
+    if ($("sb-elements")) {
+        var n = E.length;
+        $("sb-elements").textContent = n + " element" + (n !== 1 ? "s" : "");
+    }
+    // Selection info
+    if ($("sb-selection")) {
+        if (!sel) {
+            $("sb-selection").textContent = "No selection";
+        } else {
+            var el = E.find(function(x) { return x.id === sel; });
+            if (el) {
+                var label = el.lbl || el.hdg || (el.t === "text" ? "Text" : "Stamp");
+                $("sb-selection").textContent = el.t + " — " + label.substring(0, 30);
+            }
+        }
+    }
+}
+
 // ── Shape paths ──
 function getShapePath(shape, w, h) {
     var hw = w / 2, hh = h / 2;
@@ -384,6 +412,8 @@ function render() {
             pg.appendChild(guide);
         }
     }
+    // Update status bar
+    if (S.updateStatusBar) S.updateStatusBar();
 }
 
 // ── Exports ──
@@ -392,6 +422,7 @@ S.drawAlignmentGuides = drawAlignmentGuides;
 S.clearAlignmentGuides = clearAlignmentGuides;
 S.add = add;
 S.select = select;
+S.updateStatusBar = updateStatusBar;
 S.updateProps = updateProps;
 S.getShapePath = getShapePath;
 S.render = render;

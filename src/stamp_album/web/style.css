@@ -12,13 +12,24 @@
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg1); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-size: 16px; }
 
 /* Toolbar */
-#tb { height: var(--toolbar); background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; padding: 0 16px; flex-shrink: 0; }
-#tb .logo { font-weight: 700; font-size: 18px; color: var(--accent); margin-right: 16px; }
+#tb { height: var(--toolbar); background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; padding: 0 16px; flex-shrink: 0; }
+#tb .logo { font-weight: 700; font-size: 18px; color: var(--accent); margin-right: 8px; }
+#tb .tb-group { display: flex; align-items: center; gap: 2px; padding: 0 6px; border-right: 1px solid var(--border); }
+#tb .tb-group:last-child { border-right: none; }
 #tb button { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 7px 14px; border-radius: 4px; cursor: pointer; font-size: 14px; white-space: nowrap; }
 #tb button:hover { background: var(--accent); color: #fff; }
-#tb button.active { background: var(--accent); color: #fff; border-color: var(--accent2); }
+#tb button:active { background: var(--accent2); color: #fff; }
+#tb button:disabled { opacity: 0.35; cursor: not-allowed; }
 #tb .spacer { flex: 1; }
-#tb #file-name { font-size: 14px; color: var(--text2); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#tb #file-name { font-size: 14px; color: var(--text2); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-style: italic; }
+
+/* Status bar */
+#status-bar { height: 28px; background: var(--bg3); border-top: 1px solid var(--border); display: flex; align-items: center; gap: 6px; padding: 0 12px; font-size: 12px; color: var(--text2); flex-shrink: 0; }
+#status-bar .sb-sep { color: var(--border); margin: 0 2px; }
+#status-bar .sb-spacer { flex: 1; }
+#status-bar .sb-dirty-hidden { display: none; }
+#sb-dirty { color: var(--accent); font-weight: 600; }
+#sb-selection { font-style: italic; }
 .export-dd { position: relative; display: inline-block; }
 .export-dd-menu { display: none; position: absolute; top: 100%; right: 0; background: #fff; border: 1px solid var(--border); border-radius: 4px; min-width: 160px; z-index: 100; box-shadow: 0 4px 16px var(--page-shadow); }
 .export-dd:hover .export-dd-menu, .export-dd:focus-within .export-dd-menu { display: block; }
