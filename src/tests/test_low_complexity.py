@@ -1,5 +1,5 @@
 """
-Tests for low-complexity P2 items: EPUB export, Excel import.
+Tests for low-complexity P2 items: Excel import.
 """
 import io
 import pytest
@@ -11,23 +11,6 @@ from stamp_album.api import app
 @pytest.fixture
 def client():
     return TestClient(app)
-
-
-class TestEPUBExport:
-    """Tests for EPUB export endpoint."""
-
-    def test_export_epub(self, client):
-        dsl = 'ALBUM_TITLE("Test")\nPAGE_START\nROW_START_FS("HN" 8 5 180)\nSTAMP_ADD(40 30 "Stamp 1" "" "" "")'
-        response = client.post("/export", json={"dsl": dsl, "format": "epub"})
-        assert response.status_code == 200
-        assert response.headers["content-type"] == "application/epub+zip"
-        assert "album.epub" in response.headers.get("content-disposition", "")
-
-    def test_export_epub_invalid_dsl(self, client):
-        # The parser is lenient, so even "INVALID" produces a valid (empty) album
-        # Just verify the endpoint works with minimal input
-        response = client.post("/export", json={"dsl": "", "format": "epub"})
-        assert response.status_code == 200
 
 
 class TestExcelImport:

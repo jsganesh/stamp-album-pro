@@ -266,7 +266,7 @@ async def export_album(request: ExportRequest):
     from starlette.background import BackgroundTask
 
     fmt = request.format.lower()
-    if fmt not in ("pdf", "png", "svg", "html", "epub"):
+    if fmt not in ("pdf", "png", "svg", "html"):
         raise HTTPException(status_code=400, detail=f"Unsupported format: {fmt}")
 
     def _cleanup(path: str):
@@ -341,16 +341,6 @@ async def export_album(request: ExportRequest):
             return FileResponse(
                 html_path, media_type="text/html", filename="album-gallery.html",
                 background=BackgroundTask(_cleanup, html_path),
-            )
-
-        elif fmt == "epub":
-            epub_html = _build_html_gallery(html_content, album)
-            with tempfile.NamedTemporaryFile(suffix=".epub", delete=False, mode="w", encoding="utf-8") as tmp:
-                tmp.write(epub_html)
-                epub_path = tmp.name
-            return FileResponse(
-                epub_path, media_type="application/epub+zip", filename="album.epub",
-                background=BackgroundTask(_cleanup, epub_path),
             )
 
     except ParseError as e:
