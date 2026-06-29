@@ -848,6 +848,7 @@ Object.defineProperties(S, {
     _dirty: { get: function(){ return _dirty; }, set: function(v){ _dirty = v; } },
     _colMode: { get: function(){ return _colMode; }, set: function(v){ _colMode = v; } },
     _colGap: { get: function(){ return _colGap; }, set: function(v){ _colGap = v; } },
+    _pageBorder: { get: function(){ return _pageBorder; }, set: function(v){ _pageBorder = v; } },
     _init: { get: function(){ return _init; }, set: function(v){ _init = v; } },
     SYSTEM_FONTS: { get: function(){ return SYSTEM_FONTS; }, set: function(v){ SYSTEM_FONTS = v; } },
     $: { value: $ }, mm: { value: mm }, px: { value: px }, clamp: { value: clamp },

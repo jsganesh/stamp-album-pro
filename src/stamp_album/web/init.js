@@ -257,10 +257,13 @@ function init() {
     });
 
     // ── DSL Reference Panel ──
-    $("btn-dsl-ref").addEventListener("click", function() {
-        var refPanel = $("dsl-ref-panel");
-        if (refPanel) refPanel.classList.toggle("open");
-    });
+    var dslRefBtn = $("btn-dsl-ref");
+    if (dslRefBtn) {
+        dslRefBtn.addEventListener("click", function() {
+            var refPanel = $("dsl-ref-panel");
+            if (refPanel) refPanel.classList.toggle("open");
+        });
+    }
 
     // ── Preview ──
     $("btn-preview").addEventListener("click", openPreview);
@@ -399,11 +402,20 @@ function init() {
     });
 
     // ── Help overlay ──
-    $("btn-help").addEventListener("click", function() { $("help-overlay").classList.toggle("open"); });
-    $("btn-help-close").addEventListener("click", function() { $("help-overlay").classList.remove("open"); });
-    $("help-overlay").addEventListener("click", function(e) {
-        if (e.target === this) this.classList.remove("open");
-    });
+    var btnHelp = $("btn-help");
+    var helpOverlay = $("help-overlay");
+    var btnHelpClose = $("btn-help-close");
+    if (btnHelp && helpOverlay) {
+        btnHelp.addEventListener("click", function() { helpOverlay.classList.toggle("open"); });
+    }
+    if (btnHelpClose && helpOverlay) {
+        btnHelpClose.addEventListener("click", function() { helpOverlay.classList.remove("open"); });
+    }
+    if (helpOverlay) {
+        helpOverlay.addEventListener("click", function(e) {
+            if (e.target === this) this.classList.remove("open");
+        });
+    }
 
     // ── Alignment toolbar ──
     $("btn-align-l").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("left"); });
@@ -606,13 +618,14 @@ function init() {
     // ── Init ──
     S.renderPageDots();
     S.updateGrid();
+    if (S.renderPageBorder) S.renderPageBorder(S._pageBorder || "double");
     loadFileList();
     loadImageList();
     S.updateTitle();
 
     // ── First-run tutorial ──
-    initTutorial();
-    _wireTutorialEvents();
+    if (initTutorial) initTutorial();
+    if (_wireTutorialEvents) _wireTutorialEvents();
 
     console.log("StampAlbum Pro: ready");
 }
