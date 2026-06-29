@@ -32,9 +32,16 @@ function loadElements(arr) {
 }
 function loadElementsNoPush(arr) { _undoPaused = true; loadElements(arr); _undoPaused = false; }
 
+function resetUndo() {
+    _undoStack = [];
+    _redoStack = [];
+    _undoStack.push(JSON.stringify(S.E));
+}
+
 S.pushUndo = pushUndo;
 S.undo = undo;
 S.redo = redo;
+S.resetUndo = resetUndo;
 S.loadElements = loadElements;
 S.loadElementsNoPush = loadElementsNoPush;
 

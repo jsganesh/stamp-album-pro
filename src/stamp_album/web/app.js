@@ -89,7 +89,7 @@ function updateTitle() {
 // ── Page management ──
 function switchPage(idx, silent) {
     if (idx < 0 || idx >= S._pages.length) return;
-    if (!silent) pushUndo();
+    if (!silent) S.pushUndo();
     S._pages[S._currentPage] = JSON.parse(JSON.stringify(S.E));
     S._currentPage = idx;
     S.E = S._pages[idx] ? JSON.parse(JSON.stringify(S._pages[idx])) : [];

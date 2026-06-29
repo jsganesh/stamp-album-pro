@@ -1,7 +1,7 @@
 "use strict";
 (function(){
 var S = window.StampAlbum;
-var showToast = S.showToast;
+var $ = S.$, showToast = S.showToast;
 
 // ── Build canvas state for direct render/export ──
 function buildCanvasState(format) {
@@ -98,5 +98,6 @@ function exportFormat(fmt) {
 S.buildCanvasState = buildCanvasState;
 S.openPreview = openPreview;
 S.exportFormat = exportFormat;
+S.exportPDF = function() { exportFormat("pdf"); };
 
 })();
