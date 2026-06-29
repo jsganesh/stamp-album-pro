@@ -1010,4 +1010,274 @@ STAMP_ADD(25.0 28.0 "Stamp" "" "" "")
 PAGE_COLUMN_STOP
 """,
     },
+    # === FIP EXHIBITION STANDARDS ===
+    {
+        "id": "fip_title_page",
+        "name": "FIP Title Page",
+        "description": "Exhibition opening page with title, scope statement, plan of sections, and eye-catcher item. Per APS/FIP rules.",
+        "category": "FIP Exhibition",
+        "content": """# FIP Title Page — Exhibition Opening
+ALBUM_TITLE("My Exhibit Title")
+ALBUM_AUTHOR("Collector Name")
+
+ALBUM_PAGES_SIZE(210.0 297.0)
+ALBUM_PAGES_MARGINS(15.0 15.0 15.0 15.0)
+ALBUM_PAGES_BORDER(0.5 0.1 0.0 1.0)
+ALBUM_PAGES_SPACING(5.0 8.0)
+ALBUM_PAGES_TITLE(TN 24 "My Exhibit Title")
+
+COLOUR_ALBUM_TITLE(darkblue)
+COLOUR_ALBUM_BORDER(darkblue)
+
+PAGE_START
+
+PAGE_TEXT_CENTRE(TB 24 "MY EXHIBIT TITLE")
+PAGE_VSPACE(3)
+PAGE_TEXT_CENTRE(TI 12 "by Collector Name")
+
+PAGE_VSPACE(10)
+PAGE_TEXT_PARAGRAPH_START(HN 10 Justified)
+PURPOSE: This exhibit traces the development of [subject] from [beginning] through [end]. It covers [scope] and is presented in [number] frames.
+PAGE_TEXT_PARAGRAPH_END
+
+PAGE_VSPACE(5)
+PAGE_TEXT_CENTRE(TB 12 "PLAN OF SECTIONS")
+PAGE_VSPACE(3)
+PAGE_TEXT_CENTRE(HN 10 "1. Historical Background")
+PAGE_TEXT_CENTRE(HN 10 "2. The Early Issues")
+PAGE_TEXT_CENTRE(HN 10 "3. Development Period")
+PAGE_TEXT_CENTRE(HN 10 "4. Modern Era")
+PAGE_TEXT_CENTRE(HN 10 "5. Conclusion")
+
+PAGE_VSPACE(10)
+ROW_START_FS(HN 8 0.5 6.0)
+STAMP_ADD(45.0 50.0 "Eye-catcher item\\\\nRare stamp or cover\\\\nplaced prominently" "" "" "")
+""",
+    },
+    {
+        "id": "fip_traditional_rows",
+        "name": "FIP Traditional — Definitive Rows",
+        "description": "Classic definitive series page with 3-4 rows of stamps, catalog numbers below each, and page heading. Standard FIP traditional layout.",
+        "category": "FIP Exhibition",
+        "content": """# Traditional Philately — Definitive Series
+ALBUM_TITLE("Definitive Series")
+ALBUM_AUTHOR("Collector Name")
+
+ALBUM_PAGES_SIZE(210.0 297.0)
+ALBUM_PAGES_MARGINS(15.0 15.0 15.0 15.0)
+ALBUM_PAGES_BORDER(0.5 0.1 0.0 1.0)
+ALBUM_PAGES_SPACING(5.0 8.0)
+ALBUM_PAGES_TITLE(TB 16 "Definitive Series — Page 1")
+
+PAGE_START
+
+PAGE_TEXT_CENTRE(TB 14 "DEFINITIVE ISSUES — First Series")
+PAGE_TEXT_CENTRE(HN 9 "Watermark 314. Engraved. Recess B.W. Perforation 11 x 11½")
+PAGE_VSPACE(5)
+
+ROW_START_FS(HN 8 0.5 6.0)
+STAMP_ADD(38.26 0 "" "dark blue\\\\nSG#1 SC#1" "½p" "A1")
+STAMP_HEADING(HS 8 "M.V. Kista Dan")
+STAMP_ADD(38.26 0 "" "brown\\\\nSG#2 SC#2" "1p" "A1")
+STAMP_HEADING(HS 8 "Manhauling")
+STAMP_ADD(38.26 0 "" "plum & red\\\\nSG#3 SC#3" "1½p" "A1")
+STAMP_HEADING(HS 8 "Muskeg (Tractor)")
+
+ROW_START_FS(HN 8 0.5 6.0)
+STAMP_ADD(38.26 0 "" "rose violet\\\\nSG#4 SC#4" "2p" "A1")
+STAMP_HEADING(HS 8 "Skiing")
+STAMP_ADD(38.26 0 "" "dull green\\\\nSG#5 SC#5" "2½p" "A1")
+STAMP_HEADING(HS 8 "Beaver (Seaplane)")
+STAMP_ADD(38.26 0 "" "prussian blue\\\\nSG#6 SC#6" "3p" "A1")
+STAMP_HEADING(HS 8 "R.R.S. John Biscoe")
+
+ROW_START_FS(HN 8 0.5 6.0)
+STAMP_ADD(38.26 0 "" "sepia\\\\nSG#7 SC#7" "4p" "A1")
+STAMP_HEADING(HS 8 "Camp Scene")
+STAMP_ADD(38.26 0 "" "dark blue & olive\\\\nSG#8 SC#8" "6p" "A1")
+STAMP_HEADING(HS 8 "H.M.S. Protector")
+STAMP_ADD(38.26 0 "" "olive\\\\nSG#9 SC#9" "9p" "A1")
+STAMP_HEADING(HS 8 "Sledging")
+
+ROW_START_FS(HN 8 0.5 6.0)
+STAMP_ADD(38.26 0 "" "steel blue\\\\nSG#10 SC#10" "1Sh" "A1")
+STAMP_HEADING(HS 8 "Otter (Skiplane)")
+STAMP_ADD(38.26 0 "" "dull violet & bistre\\\\nSG#11 SC#11" "2Sh" "A1")
+STAMP_HEADING(HS 8 "Huskies & Aurora")
+STAMP_ADD(38.26 0 "" "blue\\\\nSG#12 SC#12" "2Sh6p" "A1")
+STAMP_HEADING(HS 8 "Helicopter")
+""",
+    },
+    {
+        "id": "fip_thematic_story",
+        "name": "FIP Thematic — Story Page",
+        "description": "Thematic exhibit page with narrative text block and 2-4 stamps illustrating the theme. Text and stamps are co-equal per FIP.",
+        "category": "FIP Exhibition",
+        "content": """# Thematic Philately — Story Page
+ALBUM_TITLE("Thematic Exhibit")
+ALBUM_AUTHOR("Collector Name")
+
+ALBUM_PAGES_SIZE(210.0 297.0)
+ALBUM_PAGES_MARGINS(15.0 15.0 15.0 15.0)
+ALBUM_PAGES_BORDER(0.5 0.1 0.0 1.0)
+ALBUM_PAGES_SPACING(5.0 8.0)
+ALBUM_PAGES_TITLE(TB 16 "Thematic Development")
+
+PAGE_START
+
+PAGE_TEXT_CENTRE(TB 14 "SECTION TITLE — Chapter Development")
+PAGE_VSPACE(5)
+
+PAGE_TEXT_PARAGRAPH_START(HI 10 Justified)
+The thematic development continues here with philatelic items that illustrate the narrative thread. Each stamp has been selected for its thematic relevance and connection to the story being told. The text explains the qualification of each item within the thematic context.
+PAGE_TEXT_PARAGRAPH_END
+
+PAGE_VSPACE(8)
+
+ROW_START_FS(HN 8 0.5 6.0)
+STAMP_ADD(35.0 30.0 "Stamp illustrating\\\\ntheme point 1" "SG#1" "" "")
+STAMP_ADD(35.0 30.0 "Stamp illustrating\\\\ntheme point 2" "SG#2" "" "")
+STAMP_ADD(35.0 30.0 "Stamp illustrating\\\\ntheme point 3" "SG#3" "" "")
+
+PAGE_VSPACE(5)
+PAGE_TEXT_PARAGRAPH_START(HN 9 Justified)
+Additional annotation explaining the thematic qualification of each item shown above and how they connect to the overall story.
+PAGE_TEXT_PARAGRAPH_END
+""",
+    },
+    {
+        "id": "fip_postal_history",
+        "name": "FIP Postal History — Cover Display",
+        "description": "Postal history page with cover scan, route context, and postal markings. Covers are primary material.",
+        "category": "FIP Exhibition",
+        "content": """# Postal History — Cover Display
+ALBUM_TITLE("Postal History Exhibit")
+ALBUM_AUTHOR("Collector Name")
+
+ALBUM_PAGES_SIZE(210.0 297.0)
+ALBUM_PAGES_MARGINS(15.0 15.0 15.0 15.0)
+ALBUM_PAGES_BORDER(0.5 0.1 0.0 1.0)
+ALBUM_PAGES_SPACING(5.0 8.0)
+ALBUM_PAGES_TITLE(TB 16 "Postal History — Route Study")
+
+PAGE_START
+
+PAGE_TEXT_CENTRE(TB 14 "ROUTE: Origin to Destination")
+PAGE_TEXT_CENTRE(HN 9 "Date of usage. Postal rate explanation.")
+PAGE_VSPACE(5)
+
+ROW_START_FS(HN 8 0.5 6.0)
+STAMP_ADD(80.0 50.0 "Cover front scan\\\\nshowing stamps and\\\\ncancellations" "" "" "")
+STAMP_ADD(35.0 30.0 "Enlarged cancellation\\\\ndetail" "" "" "")
+
+PAGE_VSPACE(5)
+PAGE_TEXT_PARAGRAPH_START(HN 9 Justified)
+This cover illustrates the postal rate and route between the origin and destination. The cancellation date places it within the period of study. The stamps used are correct for the rate in effect at the time of mailing.
+PAGE_TEXT_PARAGRAPH_END
+""",
+    },
+    {
+        "id": "fip_country_intro",
+        "name": "FIP Country Introduction",
+        "description": "Album opening page with country name, map, flag, coat of arms, and historical introduction paragraph.",
+        "category": "FIP Exhibition",
+        "content": """# Country Introduction Page
+ALBUM_TITLE("Country Name")
+ALBUM_AUTHOR("Collector Name")
+
+ALBUM_PAGES_SIZE(210.0 297.0)
+ALBUM_PAGES_MARGINS(15.0 15.0 15.0 15.0)
+ALBUM_PAGES_BORDER(0.5 0.1 0.0 1.0)
+ALBUM_PAGES_SPACING(5.0 8.0)
+ALBUM_PAGES_TITLE(TB 20 "Country Name — First Issues")
+
+PAGE_START
+
+ROW_START_FS(HN 8 0.5 6.0)
+STAMP_ADD_IMG(30 30 "country_map.png" "" "Geographical Location" "")
+STAMP_ADD_IMG(30 30 "country_flag.png" "" "National Flag" "")
+STAMP_ADD_IMG(30 30 "country_arms.png" "" "Coat of Arms" "")
+
+PAGE_VSPACE(8)
+PAGE_TEXT_PARAGRAPH_START(TI 10 Justified)
+The Republic of [Country] is located in [region], bordering [neighbors]. It gained independence on [date] and issued its first postage stamps on [date]. The capital is [capital] and the population is approximately [population]. Currency: [currency system].
+PAGE_TEXT_PARAGRAPH_END
+
+PAGE_VSPACE(5)
+PAGE_TEXT_PARAGRAPH_START(HB 8 Justified)
+The first postage stamps issued specifically for [Country] were released on [date], following [historical context]. This issue consisted of [number] values ranging from [low] to [high].
+PAGE_TEXT_PARAGRAPH_END
+""",
+    },
+    {
+        "id": "fip_watermark_study",
+        "name": "FIP Watermark Study",
+        "description": "Watermark display page showing watermark illustration alongside stamps that exhibit the pattern.",
+        "category": "FIP Exhibition",
+        "content": """# Watermark Study Page
+ALBUM_TITLE("Watermark Study")
+ALBUM_AUTHOR("Collector Name")
+
+ALBUM_PAGES_SIZE(210.0 297.0)
+ALBUM_PAGES_MARGINS(15.0 15.0 15.0 15.0)
+ALBUM_PAGES_BORDER(0.5 0.1 0.0 1.0)
+ALBUM_PAGES_SPACING(5.0 8.0)
+ALBUM_PAGES_TITLE(TB 16 "Watermark Study")
+
+PAGE_START
+
+PAGE_TEXT_CENTRE(TB 14 "WATERMARK TYPE — Identification")
+PAGE_TEXT_CENTRE(HN 9 "Watermark description. Paper type. Measurement.")
+PAGE_VSPACE(5)
+
+ROW_START_FS(HN 8 0.5 6.0)
+STAMP_ADD_IMG(40 30 "watermark_illustration.png" "" "Watermark Pattern" "")
+STAMP_ADD(35.0 30.0 "Stamp showing\\\\nwatermark clearly" "SG#" "" "")
+
+PAGE_VSPACE(5)
+PAGE_TEXT_PARAGRAPH_START(HN 9 Justified)
+The watermark pattern shown above is found on stamps issued between [dates]. It can be identified by [method]. The following stamps clearly exhibit this watermark pattern.
+PAGE_TEXT_PARAGRAPH_END
+
+PAGE_VSPACE(5)
+ROW_START_FS(HN 8 0.5 6.0)
+STAMP_ADD(35.0 30.0 "Example 1\\\\nSG#1" "" "" "")
+STAMP_ADD(35.0 30.0 "Example 2\\\\nSG#2" "" "" "")
+STAMP_ADD(35.0 30.0 "Example 3\\\\nSG#3" "" "" "")
+""",
+    },
+    {
+        "id": "fip_commemorative_set",
+        "name": "FIP Commemorative Set",
+        "description": "Commemorative issue page with centered set display, issue details, and historical context.",
+        "category": "FIP Exhibition",
+        "content": """# Commemorative Issue Page
+ALBUM_TITLE("Commemorative Issues")
+ALBUM_AUTHOR("Collector Name")
+
+ALBUM_PAGES_SIZE(210.0 297.0)
+ALBUM_PAGES_MARGINS(15.0 15.0 15.0 15.0)
+ALBUM_PAGES_BORDER(0.5 0.1 0.0 1.0)
+ALBUM_PAGES_SPACING(5.0 8.0)
+ALBUM_PAGES_TITLE(TB 16 "Commemorative Issue")
+
+PAGE_START
+
+PAGE_TEXT_CENTRE(TB 16 "COMMEMORATIVE ISSUE TITLE")
+PAGE_TEXT_CENTRE(HN 10 "Date of Issue: DD Month YYYY")
+PAGE_TEXT_CENTRE(HN 9 "Printer: [Printer]. Print Process: [Process]. Perforation: [Perf]")
+PAGE_VSPACE(8)
+
+ROW_START_FS(HN 8 0.5 6.0)
+STAMP_ADD(35.0 30.0 "Value 1\\\\nColor description" "SG#1" "Denom" "Perf")
+STAMP_ADD(35.0 30.0 "Value 2\\\\nColor description" "SG#2" "Denom" "Perf")
+STAMP_ADD(35.0 30.0 "Value 3\\\\nColor description" "SG#3" "Denom" "Perf")
+STAMP_ADD(35.0 30.0 "Value 4\\\\nColor description" "SG#4" "Denom" "Perf")
+
+PAGE_VSPACE(8)
+PAGE_TEXT_PARAGRAPH_START(HN 9 Justified)
+This commemorative issue was released on [date] to mark [event/anniversary]. The designs depict [subject matter]. The set comprises [number] values with a total face value of [amount]. Print quantity: [number] sets.
+PAGE_TEXT_PARAGRAPH_END
+""",
+    },
 ]

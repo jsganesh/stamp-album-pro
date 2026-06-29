@@ -100,27 +100,12 @@ class HTMLRenderer:
         content_width = round(ps.width - ps.margin_left - ps.margin_right, 2)
         content_height = round(ps.height - ps.margin_top - ps.margin_bottom, 2)
 
-        # ── @font-face declarations for scanned system fonts ──
-        font_faces = ""
-        if self.font_manager:
-            for font in self.font_manager.fonts:
-                try:
-                    path = str(font.file_path).replace("'", "\\'")
-                    font_faces += f"""
-        @font-face {{
-            font-family: '{font.name}';
-            src: url('file://{path}');
-        }}"""
-                except Exception:
-                    pass
-
         styles = f"""
         <style>
         @page {{
             size: {width_mm}mm {height_mm}mm;
             margin: 0;
         }}
-        {font_faces}
 
         body {{
             margin: 0;

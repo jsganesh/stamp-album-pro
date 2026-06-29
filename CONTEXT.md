@@ -12,24 +12,47 @@ A web-based stamp album designer with an InDesign-like free-form page layout fee
 ## Tech stack
 - Backend: Python / FastAPI
 - Frontend: Browser-based visual canvas (SVG shapes, contentEditable text)
-- Entry point: `stamp-album` (open in browser)
-- Tests: 199 tests (maintain this coverage — do not break existing tests)
+- PDF generation: PyMuPDF direct drawing (branch `v2-pymupdf`) — no WeasyPrint
+- Entry point: `stamp-album` (opens in browser, downloads go to Downloads folder)
+- Desktop mode: `stamp-album --desktop` (pywebview window, opt-in)
+- Auto-reload: `STAMP_ALBUM_RELOAD=1 stamp-album` (dev mode)
+- Tests: 211 tests (maintain this coverage — do not break existing tests)
 - DSL: advanced toggle, not the default mode
+- Branches: `main`/`master` (stable, WeasyPrint), `v2-pymupdf` (PyMuPDF, current dev)
 
-## Current version state (v3)
+## Current version state (v2-pymupdf)
+- PDF generation rewritten: PyMuPDF direct drawing replaces WeasyPrint entirely
+- No native library dependencies (Pango/Cairo/GLib) — pure Python PDF generation
+- System fonts embedded by scanning `/Library/Fonts`, `~/Library/Fonts`, `/System/Library/Fonts`
+- Font resolution: font IDs (HN, HB, TN, etc.) → system .ttf/.ttc files via `fitz.Font(fontfile=...)`
+- Stamp shapes: rectangle, oval, diamond, triangle, hexagon, octagon, pentagon
+- HTMLRenderer: renders both DSL-based rows and canvas drag-and-drop stamps
+- Column layout support: `PAGE_COLUMN_START` → `column-container cols-N` with gap styling
+- Text formatting: bold, italic, strikethrough, code, superscript, subscript
+- Typography preview: drop caps, text shadow, outline, gradient fill
 - SVG shape rendering on canvas
 - contentEditable text elements (direct inline editing)
 - Collapsible panels in the UI
 - Grid fill tool for batch stamp placement
-- System fonts support
 - Visual canvas is the default; DSL is an advanced opt-in
 
 ## Key conventions
 - Visual-first: all new features default to canvas interaction, not DSL
 - Free-form positioning is a first-class feature — do not regress to row-based or grid-forced layouts
 - `stamp-album` is the browser entry point — test by opening this, not via unit tests alone
+- Default export UX: browser download to Downloads folder (not native dialog)
 - Run the full test suite (`pytest` or equivalent) before committing any change
 - Commit at logical boundaries, not mid-feature
+- Two PDF backends exist: keep `main`/`master` (WeasyPrint) stable, develop on `v2-pymupdf`
+
+## PDF architecture (v2-pymupdf)
+- `src/stamp_album/engines/pdf_generator.py` — single file containing:
+  - `PDFGenerator` — direct PyMuPDF drawing for PDF/PNG/SVG export
+  - `HTMLRenderer` — HTML/CSS preview from Album/Page/Stamp models
+- PNG export: `generate_to_bytes()` → `fitz.open()` → `get_pixmap()`
+- SVG export: `generate_to_bytes()` → `fitz.open()` → `get_svg_image()`
+- Font map: `_BUILTIN_FONT_MAP` for standard 12 PDF fonts, `_resolve_font()` for system fonts
+- Stamp model has no `border_color`/`fill_color` — colors come from `album.color_stamp_border` / `album.color_stamp_background`
 
 ## Web dev debug patterns (critical — check these before assuming a bug)
 1. Browser tool may be stale — hard-refresh before reporting a bug (Cmd+Shift+R)

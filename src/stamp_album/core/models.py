@@ -624,6 +624,7 @@ class Album:
     command_groups: dict[str, CommandGroup] = field(default_factory=dict)
     defines: set[str] = field(default_factory=set)
     source_path: Optional[str] = None
+    margin_texts: list[MarginTextItem] = field(default_factory=list)
 
     # Color settings
     color_album_border: Optional[Color] = None

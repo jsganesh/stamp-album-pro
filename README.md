@@ -24,6 +24,15 @@ StampAlbum Pro is a web application for creating professional stamp album pages 
 
 ## Installation
 
+### Option 1: Install from PyPI (recommended)
+
+```bash
+pip install stamp-album-pro
+stamp-album
+```
+
+### Option 2: Install from source
+
 ```bash
 # Clone the repository
 git clone https://github.com/jsganesh/stamp-album-pro.git
@@ -47,11 +56,7 @@ pip install -e ".[legacy]"
 
 ### macOS Native Dependencies
 
-WeasyPrint requires native libraries for PDF rendering. Install them with Homebrew:
-
-```bash
-brew install pango glib gdk-pixbuf libffi harfbuzz fribidi cairo
-```
+None! StampAlbum Pro uses PyMuPDF for PDF generation — no native libraries (Pango, Cairo, GLib) required.
 
 ## Quick Start
 
@@ -61,8 +66,9 @@ brew install pango glib gdk-pixbuf libffi harfbuzz fribidi cairo
 stamp-album
 ```
 
-This opens StampAlbum Pro in a **native desktop window** — no browser tabs, no
-address bar, native Save dialogs for exports. Just a clean app window.
+This opens StampAlbum Pro in your **default web browser** — cross-platform,
+no installation needed beyond the `pip install`. Exports download to your
+Downloads folder.
 
 Alternative commands:
 
@@ -100,27 +106,40 @@ python -m stamp_album -c examples/sample.txt -o output.pdf
 python -m stamp_album -c examples/sample.txt -p
 ```
 
-### Desktop App (macOS)
+### Desktop App (macOS / Windows / Linux)
 
 ```bash
-# Build the macOS app bundle
-./build.sh
+# Build the desktop binary with PyInstaller
+pip install pyinstaller
+pyinstaller stamp-album.spec
 
 # Run the app
+# macOS:
 open "dist/StampAlbum Pro.app"
+# Windows: dist\StampAlbumPro\StampAlbumPro.exe
+# Linux: ./dist/StampAlbumPro/StampAlbumPro
 ```
 
 ## Web App Screenshots
+
+![Main Editor](docs/screenshots/01-main-editor.png)
+
+*The main editor: drag-and-drop stamp palette (left), visual canvas (center), properties panel (right), and Quick Setup Wizard (bottom).*
+
+![DSL Editor](docs/screenshots/04-dsl-editor.png)
+
+*DSL editor panel for advanced users — direct text-based album definition with apply/close controls.*
 
 The web interface features:
 
 | Component | Description |
 |-----------|-------------|
 | **Toolbar** | New, Open, Save, Export PDF with keyboard shortcuts |
-| **Editor** | CodeMirror with dark theme, line numbers, auto-save |
-| **Preview** | Live HTML preview with auto-refresh on edit |
-| **Sidebar** | File browser for managing album files |
-| **Status bar** | Current file, save status, operation feedback |
+| **Canvas** | Visual drag-and-drop page layout with grid snap |
+| **Sidebar** | Stamp palette, text tools, image manager, file browser |
+| **Properties** | Position, size, border, fill, font for selected element |
+| **Wizard** | Quick Setup with page size, border, template selection |
+| **DSL Panel** | Advanced text-based album definition (toggle) |
 
 ## DSL Syntax
 
@@ -212,7 +231,7 @@ src/stamp_album/
 │   ├── parser.py       # DSL parser
 │   └── serializer.py   # Model-to-DSL round-trip
 ├── engines/
-│   ├── pdf_generator.py    # WeasyPrint PDF generation
+│   ├── pdf_generator.py    # PyMuPDF direct drawing (PDF/PNG/SVG)
 │   ├── font_manager.py     # Font discovery/validation
 │   └── layout_engine.py    # Auto-layout algorithms
 ├── ui/                 # PyQt6 desktop interface
