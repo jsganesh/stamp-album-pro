@@ -6,7 +6,7 @@ var _defBdr = "solid", _defBdrC = "#666", _defFillC = "#fff";
 var _collapsed = { sb: false, rp: false };
 var _currentFile = null, _currentPage = 0, _pages = [ [] ];
 var _dirty = false;
-var _colMode = 1, _colGap = 10.0, _pageBorder = "double";  // Column layout mode, gap (mm), page border style
+var _colMode = 1, _colGap = 10.0, _pageBorder = "double", _pageBorderC = "";  // Column layout mode, gap (mm), page border style
 
 // ── Forward references (set by render.js after load) ──
 var render = function() { S.render(); };
@@ -230,6 +230,7 @@ function updateGrid() {
 // ── New album ──
 function newAlbum() {
     if (_dirty && !confirm("Discard unsaved changes?")) return;
+    clearDraft();
     E = [];
     sel = null;
     _currentFile = null;
@@ -612,6 +613,15 @@ function parseDSL(dsl) {
             _pageMargin = parseFloat(mMargin[1]);
             continue;
         }
+        var mBorder = t.match(/^ALBUM_PAGES_BORDER\(/);
+        if (mBorder) {
+            continue;
+        }
+        var mBorderC = t.match(/^COLOUR_ALBUM_BORDER\(\s*"([^"]*)"\s*\)/);
+        if (mBorderC) {
+            _pageBorderC = mBorderC[1];
+            continue;
+        }
         // PAGE_START — new page
         if (t.match(/^PAGE_START/)) {
             if (E.length > 0) {
@@ -691,6 +701,7 @@ function parseDSL(dsl) {
     sel = null;
     renderPageDots();
     render();
+    if (S.renderPageBorder) S.renderPageBorder(_pageBorder || "double");
     updateProps();
     updateGrid();
     updateTitle();
@@ -721,6 +732,7 @@ Object.defineProperties(S, {
     _colMode: { get: function(){ return _colMode; }, set: function(v){ _colMode = v; } },
     _colGap: { get: function(){ return _colGap; }, set: function(v){ _colGap = v; } },
     _pageBorder: { get: function(){ return _pageBorder; }, set: function(v){ _pageBorder = v; } },
+    _pageBorderC: { get: function(){ return _pageBorderC; }, set: function(v){ _pageBorderC = v; } },
     _init: { get: function(){ return _init; }, set: function(v){ _init = v; } },
     SYSTEM_FONTS: { get: function(){ return SYSTEM_FONTS; }, set: function(v){ SYSTEM_FONTS = v; } },
     $: { value: $ }, mm: { value: mm }, px: { value: px }, clamp: { value: clamp },

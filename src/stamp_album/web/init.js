@@ -317,6 +317,7 @@ function init() {
         $("page").className = "page " + this.value;
         render();
         S.updateGrid();
+        if (S.renderPageBorder) S.renderPageBorder(S._pageBorder || "double");
     });
     $("grid").addEventListener("change", function() {
         S._sn = parseInt(this.value) || 0;
@@ -333,9 +334,17 @@ function init() {
         render();
     });
 
-    // ── Default colors ──
-    $("def-bdr").addEventListener("change", function() { S._defBdr = this.value; });
-    $("def-bdr-c").addEventListener("change", function() { S._defBdrC = this.value; });
+    // ── Default colors — also update page border ──
+    $("def-bdr").addEventListener("change", function() {
+        S._defBdr = this.value;
+        S._pageBorder = this.value;
+        if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
+    });
+    $("def-bdr-c").addEventListener("change", function() {
+        S._defBdrC = this.value;
+        S._pageBorderC = this.value;
+        if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
+    });
     $("def-fill-c").addEventListener("change", function() { S._defFillC = this.value; });
 
     // ── Collapsible Panels ──

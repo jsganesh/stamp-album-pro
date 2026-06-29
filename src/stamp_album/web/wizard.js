@@ -3,6 +3,7 @@
 var S = window.StampAlbum;
 var $ = S.$, showToast = S.showToast, pushUndo = S.pushUndo, render = S.render;
 var parseDSL = S.parseDSL, escapeDSL = S.escapeDSL;
+var renderPageBorder = S.renderPageBorder;
 
 // ── Wizard ──
 function applyWizard() {
@@ -41,6 +42,9 @@ function applyWizard() {
     }
 
     parseDSL(lines.join("\n"));
+    S._pageBorder = border;
+    S._pageBorderC = "";
+    if (renderPageBorder) renderPageBorder(border);
     pushUndo();
     render();
     $("wizard-panel").classList.remove("open");

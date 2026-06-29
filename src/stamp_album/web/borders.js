@@ -70,14 +70,25 @@ var BORDER_STYLES = {
     }
 };
 
+// ── Ornament bounding boxes (width/height in SVG units) ──
+var ORNAMENT_BBOX = {
+    classic: { w: 62, h: 82 },
+    victorian: { w: 42, h: 87 },
+    artdeco: { w: 43, h: 85 },
+    laurel: { w: 22, h: 62 },
+    gothic: { w: 32, h: 85 },
+    filigree: { w: 65, h: 65 }
+};
+
 // ── SVG Corner Ornaments ──
 function cornerOrnament(style, corner) {
     // corner: tl, tr, br, bl
+    var bbox = ORNAMENT_BBOX[style] || { w: 60, h: 80 };
     var transforms = {
         tl: "",
-        tr: "scale(-1,1) translate(-100,0)",
-        br: "scale(-1,-1) translate(-100,-100)",
-        bl: "scale(1,-1) translate(0,-100)"
+        tr: "scale(-1,1) translate(-" + bbox.w + ",0)",
+        br: "scale(-1,-1) translate(-" + bbox.w + ",-" + bbox.h + ")",
+        bl: "scale(1,-1) translate(0,-" + bbox.h + ")"
     };
     var t = transforms[corner] || "";
 
@@ -183,7 +194,7 @@ function renderPageBorder(style) {
     var w = S._pw || 595;
     var h = S._ph || 842;
     var margin = 12;
-    var color = (BORDER_STYLES[style] && BORDER_STYLES[style].color) || "#333";
+    var color = S._pageBorderC || (BORDER_STYLES[style] && BORDER_STYLES[style].color) || "#333";
 
     var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.id = "page-border";
@@ -208,9 +219,6 @@ function renderPageBorder(style) {
     }
     else if (BORDER_STYLES[style] && BORDER_STYLES[style].corners) {
         // Ornamental border with corners
-        var bs = BORDER_STYLES[style];
-        var cornerSize = 40;
-        var cms = cornerSize - 5;
 
         // Double rule frame
         inner += '<rect x="' + margin + '" y="' + margin + '" width="' + (w - margin*2) + '" height="' + (h - margin*2) + '" fill="none" stroke="' + color + '" stroke-width="1.2"/>';
