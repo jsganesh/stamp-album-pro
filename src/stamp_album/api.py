@@ -33,7 +33,7 @@ async def security_headers(request: Request, call_next):
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
         "script-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; "
-        "style-src 'self' 'unsafe-inline'; "
+        "style-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; "
         "img-src 'self' data: blob:; "
         "font-src 'self' data:; "
         "connect-src 'self'; "

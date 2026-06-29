@@ -1,6 +1,7 @@
 "use strict";
 (function(){
 var S = window.StampAlbum;
+var $ = S.$;
 
 // ── Ornamental Border Styles ──
 // Each border is defined as SVG paths for corners + edge patterns

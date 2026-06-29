@@ -7,7 +7,7 @@ var select = S.select, add = S.add, undo = S.undo, redo = S.redo;
 var newAlbum = S.newAlbum, saveFile = S.saveFile, loadFileList = S.loadFileList;
 var loadImageList = S.loadImageList, uploadImageFile = S.uploadImageFile;
 var openPreview = S.openPreview, exportPDF = S.exportPDF;
-var applyWizard = S.applyWizard, loadTemplateList = S.loadTemplateList;
+var applyWizard = S.applyWizard, loadTemplateList = S.loadTemplateList, loadDraft = S.loadDraft;
 var buildDSL = S.buildDSL, parseDSL = S.parseDSL;
 var initTutorial = S.initTutorial, _wireTutorialEvents = S._wireTutorialEvents;
 var drawAlignmentGuides = S.drawAlignmentGuides, clearAlignmentGuides = S.clearAlignmentGuides;
@@ -614,6 +614,12 @@ function init() {
     window.addEventListener("beforeunload", function(e) {
         if (S._dirty) { e.preventDefault(); e.returnValue = ""; }
     });
+
+    // ── Restore draft from localStorage ──
+    if (loadDraft) {
+        var _restored = loadDraft();
+        if (_restored) console.log("StampAlbum Pro: restored draft from localStorage");
+    }
 
     // ── Init ──
     S.renderPageDots();
