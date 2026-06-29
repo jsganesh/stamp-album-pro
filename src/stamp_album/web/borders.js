@@ -216,11 +216,11 @@ function renderPageBorder(style) {
         inner += '<rect x="' + margin + '" y="' + margin + '" width="' + (w - margin*2) + '" height="' + (h - margin*2) + '" fill="none" stroke="' + color + '" stroke-width="1.2"/>';
         inner += '<rect x="' + (margin+4) + '" y="' + (margin+4) + '" width="' + (w - margin*2 - 8) + '" height="' + (h - margin*2 - 8) + '" fill="none" stroke="' + color + '" stroke-width="0.5"/>';
 
-        // Corner ornaments
-        var corners = ["tl", "tr", "br", "bl"];
-        corners.forEach(function(c) {
+        // Corner ornaments — position each at the actual page corner (inside margin)
+        var corners = { tl: [margin, margin], tr: [w - margin, margin], br: [w - margin, h - margin], bl: [margin, h - margin] };
+        ["tl", "tr", "br", "bl"].forEach(function(c) {
             var orn = cornerOrnament(style, c).replace(/COLOR/g, color);
-            inner += orn;
+            inner += '<g transform="translate(' + corners[c][0] + ',' + corners[c][1] + ')">' + orn + '</g>';
         });
     }
     else if (style === "greek_key" || style === "rope") {

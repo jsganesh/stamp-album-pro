@@ -696,7 +696,7 @@ PAGE_VSPACE(5)
 
 ROW_START_FS(HN 8 0.5 6.0)
 STAMP_ADD(32.0 37.0 "Sputnik 1\\nUSSR — 1957" "" "" "")
-STAMP_ADD(32.0 370 "Yuri Gagarin\\nUSSR — 1961" "" "" "")
+    STAMP_ADD(32.0 37.0 "Yuri Gagarin\\nUSSR — 1961" "" "" "")
 STAMP_ADD(32.0 37.0 "Apollo 11\\nUSA — 1969" "" "" "")
 
 PAGE_START
@@ -775,7 +775,7 @@ PAGE_TEXT_CENTRE(HN 10 "The world's most beloved garden flowers on stamps.")
 PAGE_VSPACE(5)
 
 ROW_START_FS(HN 8 0.5 6.0)
-STAMP_ADD(32.0 370 "Rose\\nGreat Britain" "" "" "")
+    STAMP_ADD(32.0 37.0 "Rose\\nGreat Britain" "" "" "")
 STAMP_ADD(32.0 37.0 "Tulip\\nNetherlands" "" "" "")
 STAMP_ADD(32.0 37.0 "Cherry Blossom\\nJapan" "" "" "")
 
