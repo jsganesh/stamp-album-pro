@@ -154,7 +154,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 /* Shapes using SVG */
 .cel .shape-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-.cel .shape-svg path { fill: var(--el-fill, #fff); stroke: var(--el-bdr, #666); stroke-width: var(--el-bdr-w, 1); }
+/* SVG shape colors set via attributes in render.js */
 
 /* ── Philatelic stamp mount ── */
 .stamp-mount { border-radius: 1px; }

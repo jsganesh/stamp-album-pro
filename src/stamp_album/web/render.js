@@ -377,6 +377,7 @@ function getShapePath(shape, w, h) {
 function render() {
     var pg = $("page");
     pg.querySelectorAll(".cel").forEach(function(el) { el.remove(); });
+    pg.querySelectorAll(".col-guide").forEach(function(el) { el.remove(); });
     S.E.forEach(function(el) {
         var d = document.createElement("div");
         d.className = "cel shape-" + (el.s || "rectangle") + (el.id === S.sel ? " selected" : "");

@@ -8,6 +8,10 @@ var _currentFile = null, _currentPage = 0, _pages = [ [] ];
 var _dirty = false;
 var _colMode = 1, _colGap = 10.0, _pageBorder = "double";  // Column layout mode, gap (mm), page border style
 
+// ── Forward references (set by render.js after load) ──
+var render = function() { S.render(); };
+var updateProps = function() { S.updateProps(); };
+
 // ── Undo/redo system ──
 var _undoStack = [], _redoStack = [], _undoMax = 50, _undoPaused = false;
 function pushUndo() {
@@ -367,6 +371,7 @@ function newAlbum() {
     _dirty = false;
     _undoStack = [];
     _redoStack = [];
+    _undoStack.push(JSON.stringify(E));
     render();
     updateProps();
     renderPageDots();
