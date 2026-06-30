@@ -112,28 +112,35 @@ def main() -> int:
     opener.start()
 
     # Run uvicorn in the foreground (blocks until Ctrl+C)
-    from stamp_album.api import app
-
     reload = os.environ.get("STAMP_ALBUM_RELOAD", "") == "1"
 
-    # When reload is enabled, also watch the web directory for JS/CSS/HTML changes
-    reload_dirs = None
+    # When reload is enabled, pass the app as an import string (required by uvicorn)
+    # and watch the web directory for JS/CSS/HTML changes
     if reload:
         from pathlib import Path
         web_dir = str(Path(__file__).resolve().parent / "web")
-        reload_dirs = [web_dir]
-
-    try:
-        uvicorn.run(
-            app,
-            host=host,
-            port=port,
-            log_level="warning",
-            reload=reload,
-            reload_dirs=reload_dirs,
-        )
-    except KeyboardInterrupt:
-        pass
+        try:
+            uvicorn.run(
+                "stamp_album.api:app",
+                host=host,
+                port=port,
+                log_level="warning",
+                reload=True,
+                reload_dirs=[web_dir],
+            )
+        except KeyboardInterrupt:
+            pass
+    else:
+        from stamp_album.api import app
+        try:
+            uvicorn.run(
+                app,
+                host=host,
+                port=port,
+                log_level="warning",
+            )
+        except KeyboardInterrupt:
+            pass
     print("\nStampAlbum Pro stopped.")
     return 0
 
