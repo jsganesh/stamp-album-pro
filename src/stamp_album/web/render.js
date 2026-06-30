@@ -2,7 +2,6 @@
 (function(){
 var S = window.StampAlbum;
 var $ = S.$, mm = S.mm, showToast = S.showToast;
-var pushUndo = S.pushUndo;
 
 // ── Font population ──
 function populateFonts() {
@@ -255,7 +254,7 @@ function add(p) {
         perf: p.perf || ""
     };
     S.E.push(s);
-    pushUndo();
+    S.pushUndo();
     select(s.id);
     render();
 }
@@ -424,7 +423,7 @@ function render() {
                 l.style.marginTop = "2px";
                 l.addEventListener("blur", function() {
                     el.lbl = this.textContent;
-                    pushUndo();
+                    S.pushUndo();
                 });
                 inner.appendChild(l);
             }
@@ -504,7 +503,7 @@ function render() {
                 this.style.minHeight = "";
                 var nh = this.scrollHeight + 4;
                 if (nh > p.offsetHeight) p.style.height = nh + "px";
-                pushUndo();
+                S.pushUndo();
             });
             d.appendChild(l);
         }
