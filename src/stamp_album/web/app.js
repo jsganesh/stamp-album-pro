@@ -12,33 +12,8 @@ var _colMode = 1, _colGap = 10.0, _pageBorder = "double", _pageBorderC = "";  //
 var render = function() { S.render(); };
 var updateProps = function() { S.updateProps(); };
 
-// ── Undo/redo system ──
-var _undoStack = [], _redoStack = [], _undoMax = 50, _undoPaused = false;
-function pushUndo() {
-    if (_undoPaused) return;
-    _undoStack.push(JSON.stringify(E));
-    if (_undoStack.length > _undoMax) _undoStack.shift();
-    _redoStack = [];
-    _dirty = true;
-    updateTitle();
-    scheduleDraftSave();
-}
-function undo() {
-    if (_undoStack.length < 2) return;
-    _redoStack.push(_undoStack.pop());
-    var state = JSON.parse(_undoStack.pop());
-    loadElements(state);
-    updateTitle();
-}
-function redo() {
-    if (_redoStack.length === 0) return;
-    _undoStack.push(JSON.stringify(E));
-    var state = JSON.parse(_redoStack.pop());
-    loadElements(state);
-    updateTitle();
-}
-function loadElements(arr) { E = arr; sel = null; switchPage(_currentPage, true); render(); updateProps(); }
-function loadElementsNoPush(arr) { _undoPaused = true; loadElements(arr); _undoPaused = false; }
+// ── Undo/redo system (defined in undo.js) ──
+var _undoStack = [], _redoStack = [], _undoPaused = false;
 
 // ── localStorage draft persistence ──
 var _draftTimer = null;
@@ -153,7 +128,7 @@ function updateTitle() {
 // ── Page management ──
 function switchPage(idx, silent) {
     if (idx < 0 || idx >= _pages.length) return;
-    if (!silent) pushUndo();
+    if (!silent) S.pushUndo();
     _pages[_currentPage] = JSON.parse(JSON.stringify(E));
     _currentPage = idx;
     E = _pages[idx] ? JSON.parse(JSON.stringify(_pages[idx])) : [];
@@ -164,14 +139,14 @@ function switchPage(idx, silent) {
     updateProps();
 }
 function addPage() {
-    pushUndo();
+    S.pushUndo();
     _pages.push([]);
     switchPage(_pages.length - 1, true);
     showToast("Page added", "success");
 }
 function deletePage() {
     if (_pages.length <= 1) { showToast("Cannot delete last page", "error"); return; }
-    pushUndo();
+    S.pushUndo();
     _pages.splice(_currentPage, 1);
     if (_currentPage >= _pages.length) _currentPage = _pages.length - 1;
     E = JSON.parse(JSON.stringify(_pages[_currentPage]));
@@ -247,137 +222,7 @@ function newAlbum() {
     showToast("New album created", "success");
 }
 
-// ── File management ──
-function loadFileList() {
-    var c = $("file-list");
-    if (!c) return;
-    fetch("/files")
-        .then(function(r) { return r.json(); })
-        .then(function(files) {
-            c.innerHTML = "";
-            files.forEach(function(f) {
-                var item = document.createElement("div");
-                item.className = "file-item" + (f === _currentFile ? " active" : "");
-                var icon = document.createElement("span");
-                icon.className = "favicon";
-                icon.textContent = f.endsWith(".slbum") ? "📖" : "📄";
-                var nameSpan = document.createElement("span");
-                nameSpan.className = "fn";
-                nameSpan.textContent = f;
-                var delBtn = document.createElement("span");
-                delBtn.className = "fdel";
-                delBtn.textContent = "✕";
-                delBtn.title = "Delete";
-                delBtn.addEventListener("click", function(ev) {
-                    ev.stopPropagation();
-                    if (confirm("Delete " + f + "?")) {
-                        fetch("/files/" + encodeURIComponent(f), { method: "DELETE" })
-                            .then(function() { loadFileList(); showToast("Deleted " + f, "success"); });
-                    }
-                });
-                item.appendChild(icon);
-                item.appendChild(nameSpan);
-                item.appendChild(delBtn);
-                item.addEventListener("click", function() {
-                    fetch("/files/" + encodeURIComponent(f))
-                        .then(function(r) { return r.text(); })
-                        .then(function(content) {
-                            _currentFile = f;
-                            parseDSL(content);
-                            _dirty = false;
-                            updateTitle();
-                            loadFileList();
-                            showToast("Opened " + f, "success");
-                        });
-                });
-                c.appendChild(item);
-            });
-        })
-        .catch(function() { c.innerHTML = "<div style='padding:8px;color:var(--text2);font-size:11px'>No files yet</div>"; });
-}
-
-function saveFile() {
-    var dsl = buildDSL();
-    if (_currentFile) {
-        fetch("/files/" + encodeURIComponent(_currentFile), {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ content: dsl })
-        }).then(function(r) {
-            if (r.ok) {
-                return r.json();
-            }
-            throw new Error("Save failed");
-        }).then(function(data) {
-            _dirty = false;
-            updateTitle();
-            clearDraft();
-            showToast("Saved to " + (data.path || _currentFile), "success");
-        }).catch(function() { showToast("Save failed", "error"); });
-    } else {
-        var name = prompt("File name:", "album.slbum");
-        if (!name) return;
-        if (!name.endsWith(".slbum") && !name.endsWith(".txt")) name += ".slbum";
-        _currentFile = name;
-        saveFile();
-    }
-}
-
-// ── Image management ──
-function uploadImageFile(file, callback) {
-    var formData = new FormData();
-    formData.append("file", file);
-    fetch("/images", { method: "POST", body: formData })
-        .then(function(r) {
-            if (r.ok) return r.json();
-            throw new Error("Upload failed");
-        })
-        .then(function(data) {
-            showToast("Uploaded " + data.filename, "success");
-            if (callback) callback(data.filename);
-            loadImageList();
-        })
-        .catch(function(err) { showToast("Upload failed: " + err, "error"); });
-}
-
-function loadImageList() {
-    var c = $("img-grid");
-    if (!c) return;
-    fetch("/images")
-        .then(function(r) { return r.json(); })
-        .then(function(images) {
-            c.innerHTML = "";
-            images.forEach(function(img) {
-                var item = document.createElement("div");
-                item.className = "img-item";
-                var im = document.createElement("img");
-                im.src = "/images/" + encodeURIComponent(img);
-                var del = document.createElement("button");
-                del.className = "img-del";
-                del.textContent = "✕";
-                del.addEventListener("click", function(ev) {
-                    ev.stopPropagation();
-                    if (confirm("Delete " + img + "?")) {
-                        fetch("/images/" + encodeURIComponent(img), { method: "DELETE" })
-                            .then(function() { loadImageList(); showToast("Deleted " + img, "success"); });
-                    }
-                });
-                item.appendChild(im);
-                item.appendChild(del);
-                item.addEventListener("click", function() {
-                    var r = $("page").getBoundingClientRect();
-                    var x = 50, y = 50;
-                    add({ t: "image", s: "rectangle", x: x, y: y, w: 80, h: 60,
-                        lbl: img, img: "/images/" + img,
-                        bdr: "solid", bdrC: "#999", bdrW: 0.5, fill: "#fff", fillA: 100, font: "HN", fs: 12 });
-                });
-                c.appendChild(item);
-            });
-        })
-        .catch(function() {
-            c.innerHTML = "<div style='padding:8px;color:var(--text2);font-size:11px'>No images yet</div>";
-        });
-}
+// ── File/image management functions defined in files.js ──
 
 // ── Build canvas state for direct render/export ──
 function buildCanvasState(format) {
@@ -516,8 +361,8 @@ function applyWizard() {
         lines.push("PAGE_COLUMN_START(" + columns + ")");
     }
 
-    parseDSL(lines.join("\n"));
-    pushUndo();
+    S.parseDSL(lines.join("\n"));
+    S.pushUndo();
     render();
     // Apply ornamental border if selected
     _pageBorder = border;
@@ -526,185 +371,7 @@ function applyWizard() {
     showToast("Album created from wizard", "success");
 }
 
-// ── Escape user strings for DSL embedding ──
-function escapeDSL(s) {
-    return String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
-}
-
-// ── DSL round-trip ──
-function buildDSL() {
-    var lines = [
-        'ALBUM_TITLE("' + escapeDSL(_currentFile ? _currentFile.replace(/\.(slbum|txt)$/, "") : "My Album") + '")',
-        "ALBUM_PAGES_SIZE(" + mm(_pw) + " " + mm(_ph) + ")",
-        "ALBUM_PAGES_MARGINS(15 15 15 15)",
-    ];
-    if (_pageBorder && _pageBorder !== "none" && _pageBorder !== "double") {
-        lines.push('ALBUM_PAGES_BORDER(0.1 0.5 0.1 1.0)');
-        if (_pageBorderC) lines.push('COLOUR_ALBUM_BORDER("' + _pageBorderC + '")');
-    }
-    lines.push("PAGE_START");
-
-    // Add column start if columns enabled
-    if (_colMode > 1) {
-        lines.push("PAGE_COLUMN_START(" + _colMode + " " + _colGap.toFixed(1) + ")");
-    }
-
-    function pushElement(el) {
-        if (el.t === "image") {
-            lines.push('STAMP_ADD_IMG(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.img || "") + '" "' + escapeDSL(el.lbl || "") + '")');
-        } else if (el.t === "text") {
-            lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + escapeDSL(el.lbl || "") + '" "text" "' + (el.bdr || "none") + '" "' + (el.bdrC || "transparent") + '" ' + (el.bdrW || 0) + ' "' + (el.fill || "transparent") + '" ' + (el.fillA || 0) + ' "' + (el.font || "HN") + '" ' + (el.fs || 12) + ' "' + (el.align || "left") + '")');
-        } else if (el.t === "freehand") {
-            lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + escapeDSL(el.lbl || "") + '" "freehand" "' + (el.bdr || "solid") + '" "' + (el.bdrC || "#666") + '" ' + (el.bdrW || 1) + ' "' + (el.fill || "#fff") + '" ' + (el.fillA || 100) + ' "' + (el.font || "HN") + '" ' + (el.fs || 12) + ' "' + (el.align || "left") + '")');
-        } else {
-            lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + escapeDSL(el.lbl || "") + '" "' + (el.s || "rectangle") + '" "' + (el.bdr || "solid") + '" "' + (el.bdrC || "#666") + '" ' + (el.bdrW || 1) + ' "' + (el.fill || "#fff") + '" ' + (el.fillA || 100) + ' "' + (el.font || "HN") + '" ' + (el.fs || 12) + ' "' + (el.align || "left") + '" "' + (el.cat || "") + '" "' + (el.denom || "") + '" "' + (el.perf || "") + '")');
-        }
-    }
-
-    E.forEach(pushElement);
-
-    // Add column stop if columns were enabled
-    if (_colMode > 1) {
-        lines.push("PAGE_COLUMN_STOP");
-    }
-
-    // Add page management DSL
-    for (var i = 1; i < _pages.length; i++) {
-        var pgEls = _pages[i];
-        if (pgEls && pgEls.length > 0) {
-            lines.push("PAGE_START");
-
-            // Add column start for additional pages
-            if (_colMode > 1) {
-                lines.push("PAGE_COLUMN_START(" + _colMode + " " + _colGap.toFixed(1) + ")");
-            }
-
-            pgEls.forEach(pushElement);
-
-            // Add column stop for additional pages
-            if (_colMode > 1) {
-                lines.push("PAGE_COLUMN_STOP");
-            }
-        }
-    }
-    return lines.join("\n");
-}
-
-function parseDSL(dsl) {
-    E = [];
-    var lines = dsl.split("\n");
-    _pages = [[]];
-    _currentPage = 0;
-    var _rowX = 0, _rowY = 12, _rowSpacing = 6, _pageMargin = 15;
-    for (var i = 0; i < lines.length; i++) {
-        var t = lines[i].trim();
-        if (!t || t.charAt(0) === "#") continue;
-        // Page setup commands
-        var mSize = t.match(/^ALBUM_PAGES_SIZE\(\s*([\d.]+)\s+([\d.]+)\)/);
-        if (mSize) {
-            _pw = px(parseFloat(mSize[1]));
-            _ph = px(parseFloat(mSize[2]));
-            $("pg-size").value = "a4";
-            continue;
-        }
-        var mMargin = t.match(/^ALBUM_PAGES_MARGINS\(\s*([\d.]+)\s/);
-        if (mMargin) {
-            _pageMargin = parseFloat(mMargin[1]);
-            continue;
-        }
-        var mBorder = t.match(/^ALBUM_PAGES_BORDER\(/);
-        if (mBorder) {
-            continue;
-        }
-        var mBorderC = t.match(/^COLOUR_ALBUM_BORDER\(\s*"([^"]*)"\s*\)/);
-        if (mBorderC) {
-            _pageBorderC = mBorderC[1];
-            continue;
-        }
-        // PAGE_START — new page
-        if (t.match(/^PAGE_START/)) {
-            if (E.length > 0) {
-                _pages[_currentPage] = JSON.parse(JSON.stringify(E));
-                E = [];
-            }
-            _pages.push([]);
-            _currentPage = _pages.length - 1;
-            _rowX = _pageMargin;
-            _rowY = 12;
-            continue;
-        }
-        // PAGE_COLUMN_START — set column mode
-        var mColStart = t.match(/^PAGE_COLUMN_START\(\s*(\d+)(?:\s+([\d.]+))?\)/);
-        if (mColStart) {
-            _colMode = parseInt(mColStart[1]) || 1;
-            _colGap = mColStart[2] ? parseFloat(mColStart[2]) : 10.0;
-            $("col-mode").value = _colMode;
-            $("col-gap").value = _colGap;
-            continue;
-        }
-        // PAGE_COLUMN_NEXT — column break marker (no-op in visual builder)
-        if (t.match(/^PAGE_COLUMN_NEXT/)) {
-            continue;
-        }
-        // PAGE_COLUMN_STOP — reset to single column
-        if (t.match(/^PAGE_COLUMN_STOP/)) {
-            _colMode = 1;
-            _colGap = 10.0;
-            $("col-mode").value = 1;
-            $("col-gap").value = 10.0;
-            continue;
-        }
-        // PAGE_VSPACE — vertical spacing in row layout
-        var mVspace = t.match(/^PAGE_VSPACE\(\s*([\d.]+)\)/);
-        if (mVspace) {
-            _rowY += parseFloat(mVspace[1]);
-            continue;
-        }
-        // ROW_START_FS — start a row of stamps
-        var mRow = t.match(/^ROW_START_FS\(\s*"([^"]*)"\s+(\d+)\s+([\d.]+)\s+([\d.]+)\)/);
-        if (mRow) {
-            _rowX = _pageMargin;
-            _rowSpacing = parseFloat(mRow[4]);
-            continue;
-        }
-        // Commands — STAMP_ADD_AT with full properties or STAMP_ADD_IMG
-        var m = t.match(/^(STAMP_ADD_AT|STAMP_ADD_IMG)\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"([^"]*)"\s+"([^"]*)"(?:\s+"([^"]*)"\s+"([^"]*)"\s+([\d.]+)\s+"([^"]*)"\s+([\d.]+)\s+"([^"]*)"\s+([\d.]+)\s+"([^"]*)"(?:\s+"([^"]*)"\s+"([^"]*)"\s+"([^"]*)")?)?\)/);
-        if (m) {
-            var isImg = m[1] === "STAMP_ADD_IMG";
-            E.push({ id: "el" + (nid++), t: isImg ? "image" : (m[7] === "text" ? "text" : m[7] === "freehand" ? "freehand" : "stamp"), s: isImg ? "rectangle" : m[7] || "rectangle", x: px(parseFloat(m[2])), y: px(parseFloat(m[3])), w: px(parseFloat(m[4])), h: px(parseFloat(m[5])), lbl: m[6] || "", bdr: m[8] || "solid", bdrC: m[9] || "#666", bdrW: parseFloat(m[10]) || 1, fill: m[11] || "#fff", fillA: parseFloat(m[12]) !== undefined ? parseFloat(m[12]) : 100, font: m[13] || "HN", fs: parseFloat(m[14]) || 12, align: m[15] || "left", cat: m[16] || "", denom: m[17] || "", perf: m[18] || "", img: isImg ? m[6] : "" });
-            continue;
-        }
-        // STAMP_ADD — row-based stamp (from template DSL)
-        var mRowStamp = t.match(/^STAMP_ADD\(\s*([\d.]+)\s+([\d.]+)\s+"([^"]*)"(?:\s+"([^"]*)")?(?:\s+"([^"]*)")?(?:\s+"([^"]*)")?\)/);
-        if (mRowStamp) {
-            E.push({ id: "el" + (nid++), t: "stamp", s: "rectangle", x: px(_rowX), y: px(_rowY), w: px(parseFloat(mRowStamp[1])), h: px(parseFloat(mRowStamp[2])), lbl: mRowStamp[3] || "", cat: mRowStamp[4] || "", denom: mRowStamp[5] || "", perf: mRowStamp[6] || "", bdr: "solid", bdrC: "#666", bdrW: 1, fill: "#fff", fillA: 100, img: "", font: "HN", fs: 12 });
-            _rowX += parseFloat(mRowStamp[1]) + _rowSpacing;
-            continue;
-        }
-        var m2 = t.match(/^(PAGE_TEXT|PAGE_TEXT_CENTRE|PAGE_TEXT_CENTER|PAGE_TEXT_RIGHT)\(\s*"([^"]*)"\s+(\d+)\s+"([^"]*)"\)/);
-        if (m2) {
-            var align = m2[1] === "PAGE_TEXT_CENTRE" || m2[1] === "PAGE_TEXT_CENTER" ? "center" : m2[1] === "PAGE_TEXT_RIGHT" ? "right" : "left";
-            E.push({ id: "el" + (nid++), t: "text", s: "text", x: 10, y: _rowY > 12 ? _rowY + 2 : 10, w: 100, h: 20, lbl: m2[4] || "Text", font: m2[2] || "HN", fs: parseFloat(m2[3]) || 12, align: align, bdr: "none", fill: "transparent", fillA: 0 });
-            _rowY += 8;
-        }
-    }
-    // Save current page
-    if (E.length > 0 || _pages.length === 0) {
-        _pages[_currentPage] = JSON.parse(JSON.stringify(E));
-    }
-    // Remove empty trailing pages
-    while (_pages.length > 1 && _pages[_pages.length - 1].length === 0) {
-        _pages.pop();
-    }
-    E = JSON.parse(JSON.stringify(_pages[_currentPage]));
-    sel = null;
-    renderPageDots();
-    render();
-    if (S.renderPageBorder) S.renderPageBorder(_pageBorder || "double");
-    updateProps();
-    updateGrid();
-    updateTitle();
-}
+// ── DSL functions (escapeDSL, buildDSL, parseDSL) defined in dsl.js ──
 
 // ── Exports (shared state + functions for render.js, events.js, init.js) ──
 var S = {};
@@ -732,21 +399,23 @@ Object.defineProperties(S, {
     _colGap: { get: function(){ return _colGap; }, set: function(v){ _colGap = v; } },
     _pageBorder: { get: function(){ return _pageBorder; }, set: function(v){ _pageBorder = v; } },
     _pageBorderC: { get: function(){ return _pageBorderC; }, set: function(v){ _pageBorderC = v; } },
+    _undoStack: { get: function(){ return _undoStack; }, set: function(v){ _undoStack = v; } },
+    _redoStack: { get: function(){ return _redoStack; }, set: function(v){ _redoStack = v; } },
+    _undoPaused: { get: function(){ return _undoPaused; }, set: function(v){ _undoPaused = v; } },
     _init: { get: function(){ return _init; }, set: function(v){ _init = v; } },
     SYSTEM_FONTS: { get: function(){ return SYSTEM_FONTS; }, set: function(v){ SYSTEM_FONTS = v; } },
     $: { value: $ }, mm: { value: mm }, px: { value: px }, clamp: { value: clamp },
     fontCSS: { value: fontCSS }, showToast: { value: showToast },
-    pushUndo: { value: pushUndo }, undo: { value: undo }, redo: { value: redo },
-    loadElements: { value: loadElements }, loadElementsNoPush: { value: loadElementsNoPush },
-    saveDraft: { value: saveDraft }, loadDraft: { value: loadDraft }, clearDraft: { value: clearDraft },
+    // pushUndo/undo/redo/loadElements defined in undo.js
+    saveDraft: { value: saveDraft }, scheduleDraftSave: { value: scheduleDraftSave },
+    loadDraft: { value: loadDraft }, clearDraft: { value: clearDraft },
     updateTitle: { value: updateTitle }, switchPage: { value: switchPage },
     addPage: { value: addPage }, deletePage: { value: deletePage },
     renderPageDots: { value: renderPageDots }, updateGrid: { value: updateGrid },
-    newAlbum: { value: newAlbum }, loadFileList: { value: loadFileList }, saveFile: { value: saveFile },
-    uploadImageFile: { value: uploadImageFile }, loadImageList: { value: loadImageList },
+    newAlbum: { value: newAlbum },     // loadFileList/saveFile/uploadImageFile/loadImageList defined in files.js
     buildCanvasState: { value: buildCanvasState }, openPreview: { value: openPreview },
     exportPDF: { value: exportPDF }, loadTemplateList: { value: loadTemplateList },
-    applyWizard: { value: applyWizard }, escapeDSL: { value: escapeDSL }, buildDSL: { value: buildDSL }, parseDSL: { value: parseDSL },
+    applyWizard: { value: applyWizard },
     // ── Alignment functions ──
     alignSelected: { value: alignSelected },
     distributeSelected: { value: distributeSelected },

@@ -119,7 +119,7 @@ function loadImageList() {
                 item.appendChild(im);
                 item.appendChild(del);
                 item.addEventListener("click", function() {
-                    add({ t: "image", s: "rectangle", x: 50, y: 50, w: 80, h: 60,
+                    S.add({ t: "image", s: "rectangle", x: 50, y: 50, w: 80, h: 60,
                         lbl: img, img: "/images/" + img,
                         bdr: "solid", bdrC: "#999", bdrW: 0.5, fill: "#fff", fillA: 100, font: "HN", fs: 12 });
                 });
