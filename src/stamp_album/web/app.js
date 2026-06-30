@@ -226,8 +226,10 @@ function newAlbum() {
 
 // ── Build canvas state for direct render/export ──
 function buildCanvasState(format) {
+    console.log("[buildCanvasState] _pages=" + JSON.stringify(_pages.map(function(p) { return p.length; })) + " _currentPage=" + _currentPage + " E.length=" + E.length);
     var allPages = _pages.slice();
     allPages[_currentPage] = JSON.parse(JSON.stringify(E));
+    console.log("[buildCanvasState] after merge: allPages lengths=" + JSON.stringify(allPages.map(function(p) { return p.length; })));
     var firstIdx = 0;
     while (firstIdx < allPages.length && allPages[firstIdx].length === 0) {
         firstIdx++;
@@ -267,17 +269,20 @@ function openPreview() {
         return r.text();
     })
     .then(function(html) {
-        frame.contentDocument.open();
-        frame.contentDocument.write(html);
-        frame.contentDocument.close();
-        var body = frame.contentDocument.body;
-        if (body) {
-            var firstPage = body.querySelector(".page");
-            if (firstPage) {
-                frame.style.width = firstPage.offsetWidth + "px";
-                frame.style.height = firstPage.offsetHeight + "px";
-            }
-        }
+        frame.srcdoc = html;
+        frame.onload = function() {
+            frame.onload = null;
+            try {
+                var body = frame.contentDocument && frame.contentDocument.body;
+                if (body) {
+                    var firstPage = body.querySelector(".page");
+                    if (firstPage) {
+                        frame.style.width = firstPage.offsetWidth + "px";
+                        frame.style.height = firstPage.offsetHeight + "px";
+                    }
+                }
+            } catch(_) {}
+        };
         showToast("Preview ready", "success");
     })
     .catch(function(err) {
