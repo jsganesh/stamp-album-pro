@@ -228,8 +228,12 @@ function newAlbum() {
 function buildCanvasState(format) {
     var allPages = _pages.slice();
     allPages[_currentPage] = JSON.parse(JSON.stringify(E));
-    var firstPage = allPages.length > 0 ? allPages[0] : [];
-    var restPages = allPages.slice(1);
+    var firstIdx = 0;
+    while (firstIdx < allPages.length && allPages[firstIdx].length === 0) {
+        firstIdx++;
+    }
+    var firstPage = firstIdx < allPages.length ? allPages[firstIdx] : [];
+    var restPages = allPages.slice(firstIdx + 1);
     while (restPages.length > 0 && restPages[restPages.length - 1].length === 0) {
         restPages.pop();
     }
@@ -277,7 +281,12 @@ function openPreview() {
         showToast("Preview ready", "success");
     })
     .catch(function(err) {
-        showToast("Preview failed: " + err, "error");
+        var msg = err.message || String(err);
+        if (msg.indexOf("NetworkError") !== -1 || msg.indexOf("Load failed") !== -1 || msg.indexOf("Failed to fetch") !== -1) {
+            showToast("Preview failed — network error. Try a normal reload (Cmd+R) and if it persists, click ⟳ Reset.", "error");
+        } else {
+            showToast("Preview failed: " + msg, "error");
+        }
     });
 }
 
@@ -286,13 +295,20 @@ function exportPDF() {
     showToast("Generating PDF...", "info");
     var filename = _currentFile ? _currentFile.replace(/\.(slbum|txt)$/, ".pdf") : "album.pdf";
     var state = buildCanvasState("pdf");
+    var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timeout = setTimeout(function() {
+        if (controller) controller.abort();
+        showToast("Export timed out — try with fewer stamps", "error");
+    }, 30000);
     fetch("/export-from-state", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(state)
+        body: JSON.stringify(state),
+        signal: controller ? controller.signal : undefined
     })
     .then(function(r) {
-        if (!r.ok) throw new Error("Export failed (" + r.status + ")");
+        clearTimeout(timeout);
+        if (!r.ok) throw new Error("Server returned " + r.status);
         return r.blob();
     })
     .then(function(b) {
@@ -303,7 +319,16 @@ function exportPDF() {
         setTimeout(function() { URL.revokeObjectURL(a.href); }, 100);
         showToast("PDF saved to Downloads/" + filename, "success");
     })
-    .catch(function(err) { showToast("Export failed: " + err, "error"); });
+    .catch(function(err) {
+        clearTimeout(timeout);
+        var msg = err.message || String(err);
+        if (msg.indexOf("abort") !== -1) return;
+        if (msg.indexOf("NetworkError") !== -1 || msg.indexOf("Load failed") !== -1 || msg.indexOf("Failed to fetch") !== -1) {
+            showToast("Export failed — network error. Try a normal reload (Cmd+R) and if it persists, click ⟳ Reset.", "error");
+        } else {
+            showToast("Export failed: " + msg, "error");
+        }
+    });
 }
 
 // ── Template list ──
