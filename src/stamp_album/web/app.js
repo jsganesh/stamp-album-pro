@@ -526,32 +526,42 @@ function applyWizard() {
     showToast("Album created from wizard", "success");
 }
 
+// ── Escape user strings for DSL embedding ──
+function escapeDSL(s) {
+    return String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
+}
+
 // ── DSL round-trip ──
 function buildDSL() {
     var lines = [
-        'ALBUM_TITLE("' + (_currentFile ? _currentFile.replace(/\.(slbum|txt)$/, "") : "My Album") + '")',
+        'ALBUM_TITLE("' + escapeDSL(_currentFile ? _currentFile.replace(/\.(slbum|txt)$/, "") : "My Album") + '")',
         "ALBUM_PAGES_SIZE(" + mm(_pw) + " " + mm(_ph) + ")",
         "ALBUM_PAGES_MARGINS(15 15 15 15)",
-        "PAGE_START"
     ];
+    if (_pageBorder && _pageBorder !== "none" && _pageBorder !== "double") {
+        lines.push('ALBUM_PAGES_BORDER(0.1 0.5 0.1 1.0)');
+        if (_pageBorderC) lines.push('COLOUR_ALBUM_BORDER("' + _pageBorderC + '")');
+    }
+    lines.push("PAGE_START");
 
     // Add column start if columns enabled
     if (_colMode > 1) {
         lines.push("PAGE_COLUMN_START(" + _colMode + " " + _colGap.toFixed(1) + ")");
     }
 
-    E.forEach(function(el) {
+    function pushElement(el) {
         if (el.t === "image") {
-            lines.push('STAMP_ADD_IMG(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.img || "") + '" "' + (el.lbl || "") + '" "" "")');
+            lines.push('STAMP_ADD_IMG(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.img || "") + '" "' + escapeDSL(el.lbl || "") + '")');
         } else if (el.t === "text") {
-            var cmd = el.align === "center" ? "PAGE_TEXT_CENTRE" : el.align === "right" ? "PAGE_TEXT_RIGHT" : "PAGE_TEXT";
-            lines.push(cmd + '("' + (el.font || "HN") + '" ' + (el.fs || 12) + ' "' + (el.lbl || "Text") + '")');
+            lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + escapeDSL(el.lbl || "") + '" "text" "' + (el.bdr || "none") + '" "' + (el.bdrC || "transparent") + '" ' + (el.bdrW || 0) + ' "' + (el.fill || "transparent") + '" ' + (el.fillA || 0) + ' "' + (el.font || "HN") + '" ' + (el.fs || 12) + ' "' + (el.align || "left") + '")');
         } else if (el.t === "freehand") {
-            lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "freehand" "' + el.bdr + '" "' + el.fill + '")');
+            lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + escapeDSL(el.lbl || "") + '" "freehand" "' + (el.bdr || "solid") + '" "' + (el.bdrC || "#666") + '" ' + (el.bdrW || 1) + ' "' + (el.fill || "#fff") + '" ' + (el.fillA || 100) + ' "' + (el.font || "HN") + '" ' + (el.fs || 12) + ' "' + (el.align || "left") + '")');
         } else {
-            lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "' + el.s + '" "' + el.bdr + '" "' + el.fill + '")');
+            lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + escapeDSL(el.lbl || "") + '" "' + (el.s || "rectangle") + '" "' + (el.bdr || "solid") + '" "' + (el.bdrC || "#666") + '" ' + (el.bdrW || 1) + ' "' + (el.fill || "#fff") + '" ' + (el.fillA || 100) + ' "' + (el.font || "HN") + '" ' + (el.fs || 12) + ' "' + (el.align || "left") + '" "' + (el.cat || "") + '" "' + (el.denom || "") + '" "' + (el.perf || "") + '")');
         }
-    });
+    }
+
+    E.forEach(pushElement);
 
     // Add column stop if columns were enabled
     if (_colMode > 1) {
@@ -569,18 +579,7 @@ function buildDSL() {
                 lines.push("PAGE_COLUMN_START(" + _colMode + " " + _colGap.toFixed(1) + ")");
             }
 
-            pgEls.forEach(function(el) {
-                if (el.t === "image") {
-                    lines.push('STAMP_ADD_IMG(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.img || "") + '" "' + (el.lbl || "") + '" "" "")');
-                } else if (el.t === "text") {
-                    var cmd = el.align === "center" ? "PAGE_TEXT_CENTRE" : el.align === "right" ? "PAGE_TEXT_RIGHT" : "PAGE_TEXT";
-                    lines.push(cmd + '("' + (el.font || "HN") + '" ' + (el.fs || 12) + ' "' + (el.lbl || "Text") + '")');
-                } else if (el.t === "freehand") {
-                    lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "freehand" "' + el.bdr + '" "' + el.fill + '")');
-                } else {
-                    lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "' + el.s + '" "' + el.bdr + '" "' + el.fill + '")');
-                }
-            });
+            pgEls.forEach(pushElement);
 
             // Add column stop for additional pages
             if (_colMode > 1) {
@@ -668,11 +667,11 @@ function parseDSL(dsl) {
             _rowSpacing = parseFloat(mRow[4]);
             continue;
         }
-        // Commands
-        var m = t.match(/^(STAMP_ADD_AT|STAMP_ADD_IMG)\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"([^"]*)"\s+"([^"]*)"/);
+        // Commands — STAMP_ADD_AT with full properties or STAMP_ADD_IMG
+        var m = t.match(/^(STAMP_ADD_AT|STAMP_ADD_IMG)\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"([^"]*)"\s+"([^"]*)"(?:\s+"([^"]*)"\s+"([^"]*)"\s+([\d.]+)\s+"([^"]*)"\s+([\d.]+)\s+"([^"]*)"\s+([\d.]+)\s+"([^"]*)"(?:\s+"([^"]*)"\s+"([^"]*)"\s+"([^"]*)")?)?\)/);
         if (m) {
             var isImg = m[1] === "STAMP_ADD_IMG";
-            E.push({ id: "el" + (nid++), t: isImg ? "image" : "stamp", s: m[7] || "rectangle", x: px(parseFloat(m[2])), y: px(parseFloat(m[3])), w: px(parseFloat(m[4])), h: px(parseFloat(m[5])), lbl: m[6] || "", bdr: "solid", bdrC: "#666", bdrW: 1, fill: "#fff", fillA: 100, img: isImg ? m[6] : "", font: "HN", fs: 12 });
+            E.push({ id: "el" + (nid++), t: isImg ? "image" : (m[7] === "text" ? "text" : m[7] === "freehand" ? "freehand" : "stamp"), s: isImg ? "rectangle" : m[7] || "rectangle", x: px(parseFloat(m[2])), y: px(parseFloat(m[3])), w: px(parseFloat(m[4])), h: px(parseFloat(m[5])), lbl: m[6] || "", bdr: m[8] || "solid", bdrC: m[9] || "#666", bdrW: parseFloat(m[10]) || 1, fill: m[11] || "#fff", fillA: parseFloat(m[12]) !== undefined ? parseFloat(m[12]) : 100, font: m[13] || "HN", fs: parseFloat(m[14]) || 12, align: m[15] || "left", cat: m[16] || "", denom: m[17] || "", perf: m[18] || "", img: isImg ? m[6] : "" });
             continue;
         }
         // STAMP_ADD — row-based stamp (from template DSL)
@@ -747,7 +746,7 @@ Object.defineProperties(S, {
     uploadImageFile: { value: uploadImageFile }, loadImageList: { value: loadImageList },
     buildCanvasState: { value: buildCanvasState }, openPreview: { value: openPreview },
     exportPDF: { value: exportPDF }, loadTemplateList: { value: loadTemplateList },
-    applyWizard: { value: applyWizard }, buildDSL: { value: buildDSL }, parseDSL: { value: parseDSL },
+    applyWizard: { value: applyWizard }, escapeDSL: { value: escapeDSL }, buildDSL: { value: buildDSL }, parseDSL: { value: parseDSL },
     // ── Alignment functions ──
     alignSelected: { value: alignSelected },
     distributeSelected: { value: distributeSelected },
