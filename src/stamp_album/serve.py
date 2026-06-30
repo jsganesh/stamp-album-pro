@@ -116,6 +116,13 @@ def main() -> int:
 
     reload = os.environ.get("STAMP_ALBUM_RELOAD", "") == "1"
 
+    # When reload is enabled, also watch the web directory for JS/CSS/HTML changes
+    reload_dirs = None
+    if reload:
+        from pathlib import Path
+        web_dir = str(Path(__file__).resolve().parent / "web")
+        reload_dirs = [web_dir]
+
     try:
         uvicorn.run(
             app,
@@ -123,6 +130,7 @@ def main() -> int:
             port=port,
             log_level="warning",
             reload=reload,
+            reload_dirs=reload_dirs,
         )
     except KeyboardInterrupt:
         pass

@@ -4,6 +4,7 @@ StampAlbum Pro - Modern stamp album typesetter.
 Entry point for the application.
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -27,6 +28,12 @@ def main():
 
     # Browser mode (explicit)
     if len(sys.argv) > 1 and sys.argv[1] in ("--web", "-w"):
+        from stamp_album.serve import main as serve_main
+        sys.exit(serve_main())
+
+    # Dev mode: enable auto-reload on file changes for rapid iteration
+    if len(sys.argv) > 1 and sys.argv[1] in ("--dev", "-d"):
+        os.environ["STAMP_ALBUM_RELOAD"] = "1"
         from stamp_album.serve import main as serve_main
         sys.exit(serve_main())
 

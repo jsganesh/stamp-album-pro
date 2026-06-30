@@ -65,6 +65,7 @@ function saveFile() {
             throw new Error("Save failed");
         }).then(function(data) {
             S._dirty = false;
+            S.clearDraft();
             updateTitle();
             if (S.updateStatusBar) S.updateStatusBar();
             showToast("Saved to " + (data.path || S._currentFile), "success");

@@ -516,6 +516,9 @@ function init() {
     // ── Large Text Mode ──
     $("btn-large-text").addEventListener("click", function() { if (S.toggleLargeText) S.toggleLargeText(); });
 
+    // ── Reset App ──
+    $("btn-reset").addEventListener("click", function() { if (S.resetApp) S.resetApp(); });
+
     // ── Help overlay ──
     $("btn-help").addEventListener("click", function() {
         var overlay = $("help-overlay");

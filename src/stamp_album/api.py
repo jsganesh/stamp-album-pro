@@ -65,7 +65,18 @@ WEB_DIR = Path(__file__).parent / "web"
 
 @app.get("/")
 async def root():
-    return FileResponse(WEB_DIR / "index.html")
+    html = (WEB_DIR / "index.html").read_text(encoding="utf-8")
+    import time
+    ts = str(int(time.time()))
+    html = html.replace("{{{VERSION}}}", ts)
+    return HTMLResponse(html)
+
+
+@app.get("/version")
+async def version():
+    import time
+    from stamp_album import __version__
+    return {"version": __version__ if hasattr(__import__('stamp_album'), '__version__') else "dev", "ts": int(time.time())}
 
 
 @app.get("/style.css")

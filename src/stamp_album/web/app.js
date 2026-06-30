@@ -423,6 +423,7 @@ Object.defineProperties(S, {
     toggleAlignGroup: { value: toggleAlignGroup },
     toggleSnap: { value: toggleSnap },
     toggleLargeText: { value: toggleLargeText },
+    resetApp: { value: resetApp },
 });
 
 // ── Alignment functions ──
@@ -510,6 +511,14 @@ function toggleLargeText() {
     btn.classList.toggle("active");
     document.body.classList.toggle("large-text");
     showToast(document.body.classList.contains("large-text") ? "Large Text ON" : "Large Text OFF", "info");
+}
+
+function resetApp() {
+    if (!confirm("Reset App — this will clear all saved drafts and reload the page. Continue?")) return;
+    clearDraft();
+    localStorage.removeItem(_draftKey);
+    localStorage.removeItem(_draftFileKey);
+    location.reload();
 }
 window.StampAlbum = S;
 
