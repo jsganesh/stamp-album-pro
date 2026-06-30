@@ -189,6 +189,7 @@ function init() {
     });
     $("btn-del").addEventListener("click", function() {
         if (!S.sel) return;
+        if (!confirm("Delete this element?")) return;
         S.E = S.E.filter(function(x) { return x.id !== S.sel; });
         S.sel = null;
         pushUndo();
@@ -399,7 +400,7 @@ function init() {
         if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); saveFile(); return; }
         if ((e.ctrlKey || e.metaKey) && e.key === "o") { e.preventDefault(); $("file-inp").click(); return; }
         if (e.key === "Delete" || e.key === "Backspace") {
-            if (S.sel) { S.E = S.E.filter(function(x) { return x.id !== S.sel; }); S.sel = null; pushUndo(); render(); updateProps(); }
+            if (S.sel) { $("btn-del").click(); }
         }
         if (e.key === "Escape") { S.sel = null; render(); updateProps(); }
         if ((e.ctrlKey || e.metaKey) && e.key === "d" && S.sel) {
@@ -511,6 +512,19 @@ function init() {
 
     // ── New file button ──
     $("btn-new-file").addEventListener("click", newAlbum);
+
+    // ── Large Text Mode ──
+    $("btn-large-text").addEventListener("click", function() { if (S.toggleLargeText) S.toggleLargeText(); });
+
+    // ── Help overlay ──
+    $("btn-help").addEventListener("click", function() {
+        var overlay = $("help-overlay");
+        if (overlay) overlay.classList.toggle("open");
+    });
+    $("btn-help-close").addEventListener("click", function() {
+        var overlay = $("help-overlay");
+        if (overlay) overlay.classList.remove("open");
+    });
 
     // ── CSV / Excel Import ──
     $("btn-import-csv").addEventListener("click", function() {

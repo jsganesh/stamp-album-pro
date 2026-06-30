@@ -66,6 +66,7 @@ function saveFile() {
         }).then(function(data) {
             S._dirty = false;
             updateTitle();
+            if (S.updateStatusBar) S.updateStatusBar();
             showToast("Saved to " + (data.path || S._currentFile), "success");
         }).catch(function() { showToast("Save failed", "error"); });
     } else {

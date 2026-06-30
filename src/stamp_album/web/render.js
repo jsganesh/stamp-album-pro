@@ -358,6 +358,20 @@ function updateStatusBar() {
             }
         }
     }
+    // Dirty indicator
+    var dirtyEl = $("sb-dirty");
+    if (dirtyEl) {
+        if (S._dirty) {
+            dirtyEl.classList.remove("sb-dirty-hidden");
+        } else {
+            dirtyEl.classList.add("sb-dirty-hidden");
+        }
+    }
+    // Zoom
+    var zoomEl = $("sb-zoom");
+    if (zoomEl) {
+        zoomEl.textContent = Math.round(S._sc / 2.5 * 100) + "%";
+    }
 }
 
 // ── Shape paths ──

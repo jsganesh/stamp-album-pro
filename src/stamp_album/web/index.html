@@ -57,6 +57,10 @@
         <button id="btn-export" title="Export to PDF">📄 Export</button>
         <button id="btn-dsl" title="DSL Editor">🔧 DSL</button>
     </div>
+    <div class="tb-group">
+        <button id="btn-large-text" title="Toggle Large Text Mode">🔤 A+</button>
+        <button id="btn-help" title="Keyboard Shortcuts (?)">❓ Help</button>
+    </div>
 </header>
 
 <div id="main">
@@ -223,6 +227,36 @@
 <div id="dsl-panel">
     <div class="dsl-hdr"><span>DSL Editor (Advanced)</span><span class="spacer"></span><button id="btn-app-dsl">Apply</button><button id="btn-cls-dsl">✕</button></div>
     <div id="dsl-editor"><textarea id="dsl-ta" spellcheck="false"></textarea></div>
+</div>
+
+<!-- Help Overlay -->
+<div id="help-overlay">
+    <div class="help-box">
+        <div class="help-hdr"><span>⌨ Keyboard Shortcuts</span><span class="spacer"></span><button id="btn-help-close">✕</button></div>
+        <div class="help-body">
+            <div class="help-col">
+                <div class="help-sec">File</div>
+                <div class="help-row"><kbd>Ctrl+N</kbd> <span>New Album</span></div>
+                <div class="help-row"><kbd>Ctrl+O</kbd> <span>Open File</span></div>
+                <div class="help-row"><kbd>Ctrl+S</kbd> <span>Save</span></div>
+                <div class="help-row"><kbd>Ctrl+P</kbd> <span>Preview</span></div>
+                <div class="help-sec">Edit</div>
+                <div class="help-row"><kbd>Ctrl+Z</kbd> <span>Undo</span></div>
+                <div class="help-row"><kbd>Ctrl+Y</kbd> <span>Redo</span></div>
+                <div class="help-row"><kbd>Del</kbd> <span>Delete Element</span></div>
+                <div class="help-row"><kbd>Esc</kbd> <span>Deselect</span></div>
+            </div>
+            <div class="help-col">
+                <div class="help-sec">Align</div>
+                <div class="help-row"><kbd>Ctrl+L</kbd> <span>Align Left</span></div>
+                <div class="help-row"><kbd>Ctrl+E</kbd> <span>Align Center</span></div>
+                <div class="help-row"><kbd>Ctrl+R</kbd> <span>Align Right</span></div>
+                <div class="help-sec">Other</div>
+                <div class="help-row"><kbd>F5</kbd> <span>Refresh Preview</span></div>
+                <div class="help-row"><kbd>?</kbd> <span>This Help</span></div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Status Bar -->

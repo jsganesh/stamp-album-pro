@@ -422,6 +422,7 @@ Object.defineProperties(S, {
     matchSize: { value: matchSize },
     toggleAlignGroup: { value: toggleAlignGroup },
     toggleSnap: { value: toggleSnap },
+    toggleLargeText: { value: toggleLargeText },
 });
 
 // ── Alignment functions ──
@@ -501,6 +502,14 @@ function toggleSnap() {
     btn.classList.toggle("active");
     S._snapEnabled = btn.classList.contains("active");
     showToast(S._snapEnabled ? "Snap-to-guide ON" : "Snap-to-guide OFF", "info");
+}
+
+function toggleLargeText() {
+    var btn = document.getElementById("btn-large-text");
+    if (!btn) return;
+    btn.classList.toggle("active");
+    document.body.classList.toggle("large-text");
+    showToast(document.body.classList.contains("large-text") ? "Large Text ON" : "Large Text OFF", "info");
 }
 window.StampAlbum = S;
 
