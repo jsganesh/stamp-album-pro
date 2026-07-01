@@ -428,6 +428,8 @@ class CanvasStateRequest(BaseModel):
     format: str = "html"
     title: str = "My Album"
     author: str = ""
+    border_style: str = ""
+    border_color: str = ""
 
 
 def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
@@ -493,6 +495,35 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
     )
     album.color_stamp_border = Color(r=0.5, g=0.5, b=0.5)
     album.color_stamp_background = Color(r=1.0, g=1.0, b=1.0)
+
+    # Apply border style from canvas state
+    if req.border_style and req.border_style != "none":
+        ps = album.page_setup
+        ps.has_border = True
+        if req.border_style == "solid" or req.border_style == "dashed":
+            ps.border_outer = 0.5
+            ps.border_inner1 = 0.0
+            ps.border_inner2 = 0.0
+        elif req.border_style == "double":
+            ps.border_outer = 0.5
+            ps.border_inner1 = 0.3
+            ps.border_inner2 = 0.0
+        else:
+            ps.border_outer = 0.5
+            ps.border_inner1 = 0.0
+            ps.border_inner2 = 0.0
+        ps.border_spacing = 1.0
+        if req.border_color:
+            try:
+                c = req.border_color.lstrip("#")
+                if len(c) == 3:
+                    c = "".join(x * 2 for x in c)
+                r = int(c[0:2], 16) / 255
+                g = int(c[2:4], 16) / 255
+                b = int(c[4:6], 16) / 255
+                album.color_album_border = Color(r=r, g=g, b=b)
+            except (ValueError, IndexError):
+                pass
     return album
 
 

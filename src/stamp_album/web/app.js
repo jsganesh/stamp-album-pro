@@ -245,7 +245,9 @@ function buildCanvasState(format) {
         source_path: _currentFile || "album.slbum",
         format: format || "html",
         title: (_currentFile || "My Album").replace(/\.(slbum|txt)$/, ""),
-        author: ""
+        author: "",
+        border_style: _pageBorder || "",
+        border_color: _pageBorderC || ""
     };
 }
 
