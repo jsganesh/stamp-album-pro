@@ -226,10 +226,8 @@ function newAlbum() {
 
 // ── Build canvas state for direct render/export ──
 function buildCanvasState(format) {
-    console.log("[buildCanvasState] _pages=" + JSON.stringify(_pages.map(function(p) { return p.length; })) + " _currentPage=" + _currentPage + " E.length=" + E.length);
     var allPages = _pages.slice();
     allPages[_currentPage] = JSON.parse(JSON.stringify(E));
-    console.log("[buildCanvasState] after merge: allPages lengths=" + JSON.stringify(allPages.map(function(p) { return p.length; })));
     var firstIdx = 0;
     while (firstIdx < allPages.length && allPages[firstIdx].length === 0) {
         firstIdx++;
@@ -274,16 +272,15 @@ function openPreview() {
             frame.onload = null;
             try {
                 var doc = frame.contentDocument;
-                if (!doc) { console.warn("[preview] no contentDocument"); return; }
+                if (!doc) return;
                 var page = doc.querySelector(".page");
-                if (!page) { console.warn("[preview] .page not found"); return; }
+                if (!page) return;
                 var w = page.offsetWidth, h = page.offsetHeight;
-                console.log("[preview] .page size: " + w + "x" + h);
                 if (w > 0 && h > 0) {
                     frame.style.width = w + "px";
                     frame.style.height = h + "px";
                 }
-            } catch(e) { console.warn("[preview] onload error:", e); }
+            } catch(_) {}
         };
         showToast("Preview ready", "success");
     })

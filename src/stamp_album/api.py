@@ -451,7 +451,6 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
     }
     def build_page(elements: list[CanvasElementState]) -> Page:
         page = Page()
-        print(f"  build_page: {len(elements)} elements", flush=True)
         for el in elements:
             is_text = el.t == "text"
             # Build catalog_refs from cat field
@@ -501,11 +500,6 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
 async def render_from_state(req: CanvasStateRequest):
     """Render canvas state directly to HTML preview (bypasses DSL)."""
     try:
-        print(f"[render-from-state] elements={len(req.elements)}, pages={len(req.pages)}, scale={req.scale}", flush=True)
-        for i, el in enumerate(req.elements):
-            print(f"  el[{i}]: id={el.id[:8] if el.id else 'none'} t={el.t} x={el.x} y={el.y} w={el.w} h={el.h} lbl={el.lbl!r}", flush=True)
-        for pi, pg in enumerate(req.pages):
-            print(f"  page[{pi}]: {len(pg)} elements", flush=True)
         album = _canvas_state_to_album(req)
         renderer = HTMLRenderer(album, None)
         html = renderer.render()
@@ -528,12 +522,6 @@ async def export_from_state(req: CanvasStateRequest):
     fmt = req.format.lower()
     if fmt not in ("pdf", "png", "svg", "html"):
         raise HTTPException(status_code=400, detail=f"Unsupported format: {fmt}")
-
-    print(f"[export-from-state] fmt={fmt} elements={len(req.elements)} pages={len(req.pages)} scale={req.scale}", flush=True)
-    for i, el in enumerate(req.elements):
-        print(f"  el[{i}]: id={el.id[:8] if el.id else 'none'} t={el.t} x={el.x} y={el.y} w={el.w} h={el.h} lbl={el.lbl!r}", flush=True)
-    for pi, pg in enumerate(req.pages):
-        print(f"  page[{pi}]: {len(pg)} elements", flush=True)
 
     def _cleanup(path: str):
         try:
