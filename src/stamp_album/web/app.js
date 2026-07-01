@@ -372,7 +372,6 @@ function applyWizard() {
     var author = $("wiz-author").value || "";
     var pgSize = $("wiz-pg-size").value || "a4";
     var orient = $("wiz-orient").value || "portrait";
-    var border = $("wiz-border").value || "solid";
     var columns = parseInt($("wiz-columns").value) || 0;
     var tpl = $("wiz-template").value;
 
@@ -392,11 +391,6 @@ function applyWizard() {
     lines.push("ALBUM_PAGES_SIZE(" + w + " " + h + ")");
     lines.push("ALBUM_PAGES_MARGINS(15 15 15 15)");
 
-    if (border !== "none") {
-        lines.push('ALBUM_PAGES_BORDER(0.1 0.5 0.1 1.0)');
-        lines.push('COLOUR_ALBUM_BORDER("#666")');
-    }
-
     if (title) lines.push('PAGE_TEXT_CENTRE("HB" 16 "' + title + '")');
 
     if (columns > 1) {
@@ -406,9 +400,6 @@ function applyWizard() {
     S.parseDSL(lines.join("\n"));
     S.pushUndo();
     render();
-    // Apply ornamental border if selected
-    _pageBorder = border;
-    if (S.renderPageBorder) S.renderPageBorder(border);
     $("wizard-panel").classList.remove("open");
     showToast("Album created from wizard", "success");
 }

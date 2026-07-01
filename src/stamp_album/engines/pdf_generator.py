@@ -49,6 +49,12 @@ class HTMLRenderer:
         parts.extend(["</body>", "</html>"])
         return "\n".join(parts)
 
+    def _border_color_css(self) -> str:
+        c = self.album.color_album_border
+        if c:
+            return f"rgb({int(c.r*255)},{int(c.g*255)},{int(c.b*255)})"
+        return "#333"
+
     def _render_styles(self) -> str:
         ps = self.album.page_setup
         w_mm = round(ps.width, 2)
@@ -73,7 +79,37 @@ class HTMLRenderer:
 
     def _render_page(self, page: Page) -> str:
         ps = self.album.page_setup
-        parts = [f'<div class="page">', f'<div class="page-content">']
+        parts = [f'<div class="page">']
+
+        # Page border
+        if ps.has_border:
+            color = self._border_color_css()
+            bl = ps.margin_left
+            bt = ps.margin_top
+            bw = round(ps.width - ps.margin_left - ps.margin_right, 2)
+            bh = round(ps.height - ps.margin_top - ps.margin_bottom, 2)
+            if ps.border_outer > 0:
+                parts.append(
+                    f'<div style="position:absolute;top:{bt}mm;left:{bl}mm;'
+                    f'width:{bw}mm;height:{bh}mm;'
+                    f'border:{ps.border_outer}mm solid {color};"></div>'
+                )
+            if ps.border_inner1 > 0:
+                off = ps.border_outer + ps.border_spacing
+                parts.append(
+                    f'<div style="position:absolute;top:{bt + off}mm;left:{bl + off}mm;'
+                    f'width:{bw - off*2}mm;height:{bh - off*2}mm;'
+                    f'border:{ps.border_inner1}mm solid {color};"></div>'
+                )
+            if ps.border_inner2 > 0:
+                off = ps.border_outer + ps.border_spacing + ps.border_inner1 + ps.border_spacing
+                parts.append(
+                    f'<div style="position:absolute;top:{bt + off}mm;left:{bl + off}mm;'
+                    f'width:{bw - off*2}mm;height:{bh - off*2}mm;'
+                    f'border:{ps.border_inner2}mm solid {color};"></div>'
+                )
+
+        parts.append(f'<div class="page-content">')
 
         # Boxes
         for x, y, w, h in page.boxes:
@@ -488,6 +524,39 @@ def _draw_text_element(page: fitz.Page, stamp: Stamp) -> None:
         tw.write_text(page, color=(0.2, 0.2, 0.2))
 
 
+# ── Page border ──
+
+def _draw_page_border(fitz_page: fitz.Page, album: Album) -> None:
+    """Draw decorative page border."""
+    ps = album.page_setup
+    if not ps.has_border:
+        return
+
+    color = _color_to_rgb(album.color_album_border) if album.color_album_border else (0.2, 0.2, 0.2)
+
+    border_left = _mm_to_pt(ps.margin_left)
+    border_top = _mm_to_pt(ps.margin_top)
+    border_w = _mm_to_pt(ps.width - ps.margin_left - ps.margin_right)
+    border_h = _mm_to_pt(ps.height - ps.margin_top - ps.margin_bottom)
+
+    if ps.border_outer > 0:
+        r = fitz.Rect(border_left, border_top, border_left + border_w, border_top + border_h)
+        fitz_page.draw_rect(r, color=color, width=_mm_to_pt(ps.border_outer))
+
+    if ps.border_inner1 > 0:
+        off = _mm_to_pt(ps.border_outer + ps.border_spacing)
+        r = fitz.Rect(border_left + off, border_top + off,
+                       border_left + border_w - off, border_top + border_h - off)
+        fitz_page.draw_rect(r, color=color, width=_mm_to_pt(ps.border_inner1))
+
+    if ps.border_inner2 > 0:
+        off = _mm_to_pt(ps.border_outer + ps.border_spacing +
+                        ps.border_inner1 + ps.border_spacing)
+        r = fitz.Rect(border_left + off, border_top + off,
+                       border_left + border_w - off, border_top + border_h - off)
+        fitz_page.draw_rect(r, color=color, width=_mm_to_pt(ps.border_inner2))
+
+
 # ── Main generator ──
 
 class PDFGenerator:
@@ -502,6 +571,8 @@ class PDFGenerator:
             page_w = _mm_to_pt(ps.width)
             page_h = _mm_to_pt(ps.height)
             page = doc.new_page(width=page_w, height=page_h)
+
+            _draw_page_border(page, album)
 
             # Draw stamps and text elements
             for stamp in page_data.absolute_stamps:
@@ -541,6 +612,26 @@ class PDFGenerator:
         for page_data in album.pages:
             ps = album.page_setup
             parts.append(f'<div class="page" style="width:{ps.width}mm;height:{ps.height}mm">')
+
+            # Page border
+            if ps.has_border:
+                c = album.color_album_border
+                color_css = f"rgb({int(c.r*255)},{int(c.g*255)},{int(c.b*255)})" if c else "#333"
+                bl = ps.margin_left
+                bt = ps.margin_top
+                bw = round(ps.width - ps.margin_left - ps.margin_right, 2)
+                bh = round(ps.height - ps.margin_top - ps.margin_bottom, 2)
+                if ps.border_outer > 0:
+                    parts.append(
+                        f'<div style="position:absolute;top:{bt}mm;left:{bl}mm;'
+                        f'width:{bw}mm;height:{bh}mm;border:{ps.border_outer}mm solid {color_css};"></div>'
+                    )
+                if ps.border_inner1 > 0:
+                    off = ps.border_outer + ps.border_spacing
+                    parts.append(
+                        f'<div style="position:absolute;top:{bt+off}mm;left:{bl+off}mm;'
+                        f'width:{bw-off*2}mm;height:{bh-off*2}mm;border:{ps.border_inner1}mm solid {color_css};"></div>'
+                    )
 
             for stamp in page_data.absolute_stamps:
                 x, y, w, h = stamp.abs_x, stamp.abs_y, stamp.width, stamp.height

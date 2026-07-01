@@ -3,7 +3,6 @@
 var S = window.StampAlbum;
 var $ = S.$, showToast = S.showToast, pushUndo = S.pushUndo, render = S.render;
 var parseDSL = S.parseDSL, escapeDSL = S.escapeDSL;
-var renderPageBorder = S.renderPageBorder;
 
 // ── Wizard ──
 function applyWizard() {
@@ -11,7 +10,6 @@ function applyWizard() {
     var author = $("wiz-author").value || "";
     var pgSize = $("wiz-pg-size").value || "a4";
     var orient = $("wiz-orient").value || "portrait";
-    var border = $("wiz-border").value || "solid";
     var columns = parseInt($("wiz-columns").value) || 0;
     var tpl = $("wiz-template").value;
 
@@ -30,11 +28,6 @@ function applyWizard() {
     lines.push("ALBUM_PAGES_SIZE(" + w + " " + h + ")");
     lines.push("ALBUM_PAGES_MARGINS(15 15 15 15)");
 
-    if (border !== "none") {
-        lines.push('ALBUM_PAGES_BORDER(0.1 0.5 0.1 1.0)');
-        lines.push('COLOUR_ALBUM_BORDER("#666")');
-    }
-
     if (title) lines.push('PAGE_TEXT_CENTRE("HB" 16 "' + escapeDSL(title) + '")');
 
     if (columns > 1) {
@@ -42,9 +35,6 @@ function applyWizard() {
     }
 
     parseDSL(lines.join("\n"));
-    S._pageBorder = border;
-    S._pageBorderC = "";
-    if (renderPageBorder) renderPageBorder(border);
     pushUndo();
     render();
     $("wizard-panel").classList.remove("open");
