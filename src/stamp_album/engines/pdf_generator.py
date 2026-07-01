@@ -465,23 +465,44 @@ class HTMLRenderer:
             height = stamp.height + ps.stamp_box_adjust
             border_color = self._color_to_css(self.album.color_stamp_border or Color(r=0.5, g=0.5, b=0.5))
             bg_color = self._color_to_css(self.album.color_stamp_background or Color(r=1.0, g=1.0, b=1.0))
-            shape_class = ""
-            if stamp.shape == StampShape.OVAL: shape_class = "shape-oval"
-            elif stamp.shape == StampShape.TRIANGLE: shape_class = "shape-triangle"
-            elif stamp.shape == StampShape.DIAMOND: shape_class = "shape-diamond"
-            elif stamp.shape == StampShape.HEXAGON: shape_class = "shape-hexagon"
-            elif stamp.shape == StampShape.OCTAGON: shape_class = "shape-octagon"
-            elif stamp.shape == StampShape.PENTAGON: shape_class = "shape-pentagon"
             desc_font = self._font_to_css(stamp.font_id, round(stamp.font_size * 0.9, 1)) if stamp.font_id else ""
             desc = self._format_text(stamp.description) if stamp.description else ""
+            desc_html = ""
             if desc:
-                desc = f'<div style="{desc_font};padding:1mm 2mm;text-align:center;line-height:1.3;">{desc}</div>'
-            parts.append(
-                f'<div class="stamp" style="position:absolute;left:{stamp.abs_x}mm;top:{stamp.abs_y}mm;width:{width}mm;">'
-                f'<div class="stamp-box {shape_class}" style="width:{width}mm;height:{height}mm;'
-                f'border:0.5pt solid {border_color};background-color:{bg_color};">'
-                f'{desc}</div></div>'
-            )
+                desc_html = f'<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);{desc_font};padding:0 2mm;text-align:center;line-height:1.3;width:100%;box-sizing:border-box;pointer-events:none;">{desc}</div>'
+            # Use SVG for non-rectangular shapes (works in all browsers and WeasyPrint)
+            shape_polygons = {
+                StampShape.TRIANGLE: "50,0 100,100 0,100",
+                StampShape.DIAMOND: "50,0 100,50 50,100 0,50",
+                StampShape.HEXAGON: "25,0 75,0 100,50 75,100 25,100 0,50",
+                StampShape.OCTAGON: "30,0 70,0 100,30 100,70 70,100 30,100 0,70 0,30",
+                StampShape.PENTAGON: "50,0 100,38 82,100 18,100 0,38",
+            }
+            if stamp.shape in shape_polygons:
+                pts = shape_polygons[stamp.shape]
+                parts.append(
+                    f'<div class="stamp" style="position:absolute;left:{stamp.abs_x}mm;top:{stamp.abs_y}mm;width:{width}mm;height:{height}mm;">'
+                    f'<svg width="100%" height="100%" viewBox="0 0 100 100" style="position:absolute;top:0;left:0;">'
+                    f'<polygon points="{pts}" fill="{bg_color}" stroke="{border_color}" stroke-width="0.3"/>'
+                    f'</svg>'
+                    f'{desc_html}</div>'
+                )
+            elif stamp.shape == StampShape.OVAL:
+                parts.append(
+                    f'<div class="stamp" style="position:absolute;left:{stamp.abs_x}mm;top:{stamp.abs_y}mm;width:{width}mm;height:{height}mm;">'
+                    f'<svg width="100%" height="100%" viewBox="0 0 100 100" style="position:absolute;top:0;left:0;">'
+                    f'<ellipse cx="50" cy="50" rx="50" ry="50" fill="{bg_color}" stroke="{border_color}" stroke-width="0.3"/>'
+                    f'</svg>'
+                    f'{desc_html}</div>'
+                )
+            else:
+                # Rectangle: use CSS box (simpler and more precise for WeasyPrint)
+                parts.append(
+                    f'<div class="stamp" style="position:absolute;left:{stamp.abs_x}mm;top:{stamp.abs_y}mm;width:{width}mm;">'
+                    f'<div class="stamp-box" style="width:{width}mm;height:{height}mm;'
+                    f'border:0.5pt solid {border_color};background-color:{bg_color};">'
+                    f'{desc_html}</div></div>'
+                )
 
         if content_class:
             parts.append("</div>")
