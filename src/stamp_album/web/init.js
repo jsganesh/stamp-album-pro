@@ -219,7 +219,7 @@ function init() {
             indentUnit: 2,
             tabSize: 2,
             autofocus: false,
-            placeholder: '# Enter DSL commands here...\nALBUM_TITLE("My Album")\nPAGE_START\nSTAMP_ADD(40 30 "Description" "" "" "")',
+            placeholder: '',
         });
         // Custom DSL highlighting (simple keyword-based)
         CodeMirror.defineMode("text/x-stampalbum", function() {
