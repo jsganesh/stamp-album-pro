@@ -273,15 +273,17 @@ function openPreview() {
         frame.onload = function() {
             frame.onload = null;
             try {
-                var body = frame.contentDocument && frame.contentDocument.body;
-                if (body) {
-                    var firstPage = body.querySelector(".page");
-                    if (firstPage) {
-                        frame.style.width = firstPage.offsetWidth + "px";
-                        frame.style.height = firstPage.offsetHeight + "px";
-                    }
+                var doc = frame.contentDocument;
+                if (!doc) { console.warn("[preview] no contentDocument"); return; }
+                var page = doc.querySelector(".page");
+                if (!page) { console.warn("[preview] .page not found"); return; }
+                var w = page.offsetWidth, h = page.offsetHeight;
+                console.log("[preview] .page size: " + w + "x" + h);
+                if (w > 0 && h > 0) {
+                    frame.style.width = w + "px";
+                    frame.style.height = h + "px";
                 }
-            } catch(_) {}
+            } catch(e) { console.warn("[preview] onload error:", e); }
         };
         showToast("Preview ready", "success");
     })
