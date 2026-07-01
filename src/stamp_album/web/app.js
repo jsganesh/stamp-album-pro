@@ -252,11 +252,12 @@ function buildCanvasState(format) {
 }
 
 // ── Preview (direct — no DSL parser) ──
-function openPreview() {
-    var overlay = $("preview-overlay");
+var _previewTimer = null;
+function refreshPreview() {
     var frame = $("preview-frame");
-    if (!overlay || !frame) return;
-    overlay.classList.add("open");
+    if (!frame) return;
+    var overlay = $("preview-overlay");
+    if (!overlay || !overlay.classList.contains("open")) return;
     showToast("Generating preview...", "info");
     var state = buildCanvasState("html");
     fetch("/render-from-state", {
@@ -294,6 +295,16 @@ function openPreview() {
             showToast("Preview failed: " + msg, "error");
         }
     });
+}
+function schedulePreviewRefresh() {
+    if (_previewTimer) clearTimeout(_previewTimer);
+    _previewTimer = setTimeout(refreshPreview, 400);
+}
+function openPreview() {
+    var overlay = $("preview-overlay");
+    if (!overlay) return;
+    overlay.classList.add("open");
+    refreshPreview();
 }
 
 // ── Export PDF (direct — no DSL parser) ──
@@ -445,6 +456,7 @@ Object.defineProperties(S, {
     renderPageDots: { value: renderPageDots }, updateGrid: { value: updateGrid },
     newAlbum: { value: newAlbum },     // loadFileList/saveFile/uploadImageFile/loadImageList defined in files.js
     buildCanvasState: { value: buildCanvasState }, openPreview: { value: openPreview },
+    schedulePreviewRefresh: { value: schedulePreviewRefresh }, refreshPreview: { value: refreshPreview },
     exportPDF: { value: exportPDF }, loadTemplateList: { value: loadTemplateList },
     applyWizard: { value: applyWizard },
     // ── Alignment functions ──
