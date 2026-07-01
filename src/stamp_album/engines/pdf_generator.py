@@ -139,9 +139,9 @@ class HTMLRenderer:
             position: relative;
             z-index: 1;
             width: 100%;
+            min-height: {content_height}mm;
             box-sizing: border-box;
             padding: {mt}mm {mr}mm {mb}mm {ml}mm;
-            overflow: hidden;
         }}
 
         .page-title {{
