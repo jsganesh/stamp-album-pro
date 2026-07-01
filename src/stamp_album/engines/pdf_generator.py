@@ -57,16 +57,18 @@ class HTMLRenderer:
         mr = round(ps.margin_right, 2)
         mt = round(ps.margin_top, 2)
         mb = round(ps.margin_bottom, 2)
+        content_height = round(ps.height - ps.margin_top - ps.margin_bottom, 2)
         return f"""
         <style>
         @page {{ size: {w_mm}mm {h_mm}mm; margin: 0; }}
         body {{ margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }}
-        .page {{ position: relative; width: {w_mm}mm; height: {h_mm}mm; page-break-after: always; box-sizing: border-box; }}
+        .page {{ position: relative; width: {w_mm}mm; min-height: {h_mm}mm; page-break-after: always; box-sizing: border-box; }}
         .page:last-child {{ page-break-after: auto; }}
-        .page-content {{ position: relative; z-index: 1; width: 100%; box-sizing: border-box; padding: {mt}mm {mr}mm {mb}mm {ml}mm; overflow: hidden; }}
+        .page-content {{ position: relative; z-index: 1; width: 100%; box-sizing: border-box; padding: {mt}mm {mr}mm {mb}mm {ml}mm; min-height: {content_height}mm; }}
         .stamp {{ position: absolute; display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden; box-sizing: border-box; }}
         .text-el {{ position: absolute; overflow: hidden; box-sizing: border-box; }}
         .stamp-box {{ box-sizing: border-box; }}
+
         </style>"""
 
     def _render_page(self, page: Page) -> str:
@@ -94,6 +96,14 @@ class HTMLRenderer:
                 f'style="display:flex;gap: {col_gap}mm;flex-wrap:wrap;">'
             )
 
+        shape_polygons = {
+            StampShape.TRIANGLE: "50,0 100,100 0,100",
+            StampShape.TRIANGLE_INV: "0,0 100,0 50,100",
+            StampShape.DIAMOND: "50,0 100,50 50,100 0,50",
+            StampShape.HEXAGON: "25,0 75,0 100,50 75,100 25,100 0,50",
+            StampShape.OCTAGON: "30,0 70,0 100,30 100,70 70,100 30,100 0,70 0,30",
+            StampShape.PENTAGON: "50,0 100,38 82,100 18,100 0,38",
+        }
         _Y_POS = 20  # Starting Y position in mm
         for row in page.rows:
             _X_POS = 0
@@ -102,19 +112,26 @@ class HTMLRenderer:
                 w, h = stamp.width, stamp.height
                 desc = (stamp.description or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
                 font_size = stamp.font_size or 10
-                shape_class = ""
-                if stamp.shape == StampShape.OVAL: shape_class = "shape-oval"
-                elif stamp.shape == StampShape.TRIANGLE: shape_class = "shape-triangle"
-                elif stamp.shape == StampShape.DIAMOND: shape_class = "shape-diamond"
-                elif stamp.shape == StampShape.HEXAGON: shape_class = "shape-hexagon"
-                elif stamp.shape == StampShape.OCTAGON: shape_class = "shape-octagon"
-                elif stamp.shape == StampShape.PENTAGON: shape_class = "shape-pentagon"
+                if stamp.shape == StampShape.OVAL:
+                    shape_html = (
+                        f'<svg width="{w}mm" height="{h}mm" viewBox="0 0 100 100" style="position:absolute;top:0;left:0;">'
+                        f'<ellipse cx="50" cy="50" rx="50" ry="50" fill="#fff" stroke="#666" stroke-width="0.3"/>'
+                        f'</svg>'
+                    )
+                elif stamp.shape in shape_polygons:
+                    pts = shape_polygons[stamp.shape]
+                    shape_html = (
+                        f'<svg width="{w}mm" height="{h}mm" viewBox="0 0 100 100" style="position:absolute;top:0;left:0;">'
+                        f'<polygon points="{pts}" fill="#fff" stroke="#666" stroke-width="0.3"/>'
+                        f'</svg>'
+                    )
+                else:
+                    shape_html = ""
                 parts.append(
                     f'<div class="stamp" style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;">'
-                    f'<div class="stamp-box {shape_class}" style="width:{w}mm;height:{h}mm;'
-                    f'border:0.5pt solid #666;background-color:#fff;">'
+                    f'{shape_html}'
                     f'<div style="font-size:{font_size}pt;padding:1mm;text-align:center;">{desc}</div>'
-                    f'</div></div>'
+                    f'</div>'
                 )
                 _X_POS += w + row.spacing
             _Y_POS += 30  # Next row
@@ -138,20 +155,30 @@ class HTMLRenderer:
                 bg_color = _color_to_rgb(getattr(stamp, 'fill_color', None)) if getattr(stamp, 'fill_color', None) else (1, 1, 1)
                 bc = f"rgb({int(border_color[0]*255)},{int(border_color[1]*255)},{int(border_color[2]*255)})"
                 bg = f"rgb({int(bg_color[0]*255)},{int(bg_color[1]*255)},{int(bg_color[2]*255)})"
-                shape_class = ""
-                if stamp.shape == StampShape.OVAL: shape_class = "shape-oval"
-                elif stamp.shape == StampShape.TRIANGLE: shape_class = "shape-triangle"
-                elif stamp.shape == StampShape.DIAMOND: shape_class = "shape-diamond"
-                elif stamp.shape == StampShape.HEXAGON: shape_class = "shape-hexagon"
-                elif stamp.shape == StampShape.OCTAGON: shape_class = "shape-octagon"
-                elif stamp.shape == StampShape.PENTAGON: shape_class = "shape-pentagon"
                 desc_font_size = round(font_size * 0.9, 1)
+                if stamp.shape == StampShape.OVAL:
+                    shape_html = (
+                        f'<svg width="{w}mm" height="{h}mm" viewBox="0 0 100 100" style="position:absolute;top:0;left:0;">'
+                        f'<ellipse cx="50" cy="50" rx="50" ry="50" fill="{bg}" stroke="{bc}" stroke-width="0.3"/>'
+                        f'</svg>'
+                    )
+                elif stamp.shape in shape_polygons:
+                    pts = shape_polygons[stamp.shape]
+                    shape_html = (
+                        f'<svg width="{w}mm" height="{h}mm" viewBox="0 0 100 100" style="position:absolute;top:0;left:0;">'
+                        f'<polygon points="{pts}" fill="{bg}" stroke="{bc}" stroke-width="0.3"/>'
+                        f'</svg>'
+                    )
+                else:
+                    shape_html = (
+                        f'<div style="position:absolute;top:0;left:0;width:{w}mm;height:{h}mm;'
+                        f'border:0.5pt solid {bc};background-color:{bg};"></div>'
+                    )
                 parts.append(
                     f'<div class="stamp" style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;">'
-                    f'<div class="stamp-box {shape_class}" style="width:{w}mm;height:{h}mm;'
-                    f'border:0.5pt solid {bc};background-color:{bg};">'
+                    f'{shape_html}'
                     f'<div style="font-size:{desc_font_size}pt;padding:1mm 2mm;text-align:center;line-height:1.3;">{desc}</div>'
-                    f'</div></div>'
+                    f'</div>'
                 )
 
         parts.append("</div>")  # close page-content

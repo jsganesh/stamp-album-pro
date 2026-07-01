@@ -6,8 +6,8 @@ var pushUndo = S.pushUndo, render = S.render, updateProps = S.updateProps;
 var select = S.select, add = S.add, undo = S.undo, redo = S.redo;
 var newAlbum = S.newAlbum, saveFile = S.saveFile, loadFileList = S.loadFileList;
 var loadImageList = S.loadImageList, uploadImageFile = S.uploadImageFile;
-var openPreview = S.openPreview, exportFormat = S.exportFormat;
-var applyWizard = S.applyWizard, loadTemplateList = S.loadTemplateList;
+var openPreview = S.openPreview, exportPDF = S.exportPDF;
+var applyWizard = S.applyWizard, loadTemplateList = S.loadTemplateList, loadDraft = S.loadDraft;
 var buildDSL = S.buildDSL, parseDSL = S.parseDSL;
 var initTutorial = S.initTutorial, _wireTutorialEvents = S._wireTutorialEvents;
 var drawAlignmentGuides = S.drawAlignmentGuides, clearAlignmentGuides = S.clearAlignmentGuides;
@@ -189,6 +189,7 @@ function init() {
     });
     $("btn-del").addEventListener("click", function() {
         if (!S.sel) return;
+        if (!confirm("Delete this element?")) return;
         S.E = S.E.filter(function(x) { return x.id !== S.sel; });
         S.sel = null;
         pushUndo();
@@ -257,24 +258,22 @@ function init() {
     });
 
     // ── DSL Reference Panel ──
-    $("btn-dsl-ref").addEventListener("click", function() {
-        var refPanel = $("dsl-ref-panel");
-        if (refPanel) refPanel.classList.toggle("open");
-    });
+    var dslRefBtn = $("btn-dsl-ref");
+    if (dslRefBtn) {
+        dslRefBtn.addEventListener("click", function() {
+            var refPanel = $("dsl-ref-panel");
+            if (refPanel) refPanel.classList.toggle("open");
+        });
+    }
 
     // ── Preview ──
     $("btn-preview").addEventListener("click", openPreview);
     $("btn-preview-close").addEventListener("click", function() { $("preview-overlay").classList.remove("open"); });
     $("btn-preview-refresh").addEventListener("click", openPreview);
-    $("btn-preview-export").addEventListener("click", function() { exportFormat("pdf"); });
+    $("btn-preview-export").addEventListener("click", function() { if (exportPDF) exportPDF(); });
 
     // ── Export ──
-    $("btn-export").addEventListener("click", function() { exportFormat("pdf"); });
-    document.querySelectorAll(".export-dd-item").forEach(function(item) {
-        item.addEventListener("click", function() {
-            exportFormat(this.dataset.fmt);
-        });
-    });
+    $("btn-export").addEventListener("click", function() { if (exportPDF) exportPDF(); });
 
     // ── Image Upload ──
     $("img-upl-btn").addEventListener("click", function() { $("upl-inp").click(); });
@@ -319,6 +318,8 @@ function init() {
         $("page").className = "page " + this.value;
         render();
         S.updateGrid();
+        if (S.renderPageBorder) S.renderPageBorder(S._pageBorder || "double");
+        S.schedulePreviewRefresh();
     });
     $("grid").addEventListener("change", function() {
         S._sn = parseInt(this.value) || 0;
@@ -335,10 +336,23 @@ function init() {
         render();
     });
 
-    // ── Default colors ──
-    $("def-bdr").addEventListener("change", function() { S._defBdr = this.value; });
-    $("def-bdr-c").addEventListener("change", function() { S._defBdrC = this.value; });
-    $("def-fill-c").addEventListener("change", function() { S._defFillC = this.value; });
+    // ── Default colors — also update page border ──
+    $("def-bdr").addEventListener("change", function() {
+        S._defBdr = this.value;
+        S._pageBorder = this.value;
+        if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
+        S.schedulePreviewRefresh();
+    });
+    $("def-bdr-c").addEventListener("change", function() {
+        S._defBdrC = this.value;
+        S._pageBorderC = this.value;
+        if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
+        S.schedulePreviewRefresh();
+    });
+    $("def-fill-c").addEventListener("change", function() {
+        S._defFillC = this.value;
+        S.schedulePreviewRefresh();
+    });
 
     // ── Collapsible Panels ──
     $("sb-toggle").addEventListener("click", function() {
@@ -392,7 +406,7 @@ function init() {
         if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); saveFile(); return; }
         if ((e.ctrlKey || e.metaKey) && e.key === "o") { e.preventDefault(); $("file-inp").click(); return; }
         if (e.key === "Delete" || e.key === "Backspace") {
-            if (S.sel) { S.E = S.E.filter(function(x) { return x.id !== S.sel; }); S.sel = null; pushUndo(); render(); updateProps(); }
+            if (S.sel) { $("btn-del").click(); }
         }
         if (e.key === "Escape") { S.sel = null; render(); updateProps(); }
         if ((e.ctrlKey || e.metaKey) && e.key === "d" && S.sel) {
@@ -404,11 +418,41 @@ function init() {
     });
 
     // ── Help overlay ──
-    $("btn-help").addEventListener("click", function() { $("help-overlay").classList.toggle("open"); });
-    $("btn-help-close").addEventListener("click", function() { $("help-overlay").classList.remove("open"); });
-    $("help-overlay").addEventListener("click", function(e) {
-        if (e.target === this) this.classList.remove("open");
-    });
+    var btnHelp = $("btn-help");
+    var helpOverlay = $("help-overlay");
+    var btnHelpClose = $("btn-help-close");
+    if (btnHelp && helpOverlay) {
+        btnHelp.addEventListener("click", function() { helpOverlay.classList.toggle("open"); });
+    }
+    if (btnHelpClose && helpOverlay) {
+        btnHelpClose.addEventListener("click", function() { helpOverlay.classList.remove("open"); });
+    }
+    if (helpOverlay) {
+        helpOverlay.addEventListener("click", function(e) {
+            if (e.target === this) this.classList.remove("open");
+        });
+    }
+
+    // ── Alignment toolbar ──
+    $("btn-align-l").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("left"); });
+    $("btn-align-c").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("center"); });
+    $("btn-align-r").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("right"); });
+    $("btn-align-t").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("top"); });
+    $("btn-align-m").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("middle"); });
+    $("btn-align-b").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("bottom"); });
+    $("btn-dist-h").addEventListener("click", function() { if (S.distributeSelected) S.distributeSelected("h"); });
+    $("btn-dist-v").addEventListener("click", function() { if (S.distributeSelected) S.distributeSelected("v"); });
+    $("btn-match-w").addEventListener("click", function() { if (S.matchSize) S.matchSize("w"); });
+    $("btn-match-h").addEventListener("click", function() { if (S.matchSize) S.matchSize("h"); });
+    $("btn-snap").addEventListener("click", function() { if (S.toggleSnap) S.toggleSnap(); });
+
+    // Show alignment group when element is selected
+    var origSelect = S.select;
+    S.select = function(id) {
+        origSelect(id);
+        var group = $("align-group");
+        if (group) group.style.display = id ? "flex" : "none";
+    };
 
     // ── Font population ──
     S.populateFonts();
@@ -474,6 +518,22 @@ function init() {
 
     // ── New file button ──
     $("btn-new-file").addEventListener("click", newAlbum);
+
+    // ── Large Text Mode ──
+    $("btn-large-text").addEventListener("click", function() { if (S.toggleLargeText) S.toggleLargeText(); });
+
+    // ── Reset App ──
+    $("btn-reset").addEventListener("click", function() { if (S.resetApp) S.resetApp(); });
+
+    // ── Help overlay ──
+    $("btn-help").addEventListener("click", function() {
+        var overlay = $("help-overlay");
+        if (overlay) overlay.classList.toggle("open");
+    });
+    $("btn-help-close").addEventListener("click", function() {
+        var overlay = $("help-overlay");
+        if (overlay) overlay.classList.remove("open");
+    });
 
     // ── CSV / Excel Import ──
     $("btn-import-csv").addEventListener("click", function() {
@@ -587,16 +647,23 @@ function init() {
         if (S._dirty) { e.preventDefault(); e.returnValue = ""; }
     });
 
+    // ── Restore draft from localStorage ──
+    if (loadDraft) {
+        var _restored = loadDraft();
+        if (_restored) console.log("StampAlbum Pro: restored draft from localStorage");
+    }
+
     // ── Init ──
     S.renderPageDots();
     S.updateGrid();
+    if (S.renderPageBorder) S.renderPageBorder(S._pageBorder || "double");
     loadFileList();
     loadImageList();
     S.updateTitle();
 
     // ── First-run tutorial ──
-    initTutorial();
-    _wireTutorialEvents();
+    if (initTutorial) initTutorial();
+    if (_wireTutorialEvents) _wireTutorialEvents();
 
     console.log("StampAlbum Pro: ready");
 }

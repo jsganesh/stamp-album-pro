@@ -65,7 +65,9 @@ function saveFile() {
             throw new Error("Save failed");
         }).then(function(data) {
             S._dirty = false;
+            S.clearDraft();
             updateTitle();
+            if (S.updateStatusBar) S.updateStatusBar();
             showToast("Saved to " + (data.path || S._currentFile), "success");
         }).catch(function() { showToast("Save failed", "error"); });
     } else {
@@ -119,7 +121,7 @@ function loadImageList() {
                 item.appendChild(im);
                 item.appendChild(del);
                 item.addEventListener("click", function() {
-                    add({ t: "image", s: "rectangle", x: 50, y: 50, w: 80, h: 60,
+                    S.add({ t: "image", s: "rectangle", x: 50, y: 50, w: 80, h: 60,
                         lbl: img, img: "/images/" + img,
                         bdr: "solid", bdrC: "#999", bdrW: 0.5, fill: "#fff", fillA: 100, font: "HN", fs: 12 });
                 });

@@ -10,37 +10,7 @@ echo ""
 PYTHON_VERSION=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
 echo "Python version: $PYTHON_VERSION"
 
-# Check for required native libraries (WeasyPrint dependencies)
-echo ""
-echo "Checking WeasyPrint native dependencies..."
-
-check_lib() {
-    if pkg-config --exists "$1" 2>/dev/null; then
-        echo "  ✓ $1 found"
-    else
-        echo "  ✗ $1 NOT found"
-        MISSING_LIBS="$MISSING_LIBS $1"
-    fi
-}
-
-MISSING_LIBS=""
-check_lib "pango"
-check_lib "pangocairo"
-check_lib "glib-2.0"
-check_lib "gdk-pixbuf-2.0"
-
-if [ -n "$MISSING_LIBS" ]; then
-    echo ""
-    echo "WARNING: Missing native libraries required by WeasyPrint."
-    echo "Install them with Homebrew:"
-    echo "  brew install pango glib gdk-pixbuf libffi"
-    echo ""
-    echo "Continue anyway? (y/n)"
-    read -r CONTINUE
-    if [ "$CONTINUE" != "y" ]; then
-        exit 1
-    fi
-fi
+# No native library dependencies needed (pure Python PDF via PyMuPDF)
 
 # Install dev dependencies
 echo ""

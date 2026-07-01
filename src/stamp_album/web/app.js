@@ -6,35 +6,14 @@ var _defBdr = "solid", _defBdrC = "#666", _defFillC = "#fff";
 var _collapsed = { sb: false, rp: false };
 var _currentFile = null, _currentPage = 0, _pages = [ [] ];
 var _dirty = false;
-var _colMode = 1, _colGap = 10.0;  // Column layout mode and gap (mm)
+var _colMode = 1, _colGap = 10.0, _pageBorder = "double", _pageBorderC = "";  // Column layout mode, gap (mm), page border style
 
-// ── Undo/redo system ──
-var _undoStack = [], _redoStack = [], _undoMax = 50, _undoPaused = false;
-function pushUndo() {
-    if (_undoPaused) return;
-    _undoStack.push(JSON.stringify(E));
-    if (_undoStack.length > _undoMax) _undoStack.shift();
-    _redoStack = [];
-    _dirty = true;
-    updateTitle();
-    scheduleDraftSave();
-}
-function undo() {
-    if (_undoStack.length < 2) return;
-    _redoStack.push(_undoStack.pop());
-    var state = JSON.parse(_undoStack.pop());
-    loadElements(state);
-    updateTitle();
-}
-function redo() {
-    if (_redoStack.length === 0) return;
-    _undoStack.push(JSON.stringify(E));
-    var state = JSON.parse(_redoStack.pop());
-    loadElements(state);
-    updateTitle();
-}
-function loadElements(arr) { E = arr; sel = null; switchPage(_currentPage, true); render(); updateProps(); }
-function loadElementsNoPush(arr) { _undoPaused = true; loadElements(arr); _undoPaused = false; }
+// ── Forward references (set by render.js after load) ──
+var render = function() { S.render(); };
+var updateProps = function() { S.updateProps(); };
+
+// ── Undo/redo system (defined in undo.js) ──
+var _undoStack = [], _redoStack = [], _undoPaused = false;
 
 // ── localStorage draft persistence ──
 var _draftTimer = null;
@@ -149,24 +128,25 @@ function updateTitle() {
 // ── Page management ──
 function switchPage(idx, silent) {
     if (idx < 0 || idx >= _pages.length) return;
-    if (!silent) pushUndo();
+    if (!silent) S.pushUndo();
     _pages[_currentPage] = JSON.parse(JSON.stringify(E));
     _currentPage = idx;
     E = _pages[idx] ? JSON.parse(JSON.stringify(_pages[idx])) : [];
     sel = null;
     renderPageDots();
     render();
+    if (S.renderPageBorder) S.renderPageBorder(_pageBorder || "double");
     updateProps();
 }
 function addPage() {
-    pushUndo();
+    S.pushUndo();
     _pages.push([]);
     switchPage(_pages.length - 1, true);
     showToast("Page added", "success");
 }
 function deletePage() {
     if (_pages.length <= 1) { showToast("Cannot delete last page", "error"); return; }
-    pushUndo();
+    S.pushUndo();
     _pages.splice(_currentPage, 1);
     if (_currentPage >= _pages.length) _currentPage = _pages.length - 1;
     E = JSON.parse(JSON.stringify(_pages[_currentPage]));
@@ -210,153 +190,22 @@ function updateGrid() {
         pattern.setAttribute("height", gs);
         var path = pattern.querySelector("path");
         if (path) {
-            path.setAttribute("d", "M " + gs + " L 0 0 0 " + gs);
+            var h = gs / 2;
+            path.setAttribute("d", "M " + h + " 0 L " + h + " " + gs + " M 0 " + h + " L " + gs + " " + h);
         }
         svg.style.display = "block";
     } else {
         svg.style.display = "none";
     }
-
-        // ── Font population ──
-        populateFonts();
-
-    // ── Load templates ──
-    loadTemplateList();
-    // Auto-load template on selection change
-    $("wiz-template").addEventListener("change", function() {
-        var val = this.value;
-        if (val && val !== "blank") {
-            $("btn-wiz-template").click();
-        }
-    });
-
-    // ── Wizard Apply ──
-    $("btn-wiz-apply").addEventListener("click", applyWizard);
-    $("btn-app-wiz").addEventListener("click", applyWizard);
-    $("btn-wiz-template").addEventListener("click", function() {
-        var selTpl = $("wiz-template").value;
-        if (selTpl && selTpl !== "blank") {
-            fetch("/api/templates/" + selTpl)
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    if (data.dsl) {
-                        parseDSL(data.dsl);
-                        pushUndo();
-                        render();
-                        showToast("Template loaded: " + data.name, "success");
-                        $("wizard-panel").classList.remove("open");
-                    }
-                })
-                .catch(function(err) { showToast("Failed to load template: " + err, "error"); });
-        }
-    });
-
-    // ── New file button ──
-    $("btn-new-file").addEventListener("click", newAlbum);
-
-    // ── Touch / Pointer support for iPad ──
-    // Palette drag via touch (iPad Safari lacks HTML DnD)
-    document.querySelectorAll(".p-item[draggable]").forEach(function(it) {
-        it.addEventListener("touchstart", function(e) {
-            var touch = e.touches[0];
-            _ds = { t: it.dataset.t, s: it.dataset.s || "rectangle", st: it.dataset.st || "",
-                w: parseFloat(it.dataset.w) || 80, h: parseFloat(it.dataset.h) || 60,
-                font: "HN", fs: 12, tx: touch.clientX, ty: touch.clientY };
-            e.preventDefault();
-        }, { passive: false });
-    });
-    document.addEventListener("touchmove", function(e) {
-        if (!_ds || !_ds.t) return;
-        e.preventDefault();
-    }, { passive: false });
-    document.addEventListener("touchend", function(e) {
-        if (!_ds || !_ds.t) return;
-        var touch = e.changedTouches[0];
-        var pg = $("page");
-        if (pg) {
-            var r = pg.getBoundingClientRect();
-            var cx = touch.clientX, cy = touch.clientY;
-            if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
-                var x = Math.max(0, Math.min(Math.round((cx - r.left) / _sn) * _sn, _pw - 40));
-                var y = Math.max(0, Math.min(Math.round((cy - r.top) / _sn) * _sn, _ph - 30));
-                var d = _ds;
-                var w = d.w || 80, h = d.h || 60;
-                if (d.t === "text") { w = 120; h = d.st === "heading" ? 24 : d.st === "desc" ? 16 : 18; }
-                if (d.t === "freehand") { w = 100; h = 80; }
-                add({ t: d.t || "stamp", s: d.s || "rectangle", x: x, y: y, w: w, h: h,
-                    lbl: d.t === "text" ? (d.st === "heading" ? "Heading" : d.st === "desc" ? "Description" : "Label") : "",
-                    font: d.font || "HN", fs: d.st === "heading" ? 16 : d.st === "desc" ? 10 : 12,
-                    bdr: _defBdr, bdrC: _defBdrC, bdrW: 1, fill: _defFillC, fillA: 100, img: "" });
-            }
-        }
-        _ds = {};
-    });
-    // Canvas element touch drag (iPad)
-    document.addEventListener("touchstart", function(e) {
-        var el = e.target.closest(".cel");
-        if (!el) return;
-        var obj = E.find(function(x) { return x.id === el.dataset.id; });
-        if (!obj) return;
-        var touch = e.touches[0];
-        _dragH = e.target.classList.contains("rh") ? e.target.dataset.h : "move";
-        select(obj.id);
-        _drg = true;
-        _dragEl = obj;
-        _ds = { x: touch.clientX, y: touch.clientY, ox: obj.x, oy: obj.y, ow: obj.w, oh: obj.h };
-    }, { passive: true });
-    document.addEventListener("touchmove", function(e) {
-        if (!_drg || !_dragEl) return;
-        var touch = e.touches[0];
-        var dx = Math.round((touch.clientX - _ds.x) / _sn) * _sn;
-        var dy = Math.round((touch.clientY - _ds.y) / _sn) * _sn;
-        var h = _dragH, x = _ds.ox, y = _ds.oy, w = _ds.ow, oh = _ds.oh;
-        if (h === "move") { x += dx; y += dy; } else {
-            if (h.indexOf("w") >= 0) { x += dx; w -= dx; }
-            if (h.indexOf("e") >= 0) { w += dx; }
-            if (h.indexOf("n") >= 0) { y += dy; oh -= dy; }
-            if (h.indexOf("s") >= 0) { oh += dy; }
-            if (w < 10) w = 10;
-            if (oh < 10) oh = 10;
-        }
-        _dragEl.x = Math.max(0, Math.min(x, _pw - _dragEl.w));
-        _dragEl.y = Math.max(0, Math.min(y, _ph - _dragEl.h));
-        _dragEl.w = Math.min(w, _pw - _dragEl.x);
-        _dragEl.h = Math.min(oh, _ph - _dragEl.y);
-        render();
-        updateProps();
-        e.preventDefault();
-    }, { passive: false });
-    document.addEventListener("touchend", function() {
-        if (_drg && _dragEl) { pushUndo(); }
-        _drg = false;
-        _dragEl = null;
-        _dragH = null;
-    });
-
-    // ── Before unload ──
-    window.addEventListener("beforeunload", function(e) {
-        if (_dirty) { e.preventDefault(); e.returnValue = ""; }
-    });
-
-    // ── Restore draft from localStorage ──
-    var restored = loadDraft();
-    if (restored) {
-        console.log("StampAlbum Pro: restored draft from localStorage");
-    }
-
-    // ── Init ──
-    renderPageDots();
-    updateGrid();
-    loadFileList();
-    loadImageList();
-    updateTitle();
-
-    console.log("StampAlbum Pro: ready");
 }
+
+
+
 
 // ── New album ──
 function newAlbum() {
     if (_dirty && !confirm("Discard unsaved changes?")) return;
+    clearDraft();
     E = [];
     sel = null;
     _currentFile = null;
@@ -365,6 +214,7 @@ function newAlbum() {
     _dirty = false;
     _undoStack = [];
     _redoStack = [];
+    _undoStack.push(JSON.stringify(E));
     render();
     updateProps();
     renderPageDots();
@@ -372,144 +222,18 @@ function newAlbum() {
     showToast("New album created", "success");
 }
 
-// ── File management ──
-function loadFileList() {
-    var c = $("file-list");
-    if (!c) return;
-    fetch("/files")
-        .then(function(r) { return r.json(); })
-        .then(function(files) {
-            c.innerHTML = "";
-            files.forEach(function(f) {
-                var item = document.createElement("div");
-                item.className = "file-item" + (f === _currentFile ? " active" : "");
-                var icon = document.createElement("span");
-                icon.className = "favicon";
-                icon.textContent = f.endsWith(".slbum") ? "📖" : "📄";
-                var nameSpan = document.createElement("span");
-                nameSpan.className = "fn";
-                nameSpan.textContent = f;
-                var delBtn = document.createElement("span");
-                delBtn.className = "fdel";
-                delBtn.textContent = "✕";
-                delBtn.title = "Delete";
-                delBtn.addEventListener("click", function(ev) {
-                    ev.stopPropagation();
-                    if (confirm("Delete " + f + "?")) {
-                        fetch("/files/" + encodeURIComponent(f), { method: "DELETE" })
-                            .then(function() { loadFileList(); showToast("Deleted " + f, "success"); });
-                    }
-                });
-                item.appendChild(icon);
-                item.appendChild(nameSpan);
-                item.appendChild(delBtn);
-                item.addEventListener("click", function() {
-                    fetch("/files/" + encodeURIComponent(f))
-                        .then(function(r) { return r.text(); })
-                        .then(function(content) {
-                            _currentFile = f;
-                            parseDSL(content);
-                            _dirty = false;
-                            updateTitle();
-                            loadFileList();
-                            showToast("Opened " + f, "success");
-                        });
-                });
-                c.appendChild(item);
-            });
-        })
-        .catch(function() { c.innerHTML = "<div style='padding:8px;color:var(--text2);font-size:11px'>No files yet</div>"; });
-}
-
-function saveFile() {
-    var dsl = buildDSL();
-    if (_currentFile) {
-        fetch("/files/" + encodeURIComponent(_currentFile), {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ content: dsl })
-        }).then(function(r) {
-            if (r.ok) {
-                return r.json();
-            }
-            throw new Error("Save failed");
-        }).then(function(data) {
-            _dirty = false;
-            updateTitle();
-            clearDraft();
-            showToast("Saved to " + (data.path || _currentFile), "success");
-        }).catch(function() { showToast("Save failed", "error"); });
-    } else {
-        var name = prompt("File name:", "album.slbum");
-        if (!name) return;
-        if (!name.endsWith(".slbum") && !name.endsWith(".txt")) name += ".slbum";
-        _currentFile = name;
-        saveFile();
-    }
-}
-
-// ── Image management ──
-function uploadImageFile(file, callback) {
-    var formData = new FormData();
-    formData.append("file", file);
-    fetch("/images", { method: "POST", body: formData })
-        .then(function(r) {
-            if (r.ok) return r.json();
-            throw new Error("Upload failed");
-        })
-        .then(function(data) {
-            showToast("Uploaded " + data.filename, "success");
-            if (callback) callback(data.filename);
-            loadImageList();
-        })
-        .catch(function(err) { showToast("Upload failed: " + err, "error"); });
-}
-
-function loadImageList() {
-    var c = $("img-grid");
-    if (!c) return;
-    fetch("/images")
-        .then(function(r) { return r.json(); })
-        .then(function(images) {
-            c.innerHTML = "";
-            images.forEach(function(img) {
-                var item = document.createElement("div");
-                item.className = "img-item";
-                var im = document.createElement("img");
-                im.src = "/images/" + encodeURIComponent(img);
-                var del = document.createElement("button");
-                del.className = "img-del";
-                del.textContent = "✕";
-                del.addEventListener("click", function(ev) {
-                    ev.stopPropagation();
-                    if (confirm("Delete " + img + "?")) {
-                        fetch("/images/" + encodeURIComponent(img), { method: "DELETE" })
-                            .then(function() { loadImageList(); showToast("Deleted " + img, "success"); });
-                    }
-                });
-                item.appendChild(im);
-                item.appendChild(del);
-                item.addEventListener("click", function() {
-                    var r = $("page").getBoundingClientRect();
-                    var x = 50, y = 50;
-                    add({ t: "image", s: "rectangle", x: x, y: y, w: 80, h: 60,
-                        lbl: img, img: "/images/" + img,
-                        bdr: "solid", bdrC: "#999", bdrW: 0.5, fill: "#fff", fillA: 100, font: "HN", fs: 12 });
-                });
-                c.appendChild(item);
-            });
-        })
-        .catch(function() {
-            c.innerHTML = "<div style='padding:8px;color:var(--text2);font-size:11px'>No images yet</div>";
-        });
-}
+// ── File/image management functions defined in files.js ──
 
 // ── Build canvas state for direct render/export ──
 function buildCanvasState(format) {
     var allPages = _pages.slice();
     allPages[_currentPage] = JSON.parse(JSON.stringify(E));
-    var firstPage = allPages.length > 0 ? allPages[0] : [];
-    var restPages = allPages.slice(1);
+    var firstIdx = 0;
+    while (firstIdx < allPages.length && allPages[firstIdx].length === 0) {
+        firstIdx++;
+    }
+    var firstPage = firstIdx < allPages.length ? allPages[firstIdx] : [];
+    var restPages = allPages.slice(firstIdx + 1);
     while (restPages.length > 0 && restPages[restPages.length - 1].length === 0) {
         restPages.pop();
     }
@@ -521,16 +245,19 @@ function buildCanvasState(format) {
         source_path: _currentFile || "album.slbum",
         format: format || "html",
         title: (_currentFile || "My Album").replace(/\.(slbum|txt)$/, ""),
-        author: ""
+        author: "",
+        border_style: _pageBorder || "",
+        border_color: _pageBorderC || ""
     };
 }
 
 // ── Preview (direct — no DSL parser) ──
-function openPreview() {
-    var overlay = $("preview-overlay");
+var _previewTimer = null;
+function refreshPreview() {
     var frame = $("preview-frame");
-    if (!overlay || !frame) return;
-    overlay.classList.add("open");
+    if (!frame) return;
+    var overlay = $("preview-overlay");
+    if (!overlay || !overlay.classList.contains("open")) return;
     showToast("Generating preview...", "info");
     var state = buildCanvasState("html");
     fetch("/render-from-state", {
@@ -543,22 +270,41 @@ function openPreview() {
         return r.text();
     })
     .then(function(html) {
-        frame.contentDocument.open();
-        frame.contentDocument.write(html);
-        frame.contentDocument.close();
-        var body = frame.contentDocument.body;
-        if (body) {
-            var firstPage = body.querySelector(".page");
-            if (firstPage) {
-                frame.style.width = firstPage.offsetWidth + "px";
-                frame.style.height = firstPage.offsetHeight + "px";
-            }
-        }
+        frame.srcdoc = html;
+        frame.onload = function() {
+            frame.onload = null;
+            try {
+                var doc = frame.contentDocument;
+                if (!doc) return;
+                var page = doc.querySelector(".page");
+                if (!page) return;
+                var w = page.offsetWidth, h = page.offsetHeight;
+                if (w > 0 && h > 0) {
+                    frame.style.width = w + "px";
+                    frame.style.height = h + "px";
+                }
+            } catch(_) {}
+        };
         showToast("Preview ready", "success");
     })
     .catch(function(err) {
-        showToast("Preview failed: " + err, "error");
+        var msg = err.message || String(err);
+        if (msg.indexOf("NetworkError") !== -1 || msg.indexOf("Load failed") !== -1 || msg.indexOf("Failed to fetch") !== -1) {
+            showToast("Preview failed — network error. Try a normal reload (Cmd+R) and if it persists, click ⟳ Reset.", "error");
+        } else {
+            showToast("Preview failed: " + msg, "error");
+        }
     });
+}
+function schedulePreviewRefresh() {
+    if (_previewTimer) clearTimeout(_previewTimer);
+    _previewTimer = setTimeout(refreshPreview, 400);
+}
+function openPreview() {
+    var overlay = $("preview-overlay");
+    if (!overlay) return;
+    overlay.classList.add("open");
+    refreshPreview();
 }
 
 // ── Export PDF (direct — no DSL parser) ──
@@ -566,13 +312,20 @@ function exportPDF() {
     showToast("Generating PDF...", "info");
     var filename = _currentFile ? _currentFile.replace(/\.(slbum|txt)$/, ".pdf") : "album.pdf";
     var state = buildCanvasState("pdf");
+    var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timeout = setTimeout(function() {
+        if (controller) controller.abort();
+        showToast("Export timed out — try with fewer stamps", "error");
+    }, 30000);
     fetch("/export-from-state", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(state)
+        body: JSON.stringify(state),
+        signal: controller ? controller.signal : undefined
     })
     .then(function(r) {
-        if (!r.ok) throw new Error("Export failed (" + r.status + ")");
+        clearTimeout(timeout);
+        if (!r.ok) throw new Error("Server returned " + r.status);
         return r.blob();
     })
     .then(function(b) {
@@ -583,7 +336,16 @@ function exportPDF() {
         setTimeout(function() { URL.revokeObjectURL(a.href); }, 100);
         showToast("PDF saved to Downloads/" + filename, "success");
     })
-    .catch(function(err) { showToast("Export failed: " + err, "error"); });
+    .catch(function(err) {
+        clearTimeout(timeout);
+        var msg = err.message || String(err);
+        if (msg.indexOf("abort") !== -1) return;
+        if (msg.indexOf("NetworkError") !== -1 || msg.indexOf("Load failed") !== -1 || msg.indexOf("Failed to fetch") !== -1) {
+            showToast("Export failed — network error. Try a normal reload (Cmd+R) and if it persists, click ⟳ Reset.", "error");
+        } else {
+            showToast("Export failed: " + msg, "error");
+        }
+    });
 }
 
 // ── Template list ──
@@ -641,183 +403,17 @@ function applyWizard() {
         lines.push("PAGE_COLUMN_START(" + columns + ")");
     }
 
-    parseDSL(lines.join("\n"));
-    pushUndo();
+    S.parseDSL(lines.join("\n"));
+    S.pushUndo();
     render();
+    // Apply ornamental border if selected
+    _pageBorder = border;
+    if (S.renderPageBorder) S.renderPageBorder(border);
     $("wizard-panel").classList.remove("open");
     showToast("Album created from wizard", "success");
 }
 
-// ── DSL round-trip ──
-function buildDSL() {
-    var lines = [
-        'ALBUM_TITLE("' + (_currentFile ? _currentFile.replace(/\.(slbum|txt)$/, "") : "My Album") + '")',
-        "ALBUM_PAGES_SIZE(" + mm(_pw) + " " + mm(_ph) + ")",
-        "ALBUM_PAGES_MARGINS(15 15 15 15)",
-        "PAGE_START"
-    ];
-
-    // Add column start if columns enabled
-    if (_colMode > 1) {
-        lines.push("PAGE_COLUMN_START(" + _colMode + " " + _colGap.toFixed(1) + ")");
-    }
-
-    E.forEach(function(el) {
-        if (el.t === "image") {
-            lines.push('STAMP_ADD_IMG(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.img || "") + '" "' + (el.lbl || "") + '" "" "")');
-        } else if (el.t === "text") {
-            var cmd = el.align === "center" ? "PAGE_TEXT_CENTRE" : el.align === "right" ? "PAGE_TEXT_RIGHT" : "PAGE_TEXT";
-            lines.push(cmd + '("' + (el.font || "HN") + '" ' + (el.fs || 12) + ' "' + (el.lbl || "Text") + '")');
-        } else if (el.t === "freehand") {
-            lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "freehand" "' + el.bdr + '" "' + el.fill + '")');
-        } else {
-            lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "' + el.s + '" "' + el.bdr + '" "' + el.fill + '")');
-        }
-    });
-
-    // Add column stop if columns were enabled
-    if (_colMode > 1) {
-        lines.push("PAGE_COLUMN_STOP");
-    }
-
-    // Add page management DSL
-    for (var i = 1; i < _pages.length; i++) {
-        var pgEls = _pages[i];
-        if (pgEls && pgEls.length > 0) {
-            lines.push("PAGE_START");
-
-            // Add column start for additional pages
-            if (_colMode > 1) {
-                lines.push("PAGE_COLUMN_START(" + _colMode + " " + _colGap.toFixed(1) + ")");
-            }
-
-            pgEls.forEach(function(el) {
-                if (el.t === "image") {
-                    lines.push('STAMP_ADD_IMG(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.img || "") + '" "' + (el.lbl || "") + '" "" "")');
-                } else if (el.t === "text") {
-                    var cmd = el.align === "center" ? "PAGE_TEXT_CENTRE" : el.align === "right" ? "PAGE_TEXT_RIGHT" : "PAGE_TEXT";
-                    lines.push(cmd + '("' + (el.font || "HN") + '" ' + (el.fs || 12) + ' "' + (el.lbl || "Text") + '")');
-                } else if (el.t === "freehand") {
-                    lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "freehand" "' + el.bdr + '" "' + el.fill + '")');
-                } else {
-                    lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "' + el.s + '" "' + el.bdr + '" "' + el.fill + '")');
-                }
-            });
-
-            // Add column stop for additional pages
-            if (_colMode > 1) {
-                lines.push("PAGE_COLUMN_STOP");
-            }
-        }
-    }
-    return lines.join("\n");
-}
-
-function parseDSL(dsl) {
-    E = [];
-    var lines = dsl.split("\n");
-    _pages = [[]];
-    _currentPage = 0;
-    var _rowX = 0, _rowY = 12, _rowSpacing = 6, _pageMargin = 15;
-    for (var i = 0; i < lines.length; i++) {
-        var t = lines[i].trim();
-        if (!t || t.charAt(0) === "#") continue;
-        // Page setup commands
-        var mSize = t.match(/^ALBUM_PAGES_SIZE\(\s*([\d.]+)\s+([\d.]+)\)/);
-        if (mSize) {
-            _pw = px(parseFloat(mSize[1]));
-            _ph = px(parseFloat(mSize[2]));
-            $("pg-size").value = "a4";
-            continue;
-        }
-        var mMargin = t.match(/^ALBUM_PAGES_MARGINS\(\s*([\d.]+)\s/);
-        if (mMargin) {
-            _pageMargin = parseFloat(mMargin[1]);
-            continue;
-        }
-        // PAGE_START — new page
-        if (t.match(/^PAGE_START/)) {
-            if (E.length > 0) {
-                _pages[_currentPage] = JSON.parse(JSON.stringify(E));
-                E = [];
-            }
-            _pages.push([]);
-            _currentPage = _pages.length - 1;
-            _rowX = _pageMargin;
-            _rowY = 12;
-            continue;
-        }
-        // PAGE_COLUMN_START — set column mode
-        var mColStart = t.match(/^PAGE_COLUMN_START\(\s*(\d+)(?:\s+([\d.]+))?\)/);
-        if (mColStart) {
-            _colMode = parseInt(mColStart[1]) || 1;
-            _colGap = mColStart[2] ? parseFloat(mColStart[2]) : 10.0;
-            $("col-mode").value = _colMode;
-            $("col-gap").value = _colGap;
-            continue;
-        }
-        // PAGE_COLUMN_NEXT — column break marker (no-op in visual builder)
-        if (t.match(/^PAGE_COLUMN_NEXT/)) {
-            continue;
-        }
-        // PAGE_COLUMN_STOP — reset to single column
-        if (t.match(/^PAGE_COLUMN_STOP/)) {
-            _colMode = 1;
-            _colGap = 10.0;
-            $("col-mode").value = 1;
-            $("col-gap").value = 10.0;
-            continue;
-        }
-        // PAGE_VSPACE — vertical spacing in row layout
-        var mVspace = t.match(/^PAGE_VSPACE\(\s*([\d.]+)\)/);
-        if (mVspace) {
-            _rowY += parseFloat(mVspace[1]);
-            continue;
-        }
-        // ROW_START_FS — start a row of stamps
-        var mRow = t.match(/^ROW_START_FS\(\s*"([^"]*)"\s+(\d+)\s+([\d.]+)\s+([\d.]+)\)/);
-        if (mRow) {
-            _rowX = _pageMargin;
-            _rowSpacing = parseFloat(mRow[4]);
-            continue;
-        }
-        // Commands
-        var m = t.match(/^(STAMP_ADD_AT|STAMP_ADD_IMG)\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"([^"]*)"\s+"([^"]*)"/);
-        if (m) {
-            var isImg = m[1] === "STAMP_ADD_IMG";
-            E.push({ id: "el" + (nid++), t: isImg ? "image" : "stamp", s: m[7] || "rectangle", x: px(parseFloat(m[2])), y: px(parseFloat(m[3])), w: px(parseFloat(m[4])), h: px(parseFloat(m[5])), lbl: m[6] || "", bdr: "solid", bdrC: "#666", bdrW: 1, fill: "#fff", fillA: 100, img: isImg ? m[6] : "", font: "HN", fs: 12 });
-            continue;
-        }
-        // STAMP_ADD — row-based stamp (from template DSL)
-        var mRowStamp = t.match(/^STAMP_ADD\(\s*([\d.]+)\s+([\d.]+)\s+"([^"]*)"(?:\s+"([^"]*)")?(?:\s+"([^"]*)")?\)/);
-        if (mRowStamp) {
-            E.push({ id: "el" + (nid++), t: "stamp", s: "rectangle", x: px(_rowX), y: px(_rowY), w: px(parseFloat(mRowStamp[1])), h: px(parseFloat(mRowStamp[2])), lbl: mRowStamp[3] || "", bdr: "solid", bdrC: "#666", bdrW: 1, fill: "#fff", fillA: 100, img: "", font: "HN", fs: 12 });
-            _rowX += parseFloat(mRowStamp[1]) + _rowSpacing;
-            continue;
-        }
-        var m2 = t.match(/^(PAGE_TEXT|PAGE_TEXT_CENTRE|PAGE_TEXT_CENTER|PAGE_TEXT_RIGHT)\(\s*"([^"]*)"\s+(\d+)\s+"([^"]*)"\)/);
-        if (m2) {
-            var align = m2[1] === "PAGE_TEXT_CENTRE" || m2[1] === "PAGE_TEXT_CENTER" ? "center" : m2[1] === "PAGE_TEXT_RIGHT" ? "right" : "left";
-            E.push({ id: "el" + (nid++), t: "text", s: "text", x: 10, y: _rowY > 12 ? _rowY + 2 : 10, w: 100, h: 20, lbl: m2[4] || "Text", font: m2[2] || "HN", fs: parseFloat(m2[3]) || 12, align: align, bdr: "none", fill: "transparent", fillA: 0 });
-            _rowY += 8;
-        }
-    }
-    // Save current page
-    if (E.length > 0 || _pages.length === 0) {
-        _pages[_currentPage] = JSON.parse(JSON.stringify(E));
-    }
-    // Remove empty trailing pages
-    while (_pages.length > 1 && _pages[_pages.length - 1].length === 0) {
-        _pages.pop();
-    }
-    E = JSON.parse(JSON.stringify(_pages[_currentPage]));
-    sel = null;
-    renderPageDots();
-    render();
-    updateProps();
-    updateGrid();
-    updateTitle();
-}
+// ── DSL functions (escapeDSL, buildDSL, parseDSL) defined in dsl.js ──
 
 // ── Exports (shared state + functions for render.js, events.js, init.js) ──
 var S = {};
@@ -843,22 +439,130 @@ Object.defineProperties(S, {
     _dirty: { get: function(){ return _dirty; }, set: function(v){ _dirty = v; } },
     _colMode: { get: function(){ return _colMode; }, set: function(v){ _colMode = v; } },
     _colGap: { get: function(){ return _colGap; }, set: function(v){ _colGap = v; } },
+    _pageBorder: { get: function(){ return _pageBorder; }, set: function(v){ _pageBorder = v; } },
+    _pageBorderC: { get: function(){ return _pageBorderC; }, set: function(v){ _pageBorderC = v; } },
+    _undoStack: { get: function(){ return _undoStack; }, set: function(v){ _undoStack = v; } },
+    _redoStack: { get: function(){ return _redoStack; }, set: function(v){ _redoStack = v; } },
+    _undoPaused: { get: function(){ return _undoPaused; }, set: function(v){ _undoPaused = v; } },
     _init: { get: function(){ return _init; }, set: function(v){ _init = v; } },
     SYSTEM_FONTS: { get: function(){ return SYSTEM_FONTS; }, set: function(v){ SYSTEM_FONTS = v; } },
     $: { value: $ }, mm: { value: mm }, px: { value: px }, clamp: { value: clamp },
     fontCSS: { value: fontCSS }, showToast: { value: showToast },
-    pushUndo: { value: pushUndo }, undo: { value: undo }, redo: { value: redo },
-    loadElements: { value: loadElements }, loadElementsNoPush: { value: loadElementsNoPush },
-    saveDraft: { value: saveDraft }, loadDraft: { value: loadDraft }, clearDraft: { value: clearDraft },
+    // pushUndo/undo/redo/loadElements defined in undo.js
+    saveDraft: { value: saveDraft }, scheduleDraftSave: { value: scheduleDraftSave },
+    loadDraft: { value: loadDraft }, clearDraft: { value: clearDraft },
     updateTitle: { value: updateTitle }, switchPage: { value: switchPage },
     addPage: { value: addPage }, deletePage: { value: deletePage },
     renderPageDots: { value: renderPageDots }, updateGrid: { value: updateGrid },
-    newAlbum: { value: newAlbum }, loadFileList: { value: loadFileList }, saveFile: { value: saveFile },
-    uploadImageFile: { value: uploadImageFile }, loadImageList: { value: loadImageList },
+    newAlbum: { value: newAlbum },     // loadFileList/saveFile/uploadImageFile/loadImageList defined in files.js
     buildCanvasState: { value: buildCanvasState }, openPreview: { value: openPreview },
+    schedulePreviewRefresh: { value: schedulePreviewRefresh }, refreshPreview: { value: refreshPreview },
     exportPDF: { value: exportPDF }, loadTemplateList: { value: loadTemplateList },
-    applyWizard: { value: applyWizard }, buildDSL: { value: buildDSL }, parseDSL: { value: parseDSL },
+    applyWizard: { value: applyWizard },
+    // ── Alignment functions ──
+    alignSelected: { value: alignSelected },
+    distributeSelected: { value: distributeSelected },
+    matchSize: { value: matchSize },
+    toggleAlignGroup: { value: toggleAlignGroup },
+    toggleSnap: { value: toggleSnap },
+    toggleLargeText: { value: toggleLargeText },
+    resetApp: { value: resetApp },
 });
+
+// ── Alignment functions ──
+function getSelectedElements() {
+    if (!S.sel) return [];
+    return S.E.filter(function(el) { return el.id === S.sel; });
+}
+
+function alignSelected(direction) {
+    if (!S.sel) { showToast("Select an element first", "error"); return; }
+    var el = S.E.find(function(x) { return x.id === S.sel; });
+    if (!el) return;
+    var pw = S._pw, ph = S._ph;
+    switch (direction) {
+        case "left": el.x = 20; break;
+        case "center": el.x = Math.round((pw - el.w) / 2); break;
+        case "right": el.x = pw - el.w - 20; break;
+        case "top": el.y = 20; break;
+        case "middle": el.y = Math.round((ph - el.h) / 2); break;
+        case "bottom": el.y = ph - el.h - 20; break;
+    }
+    S.pushUndo();
+    S.render();
+    S.updateProps();
+    showToast("Aligned: " + direction, "success");
+}
+
+function distributeSelected(axis) {
+    if (!S.sel) { showToast("Select elements first", "error"); return; }
+    var sel = S.E.filter(function(el) { return el.id === S.sel; });
+    if (sel.length < 2) { showToast("Select at least 2 elements to distribute", "error"); return; }
+    var sorted = sel.slice().sort(function(a, b) {
+        return axis === "h" ? a.x - b.x : a.y - b.y;
+    });
+    var first = sorted[0], last = sorted[sorted.length - 1];
+    var span = axis === "h" ? (last.x + last.w - first.x) : (last.y + last.h - first.y);
+    var totalSize = sorted.reduce(function(s, el) {
+        return s + (axis === "h" ? el.w : el.h);
+    }, 0);
+    var gap = (span - totalSize) / (sorted.length - 1);
+    var cursor = axis === "h" ? first.x : first.y;
+    sorted.forEach(function(el) {
+        if (axis === "h") { el.x = Math.round(cursor); cursor += el.w + gap; }
+        else { el.y = Math.round(cursor); cursor += el.h + gap; }
+    });
+    S.pushUndo();
+    S.render();
+    showToast("Distributed: " + (axis === "h" ? "horizontally" : "vertically"), "success");
+}
+
+function matchSize(axis) {
+    if (!S.sel) { showToast("Select elements first", "error"); return; }
+    var sel = S.E.filter(function(el) { return el.id === S.sel; });
+    if (sel.length < 2) { showToast("Select at least 2 elements to match", "error"); return; }
+    var ref = sel[0];
+    sel.forEach(function(el) {
+        if (el.id === ref.id) return;
+        if (axis === "w") { el.w = ref.w; }
+        else { el.h = ref.h; }
+    });
+    S.pushUndo();
+    S.render();
+    S.updateProps();
+    showToast("Matched: " + (axis === "w" ? "width" : "height"), "success");
+}
+
+function toggleAlignGroup() {
+    var group = document.getElementById("align-group");
+    if (!group) return;
+    var isVisible = group.style.display !== "none";
+    group.style.display = isVisible ? "none" : "flex";
+}
+
+function toggleSnap() {
+    var btn = document.getElementById("btn-snap");
+    if (!btn) return;
+    btn.classList.toggle("active");
+    S._snapEnabled = btn.classList.contains("active");
+    showToast(S._snapEnabled ? "Snap-to-guide ON" : "Snap-to-guide OFF", "info");
+}
+
+function toggleLargeText() {
+    var btn = document.getElementById("btn-large-text");
+    if (!btn) return;
+    btn.classList.toggle("active");
+    document.body.classList.toggle("large-text");
+    showToast(document.body.classList.contains("large-text") ? "Large Text ON" : "Large Text OFF", "info");
+}
+
+function resetApp() {
+    if (!confirm("Reset App — this will clear all saved drafts and reload the page. Continue?")) return;
+    clearDraft();
+    localStorage.removeItem(_draftKey);
+    localStorage.removeItem(_draftFileKey);
+    location.reload();
+}
 window.StampAlbum = S;
 
 // ── Init (events.js provides S.init) ──

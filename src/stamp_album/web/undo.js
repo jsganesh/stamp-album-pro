@@ -2,35 +2,35 @@
 (function(){
 var S = window.StampAlbum;
 
-// ── Undo/redo system ──
-var _undoStack = [], _redoStack = [], _undoMax = 50, _undoPaused = false;
+// ── Undo/redo system — uses S._undoStack / S._redoStack / S._undoPaused ──
 
 function pushUndo() {
-    if (_undoPaused) return;
-    _undoStack.push(JSON.stringify(S.E));
-    if (_undoStack.length > _undoMax) _undoStack.shift();
-    _redoStack = [];
+    if (S._undoPaused) return;
+    S._undoStack.push(JSON.stringify(S.E));
+    if (S._undoStack.length > 50) S._undoStack.shift();
+    S._redoStack = [];
     S._dirty = true;
     S.updateTitle();
+    S.scheduleDraftSave();
 }
 function undo() {
-    if (_undoStack.length < 2) return;
-    _redoStack.push(_undoStack.pop());
-    var state = JSON.parse(_undoStack.pop());
+    if (S._undoStack.length < 2) return;
+    S._redoStack.push(S._undoStack.pop());
+    var state = JSON.parse(S._undoStack.pop());
     loadElements(state);
     S.updateTitle();
 }
 function redo() {
-    if (_redoStack.length === 0) return;
-    _undoStack.push(JSON.stringify(S.E));
-    var state = JSON.parse(_redoStack.pop());
+    if (S._redoStack.length === 0) return;
+    S._undoStack.push(JSON.stringify(S.E));
+    var state = JSON.parse(S._redoStack.pop());
     loadElements(state);
     S.updateTitle();
 }
 function loadElements(arr) {
-    S.E = arr; S.sel = null; S.switchPage(S._currentPage, true); render(); S.updateProps();
+    S.E = arr; S.sel = null; S.switchPage(S._currentPage, true); S.render(); S.updateProps();
 }
-function loadElementsNoPush(arr) { _undoPaused = true; loadElements(arr); _undoPaused = false; }
+function loadElementsNoPush(arr) { S._undoPaused = true; loadElements(arr); S._undoPaused = false; }
 
 S.pushUndo = pushUndo;
 S.undo = undo;

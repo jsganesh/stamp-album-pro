@@ -634,9 +634,7 @@ class MainWindow(QMainWindow):
         try:
             parser = AlbumParser()
             album = parser.parse(self.editor.toPlainText(), self._file_path)
-            generator = PDFGenerator()
-            html = generator.get_html_preview(album)
-            self.preview.set_html_content(html)
+            self.preview.set_album(album)
         except Exception:
             # Silently ignore preview errors (user is still typing)
             pass

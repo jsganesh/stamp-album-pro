@@ -72,7 +72,7 @@ def _wait_and_open(url: str, timeout: float = 20.0) -> None:
 
 def main() -> int:
     """Start the server and open the app in the default browser."""
-    # macOS: ensure WeasyPrint can find Homebrew native libraries
+    # macOS: ensure fitz/PyMuPDF can find system font directories
     if sys.platform == "darwin":
         for brew_prefix in ("/opt/homebrew", "/usr/local"):
             lib_dir = os.path.join(brew_prefix, "lib")
@@ -112,20 +112,35 @@ def main() -> int:
     opener.start()
 
     # Run uvicorn in the foreground (blocks until Ctrl+C)
-    from stamp_album.api import app
-
     reload = os.environ.get("STAMP_ALBUM_RELOAD", "") == "1"
 
-    try:
-        uvicorn.run(
-            app,
-            host=host,
-            port=port,
-            log_level="warning",
-            reload=reload,
-        )
-    except KeyboardInterrupt:
-        pass
+    # When reload is enabled, pass the app as an import string (required by uvicorn)
+    # and watch the web directory for JS/CSS/HTML changes
+    if reload:
+        from pathlib import Path
+        web_dir = str(Path(__file__).resolve().parent / "web")
+        try:
+            uvicorn.run(
+                "stamp_album.api:app",
+                host=host,
+                port=port,
+                log_level="warning",
+                reload=True,
+                reload_dirs=[web_dir],
+            )
+        except KeyboardInterrupt:
+            pass
+    else:
+        from stamp_album.api import app
+        try:
+            uvicorn.run(
+                app,
+                host=host,
+                port=port,
+                log_level="warning",
+            )
+        except KeyboardInterrupt:
+            pass
     print("\nStampAlbum Pro stopped.")
     return 0
 

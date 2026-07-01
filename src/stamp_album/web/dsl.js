@@ -2,7 +2,7 @@
 (function(){
 var S = window.StampAlbum;
 var $ = S.$, mm = S.mm, px = S.px, showToast = S.showToast;
-var pushUndo = S.pushUndo, render = S.render;
+var render = S.render;
 
 // ── Escape user strings for DSL embedding ──
 function escapeDSL(s) {

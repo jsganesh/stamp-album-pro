@@ -33,7 +33,7 @@ async def security_headers(request: Request, call_next):
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
         "script-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; "
-        "style-src 'self' 'unsafe-inline'; "
+        "style-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; "
         "img-src 'self' data: blob:; "
         "font-src 'self' data:; "
         "connect-src 'self'; "
@@ -65,7 +65,18 @@ WEB_DIR = Path(__file__).parent / "web"
 
 @app.get("/")
 async def root():
-    return FileResponse(WEB_DIR / "index.html")
+    html = (WEB_DIR / "index.html").read_text(encoding="utf-8")
+    import time
+    ts = str(int(time.time()))
+    html = html.replace("{{{VERSION}}}", ts)
+    return HTMLResponse(html)
+
+
+@app.get("/version")
+async def version():
+    import time
+    from stamp_album import __version__
+    return {"version": __version__ if hasattr(__import__('stamp_album'), '__version__') else "dev", "ts": int(time.time())}
 
 
 @app.get("/style.css")
@@ -399,6 +410,12 @@ class CanvasElementState(BaseModel):
     fill: str = "#fff"
     fillA: int = 100
     img: str = ""
+    # Philatelic metadata
+    hdg: str = ""
+    cat: str = ""
+    denom: str = ""
+    cond: str = ""
+    perf: str = ""
 
 
 class CanvasStateRequest(BaseModel):
@@ -411,12 +428,14 @@ class CanvasStateRequest(BaseModel):
     format: str = "html"
     title: str = "My Album"
     author: str = ""
+    border_style: str = ""
+    border_color: str = ""
 
 
 def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
     """Convert canvas state directly to Album model, bypassing DSL text."""
     from stamp_album.core.models import (
-        Album, Page, PageSetup, Stamp, StampShape, Color,
+        Album, Page, PageSetup, Stamp, StampShape, StampHeading, Color,
     )
 
     SCALE = req.scale
@@ -436,6 +455,15 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
         page = Page()
         for el in elements:
             is_text = el.t == "text"
+            # Build catalog_refs from cat field
+            catalog_refs = [el.cat] if el.cat else []
+            # Build heading from hdg field
+            heading = None
+            if el.hdg:
+                heading = StampHeading(text=el.hdg, font_id="HN", size=9.0)
+            # Compose footer with denomination + condition + perforation
+            footer_parts = [p for p in [el.denom, el.cond, el.perf] if p]
+            footer = " · ".join(footer_parts) if footer_parts else ""
             stamp = Stamp(
                 abs_x=el.x / SCALE,
                 abs_y=el.y / SCALE,
@@ -448,6 +476,9 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
                 font_id=el.font or "HN",
                 font_size=el.fs or 12.0,
             )
+            stamp.catalog_refs = catalog_refs
+            stamp.heading = heading
+            stamp.footer_text = footer
             page.absolute_stamps.append(stamp)
         return page
 
@@ -464,6 +495,35 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
     )
     album.color_stamp_border = Color(r=0.5, g=0.5, b=0.5)
     album.color_stamp_background = Color(r=1.0, g=1.0, b=1.0)
+
+    # Apply border style from canvas state
+    if req.border_style and req.border_style != "none":
+        ps = album.page_setup
+        ps.has_border = True
+        if req.border_style == "solid" or req.border_style == "dashed":
+            ps.border_outer = 0.5
+            ps.border_inner1 = 0.0
+            ps.border_inner2 = 0.0
+        elif req.border_style == "double":
+            ps.border_outer = 0.5
+            ps.border_inner1 = 0.3
+            ps.border_inner2 = 0.0
+        else:
+            ps.border_outer = 0.5
+            ps.border_inner1 = 0.0
+            ps.border_inner2 = 0.0
+        ps.border_spacing = 1.0
+        if req.border_color:
+            try:
+                c = req.border_color.lstrip("#")
+                if len(c) == 3:
+                    c = "".join(x * 2 for x in c)
+                r = int(c[0:2], 16) / 255
+                g = int(c[2:4], 16) / 255
+                b = int(c[4:6], 16) / 255
+                album.color_album_border = Color(r=r, g=g, b=b)
+            except (ValueError, IndexError):
+                pass
     return album
 
 

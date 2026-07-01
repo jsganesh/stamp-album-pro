@@ -92,6 +92,14 @@ function init() {
             if (w < 10) w = 10;
             if (oh < 10) oh = 10;
         }
+
+        // Snap-to-guide: use centralized applySnap
+        if (h === "move") {
+            var snapped = S.applySnap(S._dragEl, x, y, w, oh);
+            x = snapped.x;
+            y = snapped.y;
+        }
+
         S._dragEl.x = Math.max(0, Math.min(x, S._pw - S._dragEl.w));
         S._dragEl.y = Math.max(0, Math.min(y, S._ph - S._dragEl.h));
         S._dragEl.w = Math.min(w, S._pw - S._dragEl.x);
@@ -157,6 +165,28 @@ function init() {
         el.fs = parseFloat(this.value) || 12; pushUndo(); render();
     });
 
+    // ── Philatelic metadata fields ──
+    $("phdg").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.hdg = this.value; pushUndo(); render();
+    });
+    $("pcat").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.cat = this.value; pushUndo(); render();
+    });
+    $("pdenom").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.denom = this.value; pushUndo(); render();
+    });
+    $("pcond").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.cond = this.value; pushUndo(); render();
+    });
+    $("pperf").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.perf = this.value; pushUndo(); render();
+    });
+
     // ── Buttons ──
     $("btn-new").addEventListener("click", newAlbum);
     $("btn-open").addEventListener("click", function() { $("file-inp").click(); });
@@ -199,6 +229,92 @@ function init() {
     });
     $("btn-cls-wiz").addEventListener("click", function() {
         $("wizard-panel").classList.remove("open");
+    });
+
+    // ── Preview & Export ──
+    $("btn-preview").addEventListener("click", function() {
+        if (S.openPreview) S.openPreview();
+    });
+    $("btn-export").addEventListener("click", function() {
+        if (S.exportPDF) S.exportPDF();
+    });
+    $("btn-dsl").addEventListener("click", function() {
+        var panel = $("dsl-panel");
+        if (panel) panel.classList.toggle("open");
+    });
+    $("btn-preview-close").addEventListener("click", function() {
+        $("preview-overlay").classList.remove("open");
+    });
+    $("btn-preview-refresh").addEventListener("click", function() {
+        if (S.openPreview) S.openPreview();
+    });
+    $("btn-preview-export").addEventListener("click", function() {
+        if (S.exportPDF) S.exportPDF();
+    });
+    var previewOverlay$ = $("preview-overlay");
+    if (previewOverlay$) previewOverlay$.classList.remove("open");
+
+    // ── Canvas toolbar controls ──
+    $("grid").addEventListener("change", function() {
+        S._sn = parseInt(this.value) || 0;
+        S.updateGrid();
+    });
+    $("col-mode").addEventListener("change", function() {
+        S._colMode = parseInt(this.value) || 1;
+        S.render();
+    });
+    $("col-gap").addEventListener("change", function() {
+        S._colGap = parseFloat(this.value) || 10;
+    });
+    $("def-bdr").addEventListener("change", function() { S._defBdr = this.value; });
+    $("def-bdr-c").addEventListener("change", function() { S._defBdrC = this.value; });
+    $("def-fill-c").addEventListener("change", function() { S._defFillC = this.value; });
+    $("pg-size").addEventListener("change", function() {
+        var sizes = { a4: [595, 842], letter: [612, 792], a3: [842, 1191] };
+        var v = sizes[this.value] || sizes.a4;
+        S._pw = v[0]; S._ph = v[1];
+        $("page").className = "page " + this.value;
+        S.render();
+        S.updateGrid();
+    });
+
+    // ── Alignment toolbar ──
+    $("btn-align-l").addEventListener("click", function() { S.alignSelected("left"); });
+    $("btn-align-c").addEventListener("click", function() { S.alignSelected("center"); });
+    $("btn-align-r").addEventListener("click", function() { S.alignSelected("right"); });
+    $("btn-align-t").addEventListener("click", function() { S.alignSelected("top"); });
+    $("btn-align-m").addEventListener("click", function() { S.alignSelected("middle"); });
+    $("btn-align-b").addEventListener("click", function() { S.alignSelected("bottom"); });
+    $("btn-dist-h").addEventListener("click", function() { S.distributeSelected("h"); });
+    $("btn-dist-v").addEventListener("click", function() { S.distributeSelected("v"); });
+    $("btn-match-w").addEventListener("click", function() { S.matchSize("w"); });
+    $("btn-match-h").addEventListener("click", function() { S.matchSize("h"); });
+    $("btn-snap").addEventListener("click", function() { S.toggleSnap(); });
+
+    // Show alignment group when element is selected
+    var origSelect = S.select;
+    S.select = function(id) {
+        origSelect(id);
+        var group = $("align-group");
+        if (group) {
+            group.style.display = id ? "flex" : "none";
+        }
+    };
+
+    // ── Keyboard shortcuts ──
+    document.addEventListener("keydown", function(e) {
+        // Don't trigger shortcuts while typing in inputs
+        if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
+        var cmd = e.metaKey || e.ctrlKey;
+        if (cmd && e.key === "z") { e.preventDefault(); if (S.undo) S.undo(); }
+        else if (cmd && e.key === "y") { e.preventDefault(); if (S.redo) S.redo(); }
+        else if (cmd && e.key === "s") { e.preventDefault(); if (S.saveFile) S.saveFile(); }
+        else if (cmd && e.key === "n") { e.preventDefault(); if (S.newAlbum) S.newAlbum(); }
+        else if (cmd && e.key === "o") { e.preventDefault(); var fi = $("file-inp"); if (fi) fi.click(); }
+        else if (cmd && e.key === "p") { e.preventDefault(); if (S.openPreview) S.openPreview(); }
+        else if (cmd && e.key === "d") { e.preventDefault(); $("btn-dup-el").click(); }
+        else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); if (S.sel) $("btn-del").click(); }
+        else if (e.key === "Escape") { if (S.select) S.select(null); }
     });
 
     // ── Before unload ──
