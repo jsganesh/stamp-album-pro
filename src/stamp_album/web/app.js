@@ -244,7 +244,7 @@ function buildCanvasState(format) {
         scale: _sc,
         source_path: _currentFile || "album.slbum",
         format: format || "html",
-        title: (_currentFile || "My Album").replace(/\.(slbum|txt)$/, ""),
+        title: (_currentFile || "").replace(/\.(slbum|txt)$/, ""),
         author: "",
         border_style: _pageBorder || "",
         border_color: _pageBorderC || ""
@@ -368,7 +368,7 @@ function loadTemplateList() {
 
 // ── Wizard ──
 function applyWizard() {
-    var title = $("wiz-title").value || "My Album";
+    var title = $("wiz-title").value || "";
     var author = $("wiz-author").value || "";
     var pgSize = $("wiz-pg-size").value || "a4";
     var orient = $("wiz-orient").value || "portrait";

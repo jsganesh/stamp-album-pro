@@ -12,7 +12,7 @@ function escapeDSL(s) {
 // ── DSL round-trip ──
 function buildDSL() {
     var lines = [
-        'ALBUM_TITLE("' + (S._currentFile ? S._currentFile.replace(/\.(slbum|txt)$/, "") : "My Album") + '")',
+        'ALBUM_TITLE("' + (S._currentFile ? S._currentFile.replace(/\.(slbum|txt)$/, "") : "") + '")',
         "ALBUM_PAGES_SIZE(" + mm(S._pw) + " " + mm(S._ph) + ")",
         "ALBUM_PAGES_MARGINS(15 15 15 15)",
         "PAGE_START"

@@ -6,7 +6,7 @@ var parseDSL = S.parseDSL, escapeDSL = S.escapeDSL;
 
 // ── Wizard ──
 function applyWizard() {
-    var title = $("wiz-title").value || "My Album";
+    var title = $("wiz-title").value || "";
     var author = $("wiz-author").value || "";
     var pgSize = $("wiz-pg-size").value || "a4";
     var orient = $("wiz-orient").value || "portrait";

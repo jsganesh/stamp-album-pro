@@ -426,7 +426,7 @@ class CanvasStateRequest(BaseModel):
     scale: float = 2.5
     source_path: str = "album.slbum"
     format: str = "html"
-    title: str = "My Album"
+    title: str = ""
     author: str = ""
     border_style: str = ""
     border_color: str = ""
@@ -487,7 +487,7 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
         pages.append(build_page(pg))
 
     album = Album(
-        title=req.title or "My Album",
+        title=req.title or "",
         author=req.author or "",
         source_path=req.source_path or "album.slbum",
         page_setup=PageSetup(width=w_mm, height=h_mm),

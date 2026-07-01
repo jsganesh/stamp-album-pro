@@ -25,7 +25,7 @@ function buildCanvasState(format) {
         scale: S._sc,
         source_path: S._currentFile || "album.slbum",
         format: format || "html",
-        title: (S._currentFile || "My Album").replace(/\.(slbum|txt)$/, ""),
+        title: (S._currentFile || "").replace(/\.(slbum|txt)$/, ""),
         author: ""
     };
 }
