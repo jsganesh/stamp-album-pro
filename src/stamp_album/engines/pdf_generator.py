@@ -482,7 +482,7 @@ class HTMLRenderer:
                 pts = shape_polygons[stamp.shape]
                 parts.append(
                     f'<div class="stamp" style="position:absolute;left:{stamp.abs_x}mm;top:{stamp.abs_y}mm;width:{width}mm;height:{height}mm;">'
-                    f'<svg width="100%" height="100%" viewBox="0 0 100 100" style="position:absolute;top:0;left:0;">'
+                    f'<svg width="{width}mm" height="{height}mm" viewBox="0 0 100 100" style="position:absolute;top:0;left:0;">'
                     f'<polygon points="{pts}" fill="{bg_color}" stroke="{border_color}" stroke-width="0.3"/>'
                     f'</svg>'
                     f'{desc_html}</div>'
@@ -490,7 +490,7 @@ class HTMLRenderer:
             elif stamp.shape == StampShape.OVAL:
                 parts.append(
                     f'<div class="stamp" style="position:absolute;left:{stamp.abs_x}mm;top:{stamp.abs_y}mm;width:{width}mm;height:{height}mm;">'
-                    f'<svg width="100%" height="100%" viewBox="0 0 100 100" style="position:absolute;top:0;left:0;">'
+                    f'<svg width="{width}mm" height="{height}mm" viewBox="0 0 100 100" style="position:absolute;top:0;left:0;">'
                     f'<ellipse cx="50" cy="50" rx="50" ry="50" fill="{bg_color}" stroke="{border_color}" stroke-width="0.3"/>'
                     f'</svg>'
                     f'{desc_html}</div>'
@@ -498,9 +498,9 @@ class HTMLRenderer:
             else:
                 # Rectangle: use CSS box (simpler and more precise for WeasyPrint)
                 parts.append(
-                    f'<div class="stamp" style="position:absolute;left:{stamp.abs_x}mm;top:{stamp.abs_y}mm;width:{width}mm;">'
+                    f'<div class="stamp" style="position:absolute;left:{stamp.abs_x}mm;top:{stamp.abs_y}mm;width:{width}mm;height:{height}mm;">'
                     f'<div class="stamp-box" style="width:{width}mm;height:{height}mm;'
-                    f'border:0.5pt solid {border_color};background-color:{bg_color};">'
+                    f'border:0.5pt solid {border_color};background-color:{bg_color};display:flex;align-items:center;justify-content:center;">'
                     f'{desc_html}</div></div>'
                 )
 
