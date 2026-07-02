@@ -22,8 +22,25 @@ function buildDSL() {
         'ALBUM_TITLE("' + (S._currentFile ? S._currentFile.replace(/\.(slbum|txt)$/, "") : "") + '")',
         "ALBUM_PAGES_SIZE(" + mm(S._pw) + " " + mm(S._ph) + ")",
         "ALBUM_PAGES_MARGINS(15 15 15 15)",
-        "PAGE_START"
     ];
+
+    // Page border
+    if (S._pageBorder && S._pageBorder !== "none") {
+        // Map canvas border style to ALBUM_PAGES_BORDER params
+        var outer = 0.5, inner1 = 0, inner2 = 0, spacing = 1.0;
+        if (S._pageBorder === "double" || S._pageBorder === "classic" ||
+            S._pageBorder === "victorian" || S._pageBorder === "artdeco" ||
+            S._pageBorder === "laurel" || S._pageBorder === "gothic" ||
+            S._pageBorder === "filigree") {
+            inner1 = 0.3;
+        }
+        lines.push("ALBUM_PAGES_BORDER(" + outer + " " + inner1 + " " + inner2 + " " + spacing + ")");
+        if (S._pageBorderC) {
+            lines.push('COLOUR_ALBUM_BORDER("' + S._pageBorderC + '")');
+        }
+    }
+
+    lines.push("PAGE_START");
 
     if (S._colMode > 1) {
         lines.push("PAGE_COLUMN_START(" + S._colMode + " " + S._colGap.toFixed(1) + ")");
@@ -93,6 +110,21 @@ function parseDSL(dsl) {
         var mMargin = t.match(/^ALBUM_PAGES_MARGINS\(\s*([\d.]+)\s/);
         if (mMargin) {
             _pageMargin = parseFloat(mMargin[1]);
+            continue;
+        }
+        var mBorder = t.match(/^ALBUM_PAGES_BORDER\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\)/);
+        if (mBorder) {
+            var bi1 = parseFloat(mBorder[2]);
+            if (bi1 > 0) {
+                S._pageBorder = "double";
+            } else {
+                S._pageBorder = "solid";
+            }
+            continue;
+        }
+        var mBorderColor = t.match(/^COLOUR_ALBUM_BORDER\(\s*"#?([^"]+)"\s*\)|^COLOR_ALBUM_BORDER\(\s*"#?([^"]+)"\s*\)/);
+        if (mBorderColor) {
+            S._pageBorderC = "#" + (mBorderColor[1] || mBorderColor[2]);
             continue;
         }
         if (t.match(/^PAGE_START/)) {

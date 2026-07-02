@@ -508,9 +508,18 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
             ps.border_outer = 0.5
             ps.border_inner1 = 0.3
             ps.border_inner2 = 0.0
-        else:
+        elif req.border_style == "dotted":
             ps.border_outer = 0.5
             ps.border_inner1 = 0.0
+            ps.border_inner2 = 0.0
+        elif req.border_style in ("greek_key", "rope"):
+            ps.border_outer = 0.5
+            ps.border_inner1 = 0.0
+            ps.border_inner2 = 0.0
+        else:
+            # Ornamental borders (classic, victorian, artdeco, laurel, gothic, filigree)
+            ps.border_outer = 0.5
+            ps.border_inner1 = 0.3
             ps.border_inner2 = 0.0
         ps.border_spacing = 1.0
         if req.border_color:

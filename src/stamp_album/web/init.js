@@ -248,6 +248,7 @@ function init() {
     $("btn-app-dsl").addEventListener("click", function() {
         var dsl = _cmEditor ? _cmEditor.getValue() : $("dsl-ta").value;
         parseDSL(dsl);
+        if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
         pushUndo();
         render();
         showToast("DSL applied", "success");
