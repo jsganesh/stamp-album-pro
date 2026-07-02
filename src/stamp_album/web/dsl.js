@@ -10,14 +10,6 @@ function escapeDSL(s) {
 }
 // ── DSL round-trip ──
 function buildDSL() {
-    // Collect all elements across all pages
-    var totalEls = S.E.length;
-    for (var i = 1; i < S._pages.length; i++) {
-        totalEls += (S._pages[i] || []).length;
-    }
-    // Empty canvas = empty DSL
-    if (totalEls === 0) return "";
-
     var lines = [
         'ALBUM_TITLE("' + (S._currentFile ? S._currentFile.replace(/\.(slbum|txt)$/, "") : "") + '")',
         "ALBUM_PAGES_SIZE(" + mm(S._pw) + " " + mm(S._ph) + ")",

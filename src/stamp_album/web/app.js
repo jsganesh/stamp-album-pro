@@ -6,7 +6,7 @@ var _defBdr = "solid", _defBdrC = "#666", _defFillC = "#fff";
 var _collapsed = { sb: false, rp: false };
 var _currentFile = null, _currentPage = 0, _pages = [ [] ];
 var _dirty = false;
-var _colMode = 1, _colGap = 10.0, _pageBorder = "double", _pageBorderC = "";  // Column layout mode, gap (mm), page border style
+var _colMode = 1, _colGap = 10.0, _pageBorder = "", _pageBorderC = "";  // Column layout mode, gap (mm), page border style
 
 // ── Forward references (set by render.js after load) ──
 var render = function() { S.render(); };
@@ -23,7 +23,8 @@ var _draftDebounceMs = 500;
 
 function saveDraft() {
     try {
-        var state = { v: 1, pages: _pages, currentPage: _currentPage, elements: E };
+        var state = { v: 2, pages: _pages, currentPage: _currentPage, elements: E,
+            pageBorder: _pageBorder, pageBorderC: _pageBorderC };
         localStorage.setItem(_draftKey, JSON.stringify(state));
         if (_currentFile) localStorage.setItem(_draftFileKey, _currentFile);
         else localStorage.removeItem(_draftFileKey);
@@ -44,6 +45,8 @@ function loadDraft() {
         if (_currentPage >= _pages.length) _currentPage = _pages.length - 1;
         E = _pages[_currentPage] || [];
         sel = null;
+        if (state.pageBorder !== undefined) _pageBorder = state.pageBorder;
+        if (state.pageBorderC !== undefined) _pageBorderC = state.pageBorderC;
         var savedFile = localStorage.getItem(_draftFileKey);
         if (savedFile) _currentFile = savedFile;
         return true;
@@ -135,7 +138,7 @@ function switchPage(idx, silent) {
     sel = null;
     renderPageDots();
     render();
-    if (S.renderPageBorder) S.renderPageBorder(_pageBorder || "double");
+    if (S.renderPageBorder) S.renderPageBorder(_pageBorder);
     updateProps();
 }
 function addPage() {

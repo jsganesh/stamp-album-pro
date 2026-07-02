@@ -86,9 +86,9 @@ function cornerOrnament(style, corner) {
     var bbox = ORNAMENT_BBOX[style] || { w: 60, h: 80 };
     var transforms = {
         tl: "",
-        tr: "scale(-1,1) translate(-" + bbox.w + ",0)",
-        br: "scale(-1,-1) translate(-" + bbox.w + ",-" + bbox.h + ")",
-        bl: "scale(1,-1) translate(0,-" + bbox.h + ")"
+        tr: "scale(-1,1)",
+        br: "scale(-1,-1)",
+        bl: "scale(1,-1)"
     };
     var t = transforms[corner] || "";
 
