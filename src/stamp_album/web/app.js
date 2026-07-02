@@ -176,6 +176,14 @@ function renderPageDots() {
     addDot.title = "Add page";
     addDot.addEventListener("click", addPage);
     c.appendChild(addDot);
+    if (_pages.length > 1) {
+        var delDot = document.createElement("span");
+        delDot.className = "pg-dot del";
+        delDot.textContent = "−";
+        delDot.title = "Delete current page";
+        delDot.addEventListener("click", deletePage);
+        c.appendChild(delDot);
+    }
 }
 
 // ── Grid lines ──

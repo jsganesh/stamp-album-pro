@@ -110,8 +110,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 #page-wrap { flex: 1; overflow: auto; display: flex; justify-content: center; padding: 20px; background: #E0DCD4; position: relative; }
 .page { background: #fff; box-shadow: 0 4px 24px var(--page-shadow); position: relative; flex-shrink: 0; }
 .page.a4 { width: 595px; height: 842px; }
-.page.letter { width: 612px; height: 792px; }
+.page.a5 { width: 420px; height: 595px; }
 .page.a3 { width: 842px; height: 1191px; }
+.page.letter { width: 612px; height: 792px; }
+.page.legal { width: 612px; height: 1009px; }
 .page.drag-over { outline: 3px dashed var(--accent); outline-offset: -3px; }
 
 /* Grid lines overlay */
@@ -170,6 +172,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .pg-dot:hover { border-color: var(--accent); }
 .pg-dot.add { background: transparent; border-color: var(--border); font-size: 12px; color: var(--text2); line-height: 1; }
 .pg-dot.add:hover { border-color: var(--accent); color: var(--accent); }
+.pg-dot.del { background: transparent; border-color: var(--border); font-size: 14px; color: #c00; line-height: 1; margin-left: 4px; }
+.pg-dot.del:hover { border-color: #c00; color: #fff; background: #c00; }
 
 /* Right panel (properties) */
 #rp { width: var(--props); background: var(--bg2); border-left: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; transition: width 0.2s; }

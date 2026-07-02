@@ -21,8 +21,8 @@ function applyWizard() {
     lines.push('ALBUM_TITLE("' + escapeDSL(title) + '")');
     if (author) lines.push('ALBUM_AUTHOR("' + escapeDSL(author) + '")');
 
-    var w = pgSize === "a4" ? 210 : pgSize === "letter" ? 216 : 297;
-    var h = pgSize === "a4" ? 297 : pgSize === "letter" ? 279 : 420;
+    var w = pgSize === "a4" ? 210 : pgSize === "a5" ? 148 : pgSize === "letter" ? 216 : pgSize === "legal" ? 216 : 297;
+    var h = pgSize === "a4" ? 297 : pgSize === "a5" ? 210 : pgSize === "letter" ? 279 : pgSize === "legal" ? 356 : 420;
     if (orient === "landscape") { var t = w; w = h; h = t; }
     lines.push("ALBUM_PAGES_SIZE(" + w + " " + h + ")");
     lines.push("ALBUM_PAGES_MARGINS(15 15 15 15)");

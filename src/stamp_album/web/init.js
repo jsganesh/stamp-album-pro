@@ -313,13 +313,13 @@ function init() {
 
     // ── Page Size / Grid ──
     $("pg-size").addEventListener("change", function() {
-        var s = { a4: [595, 842], letter: [612, 792], a3: [842, 1191] };
+        var s = { a4: [595, 842], a5: [420, 595], a3: [842, 1191], letter: [612, 792], legal: [612, 1009] };
         var v = s[this.value] || s.a4;
         S._pw = v[0]; S._ph = v[1];
         $("page").className = "page " + this.value;
         render();
         S.updateGrid();
-    if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
+        if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
         S.schedulePreviewRefresh();
     });
     $("grid").addEventListener("change", function() {
