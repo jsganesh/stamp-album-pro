@@ -9,19 +9,31 @@ function escapeDSL(s) {
     return String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
 }
 // ── DSL round-trip ──
-function buildDSL() {
-    // Collect all elements across all pages
-    var totalEls = S.E.length;
-    for (var i = 1; i < S._pages.length; i++) {
-        totalEls += (S._pages[i] || []).length;
+function _serializeEl(el) {
+    if (el.t === "image") {
+        return 'STAMP_ADD_IMG(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.img || "") + '" "' + (el.lbl || "") + '" "" "")';
+    } else if (el.t === "text") {
+        return 'PAGE_TEXT_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.font || "HN") + '" ' + (el.fs || 12) + ' "' + (el.lbl || "Text") + '" "' + (el.align || "left") + '")';
+    } else if (el.t === "freehand") {
+        return 'STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "freehand" "' + el.bdr + '" "' + el.fill + '")';
+    } else {
+        return 'STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "' + el.s + '" "' + el.bdr + '" "' + el.fill + '")';
     }
+}
+
+function buildDSL() {
+    // Snapshot all pages' element counts
+    var allPages = [];
+    for (var pi = 0; pi < S._pages.length; pi++) {
+        allPages.push(pi === S._currentPage ? JSON.parse(JSON.stringify(S.E)) : JSON.parse(JSON.stringify(S._pages[pi] || [])));
+    }
+    var totalEls = 0;
+    for (var pi = 0; pi < allPages.length; pi++) { totalEls += allPages[pi].length; }
+
     var hasBorder = S._pageBorder && S._pageBorder !== "none";
-    // Empty canvas with no border = empty DSL
     if (totalEls === 0 && !hasBorder) return "";
 
     var lines = [];
-
-    // Page border
     if (hasBorder) {
         var outer = 0.5, inner1 = 0, inner2 = 0, spacing = 1.0;
         if (S._pageBorder === "double" || S._pageBorder === "classic" ||
@@ -35,62 +47,23 @@ function buildDSL() {
             lines.push('COLOUR_ALBUM_BORDER("' + S._pageBorderC + '")');
         }
     }
-
-    // Only emit page-level boilerplate when there's actual content
     if (totalEls > 0) {
         lines.push('ALBUM_TITLE("' + (S._currentFile ? S._currentFile.replace(/\.(slbum|txt)$/, "") : "") + '")');
         lines.push("ALBUM_PAGES_SIZE(" + mm(S._pw) + " " + mm(S._ph) + ")");
         lines.push("ALBUM_PAGES_MARGINS(15 15 15 15)");
     }
 
-    lines.push("PAGE_START");
-
-    if (S._colMode > 1) {
-        lines.push("PAGE_COLUMN_START(" + S._colMode + " " + S._colGap.toFixed(1) + ")");
-    }
-
-    S.E.forEach(function(el) {
-        if (el.t === "image") {
-            lines.push('STAMP_ADD_IMG(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.img || "") + '" "' + (el.lbl || "") + '" "" "")');
-        } else if (el.t === "text") {
-            var cmd = el.align === "center" ? "PAGE_TEXT_CENTRE" : el.align === "right" ? "PAGE_TEXT_RIGHT" : "PAGE_TEXT";
-            lines.push(cmd + '("' + (el.font || "HN") + '" ' + (el.fs || 12) + ' "' + (el.lbl || "Text") + '")');
-        } else if (el.t === "freehand") {
-            lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "freehand" "' + el.bdr + '" "' + el.fill + '")');
-        } else {
-            lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "' + el.s + '" "' + el.bdr + '" "' + el.fill + '")');
+    for (var pi = 0; pi < allPages.length; pi++) {
+        if (allPages[pi].length === 0) continue;
+        if (lines.length > 0) lines.push("PAGE_START");
+        if (S._colMode > 1) {
+            lines.push("PAGE_COLUMN_START(" + S._colMode + " " + S._colGap.toFixed(1) + ")");
         }
-    });
-
-    if (S._colMode > 1) {
-        lines.push("PAGE_COLUMN_STOP");
-    }
-
-    for (var i = 1; i < S._pages.length; i++) {
-        var pgEls = S._pages[i];
-        if (pgEls && pgEls.length > 0) {
-            lines.push("PAGE_START");
-            if (S._colMode > 1) {
-                lines.push("PAGE_COLUMN_START(" + S._colMode + " " + S._colGap.toFixed(1) + ")");
-            }
-            pgEls.forEach(function(el) {
-                if (el.t === "image") {
-                    lines.push('STAMP_ADD_IMG(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.img || "") + '" "' + (el.lbl || "") + '" "" "")');
-                } else if (el.t === "text") {
-                    var cmd = el.align === "center" ? "PAGE_TEXT_CENTRE" : el.align === "right" ? "PAGE_TEXT_RIGHT" : "PAGE_TEXT";
-                    lines.push(cmd + '("' + (el.font || "HN") + '" ' + (el.fs || 12) + ' "' + (el.lbl || "Text") + '")');
-                } else if (el.t === "freehand") {
-                    lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "freehand" "' + el.bdr + '" "' + el.fill + '")');
-                } else {
-                    lines.push('STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "' + el.s + '" "' + el.bdr + '" "' + el.fill + '")');
-                }
-            });
-            if (S._colMode > 1) {
-                lines.push("PAGE_COLUMN_STOP");
-            }
+        allPages[pi].forEach(function(el) { lines.push(_serializeEl(el)); });
+        if (S._colMode > 1) {
+            lines.push("PAGE_COLUMN_STOP");
         }
     }
-
     return lines.join("\n");
 }
 
@@ -178,6 +151,11 @@ function parseDSL(dsl) {
         if (mRowStamp) {
             S.E.push({ id: "el" + (S.nid++), t: "stamp", s: "rectangle", x: px(_rowX), y: px(_rowY), w: px(parseFloat(mRowStamp[1])), h: px(parseFloat(mRowStamp[2])), lbl: mRowStamp[3] || "", bdr: "solid", bdrC: "#666", bdrW: 1, fill: "#fff", fillA: 100, img: "", font: "HN", fs: 12 });
             _rowX += parseFloat(mRowStamp[1]) + _rowSpacing;
+            continue;
+        }
+        var m2a = t.match(/^PAGE_TEXT_AT\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"([^"]*)"\s+(\d+)\s+"([^"]*)"\s+"([^"]*)"\)/);
+        if (m2a) {
+            S.E.push({ id: "el" + (S.nid++), t: "text", s: "text", x: px(parseFloat(m2a[1])), y: px(parseFloat(m2a[2])), w: px(parseFloat(m2a[3])), h: px(parseFloat(m2a[4])), lbl: m2a[7] || "Text", font: m2a[5] || "HN", fs: parseFloat(m2a[6]) || 12, align: m2a[8] === "center" ? "center" : m2a[8] === "right" ? "right" : "left", bdr: "none", fill: "transparent", fillA: 0 });
             continue;
         }
         var m2 = t.match(/^(PAGE_TEXT|PAGE_TEXT_CENTRE|PAGE_TEXT_CENTER|PAGE_TEXT_RIGHT)\(\s*"([^"]*)"\s+(\d+)\s+"([^"]*)"\)/);

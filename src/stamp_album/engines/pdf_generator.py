@@ -551,17 +551,27 @@ def _draw_stamp(
     if stamp.description and not stamp.image_path:
         font_obj, _ = _resolve_font(stamp.font_id or "HN")
         fontsize = (stamp.font_size or 12) * 0.9
-        text = stamp.description
+        _draw_multiline_text(page, rect, stamp.description, font_obj, fontsize, center=True)
 
-        if font_obj:
-            tw = fitz.TextWriter(page.rect)
-            tw.append(rect.tl, text, font=font_obj, fontsize=fontsize)
-            text_rect = tw.text_rect
-            dx = max(0, (rect.width - text_rect.width) / 2)
-            dy = max(0, (rect.height - text_rect.height) / 2)
-            tw = fitz.TextWriter(page.rect)
-            tw.append(fitz.Point(rect.x0 + dx, rect.y0 + dy + fontsize), text, font=font_obj, fontsize=fontsize)
-            tw.write_text(page, color=(0.2, 0.2, 0.2))
+def _draw_multiline_text(page, rect, text, font_obj, fontsize, center=False):
+    """Draw text inside rect, splitting on newlines, with line-height ~1.3."""
+    if not text or not font_obj:
+        return
+    lines = text.split("\n")
+    line_height = fontsize * 1.3
+    total_height = len(lines) * line_height
+    start_y = rect.y0 + max(2, (rect.height - total_height) / 2)
+
+    tw = fitz.TextWriter(page.rect)
+    for i, line in enumerate(lines):
+        x0 = rect.x0 + 2
+        if center and line.strip():
+            tm = fitz.TextWriter(page.rect)
+            tm.append(rect.tl, line, font=font_obj, fontsize=fontsize)
+            dx = max(0, (rect.width - tm.text_rect.width) / 2)
+            x0 = rect.x0 + dx
+        tw.append(fitz.Point(x0, rect.y0 + start_y + fontsize + i * line_height), line, font=font_obj, fontsize=fontsize)
+    tw.write_text(page, color=(0.2, 0.2, 0.2))
 
 
 def _draw_text_element(page: fitz.Page, stamp: Stamp) -> None:
@@ -576,13 +586,10 @@ def _draw_text_element(page: fitz.Page, stamp: Stamp) -> None:
 
     font_obj, _ = _resolve_font(stamp.font_id or "HN")
     fontsize = stamp.font_size or 12
-    text = stamp.description
 
     if font_obj:
         rect = fitz.Rect(x, y, x + w, y + h)
-        tw = fitz.TextWriter(page.rect)
-        tw.append(fitz.Point(rect.x0 + 2, rect.y0 + fontsize + 3), text, font=font_obj, fontsize=fontsize)
-        tw.write_text(page, color=(0.2, 0.2, 0.2))
+        _draw_multiline_text(page, rect, stamp.description, font_obj, fontsize)
 
 
 # ── Ornamental border data (ported from borders.js) ──
@@ -967,8 +974,8 @@ class PDFGenerator:
             "<html><head><meta charset='utf-8'><style>",
             "body{margin:0;padding:20px;background:#f5f5f5;font-family:Arial,sans-serif}",
             ".page{position:relative;background:#fff;margin:0 auto;box-shadow:0 2px 8px rgba(0,0,0,0.15);overflow:hidden}",
-            ".stamp{position:absolute;border:0.5pt solid #666;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;box-sizing:border-box}",
-            ".text-el{position:absolute;overflow:hidden;box-sizing:border-box}",
+            ".stamp{position:absolute;border:0.5pt solid #666;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;box-sizing:border-box;white-space:pre-wrap}",
+            ".text-el{position:absolute;overflow:hidden;box-sizing:border-box;white-space:pre-wrap}",
             "</style></head><body>",
         ]
 

@@ -629,6 +629,23 @@ class AlbumParser:
                 )
                 current_row.stamps.append(stamp)
                 current_stamp = stamp
+            elif cmd == "PAGE_TEXT_AT":
+                # PAGE_TEXT_AT (x y w h "font" size "text" "align")
+                if current_page is None:
+                    raise ParseError("PAGE_TEXT_AT command outside of PAGE_START block", line_number, line)
+                stamp = Stamp(
+                    abs_x=float(params[0]),
+                    abs_y=float(params[1]),
+                    width=float(params[2]),
+                    height=float(params[3]),
+                    font_id=unquote(params[4]),
+                    font_size=float(params[5]),
+                    description=unquote(params[6]),
+                    is_text_element=True,
+                )
+                if not hasattr(current_page, "absolute_stamps"):
+                    current_page.absolute_stamps = []
+                current_page.absolute_stamps.append(stamp)
             elif cmd == "STAMP_ADD_AT":
                 # STAMP_ADD_AT (x y width height "description" "catalog1" "catalog2" "catalog3")
                 if current_page is None:
