@@ -10,15 +10,19 @@ function escapeDSL(s) {
 }
 // ── DSL round-trip ──
 function buildDSL() {
-    var lines = [
-        'ALBUM_TITLE("' + (S._currentFile ? S._currentFile.replace(/\.(slbum|txt)$/, "") : "") + '")',
-        "ALBUM_PAGES_SIZE(" + mm(S._pw) + " " + mm(S._ph) + ")",
-        "ALBUM_PAGES_MARGINS(15 15 15 15)",
-    ];
+    // Collect all elements across all pages
+    var totalEls = S.E.length;
+    for (var i = 1; i < S._pages.length; i++) {
+        totalEls += (S._pages[i] || []).length;
+    }
+    var hasBorder = S._pageBorder && S._pageBorder !== "none";
+    // Empty canvas with no border = empty DSL
+    if (totalEls === 0 && !hasBorder) return "";
+
+    var lines = [];
 
     // Page border
-    if (S._pageBorder && S._pageBorder !== "none") {
-        // Map canvas border style to ALBUM_PAGES_BORDER params
+    if (hasBorder) {
         var outer = 0.5, inner1 = 0, inner2 = 0, spacing = 1.0;
         if (S._pageBorder === "double" || S._pageBorder === "classic" ||
             S._pageBorder === "victorian" || S._pageBorder === "artdeco" ||
@@ -30,6 +34,13 @@ function buildDSL() {
         if (S._pageBorderC) {
             lines.push('COLOUR_ALBUM_BORDER("' + S._pageBorderC + '")');
         }
+    }
+
+    // Only emit page-level boilerplate when there's actual content
+    if (totalEls > 0) {
+        lines.push('ALBUM_TITLE("' + (S._currentFile ? S._currentFile.replace(/\.(slbum|txt)$/, "") : "") + '")');
+        lines.push("ALBUM_PAGES_SIZE(" + mm(S._pw) + " " + mm(S._ph) + ")");
+        lines.push("ALBUM_PAGES_MARGINS(15 15 15 15)");
     }
 
     lines.push("PAGE_START");

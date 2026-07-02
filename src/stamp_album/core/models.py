@@ -568,6 +568,7 @@ class PageSetup:
     border_inner2: float = 0.0
     border_spacing: float = 1.0
     has_border: bool = False
+    border_style: str = ""
     decorative_border_file: Optional[str] = None
     title: Optional[FormattedText] = None
     header_page_num: Optional[FormattedText] = None

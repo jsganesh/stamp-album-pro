@@ -109,6 +109,24 @@ class HTMLRenderer:
                     f'border:{ps.border_inner2}mm solid {color};"></div>'
                 )
 
+            # Corner ornaments for ornamental border styles
+            if ps.border_style in _ORNAMENTAL_STYLES:
+                ornament_svg = _corner_ornament_svg(ps.border_style, color)
+                px = 96.0 / 25.4  # CSS pixels per mm
+                bl_px = round(bl * px, 1)
+                bt_px = round(bt * px, 1)
+                bw_px = round(bw * px, 1)
+                bh_px = round(bh * px, 1)
+                parts.append(
+                    f'<svg style="position:absolute;top:0;left:0;width:100%;height:100%;'
+                    f'pointer-events:none;overflow:visible;">'
+                    f'<g transform="translate({bl_px},{bt_px})">{ornament_svg}</g>'
+                    f'<g transform="translate({bl_px + bw_px},{bt_px}) scale(-1,1)">{ornament_svg}</g>'
+                    f'<g transform="translate({bl_px + bw_px},{bt_px + bh_px}) scale(-1,-1)">{ornament_svg}</g>'
+                    f'<g transform="translate({bl_px},{bt_px + bh_px}) scale(1,-1)">{ornament_svg}</g>'
+                    f'</svg>'
+                )
+
         parts.append(f'<div class="page-content">')
 
         # Boxes
@@ -524,6 +542,194 @@ def _draw_text_element(page: fitz.Page, stamp: Stamp) -> None:
         tw.write_text(page, color=(0.2, 0.2, 0.2))
 
 
+# ── Ornamental border data (ported from borders.js) ──
+
+_ORNAMENTAL_STYLES = {"classic", "victorian", "artdeco", "laurel", "gothic", "filigree"}
+
+_ORNAMENT_BBOX = {
+    "classic": (62, 82),
+    "victorian": (42, 87),
+    "artdeco": (43, 85),
+    "laurel": (22, 62),
+    "gothic": (32, 85),
+    "filigree": (65, 65),
+}
+
+def _pdraw(page, color, segments, width=0.8):
+    """Draw path segments (bezier/line) on a PyMuPDF page."""
+    for seg in segments:
+        cmd = seg[0]
+        pts = seg[1:]
+        if cmd == "L":
+            page.draw_line(pts[0], pts[1], color=color, width=width)
+        elif cmd == "Q":
+            # Quadratic bezier as cubic: CP1 = P0 + 2/3*(C - P0), CP2 = P1 + 2/3*(C - P1)
+            p0, c, p1 = pts[0], pts[1], pts[2]
+            cp1 = fitz.Point(p0.x + 2/3 * (c.x - p0.x), p0.y + 2/3 * (c.y - p0.y))
+            cp2 = fitz.Point(p1.x + 2/3 * (c.x - p1.x), p1.y + 2/3 * (c.y - p1.y))
+            page.draw_bezier(p0, cp1, cp2, p1, color=color, width=width)
+        elif cmd == "C":
+            page.draw_bezier(pts[0], pts[1], pts[2], pts[3], color=color, width=width)
+
+
+def _corner_ornament_svg(style: str, color: str = "#333") -> str:
+    """Generate SVG for a corner ornament (TL orientation)."""
+    if style == "classic":
+        return (
+            '<path d="M5,80 Q5,20 20,20 Q40,20 45,5 Q50,0 60,0" fill="none" stroke="' + color + '" stroke-width="1.2"/>'
+            '<path d="M5,60 Q5,15 15,10 Q30,5 35,2" fill="none" stroke="' + color + '" stroke-width="0.8"/>'
+            '<circle cx="8" cy="8" r="2" fill="' + color + '"/>'
+            '<circle cx="20" cy="5" r="1.2" fill="' + color + '"/>'
+        )
+    if style == "victorian":
+        return (
+            '<path d="M0,85 C10,85 15,70 25,60 C35,50 30,35 20,25 C15,20 10,15 5,10 C10,12 15,18 25,22 C35,26 40,20 35,10" fill="none" stroke="' + color + '" stroke-width="1.2"/>'
+            '<path d="M0,75 C8,75 12,65 20,58 C28,51 25,40 18,32 C14,28 10,24 8,18" fill="none" stroke="' + color + '" stroke-width="0.7"/>'
+            '<circle cx="5" cy="5" r="2.5" fill="' + color + '"/>'
+            '<circle cx="15" cy="12" r="1.5" fill="' + color + '"/>'
+            '<circle cx="25" cy="8" r="1" fill="' + color + '"/>'
+        )
+    if style == "artdeco":
+        return (
+            '<rect x="0" y="60" width="40" height="3" fill="' + color + '"/>'
+            '<rect x="0" y="50" width="30" height="3" fill="' + color + '"/>'
+            '<rect x="0" y="40" width="20" height="3" fill="' + color + '"/>'
+            '<rect x="0" y="30" width="10" height="3" fill="' + color + '"/>'
+            '<rect x="40" y="60" width="3" height="25" fill="' + color + '"/>'
+            '<rect x="30" y="50" width="3" height="15" fill="' + color + '"/>'
+            '<rect x="20" y="40" width="3" height="5" fill="' + color + '"/>'
+        )
+    if style == "laurel":
+        return (
+            '<path d="M5,80 Q15,60 10,40 Q8,30 15,20" fill="none" stroke="' + color + '" stroke-width="1"/>'
+            '<ellipse cx="12" cy="35" rx="4" ry="2.5" fill="' + color + '" transform="rotate(-30 12 35)"/>'
+            '<ellipse cx="8" cy="45" rx="4" ry="2.5" fill="' + color + '" transform="rotate(-20 8 45)"/>'
+            '<ellipse cx="15" cy="55" rx="4" ry="2.5" fill="' + color + '" transform="rotate(-40 15 55)"/>'
+            '<ellipse cx="18" cy="28" rx="3.5" ry="2" fill="' + color + '" transform="rotate(-45 18 28)"/>'
+            '<circle cx="14" cy="22" r="1.5" fill="' + color + '"/>'
+            '<circle cx="10" cy="50" r="1.2" fill="' + color + '"/>'
+        )
+    if style == "gothic":
+        return (
+            '<path d="M0,85 L0,40 Q0,20 15,10 Q25,3 30,0" fill="none" stroke="' + color + '" stroke-width="1.5"/>'
+            '<path d="M5,85 L5,45 Q5,28 18,18 Q25,12 28,8" fill="none" stroke="' + color + '" stroke-width="0.8"/>'
+            '<path d="M15,0 Q20,5 22,12" fill="none" stroke="' + color + '" stroke-width="0.6"/>'
+        )
+    if style == "filigree":
+        return (
+            '<circle cx="20" cy="20" r="15" fill="none" stroke="' + color + '" stroke-width="0.8"/>'
+            '<circle cx="20" cy="20" r="10" fill="none" stroke="' + color + '" stroke-width="0.5"/>'
+            '<circle cx="20" cy="20" r="5" fill="none" stroke="' + color + '" stroke-width="0.5"/>'
+            '<circle cx="20" cy="20" r="2" fill="' + color + '"/>'
+            '<path d="M20,35 Q25,50 30,65" fill="none" stroke="' + color + '" stroke-width="0.6"/>'
+            '<path d="M35,20 Q50,25 65,30" fill="none" stroke="' + color + '" stroke-width="0.6"/>'
+            '<circle cx="30" cy="30" r="1.5" fill="' + color + '"/>'
+            '<circle cx="35" cy="35" r="1" fill="' + color + '"/>'
+        )
+    return ""
+
+
+def _draw_corner_ornaments(fitz_page: fitz.Page, album: Album, rect: fitz.Rect) -> None:
+    """Draw corner ornaments for ornamental border styles."""
+    ps = album.page_setup
+    style = ps.border_style
+    if style not in _ORNAMENTAL_STYLES:
+        return
+    color = _color_to_rgb(album.color_album_border) if album.color_album_border else (0.2, 0.2, 0.2)
+    x0 = rect.x0
+    y0 = rect.y0
+    w = rect.width
+    h = rect.height
+
+    # Corner positions (TL, TR, BR, BL) with flip flags
+    corners = [
+        (x0, y0, False, False),        # TL: as-is
+        (x0 + w, y0, True, False),     # TR: flip x
+        (x0 + w, y0 + h, True, True),  # BR: flip x,y
+        (x0, y0 + h, False, True),     # BL: flip y
+    ]
+
+    # Helper: transform ornament local (dx,dy) to page coords
+    def pt(cx, cy, flip_x, flip_y, dx, dy):
+        x = cx + (-dx if flip_x else dx)
+        y = cy + (-dy if flip_y else dy)
+        return fitz.Point(x, y)
+
+    for cx, cy, fx, fy in corners:
+        if style == "classic":
+            _pdraw(fitz_page, color, [
+                ("Q", pt(cx,cy,fx,fy,5,80), pt(cx,cy,fx,fy,5,20), pt(cx,cy,fx,fy,20,20), pt(cx,cy,fx,fy,20,20)),
+                ("Q", pt(cx,cy,fx,fy,40,20), pt(cx,cy,fx,fy,45,5), pt(cx,cy,fx,fy,50,0), pt(cx,cy,fx,fy,60,0)),
+            ])
+            _pdraw(fitz_page, color, [
+                ("Q", pt(cx,cy,fx,fy,5,60), pt(cx,cy,fx,fy,5,15), pt(cx,cy,fx,fy,15,10), pt(cx,cy,fx,fy,15,10)),
+                ("Q", pt(cx,cy,fx,fy,30,5), pt(cx,cy,fx,fy,35,2), pt(cx,cy,fx,fy,35,2), pt(cx,cy,fx,fy,35,2)),
+            ])
+            fitz_page.draw_circle(pt(cx,cy,fx,fy,8,8), 2, color=color, fill=color)
+            fitz_page.draw_circle(pt(cx,cy,fx,fy,20,5), 1.2, color=color, fill=color)
+
+        elif style == "victorian":
+            _pdraw(fitz_page, color, [
+                ("C", pt(cx,cy,fx,fy,0,85), pt(cx,cy,fx,fy,10,85), pt(cx,cy,fx,fy,15,70), pt(cx,cy,fx,fy,25,60)),
+                ("C", pt(cx,cy,fx,fy,35,50), pt(cx,cy,fx,fy,30,35), pt(cx,cy,fx,fy,20,25), pt(cx,cy,fx,fy,20,25)),
+                ("C", pt(cx,cy,fx,fy,15,20), pt(cx,cy,fx,fy,10,15), pt(cx,cy,fx,fy,5,10), pt(cx,cy,fx,fy,5,10)),
+            ])
+            _pdraw(fitz_page, color, [
+                ("C", pt(cx,cy,fx,fy,0,75), pt(cx,cy,fx,fy,8,75), pt(cx,cy,fx,fy,12,65), pt(cx,cy,fx,fy,20,58)),
+                ("C", pt(cx,cy,fx,fy,28,51), pt(cx,cy,fx,fy,25,40), pt(cx,cy,fx,fy,18,32), pt(cx,cy,fx,fy,18,32)),
+                ("C", pt(cx,cy,fx,fy,14,28), pt(cx,cy,fx,fy,10,24), pt(cx,cy,fx,fy,8,18), pt(cx,cy,fx,fy,8,18)),
+            ])
+            fitz_page.draw_circle(pt(cx,cy,fx,fy,5,5), 2.5, color=color, fill=color)
+            fitz_page.draw_circle(pt(cx,cy,fx,fy,15,12), 1.5, color=color, fill=color)
+            fitz_page.draw_circle(pt(cx,cy,fx,fy,25,8), 1, color=color, fill=color)
+
+        elif style == "artdeco":
+            fitz_page.draw_rect(fitz.Rect(pt(cx,cy,fx,fy,0,60), pt(cx,cy,fx,fy,40,63)), color=color, fill=color)
+            fitz_page.draw_rect(fitz.Rect(pt(cx,cy,fx,fy,0,50), pt(cx,cy,fx,fy,30,53)), color=color, fill=color)
+            fitz_page.draw_rect(fitz.Rect(pt(cx,cy,fx,fy,0,40), pt(cx,cy,fx,fy,20,43)), color=color, fill=color)
+            fitz_page.draw_rect(fitz.Rect(pt(cx,cy,fx,fy,0,30), pt(cx,cy,fx,fy,10,33)), color=color, fill=color)
+            fitz_page.draw_rect(fitz.Rect(pt(cx,cy,fx,fy,40,60), pt(cx,cy,fx,fy,43,85)), color=color, fill=color)
+            fitz_page.draw_rect(fitz.Rect(pt(cx,cy,fx,fy,30,50), pt(cx,cy,fx,fy,33,65)), color=color, fill=color)
+            fitz_page.draw_rect(fitz.Rect(pt(cx,cy,fx,fy,20,40), pt(cx,cy,fx,fy,23,45)), color=color, fill=color)
+
+        elif style == "laurel":
+            _pdraw(fitz_page, color, [
+                ("Q", pt(cx,cy,fx,fy,5,80), pt(cx,cy,fx,fy,15,60), pt(cx,cy,fx,fy,10,40), pt(cx,cy,fx,fy,10,40)),
+                ("Q", pt(cx,cy,fx,fy,8,30), pt(cx,cy,fx,fy,15,20), pt(cx,cy,fx,fy,15,20), pt(cx,cy,fx,fy,15,20)),
+            ])
+            fitz_page.draw_circle(pt(cx,cy,fx,fy,14,22), 1.5, color=color, fill=color)
+            fitz_page.draw_circle(pt(cx,cy,fx,fy,10,50), 1.2, color=color, fill=color)
+
+        elif style == "gothic":
+            _pdraw(fitz_page, color, [
+                ("L", pt(cx,cy,fx,fy,0,85), pt(cx,cy,fx,fy,0,40)),
+                ("Q", pt(cx,cy,fx,fy,0,40), pt(cx,cy,fx,fy,0,20), pt(cx,cy,fx,fy,15,10), pt(cx,cy,fx,fy,15,10)),
+                ("Q", pt(cx,cy,fx,fy,15,10), pt(cx,cy,fx,fy,25,3), pt(cx,cy,fx,fy,30,0), pt(cx,cy,fx,fy,30,0)),
+            ])
+            _pdraw(fitz_page, color, [
+                ("L", pt(cx,cy,fx,fy,5,85), pt(cx,cy,fx,fy,5,45)),
+                ("Q", pt(cx,cy,fx,fy,5,45), pt(cx,cy,fx,fy,5,28), pt(cx,cy,fx,fy,18,18), pt(cx,cy,fx,fy,18,18)),
+                ("Q", pt(cx,cy,fx,fy,18,18), pt(cx,cy,fx,fy,25,12), pt(cx,cy,fx,fy,28,8), pt(cx,cy,fx,fy,28,8)),
+            ])
+            _pdraw(fitz_page, color, [
+                ("Q", pt(cx,cy,fx,fy,15,0), pt(cx,cy,fx,fy,20,5), pt(cx,cy,fx,fy,22,12), pt(cx,cy,fx,fy,22,12)),
+            ])
+
+        elif style == "filigree":
+            fitz_page.draw_circle(pt(cx,cy,fx,fy,20,20), 15, color=color)
+            fitz_page.draw_circle(pt(cx,cy,fx,fy,20,20), 10, color=color)
+            fitz_page.draw_circle(pt(cx,cy,fx,fy,20,20), 5, color=color)
+            fitz_page.draw_circle(pt(cx,cy,fx,fy,20,20), 2, color=color, fill=color)
+            _pdraw(fitz_page, color, [
+                ("Q", pt(cx,cy,fx,fy,20,35), pt(cx,cy,fx,fy,25,50), pt(cx,cy,fx,fy,30,65), pt(cx,cy,fx,fy,30,65)),
+            ])
+            _pdraw(fitz_page, color, [
+                ("Q", pt(cx,cy,fx,fy,35,20), pt(cx,cy,fx,fy,50,25), pt(cx,cy,fx,fy,65,30), pt(cx,cy,fx,fy,65,30)),
+            ])
+            fitz_page.draw_circle(pt(cx,cy,fx,fy,30,30), 1.5, color=color, fill=color)
+            fitz_page.draw_circle(pt(cx,cy,fx,fy,35,35), 1, color=color, fill=color)
+
+
 # ── Page border ──
 
 def _draw_page_border(fitz_page: fitz.Page, album: Album) -> None:
@@ -555,6 +761,12 @@ def _draw_page_border(fitz_page: fitz.Page, album: Album) -> None:
         r = fitz.Rect(border_left + off, border_top + off,
                        border_left + border_w - off, border_top + border_h - off)
         fitz_page.draw_rect(r, color=color, width=_mm_to_pt(ps.border_inner2))
+
+    # Draw corner ornaments for ornamental border styles
+    if ps.border_style in _ORNAMENTAL_STYLES:
+        border_rect = fitz.Rect(border_left, border_top,
+                                 border_left + border_w, border_top + border_h)
+        _draw_corner_ornaments(fitz_page, album, border_rect)
 
 
 # ── Main generator ──

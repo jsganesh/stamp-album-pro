@@ -500,6 +500,7 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
     if req.border_style and req.border_style != "none":
         ps = album.page_setup
         ps.has_border = True
+        ps.border_style = req.border_style
         if req.border_style == "solid" or req.border_style == "dashed":
             ps.border_outer = 0.5
             ps.border_inner1 = 0.0
