@@ -366,44 +366,6 @@ function loadTemplateList() {
         .catch(function() { /* ignore — template endpoint may not exist */ });
 }
 
-// ── Wizard ──
-function applyWizard() {
-    var title = $("wiz-title").value || "";
-    var author = $("wiz-author").value || "";
-    var pgSize = $("wiz-pg-size").value || "a4";
-    var orient = $("wiz-orient").value || "portrait";
-    var columns = parseInt($("wiz-columns").value) || 0;
-    var tpl = $("wiz-template").value;
-
-    if (tpl && tpl !== "blank") {
-        // Quick Apply button on template section
-        $("btn-wiz-template").click();
-        return;
-    }
-
-    var lines = [];
-    lines.push('ALBUM_TITLE("' + title + '")');
-    if (author) lines.push('ALBUM_AUTHOR("' + author + '")');
-
-    var w = pgSize === "a4" ? 210 : pgSize === "letter" ? 216 : 297;
-    var h = pgSize === "a4" ? 297 : pgSize === "letter" ? 279 : 420;
-    if (orient === "landscape") { var t = w; w = h; h = t; }
-    lines.push("ALBUM_PAGES_SIZE(" + w + " " + h + ")");
-    lines.push("ALBUM_PAGES_MARGINS(15 15 15 15)");
-
-    if (title) lines.push('PAGE_TEXT_CENTRE("HB" 16 "' + title + '")');
-
-    if (columns > 1) {
-        lines.push("PAGE_COLUMN_START(" + columns + ")");
-    }
-
-    S.parseDSL(lines.join("\n"));
-    S.pushUndo();
-    render();
-    $("wizard-panel").classList.remove("open");
-    showToast("Album created from wizard", "success");
-}
-
 // ── DSL functions (escapeDSL, buildDSL, parseDSL) defined in dsl.js ──
 
 // ── Exports (shared state + functions for render.js, events.js, init.js) ──
@@ -449,7 +411,6 @@ Object.defineProperties(S, {
     buildCanvasState: { value: buildCanvasState }, openPreview: { value: openPreview },
     schedulePreviewRefresh: { value: schedulePreviewRefresh }, refreshPreview: { value: refreshPreview },
     exportPDF: { value: exportPDF }, loadTemplateList: { value: loadTemplateList },
-    applyWizard: { value: applyWizard },
     // ── Alignment functions ──
     alignSelected: { value: alignSelected },
     distributeSelected: { value: distributeSelected },

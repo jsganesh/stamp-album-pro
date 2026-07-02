@@ -10,7 +10,6 @@ function applyWizard() {
     var author = $("wiz-author").value || "";
     var pgSize = $("wiz-pg-size").value || "a4";
     var orient = $("wiz-orient").value || "portrait";
-    var columns = parseInt($("wiz-columns").value) || 0;
     var tpl = $("wiz-template").value;
 
     if (tpl && tpl !== "blank") {
@@ -29,10 +28,6 @@ function applyWizard() {
     lines.push("ALBUM_PAGES_MARGINS(15 15 15 15)");
 
     if (title) lines.push('PAGE_TEXT_CENTRE("HB" 16 "' + escapeDSL(title) + '")');
-
-    if (columns > 1) {
-        lines.push("PAGE_COLUMN_START(" + columns + ")");
-    }
 
     parseDSL(lines.join("\n"));
     pushUndo();
