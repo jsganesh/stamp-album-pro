@@ -547,8 +547,8 @@ def _draw_stamp(
         except Exception:
             pass
 
-    # Draw label text
-    if stamp.description:
+    # Draw label text (skip if image is present)
+    if stamp.description and not stamp.image_path:
         font_obj, _ = _resolve_font(stamp.font_id or "HN")
         fontsize = (stamp.font_size or 12) * 0.9
         text = stamp.description
