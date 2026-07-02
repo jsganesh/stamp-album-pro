@@ -110,13 +110,13 @@ class HTMLRenderer:
                 )
 
             # Corner ornaments for ornamental border styles
+            px = 96.0 / 25.4  # CSS pixels per mm
+            bl_px = round(bl * px, 1)
+            bt_px = round(bt * px, 1)
+            bw_px = round(bw * px, 1)
+            bh_px = round(bh * px, 1)
             if ps.border_style in _ORNAMENTAL_STYLES:
                 ornament_svg = _corner_ornament_svg(ps.border_style, color)
-                px = 96.0 / 25.4  # CSS pixels per mm
-                bl_px = round(bl * px, 1)
-                bt_px = round(bt * px, 1)
-                bw_px = round(bw * px, 1)
-                bh_px = round(bh * px, 1)
                 parts.append(
                     f'<svg style="position:absolute;top:0;left:0;width:100%;height:100%;'
                     f'pointer-events:none;overflow:visible;">'
@@ -124,6 +124,23 @@ class HTMLRenderer:
                     f'<g transform="translate({bl_px + bw_px},{bt_px}) scale(-1,1)">{ornament_svg}</g>'
                     f'<g transform="translate({bl_px + bw_px},{bt_px + bh_px}) scale(-1,-1)">{ornament_svg}</g>'
                     f'<g transform="translate({bl_px},{bt_px + bh_px}) scale(1,-1)">{ornament_svg}</g>'
+                    f'</svg>'
+                )
+            # Edge patterns for greek_key / rope
+            elif ps.border_style in _EDGE_STYLES:
+                epw = round(bw * px, 1)
+                eph = round(bh * px, 1)
+                top_svg = _edge_pattern_svg(ps.border_style, "top", epw, eph, color)
+                bottom_svg = _edge_pattern_svg(ps.border_style, "bottom", epw, eph, color)
+                left_svg = _edge_pattern_svg(ps.border_style, "left", eph, epw, color)
+                right_svg = _edge_pattern_svg(ps.border_style, "right", eph, epw, color)
+                parts.append(
+                    f'<svg style="position:absolute;top:0;left:0;width:100%;height:100%;'
+                    f'pointer-events:none;overflow:visible;">'
+                    f'<g transform="translate({bl_px},{bt_px})">{top_svg}</g>'
+                    f'<g transform="translate({bl_px},{bt_px + bh_px}) scale(1,-1)">{bottom_svg}</g>'
+                    f'<g transform="translate({bl_px},{bt_px})">{left_svg}</g>'
+                    f'<g transform="translate({bl_px + bw_px},{bt_px}) scale(-1,1)">{right_svg}</g>'
                     f'</svg>'
                 )
 
@@ -545,6 +562,7 @@ def _draw_text_element(page: fitz.Page, stamp: Stamp) -> None:
 # ── Ornamental border data (ported from borders.js) ──
 
 _ORNAMENTAL_STYLES = {"classic", "victorian", "artdeco", "laurel", "gothic", "filigree"}
+_EDGE_STYLES = {"greek_key", "rope"}
 
 _ORNAMENT_BBOX = {
     "classic": (62, 82),
@@ -627,6 +645,111 @@ def _corner_ornament_svg(style: str, color: str = "#333") -> str:
             '<circle cx="35" cy="35" r="1" fill="' + color + '"/>'
         )
     return ""
+
+
+def _edge_pattern_svg(style: str, edge: str, w: float, h: float, color: str) -> str:
+    """Generate SVG for an edge pattern (greek_key or rope)."""
+    svg = ""
+    if style == "greek_key":
+        step = 12
+        count = int(w / step)
+        is_v = edge in ("left", "right")
+        for i in range(count):
+            if is_v:
+                svg += f'<path d="M0,{i*step} l0,3 l3,0 l0,6 l-3,0 l0,3" fill="none" stroke="{color}" stroke-width="0.8"/>'
+            else:
+                svg += f'<path d="M{i*step},0 l3,0 l0,3 l6,0 l0,-3 l3,0" fill="none" stroke="{color}" stroke-width="0.8"/>'
+    elif style == "rope":
+        rstep = 8
+        count = int(w / rstep)
+        is_v = edge in ("left", "right")
+        for j in range(count):
+            if is_v:
+                svg += f'<circle cx="2" cy="{j * rstep + rstep/2}" r="2" fill="none" stroke="{color}" stroke-width="0.7"/>'
+            else:
+                svg += f'<circle cx="{j * rstep + rstep/2}" cy="2" r="2" fill="none" stroke="{color}" stroke-width="0.7"/>'
+    return svg
+
+
+def _draw_edge_patterns(fitz_page: fitz.Page, album: Album, rect: fitz.Rect) -> None:
+    """Draw edge patterns (greek_key, rope) on all 4 sides."""
+    ps = album.page_setup
+    style = ps.border_style
+    if style not in _EDGE_STYLES:
+        return
+    color = _color_to_rgb(album.color_album_border) if album.color_album_border else (0.2, 0.2, 0.2)
+    x0, y0 = rect.x0, rect.y0
+    rw, rh = rect.width, rect.height
+
+    # Scale: CSS pixel → PDF point (96dpi → 72dpi)
+    pw = 0.75  # points per CSS pixel
+
+    if style == "greek_key":
+        step = 12 * pw
+        count_w = int(rw / step)
+        count_h = int(rh / step)
+        # Top edge
+        for i in range(count_w):
+            x = x0 + i * step
+            y = y0
+            fitz_page.draw_line(fitz.Point(x, y + 3 * pw), fitz.Point(x + 3 * pw, y + 3 * pw), color=color, width=0.6)
+            fitz_page.draw_line(fitz.Point(x + 3 * pw, y + 3 * pw), fitz.Point(x + 3 * pw, y + 6 * pw), color=color, width=0.6)
+            fitz_page.draw_line(fitz.Point(x + 3 * pw, y + 6 * pw), fitz.Point(x + 9 * pw, y + 6 * pw), color=color, width=0.6)
+            fitz_page.draw_line(fitz.Point(x + 9 * pw, y + 6 * pw), fitz.Point(x + 9 * pw, y + 3 * pw), color=color, width=0.6)
+            fitz_page.draw_line(fitz.Point(x + 9 * pw, y + 3 * pw), fitz.Point(x + step, y + 3 * pw), color=color, width=0.6)
+        # Bottom edge (mirrored)
+        for i in range(count_w):
+            x = x0 + i * step
+            y = y0 + rh
+            fitz_page.draw_line(fitz.Point(x, y - 3 * pw), fitz.Point(x + 3 * pw, y - 3 * pw), color=color, width=0.6)
+            fitz_page.draw_line(fitz.Point(x + 3 * pw, y - 3 * pw), fitz.Point(x + 3 * pw, y - 6 * pw), color=color, width=0.6)
+            fitz_page.draw_line(fitz.Point(x + 3 * pw, y - 6 * pw), fitz.Point(x + 9 * pw, y - 6 * pw), color=color, width=0.6)
+            fitz_page.draw_line(fitz.Point(x + 9 * pw, y - 6 * pw), fitz.Point(x + 9 * pw, y - 3 * pw), color=color, width=0.6)
+            fitz_page.draw_line(fitz.Point(x + 9 * pw, y - 3 * pw), fitz.Point(x + step, y - 3 * pw), color=color, width=0.6)
+        # Left edge
+        for i in range(count_h):
+            x = x0
+            y = y0 + i * step
+            fitz_page.draw_line(fitz.Point(x + 3 * pw, y), fitz.Point(x + 3 * pw, y + 3 * pw), color=color, width=0.6)
+            fitz_page.draw_line(fitz.Point(x + 3 * pw, y + 3 * pw), fitz.Point(x + 6 * pw, y + 3 * pw), color=color, width=0.6)
+            fitz_page.draw_line(fitz.Point(x + 6 * pw, y + 3 * pw), fitz.Point(x + 6 * pw, y + 9 * pw), color=color, width=0.6)
+            fitz_page.draw_line(fitz.Point(x + 6 * pw, y + 9 * pw), fitz.Point(x + 3 * pw, y + 9 * pw), color=color, width=0.6)
+            fitz_page.draw_line(fitz.Point(x + 3 * pw, y + 9 * pw), fitz.Point(x + 3 * pw, y + step), color=color, width=0.6)
+        # Right edge (mirrored)
+        for i in range(count_h):
+            x = x0 + rw
+            y = y0 + i * step
+            fitz_page.draw_line(fitz.Point(x - 3 * pw, y), fitz.Point(x - 3 * pw, y + 3 * pw), color=color, width=0.6)
+            fitz_page.draw_line(fitz.Point(x - 3 * pw, y + 3 * pw), fitz.Point(x - 6 * pw, y + 3 * pw), color=color, width=0.6)
+            fitz_page.draw_line(fitz.Point(x - 6 * pw, y + 3 * pw), fitz.Point(x - 6 * pw, y + 9 * pw), color=color, width=0.6)
+            fitz_page.draw_line(fitz.Point(x - 6 * pw, y + 9 * pw), fitz.Point(x - 3 * pw, y + 9 * pw), color=color, width=0.6)
+            fitz_page.draw_line(fitz.Point(x - 3 * pw, y + 9 * pw), fitz.Point(x - 3 * pw, y + step), color=color, width=0.6)
+
+    elif style == "rope":
+        rstep = 8 * pw
+        count_w = int(rw / rstep)
+        count_h = int(rh / rstep)
+        r = 1.5  # circle radius in pt
+        # Top edge
+        for j in range(count_w):
+            cx = x0 + j * rstep + rstep / 2
+            cy = y0 + 1.5
+            fitz_page.draw_circle(fitz.Point(cx, cy), r, color=color)
+        # Bottom edge
+        for j in range(count_w):
+            cx = x0 + j * rstep + rstep / 2
+            cy = y0 + rh - 1.5
+            fitz_page.draw_circle(fitz.Point(cx, cy), r, color=color)
+        # Left edge
+        for j in range(count_h):
+            cx = x0 + 1.5
+            cy = y0 + j * rstep + rstep / 2
+            fitz_page.draw_circle(fitz.Point(cx, cy), r, color=color)
+        # Right edge
+        for j in range(count_h):
+            cx = x0 + rw - 1.5
+            cy = y0 + j * rstep + rstep / 2
+            fitz_page.draw_circle(fitz.Point(cx, cy), r, color=color)
 
 
 def _draw_corner_ornaments(fitz_page: fitz.Page, album: Album, rect: fitz.Rect) -> None:
@@ -763,10 +886,12 @@ def _draw_page_border(fitz_page: fitz.Page, album: Album) -> None:
         fitz_page.draw_rect(r, color=color, width=_mm_to_pt(ps.border_inner2))
 
     # Draw corner ornaments for ornamental border styles
+    border_rect = fitz.Rect(border_left, border_top,
+                             border_left + border_w, border_top + border_h)
     if ps.border_style in _ORNAMENTAL_STYLES:
-        border_rect = fitz.Rect(border_left, border_top,
-                                 border_left + border_w, border_top + border_h)
         _draw_corner_ornaments(fitz_page, album, border_rect)
+    elif ps.border_style in _EDGE_STYLES:
+        _draw_edge_patterns(fitz_page, album, border_rect)
 
 
 # ── Main generator ──
