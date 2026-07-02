@@ -23,8 +23,7 @@ var _draftDebounceMs = 500;
 
 function saveDraft() {
     try {
-        var state = { v: 2, pages: _pages, currentPage: _currentPage, elements: E,
-            pageBorder: _pageBorder, pageBorderC: _pageBorderC };
+        var state = { v: 1, pages: _pages, currentPage: _currentPage, elements: E };
         localStorage.setItem(_draftKey, JSON.stringify(state));
         if (_currentFile) localStorage.setItem(_draftFileKey, _currentFile);
         else localStorage.removeItem(_draftFileKey);
@@ -45,8 +44,6 @@ function loadDraft() {
         if (_currentPage >= _pages.length) _currentPage = _pages.length - 1;
         E = _pages[_currentPage] || [];
         sel = null;
-        if (state.pageBorder !== undefined) _pageBorder = state.pageBorder;
-        if (state.pageBorderC !== undefined) _pageBorderC = state.pageBorderC;
         var savedFile = localStorage.getItem(_draftFileKey);
         if (savedFile) _currentFile = savedFile;
         return true;

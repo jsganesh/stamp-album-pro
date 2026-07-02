@@ -342,7 +342,6 @@ function init() {
         S._defBdr = this.value;
         S._pageBorder = this.value;
         if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
-        S.scheduleDraftSave();
         S.schedulePreviewRefresh();
     });
     $("def-bdr-c").addEventListener("change", function() {
@@ -658,7 +657,7 @@ function init() {
     // ── Init ──
     S.renderPageDots();
     S.updateGrid();
-    if (S.renderPageBorder) S.renderPageBorder(S._pageBorder || "double");
+    if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
     loadFileList();
     loadImageList();
     S.updateTitle();

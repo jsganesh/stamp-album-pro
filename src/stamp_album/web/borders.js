@@ -161,22 +161,32 @@ function edgePattern(style, edge, w, h) {
 
     if (style === "greek_key") {
         var step = 12;
-        var count = Math.floor((edge === "top" || edge === "bottom" ? w : h) / step);
-        var isH = edge === "top" || edge === "bottom";
+        var count = Math.floor(w / step);
+        var isV = edge === "left" || edge === "right";
         for (var i = 0; i < count; i++) {
-            var x = isH ? i * step : 0;
-            var y = isH ? 0 : i * step;
-            svg += '<path d="M' + x + ',' + (isH ? 4 : 0) + ' l' + (step/4) + ',0 l0,' + (isH ? 0 : step/4) + ' l' + (step/2) + ',0 l0,-' + (isH ? 0 : step/4) + ' l' + (step/4) + ',0" fill="none" stroke="' + color + '" stroke-width="0.8"/>';
+            if (isV) {
+                // Vertical meander (left/right edges): step goes downward
+                var vy = i * step;
+                svg += '<path d="M0,' + vy + ' l0,3 l3,0 l0,6 l-3,0 l0,3" fill="none" stroke="' + color + '" stroke-width="0.8"/>';
+            } else {
+                // Horizontal meander (top/bottom edges): step goes rightward
+                var vx = i * step;
+                svg += '<path d="M' + vx + ',0 l3,0 l0,3 l6,0 l0,-3 l3,0" fill="none" stroke="' + color + '" stroke-width="0.8"/>';
+            }
         }
     }
     else if (style === "rope") {
         var rStep = 8;
-        var rCount = Math.floor((edge === "top" || edge === "bottom" ? w : h) / rStep);
-        var rH = edge === "top" || edge === "bottom";
+        var rCount = Math.floor(w / rStep);
+        var isV = edge === "left" || edge === "right";
         for (var j = 0; j < rCount; j++) {
-            var rx = rH ? j * rStep + rStep/2 : 2;
-            var ry = rH ? 2 : j * rStep + rStep/2;
-            svg += '<circle cx="' + rx + '" cy="' + ry + '" r="2" fill="none" stroke="' + color + '" stroke-width="0.7"/>';
+            if (isV) {
+                // Vertical rope: circles down the side
+                svg += '<circle cx="2" cy="' + (j * rStep + rStep/2) + '" r="2" fill="none" stroke="' + color + '" stroke-width="0.7"/>';
+            } else {
+                // Horizontal rope: circles across the top/bottom
+                svg += '<circle cx="' + (j * rStep + rStep/2) + '" cy="2" r="2" fill="none" stroke="' + color + '" stroke-width="0.7"/>';
+            }
         }
     }
     return svg;
@@ -234,14 +244,16 @@ function renderPageBorder(style) {
     else if (style === "greek_key" || style === "rope") {
         // Edge pattern borders
         var pColor = BORDER_STYLES[style].color;
+        var epw = w - margin * 2;
+        var eph = h - margin * 2;
         // Top
-        inner += '<g>' + edgePattern(style, "top", w, h).replace(/COLOR/g, pColor) + '</g>';
+        inner += '<g transform="translate(' + margin + ',' + margin + ')">' + edgePattern(style, "top", epw, eph).replace(/COLOR/g, pColor) + '</g>';
         // Bottom
-        inner += '<g transform="translate(0,' + (h - 8) + ')">' + edgePattern(style, "bottom", w, h).replace(/COLOR/g, pColor) + '</g>';
+        inner += '<g transform="translate(' + margin + ',' + (h - margin) + ') scale(1,-1)">' + edgePattern(style, "bottom", epw, eph).replace(/COLOR/g, pColor) + '</g>';
         // Left
-        inner += '<g transform="rotate(-90) translate(-' + h + ',0)">' + edgePattern(style, "left", h, w).replace(/COLOR/g, pColor) + '</g>';
+        inner += '<g transform="translate(' + margin + ',' + margin + ')">' + edgePattern(style, "left", eph, epw).replace(/COLOR/g, pColor) + '</g>';
         // Right
-        inner += '<g transform="rotate(90) translate(0,-' + (w - 8) + ')">' + edgePattern(style, "right", h, w).replace(/COLOR/g, pColor) + '</g>';
+        inner += '<g transform="translate(' + (w - margin) + ',' + margin + ') scale(-1,1)">' + edgePattern(style, "right", eph, epw).replace(/COLOR/g, pColor) + '</g>';
     }
 
     svg.innerHTML = inner;
