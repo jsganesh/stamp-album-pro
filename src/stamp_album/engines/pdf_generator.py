@@ -16,6 +16,7 @@ import os
 import platform
 from pathlib import Path
 from typing import Optional
+from urllib.parse import urlparse
 
 import fitz
 
@@ -245,9 +246,13 @@ class HTMLRenderer:
                         f'<div style="position:absolute;top:0;left:0;width:{w}mm;height:{h}mm;'
                         f'border:0.5pt solid {bc};background-color:{bg};"></div>'
                     )
+                img_html = ""
+                if stamp.image_path:
+                    img_html = f'<img src="{stamp.image_path}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;pointer-events:none;z-index:1;">'
                 parts.append(
                     f'<div class="stamp" style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;">'
                     f'{shape_html}'
+                    f'{img_html}'
                     f'<div style="font-size:{desc_font_size}pt;padding:1mm 2mm;text-align:center;line-height:1.3;">{desc}</div>'
                     f'</div>'
                 )
@@ -439,6 +444,19 @@ def _color_to_rgb(color) -> tuple:
     return (max(0, min(1, color.r)), max(0, min(1, color.g)), max(0, min(1, color.b)))
 
 
+# ── Image resolution ──
+
+_IMAGES_DIR = Path.home() / "StampAlbum" / "images"
+
+def _resolve_image_path(image_path: Optional[str]) -> Optional[Path]:
+    """Convert a URL path like '/images/photo.png' to a filesystem Path."""
+    if not image_path:
+        return None
+    filename = Path(urlparse(image_path).path).name
+    fp = _IMAGES_DIR / filename
+    return fp if fp.exists() else None
+
+
 # ── Shape helpers ──
 
 def _regular_polygon(cx: float, cy: float, rx: float, ry: float, n: int) -> list:
@@ -520,6 +538,14 @@ def _draw_stamp(
 
     else:  # RECTANGLE (default)
         page.draw_rect(rect, color=border_color, fill=fill_color, width=0.5)
+
+    # Insert stamp image if present
+    img_fp = _resolve_image_path(stamp.image_path)
+    if img_fp:
+        try:
+            page.insert_image(rect, filename=str(img_fp))
+        except Exception:
+            pass
 
     # Draw label text
     if stamp.description:
