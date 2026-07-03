@@ -398,8 +398,10 @@ class PNGGenerator:
                 stamp.abs_y = ry * scale
                 stamp.width = stamp.width * scale
                 stamp.height = stamp.height * scale
-                _draw_stamp(draw, stamp, album, stamp.font_size or 12)
-                stamp.abs_x, stamp.abs_y, stamp.width, stamp.height = orig_ax, orig_ay, orig_w, orig_h
+                try:
+                    _draw_stamp(draw, stamp, album, stamp.font_size or 12)
+                finally:
+                    stamp.abs_x, stamp.abs_y, stamp.width, stamp.height = orig_ax, orig_ay, orig_w, orig_h
 
             # Absolute stamps
             for stamp in page_data.absolute_stamps:
@@ -410,14 +412,14 @@ class PNGGenerator:
 
                 orig_x, orig_y, orig_w, orig_h = stamp.abs_x, stamp.abs_y, stamp.width, stamp.height
                 stamp.abs_x, stamp.abs_y, stamp.width, stamp.height = x, y, w, h
-
-                if stamp.is_text_element:
-                    font = _resolve_pillow_font(stamp.font_id or "HN", stamp.font_size or 12)
-                    _draw_multiline_text(draw, x, y, w, h, stamp.description, font, stamp.font_size or 12)
-                else:
-                    _draw_stamp(draw, stamp, album, stamp.font_size or 12)
-
-                stamp.abs_x, stamp.abs_y, stamp.width, stamp.height = orig_x, orig_y, orig_w, orig_h
+                try:
+                    if stamp.is_text_element:
+                        font = _resolve_pillow_font(stamp.font_id or "HN", stamp.font_size or 12)
+                        _draw_multiline_text(draw, x, y, w, h, stamp.description, font, stamp.font_size or 12)
+                    else:
+                        _draw_stamp(draw, stamp, album, stamp.font_size or 12)
+                finally:
+                    stamp.abs_x, stamp.abs_y, stamp.width, stamp.height = orig_x, orig_y, orig_w, orig_h
 
             canvas_img.paste(page_img, (0, y_offset))
             y_offset += ph_px + gap_px
