@@ -27,7 +27,7 @@ from PyQt6.QtWidgets import (
 )
 
 from stamp_album.core.parser import AlbumParser
-from stamp_album.engines.pdf_generator import PDFGenerator
+from stamp_album.engines.pdf import PDFGenerator
 from stamp_album.ui.config_dialog import ConfigDialog
 from stamp_album.ui.editor import AlbumEditor
 from stamp_album.ui.preview_panel import PreviewPanel
@@ -578,8 +578,7 @@ class MainWindow(QMainWindow):
 
         # Generate PDF
         try:
-            generator = PDFGenerator()
-            generator.generate(album, output_path)
+            PDFGenerator().generate(album, output_path)
         except Exception as e:
             QMessageBox.critical(self, "Generation Error", f"Failed to generate PDF:\n\n{str(e)}")
             return

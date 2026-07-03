@@ -156,16 +156,16 @@ def _run_cli(args: list[str]):
     output_path = parsed.output or str(Path(parsed.source_file).with_suffix(".pdf"))
 
     # Generate PDF
-    from stamp_album.engines.pdf_generator import PDFGenerator
+    from stamp_album.engines.pdf import PDFGenerator
 
-    generator = PDFGenerator()
-    generator.generate(album, output_path)
+    PDFGenerator().generate(album, output_path)
 
     print(f"PDF generated: {output_path}")
 
     # Show preview if requested
     if parsed.preview:
-        html = generator.get_html_preview(album)
+        from stamp_album.engines.pdf_generator import get_html_preview
+        html = get_html_preview(album)
         preview_path = str(Path(output_path).with_suffix(".html"))
         Path(preview_path).write_text(html, encoding="utf-8")
         print(f"HTML preview: {preview_path}")

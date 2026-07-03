@@ -865,7 +865,12 @@ class PDFGenerator:
             os.unlink(tmp.name)
             return data
 
-    def get_html_preview(self, album: Album) -> str:
+    @staticmethod
+    def get_html_preview(album: Album) -> str:
+        return get_html_preview(album)
+
+
+def get_html_preview(album: Album) -> str:
         """
         Get HTML representation for live preview.
         Kept for compatibility with the web UI preview panel.

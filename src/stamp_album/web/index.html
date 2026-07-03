@@ -54,7 +54,7 @@
     <div class="tb-group">
         <button id="btn-wizard" title="Quick Setup Wizard">⚡ Wizard</button>
         <button id="btn-preview" title="Preview (Ctrl+P)">👁 Preview</button>
-        <button id="btn-export" title="Export to PDF">📄 Export</button>
+        <div class="export-dd" id="btn-export-dd"><button id="btn-export" title="Export">📄 Export ▾</button><div class="export-dd-menu"><div class="export-dd-item" data-fmt="pdf">📄 PDF</div><div class="export-dd-item" data-fmt="png">🖼 PNG</div><div class="export-dd-item" data-fmt="svg">✏️ SVG</div><div class="export-dd-item" data-fmt="html">🌐 HTML</div></div></div>
         <button id="btn-dsl" title="DSL Editor">🔧 DSL</button>
     </div>
     <div class="tb-group">
@@ -256,7 +256,7 @@
 
 <!-- Preview Overlay -->
 <div id="preview-overlay">
-    <div class="preview-hdr"><span>👁 Live Preview</span><span class="spacer"></span><button id="btn-preview-refresh">↻ Refresh</button><button id="btn-preview-export">📄 Export PDF</button><button id="btn-preview-close">✕ Close</button></div>
+        <div class="preview-hdr"><span>👁 Live Preview</span><span class="spacer"></span><button id="btn-preview-refresh">↻ Refresh</button><div class="export-dd" id="btn-preview-export-dd"><button id="btn-preview-export">📄 Export ▾</button><div class="export-dd-menu"><div class="export-dd-item" data-fmt="pdf">📄 PDF</div><div class="export-dd-item" data-fmt="png">🖼 PNG</div><div class="export-dd-item" data-fmt="svg">✏️ SVG</div><div class="export-dd-item" data-fmt="html">🌐 HTML</div></div></div><button id="btn-preview-close">✕ Close</button></div>
     <div id="preview-body"><iframe id="preview-frame" width="900" height="1200"></iframe></div>
 </div>
 
@@ -302,6 +302,7 @@
 <script src="dsl.js?v={{{VERSION}}}"></script>
 <script src="files.js?v={{{VERSION}}}"></script>
 <script src="tutorial.js?v={{{VERSION}}}"></script>
+<script src="export.js?v={{{VERSION}}}"></script>
 <script src="events.js?v={{{VERSION}}}"></script>
 <script src="borders.js?v={{{VERSION}}}"></script>
 <script src="init.js?v={{{VERSION}}}"></script>

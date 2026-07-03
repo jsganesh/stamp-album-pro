@@ -271,10 +271,14 @@ function init() {
     $("btn-preview").addEventListener("click", openPreview);
     $("btn-preview-close").addEventListener("click", function() { $("preview-overlay").classList.remove("open"); });
     $("btn-preview-refresh").addEventListener("click", openPreview);
-    $("btn-preview-export").addEventListener("click", function() { if (exportPDF) exportPDF(); });
 
-    // ── Export ──
-    $("btn-export").addEventListener("click", function() { if (exportPDF) exportPDF(); });
+    // ── Export Dropdown ──
+    document.querySelectorAll(".export-dd-item").forEach(function(el) {
+        el.addEventListener("click", function() {
+            var fmt = this.getAttribute("data-fmt");
+            if (S.exportFormat) S.exportFormat(fmt);
+        });
+    });
 
     // ── Image Upload ──
     $("img-upl-btn").addEventListener("click", function() { $("upl-inp").click(); });

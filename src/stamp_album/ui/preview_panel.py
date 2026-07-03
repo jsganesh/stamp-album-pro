@@ -154,11 +154,8 @@ class PreviewPanel(QWidget):
         self._update_display()
 
     def _render_pages(self):
-        """Render album pages to QPixmap images via PDFGenerator + PyMuPDF rasterize.
-
-        Generates PDF using direct PyMuPDF drawing, then rasterizes pages.
-        """
-        from stamp_album.engines.pdf_generator import PDFGenerator
+        """Render album pages to QPixmap images via PNGGenerator."""
+        from stamp_album.engines.raster import PNGGenerator
 
         self._page_images = []
         self._page_count = 0
@@ -168,26 +165,11 @@ class PreviewPanel(QWidget):
             return
 
         try:
-            import fitz
-
-            generator = PDFGenerator()
-            pdf_bytes = generator.generate_to_bytes(self._album)
-
-            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-            self._page_count = doc.page_count
-
-            # Render at ~200 DPI for a crisp preview
-            zoom = 2.8
-            matrix = fitz.Matrix(zoom, zoom)
-
-            for page in doc:
-                pix = page.get_pixmap(matrix=matrix, alpha=False)
-                png_bytes = pix.tobytes("png")
-                pixmap = QPixmap()
-                pixmap.loadFromData(png_bytes)
-                self._page_images.append(pixmap)
-
-            doc.close()
+            png_bytes = PNGGenerator().generate_to_bytes(self._album, dpi=200)
+            pixmap = QPixmap()
+            pixmap.loadFromData(png_bytes)
+            self._page_images.append(pixmap)
+            self._page_count = 1
         except Exception as e:
             self._page_count = 0
             self._page_images = []

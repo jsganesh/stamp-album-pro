@@ -12,7 +12,10 @@ from pydantic import BaseModel
 
 from stamp_album.core.parser import AlbumParser, ParseError
 from stamp_album.core.serializer import AlbumSerializer
-from stamp_album.engines.pdf_generator import HTMLRenderer, PDFGenerator
+from stamp_album.engines.pdf_generator import HTMLRenderer, get_html_preview
+from stamp_album.engines.pdf import PDFGenerator
+from stamp_album.engines.raster import PNGGenerator
+from stamp_album.engines.svg_export import SVGExporter
 from stamp_album.templates import TEMPLATES
 
 app = FastAPI(title="StampAlbum Pro")
@@ -289,8 +292,7 @@ async def export_album(request: ExportRequest):
 
     try:
         album = parser.parse(request.dsl, request.source_path)
-        generator = PDFGenerator()
-        html_content = generator.get_html_preview(album)
+        html_content = get_html_preview(album)
 
         import re
         html_content = re.sub(
@@ -300,25 +302,18 @@ async def export_album(request: ExportRequest):
         )
 
         if fmt == "pdf":
+            import tempfile
             with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
                 pdf_path = tmp.name
-                generator.generate(album, pdf_path, base_url="http://localhost:8080")
+                PDFGenerator().generate(album, pdf_path, base_url="http://localhost:8080")
             return FileResponse(
                 pdf_path, media_type="application/pdf", filename="album.pdf",
                 background=BackgroundTask(_cleanup, pdf_path),
             )
 
         elif fmt == "png":
-            import fitz
-            pdf_bytes = generator.generate_to_bytes(album)
-            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-            if doc.page_count == 0:
-                doc.close()
-                raise HTTPException(status_code=400, detail="No pages to export")
-            zoom = max(0.5, request.dpi / 72.0)
-            pix = doc[0].get_pixmap(matrix=fitz.Matrix(zoom, zoom), alpha=False)
-            png_bytes = pix.tobytes("png")
-            doc.close()
+            import tempfile
+            png_bytes = PNGGenerator().generate_to_bytes(album, dpi=request.dpi)
             with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
                 tmp.write(png_bytes)
                 png_path = tmp.name
@@ -328,14 +323,8 @@ async def export_album(request: ExportRequest):
             )
 
         elif fmt == "svg":
-            import fitz
-            pdf_bytes = generator.generate_to_bytes(album)
-            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-            if doc.page_count == 0:
-                doc.close()
-                raise HTTPException(status_code=400, detail="No pages to export")
-            svg_text = doc[0].get_svg_image()
-            doc.close()
+            import tempfile
+            svg_text = SVGExporter().generate_to_string(album)
             with tempfile.NamedTemporaryFile(suffix=".svg", delete=False, mode="w", encoding="utf-8") as tmp:
                 tmp.write(svg_text)
                 svg_path = tmp.name
@@ -572,29 +561,20 @@ async def export_from_state(req: CanvasStateRequest):
 
     try:
         album = _canvas_state_to_album(req)
-        generator = PDFGenerator()
 
         if fmt == "pdf":
             import tempfile
             with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
                 pdf_path = tmp.name
-                generator.generate(album, pdf_path, base_url="http://localhost:8080")
+                PDFGenerator().generate(album, pdf_path, base_url="http://localhost:8080")
             filename = req.source_path.replace(".slbum", ".pdf").replace(".txt", ".pdf") or "album.pdf"
             return FileResponse(
                 pdf_path, media_type="application/pdf", filename=filename,
                 background=BackgroundTask(_cleanup, pdf_path),
             )
         elif fmt == "png":
-            import fitz
             import tempfile
-            pdf_bytes = generator.generate_to_bytes(album)
-            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-            if doc.page_count == 0:
-                doc.close()
-                raise HTTPException(status_code=400, detail="No pages to export")
-            pix = doc[0].get_pixmap(matrix=fitz.Matrix(2.0, 2.0), alpha=False)
-            png_bytes = pix.tobytes("png")
-            doc.close()
+            png_bytes = PNGGenerator().generate_to_bytes(album, dpi=200)
             with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
                 tmp.write(png_bytes)
                 png_path = tmp.name
@@ -604,15 +584,8 @@ async def export_from_state(req: CanvasStateRequest):
                 background=BackgroundTask(_cleanup, png_path),
             )
         elif fmt == "svg":
-            import fitz
             import tempfile
-            pdf_bytes = generator.generate_to_bytes(album)
-            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-            if doc.page_count == 0:
-                doc.close()
-                raise HTTPException(status_code=400, detail="No pages to export")
-            svg_text = doc[0].get_svg_image()
-            doc.close()
+            svg_text = SVGExporter().generate_to_string(album)
             with tempfile.NamedTemporaryFile(suffix=".svg", delete=False, mode="w", encoding="utf-8") as tmp:
                 tmp.write(svg_text)
                 svg_path = tmp.name
@@ -622,7 +595,7 @@ async def export_from_state(req: CanvasStateRequest):
                 background=BackgroundTask(_cleanup, svg_path),
             )
         else:  # html
-            html = generator.get_html_preview(album)
+            html = get_html_preview(album)
             import re
             html = re.sub(
                 r'src="([^\/"][^"]*\.(?:png|jpg|jpeg|gif|bmp|tiff|tif|webp))"',

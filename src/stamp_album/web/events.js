@@ -235,8 +235,14 @@ function init() {
     $("btn-preview").addEventListener("click", function() {
         if (S.openPreview) S.openPreview();
     });
-    $("btn-export").addEventListener("click", function() {
-        if (S.exportPDF) S.exportPDF();
+    $("btn-export").addEventListener("click", function(e) {
+        e.stopPropagation();
+    });
+    document.querySelectorAll(".export-dd-item").forEach(function(el) {
+        el.addEventListener("click", function() {
+            var fmt = this.getAttribute("data-fmt");
+            if (S.exportFormat) S.exportFormat(fmt);
+        });
     });
     $("btn-dsl").addEventListener("click", function() {
         var panel = $("dsl-panel");
@@ -248,8 +254,8 @@ function init() {
     $("btn-preview-refresh").addEventListener("click", function() {
         if (S.openPreview) S.openPreview();
     });
-    $("btn-preview-export").addEventListener("click", function() {
-        if (S.exportPDF) S.exportPDF();
+    $("btn-preview-export").addEventListener("click", function(e) {
+        e.stopPropagation();
     });
     var previewOverlay$ = $("preview-overlay");
     if (previewOverlay$) previewOverlay$.classList.remove("open");
