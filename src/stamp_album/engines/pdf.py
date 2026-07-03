@@ -26,6 +26,7 @@ from stamp_album.engines.borders import (
     edge_pattern_segments,
     regular_polygon_vertices,
 )
+from stamp_album.engines.layout import layout_rows
 
 
 # ── Font resolution (same logic as pdf_generator.py) ──
@@ -128,9 +129,7 @@ def _draw_stamp_shape(
         c.saveState()
         c.translate(cx, cy)
         c.scale(1, ry / rx)
-        c.beginPath()
-        c.circle(0, 0, rx)
-        c.drawPath(fill=1, stroke=1)
+        c.circle(0, 0, rx, fill=1, stroke=1)
         c.restoreState()
 
     elif shape == StampShape.DIAMOND:
@@ -199,12 +198,19 @@ def _draw_multiline_text(
         c.drawString(line_x, line_y, line)
 
 
-def _draw_stamp(c: canvas.Canvas, stamp: Stamp, album: Album):
-    """Draw a single stamp (shape + image + text)."""
+def _draw_stamp(c: canvas.Canvas, stamp: Stamp, album: Album,
+                pos_x: float | None = None, pos_y: float | None = None):
+    """Draw a single stamp (shape + image + text).
+
+    Uses *pos_x* / *pos_y* when provided (row stamps); falls back to
+    ``stamp.abs_x`` / ``stamp.abs_y`` for absolute-position stamps.
+    """
     ps = album.page_setup
     page_h_pt = _mm_to_pt(ps.height)
-    x = _mm_to_pt(stamp.abs_x)
-    y = page_h_pt - _mm_to_pt(stamp.abs_y + stamp.height)  # bottom of stamp in PDF (y-up)
+    sx = pos_x if pos_x is not None else stamp.abs_x
+    sy = pos_y if pos_y is not None else stamp.abs_y
+    x = _mm_to_pt(sx)
+    y = page_h_pt - _mm_to_pt(sy + stamp.height)  # bottom of stamp in PDF (y-up)
     w = _mm_to_pt(stamp.width)
     h = _mm_to_pt(stamp.height)
 
@@ -477,8 +483,11 @@ class PDFGenerator:
         page_h = _mm_to_pt(ps.height)
         c = canvas.Canvas(output_path, pagesize=(page_w, page_h))
 
-        for page_data in album.pages:
+        row_layout = layout_rows(album)
+        for pi, page_data in enumerate(album.pages):
             _draw_page_border(c, album)
+            for x, y, stamp in row_layout[pi]:
+                _draw_stamp(c, stamp, album, pos_x=x, pos_y=y)
             for stamp in page_data.absolute_stamps:
                 if stamp.is_text_element:
                     _draw_text_element(c, stamp, page_h)

@@ -20,6 +20,7 @@ from stamp_album.engines.borders import (
     edge_pattern_svg,
     regular_polygon_vertices,
 )
+from stamp_album.engines.layout import layout_rows
 
 
 def _color_hex(color: Optional[Color], fallback: str = "#333") -> str:
@@ -129,8 +130,9 @@ class SVGExporter:
             '</defs>',
         ]
 
+        row_layout = layout_rows(album)
         y_offset = 0
-        for page_data in album.pages:
+        for pi, page_data in enumerate(album.pages):
             parts.append(f'<g transform="translate(0,{y_offset})">')
 
             # Page background
@@ -178,7 +180,62 @@ class SVGExporter:
                         f'<g transform="translate({bl + bw},{bt}) scale(-1,1)">{right_svg}</g>'
                     )
 
-            # Stamps and text elements
+            # Row stamps (position from shared layout)
+            for rx, ry, stamp in row_layout[pi]:
+                x, y, w, h = rx, ry, stamp.width, stamp.height
+                border_hex = _color_hex(
+                    getattr(stamp, "border_color", None) or
+                    getattr(album, "color_stamp_border", None),
+                    "#999"
+                )
+                fill_hex = _color_hex(
+                    getattr(stamp, "fill_color", None) or
+                    getattr(album, "color_stamp_background", None),
+                    "#fff"
+                )
+                parts.append(_build_shape_svg(x, y, w, h, stamp.shape, border_hex, fill_hex))
+
+                if stamp.image_path:
+                    fname = _resolve_image_path(stamp.image_path)
+                    if fname:
+                        parts.append(
+                            f'<image x="{x}" y="{y}" width="{w}" height="{h}" '
+                            f'href="{fname}" preserveAspectRatio="xMidYMid meet"/>'
+                        )
+
+                if stamp.description and not stamp.image_path:
+                    font_s = (stamp.font_size or 12) * 0.9
+                    parts.append(_draw_multiline_text_svg(
+                        x, y, w, h, stamp.description, font_s, center=True
+                    ))
+
+                if stamp.heading and stamp.heading.text:
+                    hdg_sz = stamp.heading.size or 9
+                    parts.append(
+                        f'<text x="{x + w / 2}" y="{y - 1}" font-size="{hdg_sz}pt" '
+                        f'text-anchor="middle" fill="#333" '
+                        f'font-family="Arial,Helvetica,sans-serif">'
+                        f'{_xml_escape(stamp.heading.text)}</text>'
+                    )
+
+                if stamp.catalog_refs:
+                    cat_text = " · ".join(stamp.catalog_refs)
+                    parts.append(
+                        f'<text x="{x + w / 2}" y="{y + h + 6}" font-size="8pt" '
+                        f'text-anchor="middle" fill="#666" '
+                        f'font-family="Arial,Helvetica,sans-serif">'
+                        f'{_xml_escape(cat_text)}</text>'
+                    )
+
+                if stamp.footer_text:
+                    parts.append(
+                        f'<text x="{x + w / 2}" y="{y + h + 3.5}" font-size="8pt" '
+                        f'text-anchor="middle" fill="#555" '
+                        f'font-family="Arial,Helvetica,sans-serif">'
+                        f'{_xml_escape(stamp.footer_text)}</text>'
+                    )
+
+            # Absolute stamps (canvas drag-and-drop)
             for stamp in page_data.absolute_stamps:
                 x, y, w, h = stamp.abs_x, stamp.abs_y, stamp.width, stamp.height
 

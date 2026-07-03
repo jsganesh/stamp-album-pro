@@ -4,26 +4,38 @@
 </defs>
 <g transform="translate(0,0)">
 <rect x="0" y="0" width="210.0" height="297.0" fill="#fff" stroke="#ccc" stroke-width="0.1"/>
+<rect x="0.0" y="20.0" width="32.0" height="37.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
+<text x="16.0" y="41.65" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">row stamp 1</text>
+<text x="16.0" y="63.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 1 ·  · sacc 1</text>
+<ellipse cx="46.5" cy="36.5" rx="14.0" ry="16.5" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
+<text x="46.5" y="39.65" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">row oval</text>
+<text x="46.5" y="59.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 2 ·  · sacc 2a</text>
+<svg x="61.0mm" y="20.0mm" width="28.0mm" height="33.0mm" viewBox="0 0 100 100" style="overflow:visible"><polygon points="50,0 100,50 50,100 0,50" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/></svg>
+<text x="75.0" y="39.65" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">row diamond</text>
+<text x="75.0" y="59.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 3 ·  · sacc 3</text>
 <rect x="15.0" y="30.0" width="40.0" height="30.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
-<text x="35.0" y="48.15" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">1d Red</text>
-<text x="35.0" y="66.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 1 ·  · sacc 1</text>
+<text x="35.0" y="48.15" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">abs 1d Red</text>
+<text x="35.0" y="66.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 10 ·  · sacc 10</text>
 <rect x="65.0" y="30.0" width="40.0" height="30.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
-<text x="85.0" y="48.15" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">2d Blue</text>
-<text x="85.0" y="66.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 2 · scott 3 · sacc 2</text>
+<text x="85.0" y="48.15" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">abs 2d Blue</text>
+<text x="85.0" y="66.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 11 · scott 3 · sacc 11</text>
 <rect x="115.0" y="30.0" width="40.0" height="30.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
-<text x="135.0" y="48.15" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">3d Green</text>
-<text x="135.0" y="66.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 3 ·  · sacc 3</text>
+<text x="135.0" y="48.15" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">abs 3d Green</text>
+<text x="135.0" y="66.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 12 ·  · sacc 12</text>
 </g>
 <g transform="translate(0,307.0)">
 <rect x="0" y="0" width="210.0" height="297.0" fill="#fff" stroke="#ccc" stroke-width="0.1"/>
+<rect x="0.0" y="20.0" width="32.0" height="37.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
+<text x="16.0" y="41.65" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">page2 row</text>
+<text x="16.0" y="63.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 20 ·  · </text>
 <rect x="20.0" y="40.0" width="45.0" height="35.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
-<text x="42.5" y="60.65" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">4d Violet</text>
-<text x="42.5" y="81.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 4 ·  · sacc 4</text>
+<text x="42.5" y="60.65" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">abs 4d Violet</text>
+<text x="42.5" y="81.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 13 ·  · sacc 13</text>
 <rect x="80.0" y="40.0" width="45.0" height="35.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
-<text x="102.5" y="60.65" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">5d Orange</text>
-<text x="102.5" y="81.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 5 ·  · sacc 5</text>
+<text x="102.5" y="60.65" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">abs 5d Orange</text>
+<text x="102.5" y="81.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 14 ·  · sacc 14</text>
 <rect x="140.0" y="40.0" width="45.0" height="35.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
-<text x="162.5" y="60.65" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">6d Purple</text>
-<text x="162.5" y="81.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 6 ·  · sacc 6</text>
+<text x="162.5" y="60.65" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">abs 6d Purple</text>
+<text x="162.5" y="81.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 15 ·  · sacc 15</text>
 </g>
 </svg>

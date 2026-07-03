@@ -29,6 +29,7 @@ from stamp_album.engines.borders import (
     corner_ornament_svg, edge_pattern_svg,
     regular_polygon_vertices, SHAPE_POLYGON_VIEWBOX,
 )
+from stamp_album.engines.layout import layout_rows
 
 
 def _xml_escape(s: str) -> str:
@@ -186,11 +187,10 @@ class HTMLRenderer:
             StampShape.OCTAGON: SHAPE_POLYGON_VIEWBOX["OCTAGON"],
             StampShape.PENTAGON: SHAPE_POLYGON_VIEWBOX["PENTAGON"],
         }
-        _Y_POS = 20  # Starting Y position in mm
-        for row in page.rows:
-            _X_POS = 0
-            for stamp in row.stamps:
-                x, y = _X_POS, _Y_POS
+        row_layout = layout_rows(self.album)
+        page_idx = self._page_counter - 1
+        if page_idx < len(row_layout):
+            for x, y, stamp in row_layout[page_idx]:
                 w, h = stamp.width, stamp.height
                 desc = (stamp.description or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
                 font_size = stamp.font_size or 10
@@ -215,8 +215,6 @@ class HTMLRenderer:
                     f'<div style="font-size:{font_size}pt;padding:1mm;text-align:center;">{desc}</div>'
                     f'</div>'
                 )
-                _X_POS += w + row.spacing
-            _Y_POS += 30  # Next row
 
         if has_columns:
             parts.append('</div>')  # close column-container

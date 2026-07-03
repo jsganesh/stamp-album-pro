@@ -44,15 +44,23 @@ COLOR_STAMP_BACKGROUND(#F5F5F0)
 
 PAGE_START
 
-STAMP_ADD_AT(15 30 40 30 "1d Red" "sg 1" "" "sacc 1")
-STAMP_ADD_AT(65 30 40 30 "2d Blue" "sg 2" "scott 3" "sacc 2")
-STAMP_ADD_AT(115 30 40 30 "3d Green" "sg 3" "" "sacc 3")
+ROW_START_FS(HN 8 0.5 180)
+STAMP_ADD(32 37 "row stamp 1" "sg 1" "" "sacc 1")
+STAMP_ADD_OVAL(28 33 "row oval" "sg 2" "" "sacc 2a")
+STAMP_ADD_DIAMOND(28 33 "row diamond" "sg 3" "" "sacc 3")
+
+STAMP_ADD_AT(15 30 40 30 "abs 1d Red" "sg 10" "" "sacc 10")
+STAMP_ADD_AT(65 30 40 30 "abs 2d Blue" "sg 11" "scott 3" "sacc 11")
+STAMP_ADD_AT(115 30 40 30 "abs 3d Green" "sg 12" "" "sacc 12")
 
 PAGE_START
 
-STAMP_ADD_AT(20 40 45 35 "4d Violet" "sg 4" "" "sacc 4")
-STAMP_ADD_AT(80 40 45 35 "5d Orange" "sg 5" "" "sacc 5")
-STAMP_ADD_AT(140 40 45 35 "6d Purple" "sg 6" "" "sacc 6")
+ROW_START_FS(HN 8 0.5 180)
+STAMP_ADD(32 37 "page2 row" "sg 20" "" "")
+
+STAMP_ADD_AT(20 40 45 35 "abs 4d Violet" "sg 13" "" "sacc 13")
+STAMP_ADD_AT(80 40 45 35 "abs 5d Orange" "sg 14" "" "sacc 14")
+STAMP_ADD_AT(140 40 45 35 "abs 6d Purple" "sg 15" "" "sacc 15")
 """
 
 DSL_STRIP = ALBUM_DSL.strip()
@@ -77,19 +85,21 @@ class TestVisualRegression:
     def test_html_renderer_output(self, album):
         html = HTMLRenderer(album, None).render()
         assert isinstance(html, str) and len(html) > 500
-        assert "1d Red" in html
-        assert "2d Blue" in html
-        assert "3d Green" in html
-        assert "4d Violet" in html
+        assert "row stamp 1" in html
+        assert "row oval" in html
+        assert "row diamond" in html
+        assert "abs 1d Red" in html
+        assert "page2 row" in html
         _check_snapshot("html_renderer.html", html)
 
     def test_svg_exporter_output(self, album):
         svg = SVGExporter().generate_to_string(album)
         assert isinstance(svg, str) and len(svg) > 500
         assert svg.strip().startswith("<svg")
-        assert "1d Red" in svg
-        assert "2d Blue" in svg
-        assert "4d Violet" in svg
+        assert "row stamp 1" in svg
+        assert "row oval" in svg
+        assert "abs 1d Red" in svg
+        assert "page2 row" in svg
         _check_snapshot("svg_exporter.svg", svg)
 
     def test_pdf_generator_output(self, album):
@@ -110,16 +120,31 @@ class TestVisualRegression:
         for page in album.pages:
             for stamp in page.absolute_stamps:
                 refs.update(stamp.catalog_refs or [])
+            for row in page.rows:
+                for stamp in row.stamps:
+                    refs.update(stamp.catalog_refs or [])
         assert "sg 1" in refs
-        assert "sg 2" in refs
-        assert "sacc 4" in refs
+        assert "sg 10" in refs
+        assert "sacc 13" in refs
 
     def test_absolute_stamps(self, album):
         abs_stamps = [s for p in album.pages for s in p.absolute_stamps]
         assert len(abs_stamps) == 6
         descs = {s.description for s in abs_stamps}
-        assert "1d Red" in descs
-        assert "4d Violet" in descs
+        assert "abs 1d Red" in descs
+        assert "abs 4d Violet" in descs
+
+    def test_row_stamps(self, album):
+        count = sum(len(r.stamps) for p in album.pages for r in p.rows)
+        assert count == 4
+        descs = set()
+        for p in album.pages:
+            for r in p.rows:
+                for s in r.stamps:
+                    descs.add(s.description)
+        assert "row stamp 1" in descs
+        assert "row oval" in descs
+        assert "page2 row" in descs
 
 
 # ---------------------------------------------------------------------------

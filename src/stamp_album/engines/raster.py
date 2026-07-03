@@ -22,6 +22,7 @@ from stamp_album.engines.borders import (
     edge_pattern_segments,
     regular_polygon_vertices,
 )
+from stamp_album.engines.layout import layout_rows
 
 
 # ── Font resolution ──
@@ -379,7 +380,8 @@ class PNGGenerator:
         canvas_img = Image.new("RGB", (page_w_px, total_h), (255, 255, 255))
         y_offset = 0
 
-        for page_data in album.pages:
+        row_layout = layout_rows(album)
+        for pi, page_data in enumerate(album.pages):
             pw_px = page_w_px
             ph_px = page_h_px
 
@@ -389,6 +391,17 @@ class PNGGenerator:
 
             _draw_page_border(draw, album, ps.width, ps.height, scale)
 
+            # Row stamps (same temp-set trick as absolute stamps)
+            for rx, ry, stamp in row_layout[pi]:
+                orig_ax, orig_ay, orig_w, orig_h = stamp.abs_x, stamp.abs_y, stamp.width, stamp.height
+                stamp.abs_x = rx * scale
+                stamp.abs_y = ry * scale
+                stamp.width = stamp.width * scale
+                stamp.height = stamp.height * scale
+                _draw_stamp(draw, stamp, album, stamp.font_size or 12)
+                stamp.abs_x, stamp.abs_y, stamp.width, stamp.height = orig_ax, orig_ay, orig_w, orig_h
+
+            # Absolute stamps
             for stamp in page_data.absolute_stamps:
                 x = stamp.abs_x * scale
                 y = stamp.abs_y * scale
