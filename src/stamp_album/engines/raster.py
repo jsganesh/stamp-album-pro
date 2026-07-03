@@ -362,42 +362,54 @@ class PNGGenerator:
     """Generate PNG output using Pillow."""
 
     def generate(self, album: Album, output_path: str, dpi: float = 150) -> None:
-        """Generate a PNG from an Album model."""
+        """Generate a PNG from an Album model. Multi-page albums stack vertically."""
         ps = album.page_setup
         scale = dpi / 25.4  # px per mm
-        img_w = int(ps.width * scale)
-        img_h = int(ps.height * scale)
+        page_w_px = int(ps.width * scale)
+        page_h_px = int(ps.height * scale)
+        gap_px = int(10 * scale)  # 10 mm gap between pages
 
-        # Create a white image per page, save first page for now
-        img = Image.new("RGB", (img_w, img_h), (255, 255, 255))
-        draw = ImageDraw.Draw(img)
-
-        page_data = album.pages[0] if album.pages else None
-        if page_data is None:
+        if not album.pages:
+            img = Image.new("RGB", (page_w_px, page_h_px), (255, 255, 255))
             img.save(output_path, dpi=(dpi, dpi))
             return
 
-        _draw_page_border(draw, album, ps.width, ps.height, scale)
+        total_h = page_h_px * len(album.pages) + gap_px * (len(album.pages) - 1)
 
-        for stamp in page_data.absolute_stamps:
-            x = stamp.abs_x * scale
-            y = stamp.abs_y * scale
-            w = stamp.width * scale
-            h = stamp.height * scale
+        canvas_img = Image.new("RGB", (page_w_px, total_h), (255, 255, 255))
+        y_offset = 0
 
-            # Temporarily store scaled coords for drawing
-            orig_x, orig_y, orig_w, orig_h = stamp.abs_x, stamp.abs_y, stamp.width, stamp.height
-            stamp.abs_x, stamp.abs_y, stamp.width, stamp.height = x, y, w, h
+        for page_data in album.pages:
+            pw_px = page_w_px
+            ph_px = page_h_px
 
-            if stamp.is_text_element:
-                font = _resolve_pillow_font(stamp.font_id or "HN", stamp.font_size or 12)
-                _draw_multiline_text(draw, x, y, w, h, stamp.description, font, stamp.font_size or 12)
-            else:
-                _draw_stamp(draw, stamp, album, stamp.font_size or 12)
+            # Draw onto a white page-sized tile, then paste into the canvas
+            page_img = Image.new("RGB", (pw_px, ph_px), (255, 255, 255))
+            draw = ImageDraw.Draw(page_img)
 
-            stamp.abs_x, stamp.abs_y, stamp.width, stamp.height = orig_x, orig_y, orig_w, orig_h
+            _draw_page_border(draw, album, ps.width, ps.height, scale)
 
-        img.save(output_path, dpi=(dpi, dpi))
+            for stamp in page_data.absolute_stamps:
+                x = stamp.abs_x * scale
+                y = stamp.abs_y * scale
+                w = stamp.width * scale
+                h = stamp.height * scale
+
+                orig_x, orig_y, orig_w, orig_h = stamp.abs_x, stamp.abs_y, stamp.width, stamp.height
+                stamp.abs_x, stamp.abs_y, stamp.width, stamp.height = x, y, w, h
+
+                if stamp.is_text_element:
+                    font = _resolve_pillow_font(stamp.font_id or "HN", stamp.font_size or 12)
+                    _draw_multiline_text(draw, x, y, w, h, stamp.description, font, stamp.font_size or 12)
+                else:
+                    _draw_stamp(draw, stamp, album, stamp.font_size or 12)
+
+                stamp.abs_x, stamp.abs_y, stamp.width, stamp.height = orig_x, orig_y, orig_w, orig_h
+
+            canvas_img.paste(page_img, (0, y_offset))
+            y_offset += ph_px + gap_px
+
+        canvas_img.save(output_path, dpi=(dpi, dpi))
 
     def generate_to_bytes(self, album: Album, dpi: float = 150) -> bytes:
         """Generate a PNG and return as bytes."""

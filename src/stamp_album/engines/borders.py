@@ -294,118 +294,99 @@ def edge_pattern_segments(
     return segments
 
 
+# ── SVG fragment builder from segments ──
+
+def segments_to_svg_fragment(
+    segments: list[tuple], color: str, stroke_width: float = 1.0
+) -> str:
+    """Convert segment tuples to SVG fragment string.
+
+    Each segment is an independent drawing operation.  Path commands (L/Q/C)
+    are accumulated into ``<path d="…">`` elements, inserting a move-to (M)
+    whenever a segment's start does not match the previous segment's end.
+    Shape primitives (circle / rect / ellipse) flush the current path and
+    emit their own element.
+    """
+    parts: list[str] = []
+    path_cmds: list[str] = []
+
+    def flush_path():
+        if path_cmds:
+            d = " ".join(path_cmds)
+            parts.append(
+                f'<path d="{d}" fill="none" stroke="{color}" stroke-width="{stroke_width}"/>'
+            )
+            path_cmds.clear()
+
+    prev_end: tuple[float, float] | None = None
+
+    def maybe_move(x: float, y: float) -> str:
+        nonlocal prev_end
+        gap = prev_end is None or abs(x - prev_end[0]) > 0.01 or abs(y - prev_end[1]) > 0.01
+        return f"M{x},{y}" if gap else ""
+
+    for seg in segments:
+        cmd = seg[0]
+        if cmd == "L":
+            _, x1, y1, x2, y2 = seg
+            m = maybe_move(x1, y1)
+            path_cmds.append(f"{m}L{x2},{y2}")
+            prev_end = (x2, y2)
+        elif cmd == "Q":
+            _, x1, y1, cx, cy, x2, y2 = seg
+            m = maybe_move(x1, y1)
+            path_cmds.append(f"{m}Q{cx},{cy} {x2},{y2}")
+            prev_end = (x2, y2)
+        elif cmd == "C":
+            _, x1, y1, c1x, c1y, c2x, c2y, x2, y2 = seg
+            m = maybe_move(x1, y1)
+            path_cmds.append(f"{m}C{c1x},{c1y} {c2x},{c2y} {x2},{y2}")
+            prev_end = (x2, y2)
+        else:
+            flush_path()
+            prev_end = None
+            if cmd == "circle":
+                _, cx, cy, r, fill = seg
+                f = color if fill else "none"
+                parts.append(
+                    f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="{f}" '
+                    f'stroke="{color}" stroke-width="{stroke_width}"/>'
+                )
+            elif cmd == "rect":
+                _, x, y, w, h, fill = seg
+                f = color if fill else "none"
+                parts.append(
+                    f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{f}" '
+                    f'stroke="{color}" stroke-width="{stroke_width}"/>'
+                )
+            elif cmd == "ellipse":
+                _, cx, cy, rx, ry, fill = seg
+                f = color if fill else "none"
+                parts.append(
+                    f'<ellipse cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}" fill="{f}" '
+                    f'stroke="{color}" stroke-width="{stroke_width}"/>'
+                )
+
+    flush_path()
+    return "".join(parts)
+
+
 # ── SVG string builders (used by HTMLRenderer + SVG export) ──
 
 def corner_ornament_svg(style: str, color: str = "#333") -> str:
-    """Generate SVG fragment for a TL-oriented corner ornament."""
-    if style == "classic":
-        return (
-            '<path d="M5,80 Q5,20 20,20 Q40,20 45,5 Q50,0 60,0" fill="none" stroke="'
-            + color + '" stroke-width="1.2"/>'
-            '<path d="M5,60 Q5,15 15,10 Q30,5 35,2" fill="none" stroke="'
-            + color + '" stroke-width="0.8"/>'
-            '<circle cx="8" cy="8" r="2" fill="' + color + '"/>'
-            '<circle cx="20" cy="5" r="1.2" fill="' + color + '"/>'
-        )
-    if style == "victorian":
-        return (
-            '<path d="M0,85 C10,85 15,70 25,60 C35,50 30,35 20,25 '
-            'C15,20 10,15 5,10 C10,12 15,18 25,22 C35,26 40,20 35,10" '
-            'fill="none" stroke="' + color + '" stroke-width="1.2"/>'
-            '<path d="M0,75 C8,75 12,65 20,58 C28,51 25,40 18,32 '
-            'C14,28 10,24 8,18" fill="none" stroke="' + color + '" stroke-width="0.7"/>'
-            '<circle cx="5" cy="5" r="2.5" fill="' + color + '"/>'
-            '<circle cx="15" cy="12" r="1.5" fill="' + color + '"/>'
-            '<circle cx="25" cy="8" r="1" fill="' + color + '"/>'
-        )
-    if style == "artdeco":
-        return (
-            '<rect x="0" y="60" width="40" height="3" fill="' + color + '"/>'
-            '<rect x="0" y="50" width="30" height="3" fill="' + color + '"/>'
-            '<rect x="0" y="40" width="20" height="3" fill="' + color + '"/>'
-            '<rect x="0" y="30" width="10" height="3" fill="' + color + '"/>'
-            '<rect x="40" y="60" width="3" height="25" fill="' + color + '"/>'
-            '<rect x="30" y="50" width="3" height="15" fill="' + color + '"/>'
-            '<rect x="20" y="40" width="3" height="5" fill="' + color + '"/>'
-        )
-    if style == "laurel":
-        return (
-            '<path d="M5,80 Q15,60 10,40 Q8,30 15,20" fill="none" stroke="'
-            + color + '" stroke-width="1"/>'
-            '<ellipse cx="12" cy="35" rx="4" ry="2.5" fill="' + color + '"'
-            ' transform="rotate(-30 12 35)"/>'
-            '<ellipse cx="8" cy="45" rx="4" ry="2.5" fill="' + color + '"'
-            ' transform="rotate(-20 8 45)"/>'
-            '<ellipse cx="15" cy="55" rx="4" ry="2.5" fill="' + color + '"'
-            ' transform="rotate(-40 15 55)"/>'
-            '<ellipse cx="18" cy="28" rx="3.5" ry="2" fill="' + color + '"'
-            ' transform="rotate(-45 18 28)"/>'
-            '<circle cx="14" cy="22" r="1.5" fill="' + color + '"/>'
-            '<circle cx="10" cy="50" r="1.2" fill="' + color + '"/>'
-        )
-    if style == "gothic":
-        return (
-            '<path d="M0,85 L0,40 Q0,20 15,10 Q25,3 30,0" fill="none" stroke="'
-            + color + '" stroke-width="1.5"/>'
-            '<path d="M5,85 L5,45 Q5,28 18,18 Q25,12 28,8" fill="none" stroke="'
-            + color + '" stroke-width="0.8"/>'
-            '<path d="M15,0 Q20,5 22,12" fill="none" stroke="'
-            + color + '" stroke-width="0.6"/>'
-        )
-    if style == "filigree":
-        return (
-            '<circle cx="20" cy="20" r="15" fill="none" stroke="'
-            + color + '" stroke-width="0.8"/>'
-            '<circle cx="20" cy="20" r="10" fill="none" stroke="'
-            + color + '" stroke-width="0.5"/>'
-            '<circle cx="20" cy="20" r="5" fill="none" stroke="'
-            + color + '" stroke-width="0.5"/>'
-            '<circle cx="20" cy="20" r="2" fill="' + color + '"/>'
-            '<path d="M20,35 Q25,50 30,65" fill="none" stroke="'
-            + color + '" stroke-width="0.6"/>'
-            '<path d="M35,20 Q50,25 65,30" fill="none" stroke="'
-            + color + '" stroke-width="0.6"/>'
-            '<circle cx="30" cy="30" r="1.5" fill="' + color + '"/>'
-            '<circle cx="35" cy="35" r="1" fill="' + color + '"/>'
-        )
-    return ""
+    """Generate SVG fragment for a TL-oriented corner ornament from segment data."""
+    segments = get_ornament_segments(style)
+    if not segments:
+        return ""
+    return segments_to_svg_fragment(segments, color, stroke_width=1.0)
 
 
 def edge_pattern_svg(
     style: str, edge: str, w: float, h: float, color: str,
 ) -> str:
-    """Generate SVG fragment for an edge pattern along one side."""
-    svg = ""
-    is_v = edge in ("left", "right")
-    disp_len = h if is_v else w
-
-    if style == "greek_key":
-        step = 12
-        count = int(disp_len / step)
-        for i in range(count):
-            offset = i * step
-            if is_v:
-                svg += (
-                    f'<path d="M0,{offset} l0,3 l3,0 l0,6 l-3,0 l0,3"'
-                    f' fill="none" stroke="{color}" stroke-width="0.8"/>'
-                )
-            else:
-                svg += (
-                    f'<path d="M{offset},0 l3,0 l0,3 l6,0 l0,-3 l3,0"'
-                    f' fill="none" stroke="{color}" stroke-width="0.8"/>'
-                )
-    elif style == "rope":
-        rstep = 8
-        count = int(disp_len / rstep)
-        for j in range(count):
-            if is_v:
-                svg += (
-                    f'<circle cx="2" cy="{j * rstep + rstep / 2}" r="2"'
-                    f' fill="none" stroke="{color}" stroke-width="0.7"/>'
-                )
-            else:
-                svg += (
-                    f'<circle cx="{j * rstep + rstep / 2}" cy="2" r="2"'
-                    f' fill="none" stroke="{color}" stroke-width="0.7"/>'
-                )
-    return svg
+    """Generate SVG fragment for an edge pattern along one side from segment data."""
+    length = h if edge in ("left", "right") else w
+    segments = edge_pattern_segments(style, edge, length)
+    if not segments:
+        return ""
+    return segments_to_svg_fragment(segments, color, stroke_width=0.8)

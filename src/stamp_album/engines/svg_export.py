@@ -111,22 +111,40 @@ class SVGExporter:
         w_mm = ps.width
         h_mm = ps.height
         color_border_hex = _color_hex(album.color_album_border, "#333")
+        gap = 10  # mm gap between pages
+
+        if not album.pages:
+            return (
+                f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_mm}mm" height="{h_mm}mm"'
+                f' viewBox="0 0 {w_mm} {h_mm}"></svg>'
+            )
+
+        total_h = h_mm * len(album.pages) + gap * (len(album.pages) - 1)
 
         parts = [
-            f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_mm}mm" height="{h_mm}mm"'
-            f' viewBox="0 0 {w_mm} {h_mm}">',
+            f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_mm}mm" height="{total_h}mm"'
+            f' viewBox="0 0 {w_mm} {total_h}">',
             '<defs>',
             '<style>text{font-family:Arial,Helvetica,sans-serif}</style>',
             '</defs>',
         ]
 
+        y_offset = 0
         for page_data in album.pages:
+            parts.append(f'<g transform="translate(0,{y_offset})">')
+
+            # Page background
+            parts.append(
+                f'<rect x="0" y="0" width="{w_mm}" height="{h_mm}" '
+                f'fill="#fff" stroke="#ccc" stroke-width="0.1"/>'
+            )
+
             # Page border
             if ps.has_border:
                 bl = ps.margin_left
                 bt = ps.margin_top
-                bw = ps.width - ps.margin_left - ps.margin_right
-                bh = ps.height - ps.margin_top - ps.margin_bottom
+                bw = pw - ps.margin_left - ps.margin_right
+                bh = ph - ps.margin_top - ps.margin_bottom
 
                 if ps.border_outer > 0:
                     parts.append(
@@ -140,7 +158,6 @@ class SVGExporter:
                         f'fill="none" stroke="{color_border_hex}" stroke-width="{ps.border_inner1}"/>'
                     )
 
-                # Ornaments / edge patterns
                 if ps.border_style in ORNAMENTAL_STYLES:
                     orn = corner_ornament_svg(ps.border_style, color_border_hex)
                     parts.append(
@@ -197,7 +214,6 @@ class SVGExporter:
                             x, y, w, h, stamp.description, font_s, center=True
                         ))
 
-                    # Philatelic: heading above stamp
                     if stamp.heading and stamp.heading.text:
                         hdg_sz = stamp.heading.size or 9
                         parts.append(
@@ -207,7 +223,6 @@ class SVGExporter:
                             f'{_xml_escape(stamp.heading.text)}</text>'
                         )
 
-                    # Philatelic: catalog refs below stamp
                     if stamp.catalog_refs:
                         cat_text = " · ".join(stamp.catalog_refs)
                         parts.append(
@@ -217,7 +232,6 @@ class SVGExporter:
                             f'{_xml_escape(cat_text)}</text>'
                         )
 
-                    # Philatelic: footer (denom · cond · perf)
                     if stamp.footer_text:
                         parts.append(
                             f'<text x="{x + w / 2}" y="{y + h + 3.5}" font-size="8pt" '
@@ -225,6 +239,9 @@ class SVGExporter:
                             f'font-family="Arial,Helvetica,sans-serif">'
                             f'{_xml_escape(stamp.footer_text)}</text>'
                         )
+
+            parts.append('</g>')  # close page group
+            y_offset += h_mm + gap
 
         parts.append("</svg>")
         return "\n".join(parts)
