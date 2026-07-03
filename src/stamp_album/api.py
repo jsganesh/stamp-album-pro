@@ -12,7 +12,7 @@ from pydantic import BaseModel
 
 from stamp_album.core.parser import AlbumParser, ParseError
 from stamp_album.core.serializer import AlbumSerializer
-from stamp_album.engines.pdf_generator import HTMLRenderer, get_html_preview
+from stamp_album.engines.pdf_generator import HTMLRenderer
 from stamp_album.engines.pdf import PDFGenerator
 from stamp_album.engines.raster import PNGGenerator
 from stamp_album.engines.svg_export import SVGExporter
@@ -292,14 +292,6 @@ async def export_album(request: ExportRequest):
 
     try:
         album = parser.parse(request.dsl, request.source_path)
-        html_content = get_html_preview(album)
-
-        import re
-        html_content = re.sub(
-            r'src="([^\"/"][^"]*\.(?:png|jpg|jpeg|gif|bmp|tiff|tif|webp))"',
-            r'src="/images/\1"',
-            html_content,
-        )
 
         if fmt == "pdf":
             import tempfile
@@ -334,6 +326,13 @@ async def export_album(request: ExportRequest):
             )
 
         elif fmt == "html":
+            import re
+            html_content = HTMLRenderer(album, None).render()
+            html_content = re.sub(
+                r'src="([^\"/"][^"]*\.(?:png|jpg|jpeg|gif|bmp|tiff|tif|webp))"',
+                r'src="/images/\1"',
+                html_content,
+            )
             gallery_html = _build_html_gallery(html_content, album)
             with tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode="w", encoding="utf-8") as tmp:
                 tmp.write(gallery_html)
@@ -616,8 +615,8 @@ async def export_from_state(req: CanvasStateRequest):
                 background=BackgroundTask(_cleanup, svg_path),
             )
         else:  # html
-            html = get_html_preview(album)
             import re
+            html = HTMLRenderer(album, None).render()
             html = re.sub(
                 r'src="([^\/"][^"]*\.(?:png|jpg|jpeg|gif|bmp|tiff|tif|webp))"',
                 r'src="/images/\1"',
