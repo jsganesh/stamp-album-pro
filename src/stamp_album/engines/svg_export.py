@@ -197,5 +197,34 @@ class SVGExporter:
                             x, y, w, h, stamp.description, font_s, center=True
                         ))
 
+                    # Philatelic: heading above stamp
+                    if stamp.heading and stamp.heading.text:
+                        hdg_sz = stamp.heading.size or 9
+                        parts.append(
+                            f'<text x="{x + w / 2}" y="{y - 1}" font-size="{hdg_sz}pt" '
+                            f'text-anchor="middle" fill="#333" '
+                            f'font-family="Arial,Helvetica,sans-serif">'
+                            f'{_xml_escape(stamp.heading.text)}</text>'
+                        )
+
+                    # Philatelic: catalog refs below stamp
+                    if stamp.catalog_refs:
+                        cat_text = " · ".join(stamp.catalog_refs)
+                        parts.append(
+                            f'<text x="{x + w / 2}" y="{y + h + 6}" font-size="8pt" '
+                            f'text-anchor="middle" fill="#666" '
+                            f'font-family="Arial,Helvetica,sans-serif">'
+                            f'{_xml_escape(cat_text)}</text>'
+                        )
+
+                    # Philatelic: footer (denom · cond · perf)
+                    if stamp.footer_text:
+                        parts.append(
+                            f'<text x="{x + w / 2}" y="{y + h + 3.5}" font-size="8pt" '
+                            f'text-anchor="middle" fill="#555" '
+                            f'font-family="Arial,Helvetica,sans-serif">'
+                            f'{_xml_escape(stamp.footer_text)}</text>'
+                        )
+
         parts.append("</svg>")
         return "\n".join(parts)

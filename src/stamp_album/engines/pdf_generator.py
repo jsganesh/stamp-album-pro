@@ -31,6 +31,11 @@ from stamp_album.engines.borders import (
 )
 
 
+def _xml_escape(s: str) -> str:
+    """Escape special XML characters."""
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
 # ── HTML Renderer (for live preview) ──
 
 class HTMLRenderer:
@@ -216,7 +221,10 @@ class HTMLRenderer:
         if has_columns:
             parts.append('</div>')  # close column-container
 
-        # Absolutely positioned stamps (drag-and-drop)
+        parts.append('</div>')  # close page-content
+
+        # Absolutely positioned stamps (drag-and-drop) — outside page-content
+        # so their coordinates are page-absolute (not offset by padding)
         for stamp in page.absolute_stamps:
             x, y, w, h = stamp.abs_x, stamp.abs_y, stamp.width, stamp.height
             desc = (stamp.description or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>")
@@ -228,8 +236,10 @@ class HTMLRenderer:
                     f'font-size:{font_size}pt;padding:1mm;word-wrap:break-word;">{desc}</div>'
                 )
             else:
-                border_color = _color_to_rgb(getattr(stamp, 'border_color', None)) if getattr(stamp, 'border_color', None) else (0.5, 0.5, 0.5)
-                bg_color = _color_to_rgb(getattr(stamp, 'fill_color', None)) if getattr(stamp, 'fill_color', None) else (1, 1, 1)
+                stamp_bc = getattr(stamp, 'border_color', None) or getattr(self.album, 'color_stamp_border', None)
+                stamp_fc = getattr(stamp, 'fill_color', None) or getattr(self.album, 'color_stamp_background', None)
+                border_color = _color_to_rgb(stamp_bc) if stamp_bc else (0, 0, 0)
+                bg_color = _color_to_rgb(stamp_fc) if stamp_fc else (1, 1, 1)
                 bc = f"rgb({int(border_color[0]*255)},{int(border_color[1]*255)},{int(border_color[2]*255)})"
                 bg = f"rgb({int(bg_color[0]*255)},{int(bg_color[1]*255)},{int(bg_color[2]*255)})"
                 desc_font_size = round(font_size * 0.9, 1)
@@ -262,7 +272,34 @@ class HTMLRenderer:
                     f'</div>'
                 )
 
-        parts.append("</div>")  # close page-content
+                # Philatelic: heading above stamp
+                if stamp.heading and stamp.heading.text:
+                    hdg_sz = stamp.heading.size or 9
+                    parts.append(
+                        f'<div style="position:absolute;left:{x}mm;top:{y - 2.5}mm;'
+                        f'width:{w}mm;text-align:center;font-size:{hdg_sz}pt;'
+                        f'font-weight:600;color:#333;overflow:hidden;'
+                        f'white-space:nowrap;text-overflow:ellipsis;">'
+                        f'{_xml_escape(stamp.heading.text)}</div>'
+                    )
+
+                # Philatelic: catalog references below stamp
+                if stamp.catalog_refs:
+                    cat_text = " · ".join(stamp.catalog_refs)
+                    parts.append(
+                        f'<div style="position:absolute;left:{x}mm;top:{y + h + 1}mm;'
+                        f'width:{w}mm;text-align:center;font-size:8pt;color:#666;">'
+                        f'{_xml_escape(cat_text)}</div>'
+                    )
+
+                # Philatelic: footer (denom · cond · perf)
+                if stamp.footer_text:
+                    parts.append(
+                        f'<div style="position:absolute;left:{x}mm;top:{y + h + 0.2}mm;'
+                        f'width:{w}mm;text-align:center;font-size:8pt;color:#555;">'
+                        f'{_xml_escape(stamp.footer_text)}</div>'
+                    )
+
         parts.append("</div>")  # close page
         return "\n".join(parts)
 

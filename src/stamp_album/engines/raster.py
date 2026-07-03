@@ -168,6 +168,31 @@ def _draw_stamp(draw: ImageDraw.ImageDraw, stamp: Stamp, album: Album, font_size
         _draw_multiline_text(draw, x, y, w, h, stamp.description, font,
                              (stamp.font_size or 12) * 0.9, center=True)
 
+    # Philatelic data: heading above stamp
+    if stamp.heading and stamp.heading.text:
+        hdg_font = _resolve_pillow_font(stamp.heading.font_id or "HN", stamp.heading.size or 9)
+        hdg_size = stamp.heading.size or 9
+        hdg_y = y + h + int(hdg_size * 0.4)
+        _, _, tw, _ = draw.textbbox((0, 0), stamp.heading.text, font=hdg_font)
+        draw.text((x + (w - tw) / 2, hdg_y), stamp.heading.text, fill=(51, 51, 51), font=hdg_font)
+
+    # Catalog references below stamp
+    if stamp.catalog_refs:
+        cat_font = _resolve_pillow_font("HN", 8)
+        cat_text = " · ".join(stamp.catalog_refs)
+        cat_y = y + h - h + int(-3.5 * 2.83)  # ~3.5mm below stamp bottom
+        # Calculate from bottom of stamp
+        cat_y = y + h + 4
+        _, _, tw, _ = draw.textbbox((0, 0), cat_text, font=cat_font)
+        draw.text((x + (w - tw) / 2, cat_y), cat_text, fill=(102, 102, 102), font=cat_font)
+
+    # Footer (denomination + condition + perforation)
+    if stamp.footer_text:
+        ft_font = _resolve_pillow_font("HN", 8)
+        ft_y = y + h + 2
+        _, _, tw, _ = draw.textbbox((0, 0), stamp.footer_text, font=ft_font)
+        draw.text((x + (w - tw) / 2, ft_y), stamp.footer_text, fill=(77, 77, 77), font=ft_font)
+
 
 def _draw_text_element(draw: ImageDraw.ImageDraw, stamp: Stamp):
     """Draw a free-form text element."""

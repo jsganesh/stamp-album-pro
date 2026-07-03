@@ -160,6 +160,28 @@ function init() {
         el.fs = parseFloat(this.value) || 12; pushUndo(); render();
     });
 
+    // ── Philatelic data change handlers ──
+    $("phdg").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.hdg = this.value; pushUndo(); render();
+    });
+    $("pcat").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.cat = this.value; pushUndo(); render();
+    });
+    $("pdenom").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.denom = this.value; pushUndo(); render();
+    });
+    $("pcond").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.cond = this.value; pushUndo(); render();
+    });
+    $("pperf").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.perf = this.value; pushUndo(); render();
+    });
+
     // ── Buttons ──
     $("btn-new").addEventListener("click", newAlbum);
     $("btn-open").addEventListener("click", function() { $("file-inp").click(); });
@@ -437,6 +459,14 @@ function init() {
             if (e.target === this) this.classList.remove("open");
         });
     }
+
+    // ── Properties panel actions ──
+    $("btn-dup-el").addEventListener("click", function() {
+        if (!S.sel) { showToast("Select an element first", "error"); return; }
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        S.add(Object.assign({}, el, { id: "el" + (S.nid++), x: el.x + 20, y: el.y + 20 }));
+    });
+    $("btn-center").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("center"); });
 
     // ── Alignment toolbar ──
     $("btn-align-l").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("left"); });

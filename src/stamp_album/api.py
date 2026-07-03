@@ -453,6 +453,19 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
             # Compose footer with denomination + condition + perforation
             footer_parts = [p for p in [el.denom, el.cond, el.perf] if p]
             footer = " · ".join(footer_parts) if footer_parts else ""
+            # Parse colors from canvas state
+            def _parse_hex(c: str) -> Optional[Color]:
+                c = c.lstrip("#")
+                if not c:
+                    return None
+                if len(c) == 3:
+                    c = "".join(x * 2 for x in c)
+                try:
+                    return Color(r=int(c[0:2], 16) / 255,
+                                 g=int(c[2:4], 16) / 255,
+                                 b=int(c[4:6], 16) / 255)
+                except (ValueError, IndexError):
+                    return None
             stamp = Stamp(
                 abs_x=el.x / SCALE,
                 abs_y=el.y / SCALE,
@@ -464,6 +477,8 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
                 is_text_element=is_text,
                 font_id=el.font or "HN",
                 font_size=el.fs or 12.0,
+                border_color=_parse_hex(el.bdrC) or Color(r=0, g=0, b=0),
+                fill_color=_parse_hex(el.fill) or Color(r=1, g=1, b=1),
             )
             stamp.catalog_refs = catalog_refs
             stamp.heading = heading
@@ -512,6 +527,12 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
             ps.border_inner1 = 0.3
             ps.border_inner2 = 0.0
         ps.border_spacing = 1.0
+        # Match canvas border margin: 12 CSS px at _sc=2.5 → 4.8mm
+        border_margin_mm = 12.0 / req.scale
+        ps.margin_left = border_margin_mm
+        ps.margin_top = border_margin_mm
+        ps.margin_right = border_margin_mm
+        ps.margin_bottom = border_margin_mm
         if req.border_color:
             try:
                 c = req.border_color.lstrip("#")

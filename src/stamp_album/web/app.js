@@ -2,7 +2,7 @@
 (function(){
 var E = [], sel = null, nid = 1, _sc = 2.5, _sn = 5, _pw = 595, _ph = 842, _init = false;
 var _drg = false, _dragEl = null, _dragH = null, _ds = {};
-var _defBdr = "solid", _defBdrC = "#666", _defFillC = "#fff";
+var _defBdr = "solid", _defBdrC = "#000", _defFillC = "#fff";
 var _collapsed = { sb: false, rp: false };
 var _currentFile = null, _currentPage = 0, _pages = [ [] ];
 var _dirty = false;

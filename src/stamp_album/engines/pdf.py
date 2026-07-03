@@ -201,8 +201,10 @@ def _draw_multiline_text(
 
 def _draw_stamp(c: canvas.Canvas, stamp: Stamp, album: Album):
     """Draw a single stamp (shape + image + text)."""
+    ps = album.page_setup
+    page_h_pt = _mm_to_pt(ps.height)
     x = _mm_to_pt(stamp.abs_x)
-    y = _mm_to_pt(stamp.abs_y)  # bottom of stamp in PDF space
+    y = page_h_pt - _mm_to_pt(stamp.abs_y + stamp.height)  # bottom of stamp in PDF (y-up)
     w = _mm_to_pt(stamp.width)
     h = _mm_to_pt(stamp.height)
 
@@ -234,13 +236,44 @@ def _draw_stamp(c: canvas.Canvas, stamp: Stamp, album: Album):
         font_size = (stamp.font_size or 12) * 0.9
         _draw_multiline_text(c, x, y, w, h, stamp.description, font_name, font_size, center=True)
 
+    # Philatelic data: heading above stamp
+    if stamp.heading and stamp.heading.text:
+        hdg_font = _resolve_reportlab_font(stamp.heading.font_id or "HN", c)
+        hdg_size = stamp.heading.size or 9
+        hdg_y = y + h + _mm_to_pt(1)
+        c.setFont(hdg_font, hdg_size)
+        c.setFillColorRGB(0.2, 0.2, 0.2)
+        tw = c.stringWidth(stamp.heading.text, hdg_font, hdg_size)
+        c.drawString(x + (w - tw) / 2, hdg_y, stamp.heading.text)
 
-def _draw_text_element(c: canvas.Canvas, stamp: Stamp):
+    # Catalog references below stamp
+    if stamp.catalog_refs:
+        cat_font = _resolve_reportlab_font("HN", c)
+        cat_size = 8
+        cat_text = " · ".join(stamp.catalog_refs)
+        cat_y = y - _mm_to_pt(3.5)
+        c.setFont(cat_font, cat_size)
+        c.setFillColorRGB(0.4, 0.4, 0.4)
+        tw = c.stringWidth(cat_text, cat_font, cat_size)
+        c.drawString(x + (w - tw) / 2, cat_y, cat_text)
+
+    # Footer (denomination + condition + perforation)
+    if stamp.footer_text:
+        ft_font = _resolve_reportlab_font("HN", c)
+        ft_size = 8
+        ft_y = y - _mm_to_pt(1.5)
+        c.setFont(ft_font, ft_size)
+        c.setFillColorRGB(0.3, 0.3, 0.3)
+        tw = c.stringWidth(stamp.footer_text, ft_font, ft_size)
+        c.drawString(x + (w - tw) / 2, ft_y, stamp.footer_text)
+
+
+def _draw_text_element(c: canvas.Canvas, stamp: Stamp, page_h_pt: float):
     """Draw a free-form text element."""
     if not stamp.description:
         return
     x = _mm_to_pt(stamp.abs_x)
-    y = _mm_to_pt(stamp.abs_y)
+    y = page_h_pt - _mm_to_pt(stamp.abs_y + stamp.height)
     w = _mm_to_pt(stamp.width)
     h = _mm_to_pt(stamp.height)
     font_name = _resolve_reportlab_font(stamp.font_id or "HN", c)
@@ -448,7 +481,7 @@ class PDFGenerator:
             _draw_page_border(c, album)
             for stamp in page_data.absolute_stamps:
                 if stamp.is_text_element:
-                    _draw_text_element(c, stamp)
+                    _draw_text_element(c, stamp, page_h)
                 else:
                     _draw_stamp(c, stamp, album)
             c.showPage()
