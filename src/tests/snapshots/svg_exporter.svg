@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="210.0mm" height="604.0mm" viewBox="0 0 210.0 604.0">
+<defs>
+<style>text{font-family:Arial,Helvetica,sans-serif}</style>
+</defs>
+<g transform="translate(0,0)">
+<rect x="0" y="0" width="210.0" height="297.0" fill="#fff" stroke="#ccc" stroke-width="0.1"/>
+<rect x="15.0" y="30.0" width="40.0" height="30.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
+<text x="35.0" y="48.15" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">1d Red</text>
+<text x="35.0" y="66.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 1 ·  · sacc 1</text>
+<rect x="65.0" y="30.0" width="40.0" height="30.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
+<text x="85.0" y="48.15" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">2d Blue</text>
+<text x="85.0" y="66.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 2 · scott 3 · sacc 2</text>
+<rect x="115.0" y="30.0" width="40.0" height="30.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
+<text x="135.0" y="48.15" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">3d Green</text>
+<text x="135.0" y="66.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 3 ·  · sacc 3</text>
+</g>
+<g transform="translate(0,307.0)">
+<rect x="0" y="0" width="210.0" height="297.0" fill="#fff" stroke="#ccc" stroke-width="0.1"/>
+<rect x="20.0" y="40.0" width="45.0" height="35.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
+<text x="42.5" y="60.65" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">4d Violet</text>
+<text x="42.5" y="81.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 4 ·  · sacc 4</text>
+<rect x="80.0" y="40.0" width="45.0" height="35.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
+<text x="102.5" y="60.65" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">5d Orange</text>
+<text x="102.5" y="81.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 5 ·  · sacc 5</text>
+<rect x="140.0" y="40.0" width="45.0" height="35.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
+<text x="162.5" y="60.65" font-size="9.0pt" text-anchor="middle" fill="#333" font-family="Arial,Helvetica,sans-serif">6d Purple</text>
+<text x="162.5" y="81.0" font-size="8pt" text-anchor="middle" fill="#666" font-family="Arial,Helvetica,sans-serif">sg 6 ·  · sacc 6</text>
+</g>
+</svg>
