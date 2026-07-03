@@ -289,6 +289,8 @@ class AlbumParser:
                     ps.border_spacing = float(params[2])
             elif cmd == "ALBUM_PAGES_DECORATIVE_BORDER":
                 album.page_setup.decorative_border_file = unquote(params[0])
+            elif cmd == "ALBUM_BORDER_STYLE":
+                album.page_setup.border_style = params[0]
             elif cmd == "ALBUM_PAGES_SPACING":
                 album.page_setup.hspace = float(params[0])
                 album.page_setup.vspace = float(params[1])

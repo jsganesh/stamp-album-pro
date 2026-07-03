@@ -145,8 +145,8 @@ class SVGExporter:
             if ps.has_border:
                 bl = ps.margin_left
                 bt = ps.margin_top
-                bw = pw - ps.margin_left - ps.margin_right
-                bh = ph - ps.margin_top - ps.margin_bottom
+                bw = w_mm - ps.margin_left - ps.margin_right
+                bh = h_mm - ps.margin_top - ps.margin_bottom
 
                 if ps.border_outer > 0:
                     parts.append(

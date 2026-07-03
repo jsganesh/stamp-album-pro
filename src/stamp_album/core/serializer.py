@@ -74,6 +74,8 @@ class AlbumSerializer:
                 f"ALBUM_PAGES_BORDER({ps.border_outer} {ps.border_inner1} "
                 f"{ps.border_inner2} {ps.border_spacing})"
             )
+            if ps.border_style:
+                lines.append(f"ALBUM_BORDER_STYLE({ps.border_style})")
 
         for font in album.fonts:
             lines.append(
