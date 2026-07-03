@@ -24,6 +24,11 @@ from stamp_album.core.models import (
     Album, Color, FormattedText, Page, Stamp, StampShape,
     TextShadow, TextOutline, GradientFill,
 )
+from stamp_album.engines.borders import (
+    ORNAMENTAL_STYLES, EDGE_STYLES, ORNAMENT_BBOX,
+    corner_ornament_svg, edge_pattern_svg,
+    regular_polygon_vertices, SHAPE_POLYGON_VIEWBOX,
+)
 
 
 # ── HTML Renderer (for live preview) ──
@@ -116,8 +121,8 @@ class HTMLRenderer:
             bt_px = round(bt * px, 1)
             bw_px = round(bw * px, 1)
             bh_px = round(bh * px, 1)
-            if ps.border_style in _ORNAMENTAL_STYLES:
-                ornament_svg = _corner_ornament_svg(ps.border_style, color)
+            if ps.border_style in ORNAMENTAL_STYLES:
+                ornament_svg = corner_ornament_svg(ps.border_style, color)
                 parts.append(
                     f'<svg style="position:absolute;top:0;left:0;width:100%;height:100%;'
                     f'pointer-events:none;overflow:visible;">'
@@ -128,13 +133,13 @@ class HTMLRenderer:
                     f'</svg>'
                 )
             # Edge patterns for greek_key / rope
-            elif ps.border_style in _EDGE_STYLES:
+            elif ps.border_style in EDGE_STYLES:
                 epw = round(bw * px, 1)
                 eph = round(bh * px, 1)
-                top_svg = _edge_pattern_svg(ps.border_style, "top", epw, eph, color)
-                bottom_svg = _edge_pattern_svg(ps.border_style, "bottom", epw, eph, color)
-                left_svg = _edge_pattern_svg(ps.border_style, "left", eph, epw, color)
-                right_svg = _edge_pattern_svg(ps.border_style, "right", eph, epw, color)
+                top_svg = edge_pattern_svg(ps.border_style, "top", epw, eph, color)
+                bottom_svg = edge_pattern_svg(ps.border_style, "bottom", epw, eph, color)
+                left_svg = edge_pattern_svg(ps.border_style, "left", eph, epw, color)
+                right_svg = edge_pattern_svg(ps.border_style, "right", eph, epw, color)
                 parts.append(
                     f'<svg style="position:absolute;top:0;left:0;width:100%;height:100%;'
                     f'pointer-events:none;overflow:visible;">'
@@ -169,12 +174,12 @@ class HTMLRenderer:
             )
 
         shape_polygons = {
-            StampShape.TRIANGLE: "50,0 100,100 0,100",
-            StampShape.TRIANGLE_INV: "0,0 100,0 50,100",
-            StampShape.DIAMOND: "50,0 100,50 50,100 0,50",
-            StampShape.HEXAGON: "25,0 75,0 100,50 75,100 25,100 0,50",
-            StampShape.OCTAGON: "30,0 70,0 100,30 100,70 70,100 30,100 0,70 0,30",
-            StampShape.PENTAGON: "50,0 100,38 82,100 18,100 0,38",
+            StampShape.TRIANGLE: SHAPE_POLYGON_VIEWBOX["TRIANGLE"],
+            StampShape.TRIANGLE_INV: SHAPE_POLYGON_VIEWBOX["TRIANGLE_INV"],
+            StampShape.DIAMOND: SHAPE_POLYGON_VIEWBOX["DIAMOND"],
+            StampShape.HEXAGON: SHAPE_POLYGON_VIEWBOX["HEXAGON"],
+            StampShape.OCTAGON: SHAPE_POLYGON_VIEWBOX["OCTAGON"],
+            StampShape.PENTAGON: SHAPE_POLYGON_VIEWBOX["PENTAGON"],
         }
         _Y_POS = 20  # Starting Y position in mm
         for row in page.rows:
@@ -457,18 +462,6 @@ def _resolve_image_path(image_path: Optional[str]) -> Optional[Path]:
     return fp if fp.exists() else None
 
 
-# ── Shape helpers ──
-
-def _regular_polygon(cx: float, cy: float, rx: float, ry: float, n: int) -> list:
-    """Generate points for a regular polygon centered at (cx, cy)."""
-    import math
-    points = []
-    for i in range(n):
-        angle = 2 * math.pi * i / n - math.pi / 2
-        points.append(fitz.Point(cx + rx * math.cos(angle), cy + ry * math.sin(angle)))
-    return points
-
-
 # ── Drawing ──
 
 def _draw_stamp(
@@ -516,21 +509,24 @@ def _draw_stamp(
         s.commit()
 
     elif shape == StampShape.HEXAGON:
-        pts = _regular_polygon(x + w / 2, y + h / 2, w / 2, h / 2, 6)
+        poly_pts = regular_polygon_vertices(x + w / 2, y + h / 2, w / 2, h / 2, 6)
+        pts = [fitz.Point(p[0], p[1]) for p in poly_pts]
         s = page.new_shape()
         s.draw_polyline(pts + [pts[0]])
         s.finish(fill=fill_color, color=border_color, width=0.5)
         s.commit()
 
     elif shape == StampShape.OCTAGON:
-        pts = _regular_polygon(x + w / 2, y + h / 2, w / 2, h / 2, 8)
+        poly_pts = regular_polygon_vertices(x + w / 2, y + h / 2, w / 2, h / 2, 8)
+        pts = [fitz.Point(p[0], p[1]) for p in poly_pts]
         s = page.new_shape()
         s.draw_polyline(pts + [pts[0]])
         s.finish(fill=fill_color, color=border_color, width=0.5)
         s.commit()
 
     elif shape == StampShape.PENTAGON:
-        pts = _regular_polygon(x + w / 2, y + h / 2, w / 2, h / 2, 5)
+        poly_pts = regular_polygon_vertices(x + w / 2, y + h / 2, w / 2, h / 2, 5)
+        pts = [fitz.Point(p[0], p[1]) for p in poly_pts]
         s = page.new_shape()
         s.draw_polyline(pts + [pts[0]])
         s.finish(fill=fill_color, color=border_color, width=0.5)
@@ -592,20 +588,6 @@ def _draw_text_element(page: fitz.Page, stamp: Stamp) -> None:
         _draw_multiline_text(page, rect, stamp.description, font_obj, fontsize)
 
 
-# ── Ornamental border data (ported from borders.js) ──
-
-_ORNAMENTAL_STYLES = {"classic", "victorian", "artdeco", "laurel", "gothic", "filigree"}
-_EDGE_STYLES = {"greek_key", "rope"}
-
-_ORNAMENT_BBOX = {
-    "classic": (62, 82),
-    "victorian": (42, 87),
-    "artdeco": (43, 85),
-    "laurel": (22, 62),
-    "gothic": (32, 85),
-    "filigree": (65, 65),
-}
-
 def _pdraw(page, color, segments, width=0.8):
     """Draw path segments (bezier/line) on a PyMuPDF page."""
     for seg in segments:
@@ -623,92 +605,11 @@ def _pdraw(page, color, segments, width=0.8):
             page.draw_bezier(pts[0], pts[1], pts[2], pts[3], color=color, width=width)
 
 
-def _corner_ornament_svg(style: str, color: str = "#333") -> str:
-    """Generate SVG for a corner ornament (TL orientation)."""
-    if style == "classic":
-        return (
-            '<path d="M5,80 Q5,20 20,20 Q40,20 45,5 Q50,0 60,0" fill="none" stroke="' + color + '" stroke-width="1.2"/>'
-            '<path d="M5,60 Q5,15 15,10 Q30,5 35,2" fill="none" stroke="' + color + '" stroke-width="0.8"/>'
-            '<circle cx="8" cy="8" r="2" fill="' + color + '"/>'
-            '<circle cx="20" cy="5" r="1.2" fill="' + color + '"/>'
-        )
-    if style == "victorian":
-        return (
-            '<path d="M0,85 C10,85 15,70 25,60 C35,50 30,35 20,25 C15,20 10,15 5,10 C10,12 15,18 25,22 C35,26 40,20 35,10" fill="none" stroke="' + color + '" stroke-width="1.2"/>'
-            '<path d="M0,75 C8,75 12,65 20,58 C28,51 25,40 18,32 C14,28 10,24 8,18" fill="none" stroke="' + color + '" stroke-width="0.7"/>'
-            '<circle cx="5" cy="5" r="2.5" fill="' + color + '"/>'
-            '<circle cx="15" cy="12" r="1.5" fill="' + color + '"/>'
-            '<circle cx="25" cy="8" r="1" fill="' + color + '"/>'
-        )
-    if style == "artdeco":
-        return (
-            '<rect x="0" y="60" width="40" height="3" fill="' + color + '"/>'
-            '<rect x="0" y="50" width="30" height="3" fill="' + color + '"/>'
-            '<rect x="0" y="40" width="20" height="3" fill="' + color + '"/>'
-            '<rect x="0" y="30" width="10" height="3" fill="' + color + '"/>'
-            '<rect x="40" y="60" width="3" height="25" fill="' + color + '"/>'
-            '<rect x="30" y="50" width="3" height="15" fill="' + color + '"/>'
-            '<rect x="20" y="40" width="3" height="5" fill="' + color + '"/>'
-        )
-    if style == "laurel":
-        return (
-            '<path d="M5,80 Q15,60 10,40 Q8,30 15,20" fill="none" stroke="' + color + '" stroke-width="1"/>'
-            '<ellipse cx="12" cy="35" rx="4" ry="2.5" fill="' + color + '" transform="rotate(-30 12 35)"/>'
-            '<ellipse cx="8" cy="45" rx="4" ry="2.5" fill="' + color + '" transform="rotate(-20 8 45)"/>'
-            '<ellipse cx="15" cy="55" rx="4" ry="2.5" fill="' + color + '" transform="rotate(-40 15 55)"/>'
-            '<ellipse cx="18" cy="28" rx="3.5" ry="2" fill="' + color + '" transform="rotate(-45 18 28)"/>'
-            '<circle cx="14" cy="22" r="1.5" fill="' + color + '"/>'
-            '<circle cx="10" cy="50" r="1.2" fill="' + color + '"/>'
-        )
-    if style == "gothic":
-        return (
-            '<path d="M0,85 L0,40 Q0,20 15,10 Q25,3 30,0" fill="none" stroke="' + color + '" stroke-width="1.5"/>'
-            '<path d="M5,85 L5,45 Q5,28 18,18 Q25,12 28,8" fill="none" stroke="' + color + '" stroke-width="0.8"/>'
-            '<path d="M15,0 Q20,5 22,12" fill="none" stroke="' + color + '" stroke-width="0.6"/>'
-        )
-    if style == "filigree":
-        return (
-            '<circle cx="20" cy="20" r="15" fill="none" stroke="' + color + '" stroke-width="0.8"/>'
-            '<circle cx="20" cy="20" r="10" fill="none" stroke="' + color + '" stroke-width="0.5"/>'
-            '<circle cx="20" cy="20" r="5" fill="none" stroke="' + color + '" stroke-width="0.5"/>'
-            '<circle cx="20" cy="20" r="2" fill="' + color + '"/>'
-            '<path d="M20,35 Q25,50 30,65" fill="none" stroke="' + color + '" stroke-width="0.6"/>'
-            '<path d="M35,20 Q50,25 65,30" fill="none" stroke="' + color + '" stroke-width="0.6"/>'
-            '<circle cx="30" cy="30" r="1.5" fill="' + color + '"/>'
-            '<circle cx="35" cy="35" r="1" fill="' + color + '"/>'
-        )
-    return ""
-
-
-def _edge_pattern_svg(style: str, edge: str, w: float, h: float, color: str) -> str:
-    """Generate SVG for an edge pattern (greek_key or rope)."""
-    svg = ""
-    if style == "greek_key":
-        step = 12
-        count = int(w / step)
-        is_v = edge in ("left", "right")
-        for i in range(count):
-            if is_v:
-                svg += f'<path d="M0,{i*step} l0,3 l3,0 l0,6 l-3,0 l0,3" fill="none" stroke="{color}" stroke-width="0.8"/>'
-            else:
-                svg += f'<path d="M{i*step},0 l3,0 l0,3 l6,0 l0,-3 l3,0" fill="none" stroke="{color}" stroke-width="0.8"/>'
-    elif style == "rope":
-        rstep = 8
-        count = int(w / rstep)
-        is_v = edge in ("left", "right")
-        for j in range(count):
-            if is_v:
-                svg += f'<circle cx="2" cy="{j * rstep + rstep/2}" r="2" fill="none" stroke="{color}" stroke-width="0.7"/>'
-            else:
-                svg += f'<circle cx="{j * rstep + rstep/2}" cy="2" r="2" fill="none" stroke="{color}" stroke-width="0.7"/>'
-    return svg
-
-
 def _draw_edge_patterns(fitz_page: fitz.Page, album: Album, rect: fitz.Rect) -> None:
     """Draw edge patterns (greek_key, rope) on all 4 sides."""
     ps = album.page_setup
     style = ps.border_style
-    if style not in _EDGE_STYLES:
+    if style not in EDGE_STYLES:
         return
     color = _color_to_rgb(album.color_album_border) if album.color_album_border else (0.2, 0.2, 0.2)
     x0, y0 = rect.x0, rect.y0
@@ -789,7 +690,7 @@ def _draw_corner_ornaments(fitz_page: fitz.Page, album: Album, rect: fitz.Rect) 
     """Draw corner ornaments for ornamental border styles."""
     ps = album.page_setup
     style = ps.border_style
-    if style not in _ORNAMENTAL_STYLES:
+    if style not in ORNAMENTAL_STYLES:
         return
     color = _color_to_rgb(album.color_album_border) if album.color_album_border else (0.2, 0.2, 0.2)
     x0 = rect.x0
@@ -921,9 +822,9 @@ def _draw_page_border(fitz_page: fitz.Page, album: Album) -> None:
     # Draw corner ornaments for ornamental border styles
     border_rect = fitz.Rect(border_left, border_top,
                              border_left + border_w, border_top + border_h)
-    if ps.border_style in _ORNAMENTAL_STYLES:
+    if ps.border_style in ORNAMENTAL_STYLES:
         _draw_corner_ornaments(fitz_page, album, border_rect)
-    elif ps.border_style in _EDGE_STYLES:
+    elif ps.border_style in EDGE_STYLES:
         _draw_edge_patterns(fitz_page, album, border_rect)
 
 
