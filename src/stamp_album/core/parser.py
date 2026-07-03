@@ -656,6 +656,12 @@ class AlbumParser:
                     catalog_refs.append(unquote(params[j]))
                 while len(catalog_refs) < 3:
                     catalog_refs.append("")
+                shape = StampShape.RECTANGLE
+                if len(params) > 8 and params[8]:
+                    try:
+                        shape = StampShape[params[8].upper()]
+                    except KeyError:
+                        pass
                 stamp = Stamp(
                     abs_x=float(params[0]),
                     abs_y=float(params[1]),
@@ -663,7 +669,7 @@ class AlbumParser:
                     height=float(params[3]),
                     description=description,
                     catalog_refs=catalog_refs,
-                    shape=StampShape.RECTANGLE,
+                    shape=shape,
                 )
                 if not hasattr(current_page, "absolute_stamps"):
                     current_page.absolute_stamps = []
