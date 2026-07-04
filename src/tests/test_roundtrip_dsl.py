@@ -35,6 +35,7 @@ STAMP_ADD(32 37 "without catalog" "" "" "")
 STAMP_ADD_AT(15 140 40 30 "6d violet" "sg 4" "scott 5" "sacc 4")
 STAMP_ADD_AT(70 80 50 40 "oval issue" "" "" "" OVAL)
 STAMP_ADD_AT(125 30 40 40 "diamond" "sg 25" "" "" DIAMOND)
+STAMP_ADD_AT(170 140 45 35 "custom fill" "" "" "" PENTAGON "solid" "#2c3e50" 2 "#f1c40f" 70)
 
 # Text element at absolute position
 PAGE_TEXT_AT(15 200 180 12 HN 10 "A free-form note." LEFT)
@@ -67,6 +68,7 @@ def _fields(stamp):
         stamp.font_id, stamp.font_size,
         frozenset(_catalog_set(stamp)),
         stamp.heading,
+        stamp.border_color, stamp.fill_color,
     )
 
 

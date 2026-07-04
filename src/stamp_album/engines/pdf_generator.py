@@ -229,9 +229,10 @@ class HTMLRenderer:
             font_size = stamp.font_size or 12
 
             if stamp.is_text_element:
+                font_family = _font_id_to_css(stamp.font_id) if stamp.font_id else "Helvetica,Arial,sans-serif"
                 parts.append(
                     f'<div class="text-el" style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;'
-                    f'font-size:{font_size}pt;padding:1mm;word-wrap:break-word;">{desc}</div>'
+                    f'font-size:{font_size}pt;line-height:1.3;font-family:{font_family};padding:1mm;word-wrap:break-word;">{desc}</div>'
                 )
             else:
                 stamp_bc = getattr(stamp, 'border_color', None) or getattr(self.album, 'color_stamp_border', None)
@@ -406,6 +407,25 @@ class HTMLRenderer:
 
 
 # ── Font resolution ──
+
+_FONT_CSS_MAP = {
+    "CN": "Courier,monospace",
+    "CB": "Courier,monospace",
+    "CI": "Courier,monospace",
+    "CS": "Courier,monospace",
+    "TN": "'Times New Roman',Times,serif",
+    "TB": "'Times New Roman',Times,serif",
+    "TI": "'Times New Roman',Times,serif",
+    "TS": "'Times New Roman',Times,serif",
+    "HN": "Helvetica,Arial,sans-serif",
+    "HB": "Helvetica,Arial,sans-serif",
+    "HI": "Helvetica,Arial,sans-serif",
+    "HS": "Helvetica,Arial,sans-serif",
+}
+
+def _font_id_to_css(font_id: str) -> str:
+    return _FONT_CSS_MAP.get(font_id, "Helvetica,Arial,sans-serif")
+
 
 # Built-in PDF fonts (always available in any PDF viewer)
 _BUILTIN_FONT_MAP = {

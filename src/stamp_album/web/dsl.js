@@ -3,182 +3,93 @@
 var S = window.StampAlbum;
 var $ = S.$, mm = S.mm, px = S.px, showToast = S.showToast;
 var render = S.render;
+var CORE = window.StampAlbumDSL || {};
 
-// ── Escape user strings for DSL embedding ──
+// ── Delegate to core, add S/DOM integration ──
+
 function escapeDSL(s) {
-    return String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
+    return CORE.escapeDSL(s);
 }
-// ── DSL round-trip ──
+
 function _serializeEl(el) {
-    if (el.t === "image") {
-        return 'STAMP_ADD_IMG(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.img || "") + '" "' + (el.lbl || "") + '" "" "")';
-    } else if (el.t === "text") {
-        return 'PAGE_TEXT_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.font || "HN") + '" ' + (el.fs || 12) + ' "' + (el.lbl || "Text") + '" "' + (el.align || "left") + '")';
-    } else if (el.t === "freehand") {
-        return 'STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "freehand" "' + el.bdr + '" "' + el.fill + '")';
-    } else {
-        return 'STAMP_ADD_AT(' + mm(el.x).toFixed(1) + ' ' + mm(el.y).toFixed(1) + ' ' + mm(el.w).toFixed(1) + ' ' + mm(el.h).toFixed(1) + ' "' + (el.lbl || "") + '" "' + el.s + '" "' + el.bdr + '" "' + el.fill + '")';
-    }
+    var elMM = {
+        x: mm(el.x), y: mm(el.y), w: mm(el.w), h: mm(el.h),
+        t: el.t, s: el.s,
+        lbl: el.lbl, img: el.img,
+        bdr: el.bdr, bdrC: el.bdrC, bdrW: el.bdrW,
+        fill: el.fill, fillA: el.fillA,
+        font: el.font, fs: el.fs, align: el.align
+    };
+    return CORE.serializeEl(elMM);
 }
 
 function buildDSL() {
-    // Snapshot all pages' element counts
+    // Gather state from S (convert px → mm), delegate to core
     var allPages = [];
     for (var pi = 0; pi < S._pages.length; pi++) {
-        allPages.push(pi === S._currentPage ? JSON.parse(JSON.stringify(S.E)) : JSON.parse(JSON.stringify(S._pages[pi] || [])));
+        allPages.push(pi === S._currentPage
+            ? JSON.parse(JSON.stringify(S.E))
+            : JSON.parse(JSON.stringify(S._pages[pi] || [])));
     }
-    var totalEls = 0;
-    for (var pi = 0; pi < allPages.length; pi++) { totalEls += allPages[pi].length; }
-
-    var hasBorder = S._pageBorder && S._pageBorder !== "none";
-    if (totalEls === 0 && !hasBorder) return "";
-
-    var lines = [];
-    if (hasBorder) {
-        var outer = 0.5, inner1 = 0, inner2 = 0, spacing = 1.0;
-        if (S._pageBorder === "double" || S._pageBorder === "classic" ||
-            S._pageBorder === "victorian" || S._pageBorder === "artdeco" ||
-            S._pageBorder === "laurel" || S._pageBorder === "gothic" ||
-            S._pageBorder === "filigree") {
-            inner1 = 0.3;
-        }
-        lines.push("ALBUM_PAGES_BORDER(" + outer + " " + inner1 + " " + inner2 + " " + spacing + ")");
-        if (S._pageBorderC) {
-            lines.push('COLOUR_ALBUM_BORDER("' + S._pageBorderC + '")');
-        }
-    }
-    if (totalEls > 0) {
-        lines.push('ALBUM_TITLE("' + (S._currentFile ? S._currentFile.replace(/\.(slbum|txt)$/, "") : "") + '")');
-        lines.push("ALBUM_PAGES_SIZE(" + mm(S._pw) + " " + mm(S._ph) + ")");
-        lines.push("ALBUM_PAGES_MARGINS(15 15 15 15)");
-    }
-
+    // Convert all elements px → mm
     for (var pi = 0; pi < allPages.length; pi++) {
-        if (allPages[pi].length === 0) continue;
-        if (lines.length > 0) lines.push("PAGE_START");
-        if (S._colMode > 1) {
-            lines.push("PAGE_COLUMN_START(" + S._colMode + " " + S._colGap.toFixed(1) + ")");
-        }
-        allPages[pi].forEach(function(el) { lines.push(_serializeEl(el)); });
-        if (S._colMode > 1) {
-            lines.push("PAGE_COLUMN_STOP");
+        for (var ei = 0; ei < allPages[pi].length; ei++) {
+            var el = allPages[pi][ei];
+            el.x = mm(el.x); el.y = mm(el.y);
+            el.w = mm(el.w); el.h = mm(el.h);
         }
     }
-    return lines.join("\n");
+    var state = {
+        pages: allPages,
+        pw: mm(S._pw), ph: mm(S._ph),
+        pageBorder: S._pageBorder,
+        pageBorderC: S._pageBorderC,
+        colMode: S._colMode || 1,
+        colGap: S._colGap || 10,
+        currentFile: S._currentFile || ""
+    };
+    return CORE.buildDSL(state);
 }
 
 function parseDSL(dsl) {
-    S.E = [];
-    var lines = dsl.split("\n");
-    S._pages = [[]];
-    S._currentPage = 0;
-    var _rowX = 0, _rowY = 12, _rowSpacing = 6, _pageMargin = 15;
-    for (var i = 0; i < lines.length; i++) {
-        var t = lines[i].trim();
-        if (!t || t.charAt(0) === "#") continue;
-        var mSize = t.match(/^ALBUM_PAGES_SIZE\(\s*([\d.]+)\s+([\d.]+)\)/);
-        if (mSize) {
-            S._pw = px(parseFloat(mSize[1]));
-            S._ph = px(parseFloat(mSize[2]));
+    var state = CORE.parseDSL(dsl);
+    // Apply state to S (convert mm → px)
+    function applyState() {
+        for (var pi = 0; pi < state.pages.length; pi++) {
+            for (var ei = 0; ei < state.pages[pi].length; ei++) {
+                var el = state.pages[pi][ei];
+                el.x = px(el.x); el.y = px(el.y);
+                el.w = px(el.w); el.h = px(el.h);
+            }
+        }
+        S._pw = px(state.pw);
+        S._ph = px(state.ph);
+        S._pageBorder = state.pageBorder;
+        S._pageBorderC = state.pageBorderC;
+        S._colMode = state.colMode;
+        S._colGap = state.colGap;
+        S._pages = JSON.parse(JSON.stringify(state.pages));
+        S.E = S._pages[state.currentPage] || [];
+        S._currentPage = state.currentPage;
+        S.sel = null;
+        // DOM updates
+        if (state.pw === 210 && state.ph === 297) {
             $("pg-size").value = "a4";
-            continue;
         }
-        var mMargin = t.match(/^ALBUM_PAGES_MARGINS\(\s*([\d.]+)\s/);
-        if (mMargin) {
-            _pageMargin = parseFloat(mMargin[1]);
-            continue;
-        }
-        var mBorder = t.match(/^ALBUM_PAGES_BORDER\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\)/);
-        if (mBorder) {
-            var bi1 = parseFloat(mBorder[2]);
-            if (bi1 > 0) {
-                S._pageBorder = "double";
-            } else {
-                S._pageBorder = "solid";
-            }
-            continue;
-        }
-        var mBorderColor = t.match(/^COLOUR_ALBUM_BORDER\(\s*"#?([^"]+)"\s*\)|^COLOR_ALBUM_BORDER\(\s*"#?([^"]+)"\s*\)/);
-        if (mBorderColor) {
-            S._pageBorderC = "#" + (mBorderColor[1] || mBorderColor[2]);
-            continue;
-        }
-        if (t.match(/^PAGE_START/)) {
-            if (S.E.length > 0) {
-                S._pages[S._currentPage] = JSON.parse(JSON.stringify(S.E));
-                S.E = [];
-            }
-            S._pages.push([]);
-            S._currentPage = S._pages.length - 1;
-            _rowX = _pageMargin;
-            _rowY = 12;
-            continue;
-        }
-        var mColStart = t.match(/^PAGE_COLUMN_START\(\s*(\d+)(?:\s+([\d.]+))?\)/);
-        if (mColStart) {
-            S._colMode = parseInt(mColStart[1]) || 1;
-            S._colGap = mColStart[2] ? parseFloat(mColStart[2]) : 10.0;
-            $("col-mode").value = S._colMode;
-            $("col-gap").value = S._colGap;
-            continue;
-        }
-        if (t.match(/^PAGE_COLUMN_NEXT/)) { continue; }
-        if (t.match(/^PAGE_COLUMN_STOP/)) {
-            S._colMode = 1;
-            S._colGap = 10.0;
+        if (state.colMode > 1) {
+            $("col-mode").value = state.colMode;
+            $("col-gap").value = state.colGap;
+        } else {
             $("col-mode").value = 1;
             $("col-gap").value = 10.0;
-            continue;
         }
-        var mVspace = t.match(/^PAGE_VSPACE\(\s*([\d.]+)\)/);
-        if (mVspace) {
-            _rowY += parseFloat(mVspace[1]);
-            continue;
-        }
-        var mRow = t.match(/^ROW_START_FS\(\s*"([^"]*)"\s+(\d+)\s+([\d.]+)\s+([\d.]+)\)/);
-        if (mRow) {
-            _rowX = _pageMargin;
-            _rowSpacing = parseFloat(mRow[4]);
-            continue;
-        }
-        var m = t.match(/^(STAMP_ADD_AT|STAMP_ADD_IMG)\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"([^"]*)"\s+"([^"]*)"/);
-        if (m) {
-            var isImg = m[1] === "STAMP_ADD_IMG";
-            S.E.push({ id: "el" + (S.nid++), t: isImg ? "image" : "stamp", s: m[7] || "rectangle", x: px(parseFloat(m[2])), y: px(parseFloat(m[3])), w: px(parseFloat(m[4])), h: px(parseFloat(m[5])), lbl: m[6] || "", bdr: "solid", bdrC: "#666", bdrW: 1, fill: "#fff", fillA: 100, img: isImg ? m[6] : "", font: "HN", fs: 12 });
-            continue;
-        }
-        var mRowStamp = t.match(/^STAMP_ADD\(\s*([\d.]+)\s+([\d.]+)\s+"([^"]*)"(?:\s+"([^"]*)")?(?:\s+"([^"]*)")?\)/);
-        if (mRowStamp) {
-            S.E.push({ id: "el" + (S.nid++), t: "stamp", s: "rectangle", x: px(_rowX), y: px(_rowY), w: px(parseFloat(mRowStamp[1])), h: px(parseFloat(mRowStamp[2])), lbl: mRowStamp[3] || "", bdr: "solid", bdrC: "#666", bdrW: 1, fill: "#fff", fillA: 100, img: "", font: "HN", fs: 12 });
-            _rowX += parseFloat(mRowStamp[1]) + _rowSpacing;
-            continue;
-        }
-        var m2a = t.match(/^PAGE_TEXT_AT\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"([^"]*)"\s+(\d+)\s+"([^"]*)"\s+"([^"]*)"\)/);
-        if (m2a) {
-            S.E.push({ id: "el" + (S.nid++), t: "text", s: "text", x: px(parseFloat(m2a[1])), y: px(parseFloat(m2a[2])), w: px(parseFloat(m2a[3])), h: px(parseFloat(m2a[4])), lbl: m2a[7] || "Text", font: m2a[5] || "HN", fs: parseFloat(m2a[6]) || 12, align: m2a[8] === "center" ? "center" : m2a[8] === "right" ? "right" : "left", bdr: "none", fill: "transparent", fillA: 0 });
-            continue;
-        }
-        var m2 = t.match(/^(PAGE_TEXT|PAGE_TEXT_CENTRE|PAGE_TEXT_CENTER|PAGE_TEXT_RIGHT)\(\s*"([^"]*)"\s+(\d+)\s+"([^"]*)"\)/);
-        if (m2) {
-            var align = m2[1] === "PAGE_TEXT_CENTRE" || m2[1] === "PAGE_TEXT_CENTER" ? "center" : m2[1] === "PAGE_TEXT_RIGHT" ? "right" : "left";
-            S.E.push({ id: "el" + (S.nid++), t: "text", s: "text", x: 10, y: _rowY > 12 ? _rowY + 2 : 10, w: 100, h: 20, lbl: m2[4] || "Text", font: m2[2] || "HN", fs: parseFloat(m2[3]) || 12, align: align, bdr: "none", fill: "transparent", fillA: 0 });
-            _rowY += 8;
-        }
+        S.renderPageDots();
+        render();
+        S.updateProps();
+        S.updateGrid();
+        S.updateTitle();
     }
-    if (S.E.length > 0 || S._pages.length === 0) {
-        S._pages[S._currentPage] = JSON.parse(JSON.stringify(S.E));
-    }
-    while (S._pages.length > 1 && S._pages[S._pages.length - 1].length === 0) {
-        S._pages.pop();
-    }
-    if (S._currentPage >= S._pages.length) S._currentPage = S._pages.length - 1;
-    S.E = JSON.parse(JSON.stringify(S._pages[S._currentPage]));
-    S.sel = null;
-    S.renderPageDots();
-    render();
-    S.updateProps();
-    S.updateGrid();
-    S.updateTitle();
+    applyState();
 }
 
 // ── Exports ──

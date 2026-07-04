@@ -299,6 +299,7 @@
 <script src="app.js?v={{{VERSION}}}"></script>
 <script src="render.js?v={{{VERSION}}}"></script>
 <script src="undo.js?v={{{VERSION}}}"></script>
+<script src="dsl_core.js?v={{{VERSION}}}"></script>
 <script src="dsl.js?v={{{VERSION}}}"></script>
 <script src="files.js?v={{{VERSION}}}"></script>
 <script src="tutorial.js?v={{{VERSION}}}"></script>
@@ -306,5 +307,9 @@
 <script src="events.js?v={{{VERSION}}}"></script>
 <script src="borders.js?v={{{VERSION}}}"></script>
 <script src="init.js?v={{{VERSION}}}"></script>
+<script>
+// Auto-reload on server restart (dev mode only)
+(function(){if(location.hostname!="localhost"&&location.hostname!="127.0.0.1")return;var p=location.protocol==="https:"?"wss:":"ws:",ws=new WebSocket(p+"//"+location.host+"/ws/reload");ws.onclose=function(){setTimeout(function(){location.reload()},500)};})();
+</script>
 </body>
 </html>

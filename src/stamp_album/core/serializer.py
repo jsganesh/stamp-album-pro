@@ -199,12 +199,21 @@ class AlbumSerializer:
                     shape_code = ""
                     if stamp.shape and stamp.shape != StampShape.RECTANGLE:
                         shape_code = " " + stamp.shape.name
+                    # Only emit extended border/fill fields when they differ from defaults
+                    bdr_ext = ""
+                    if stamp.shape != StampShape.RECTANGLE or stamp.border_color is not None or stamp.fill_color is not None:
+                        bdr = "solid"
+                        bdrC = self._format_color(stamp.border_color) if stamp.border_color else ""
+                        bdrW = 1
+                        fill = self._format_color(stamp.fill_color) if stamp.fill_color else ""
+                        fillA = 100
+                        bdr_ext = f' "{bdr}" "{bdrC}" {bdrW} "{fill}" {fillA}'
                     lines.append(
                         f'STAMP_ADD_AT({stamp.abs_x} {stamp.abs_y} '
                         f'{stamp.width} {stamp.height} '
                         f'"{self._escape_string(stamp.description)}" '
                         f'"{catalog[0]}" "{catalog[1]}" "{catalog[2]}"'
-                        f'{shape_code})'
+                        f'{shape_code}{bdr_ext})'
                     )
 
                 if stamp.heading:

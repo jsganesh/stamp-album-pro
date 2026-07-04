@@ -883,6 +883,18 @@ async def websocket_preview(websocket: WebSocket):
         active_connections.pop(client_id, None)
 
 
+@app.websocket("/ws/reload")
+async def websocket_reload(websocket: WebSocket):
+    """Keep-alive endpoint for dev auto-reload.
+    When uvicorn restarts (--reload), all WebSocket connections drop.
+    The browser detects the onclose event and reloads the page."""
+    await websocket.accept()
+    try:
+        while True:
+            await websocket.receive_text()
+    except (WebSocketDisconnect, Exception):
+        pass
+
 
 # ============================================================
 # Version History API (P2-15)
