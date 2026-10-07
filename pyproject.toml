@@ -38,12 +38,13 @@ dependencies = [
     "pywebview>=5.0",
     "openpyxl>=3.1",
     "reportlab>=5.0.0",
+    "python-multipart>=0.0.9",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0",
-    "pytest-qt>=4.0",
+    "httpx2>=2.0",
     "black>=23.0",
     "ruff>=0.1.0",
     "mypy>=1.0",
@@ -51,6 +52,7 @@ dev = [
 ]
 legacy = [
     "PyQt6>=6.4",
+    "pytest-qt>=4.0",
 ]
 
 [project.scripts]
@@ -61,6 +63,7 @@ stamp-album-browser = "stamp_album.serve:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["stamp_album*"]
 
 [tool.black]
 line-length = 100
