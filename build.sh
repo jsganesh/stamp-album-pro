@@ -25,7 +25,7 @@ rm -rf build/ dist/ __pycache__/ src/stamp_album/__pycache__/ src/stamp_album/*/
 # Run PyInstaller
 echo ""
 echo "Building macOS app bundle..."
-pyinstaller stamp_album.spec --clean
+pyinstaller packaging/stamp_album.spec --clean
 
 # Verify the build
 if [ -d "dist/StampAlbum Pro.app" ]; then

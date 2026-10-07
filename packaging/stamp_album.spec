@@ -1,3 +1,4 @@
+# NOTE: known-stale. Does not bundle all current runtime deps/assets (see Phase 3 packaging work).
 # -*- mode: python ; coding: utf-8 -*-
 """
 PyInstaller spec file for StampAlbum Pro.

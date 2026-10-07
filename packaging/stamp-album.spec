@@ -1,3 +1,4 @@
+# NOTE: known-stale. Does not bundle all current runtime deps/assets (see Phase 3 packaging work).
 # StampAlbum Pro — PyInstaller spec file
 # Build with: pyinstaller stamp-album.spec
 
