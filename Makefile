@@ -2,11 +2,11 @@
 
 # Run the full test suite
 test:
-	venv/bin/python -m pytest src/tests/ -q
+	.venv/bin/python -m pytest src/tests/ -q
 
 # Run the app in browser mode
 run:
-	venv/bin/python -m stamp_album --browser
+	.venv/bin/python -m stamp_album --browser
 
 # Install dependencies
 install:
@@ -14,7 +14,7 @@ install:
 
 # Development mode with auto-reload
 dev:
-	STAMP_ALBUM_RELOAD=1 venv/bin/python -m stamp_album --browser
+	STAMP_ALBUM_RELOAD=1 .venv/bin/python -m stamp_album --browser
 
 # Clean build artifacts
 clean:
