@@ -1,5 +1,7 @@
 # StampAlbum Pro — Architecture Map
 
+> **Status:** written for the v2 PyMuPDF pipeline. The newer ReportLab, Pillow and SVG engines in `src/stamp_album/engines/` (`pdf.py`, `raster.py`, `svg_export.py`) and the shared `borders.py` and `layout.py` are not described here, and the test counts and file statistics are out of date. Check the code before relying on the rendering sections.
+
 ## 1. Overview
 
 **What it is:** A web-based stamp album designer with InDesign-like free-form page layout. Stamp collectors design and print album pages. Visual canvas interaction is the primary mode; a DSL (Domain Specific Language) is an advanced toggle.

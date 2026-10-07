@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stamp-album-pro"
-version = "0.1.0"
+version = "0.2.0"
 description = "Modern stamp album typesetter with live preview and advanced typography"
 readme = "README.md"
 license = {text = "MIT"}
@@ -39,6 +39,7 @@ dependencies = [
     "openpyxl>=3.1",
     "reportlab>=5.0.0",
     "python-multipart>=0.0.9",
+    "websockets>=12.0",
 ]
 
 [project.optional-dependencies]

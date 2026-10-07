@@ -16,9 +16,9 @@ A web-based stamp album designer with an InDesign-like free-form page layout fee
 - Entry point: `stamp-album` (opens in browser, downloads go to Downloads folder)
 - Desktop mode: `stamp-album --desktop` (pywebview window, opt-in)
 - Auto-reload: `STAMP_ALBUM_RELOAD=1 stamp-album` (dev mode)
-- Tests: 211 tests (maintain this coverage — do not break existing tests)
+- Tests: 225 tests at v0.2.0 (maintain this coverage — do not break existing tests); run with `make test`
 - DSL: advanced toggle, not the default mode
-- Branch: `main` (PyMuPDF, primary)
+- Branch: `main` is the only branch; older lines are archived as `archive/*` tags
 
 ## Current version state
 - PDF generation rewritten: PyMuPDF direct drawing replaces WeasyPrint entirely
@@ -41,11 +41,12 @@ A web-based stamp album designer with an InDesign-like free-form page layout fee
 - Free-form positioning is a first-class feature — do not regress to row-based or grid-forced layouts
 - `stamp-album` is the browser entry point — test by opening this, not via unit tests alone
 - Default export UX: browser download to Downloads folder (not native dialog)
-- Run the full test suite (`pytest` or equivalent) before committing any change
+- Run the full test suite (`make test`) before committing any change; setup is `uv sync --extra dev`, and CI runs the suite from `uv.lock` on macOS, Windows and Ubuntu
 - Commit at logical boundaries, not mid-feature
-- Single PDF backend: PyMuPDF direct drawing (no WeasyPrint)
+- No WeasyPrint. Both the legacy PyMuPDF engine and the newer ReportLab/Pillow/SVG engines exist in `engines/`; check which one `api.py` calls before changing export code
 
-## PDF architecture (v2-pymupdf)
+## PDF architecture (historical: v2-pymupdf)
+> Since v0.2.0 the export code also includes the newer ReportLab/Pillow/SVG engines (`engines/pdf.py`, `raster.py`, `svg_export.py`, plus shared `borders.py` and `layout.py`). See ARCHITECTURE.md and check the code before relying on the list below.
 - `src/stamp_album/engines/pdf_generator.py` — single file containing:
   - `PDFGenerator` — direct PyMuPDF drawing for PDF/PNG/SVG export
   - `HTMLRenderer` — HTML/CSS preview from Album/Page/Stamp models
