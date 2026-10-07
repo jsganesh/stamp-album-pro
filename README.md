@@ -87,4 +87,4 @@ docs/           architecture and build notes
 
 MIT, see [LICENSE](LICENSE).
 
-Licensing note: PyMuPDF is a current runtime dependency (it is listed in `pyproject.toml` and imported at startup). It is available under AGPL-3.0 or a commercial licence, so review that before distributing binaries.
+Licensing note: dependency licences have not been audited yet, so review them before distributing binaries. (v0.2.0 included PyMuPDF, which is AGPL-3.0 or commercial; it has since been removed.)

@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+- `engines/pdf_generator.py` is now `engines/html_renderer.py` and contains only the HTML preview renderer
+- Startup no longer prints the PyMuPDF `fitz` deprecation warning
+
+### Removed
+- The PyMuPDF dependency (AGPL-3.0 or commercial) and the legacy PyMuPDF PDF engine. PDF, PNG and SVG export were already served by the ReportLab, Pillow and SVG engines.
+
 ## [0.2.0] - 2026-10-07
 
 ### Added

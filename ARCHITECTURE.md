@@ -1,6 +1,6 @@
 # StampAlbum Pro — Architecture Map
 
-> **Status:** written for the v2 PyMuPDF pipeline. The newer ReportLab, Pillow and SVG engines in `src/stamp_album/engines/` (`pdf.py`, `raster.py`, `svg_export.py`) and the shared `borders.py` and `layout.py` are not described here, and the test counts and file statistics are out of date. Check the code before relying on the rendering sections.
+> **Status:** written for the v2 PyMuPDF pipeline, which has since been removed. Wherever this file mentions PyMuPDF, `fitz` or `pdf_generator.py`, read it as the former engine. Exports now use the ReportLab, Pillow and SVG engines in `src/stamp_album/engines/` (`pdf.py`, `raster.py`, `svg_export.py`) with shared `borders.py` and `layout.py`, and the HTML preview renderer is `engines/html_renderer.py`. Test counts and file statistics are out of date. Check the code before relying on the rendering sections.
 
 ## 1. Overview
 

@@ -10,7 +10,7 @@ echo ""
 PYTHON_VERSION=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
 echo "Python version: $PYTHON_VERSION"
 
-# No native library dependencies needed (pure Python PDF via PyMuPDF)
+# No native library dependencies needed
 
 # Install dev dependencies
 echo ""
