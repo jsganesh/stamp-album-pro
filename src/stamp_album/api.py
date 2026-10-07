@@ -12,7 +12,10 @@ from pydantic import BaseModel
 
 from stamp_album.core.parser import AlbumParser, ParseError
 from stamp_album.core.serializer import AlbumSerializer
-from stamp_album.engines.pdf_generator import HTMLRenderer, PDFGenerator
+from stamp_album.engines.pdf_generator import HTMLRenderer
+from stamp_album.engines.pdf import PDFGenerator
+from stamp_album.engines.raster import PNGGenerator
+from stamp_album.engines.svg_export import SVGExporter
 from stamp_album.templates import TEMPLATES
 
 app = FastAPI(title="StampAlbum Pro")
@@ -289,36 +292,20 @@ async def export_album(request: ExportRequest):
 
     try:
         album = parser.parse(request.dsl, request.source_path)
-        generator = PDFGenerator()
-        html_content = generator.get_html_preview(album)
-
-        import re
-        html_content = re.sub(
-            r'src="([^\"/"][^"]*\.(?:png|jpg|jpeg|gif|bmp|tiff|tif|webp))"',
-            r'src="/images/\1"',
-            html_content,
-        )
 
         if fmt == "pdf":
+            import tempfile
             with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
                 pdf_path = tmp.name
-                generator.generate(album, pdf_path, base_url="http://localhost:8080")
+                PDFGenerator().generate(album, pdf_path, base_url="http://localhost:8080")
             return FileResponse(
                 pdf_path, media_type="application/pdf", filename="album.pdf",
                 background=BackgroundTask(_cleanup, pdf_path),
             )
 
         elif fmt == "png":
-            import fitz
-            pdf_bytes = generator.generate_to_bytes(album)
-            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-            if doc.page_count == 0:
-                doc.close()
-                raise HTTPException(status_code=400, detail="No pages to export")
-            zoom = max(0.5, request.dpi / 72.0)
-            pix = doc[0].get_pixmap(matrix=fitz.Matrix(zoom, zoom), alpha=False)
-            png_bytes = pix.tobytes("png")
-            doc.close()
+            import tempfile
+            png_bytes = PNGGenerator().generate_to_bytes(album, dpi=request.dpi)
             with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
                 tmp.write(png_bytes)
                 png_path = tmp.name
@@ -328,14 +315,8 @@ async def export_album(request: ExportRequest):
             )
 
         elif fmt == "svg":
-            import fitz
-            pdf_bytes = generator.generate_to_bytes(album)
-            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-            if doc.page_count == 0:
-                doc.close()
-                raise HTTPException(status_code=400, detail="No pages to export")
-            svg_text = doc[0].get_svg_image()
-            doc.close()
+            import tempfile
+            svg_text = SVGExporter().generate_to_string(album)
             with tempfile.NamedTemporaryFile(suffix=".svg", delete=False, mode="w", encoding="utf-8") as tmp:
                 tmp.write(svg_text)
                 svg_path = tmp.name
@@ -345,6 +326,13 @@ async def export_album(request: ExportRequest):
             )
 
         elif fmt == "html":
+            import re
+            html_content = HTMLRenderer(album, None).render()
+            html_content = re.sub(
+                r'src="([^\"/"][^"]*\.(?:png|jpg|jpeg|gif|bmp|tiff|tif|webp))"',
+                r'src="/images/\1"',
+                html_content,
+            )
             gallery_html = _build_html_gallery(html_content, album)
             with tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode="w", encoding="utf-8") as tmp:
                 tmp.write(gallery_html)
@@ -426,7 +414,7 @@ class CanvasStateRequest(BaseModel):
     scale: float = 2.5
     source_path: str = "album.slbum"
     format: str = "html"
-    title: str = "My Album"
+    title: str = ""
     author: str = ""
     border_style: str = ""
     border_color: str = ""
@@ -464,6 +452,19 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
             # Compose footer with denomination + condition + perforation
             footer_parts = [p for p in [el.denom, el.cond, el.perf] if p]
             footer = " · ".join(footer_parts) if footer_parts else ""
+            # Parse colors from canvas state
+            def _parse_hex(c: str) -> Optional[Color]:
+                c = c.lstrip("#")
+                if not c:
+                    return None
+                if len(c) == 3:
+                    c = "".join(x * 2 for x in c)
+                try:
+                    return Color(r=int(c[0:2], 16) / 255,
+                                 g=int(c[2:4], 16) / 255,
+                                 b=int(c[4:6], 16) / 255)
+                except (ValueError, IndexError):
+                    return None
             stamp = Stamp(
                 abs_x=el.x / SCALE,
                 abs_y=el.y / SCALE,
@@ -475,6 +476,8 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
                 is_text_element=is_text,
                 font_id=el.font or "HN",
                 font_size=el.fs or 12.0,
+                border_color=_parse_hex(el.bdrC) or Color(r=0, g=0, b=0),
+                fill_color=_parse_hex(el.fill) or Color(r=1, g=1, b=1),
             )
             stamp.catalog_refs = catalog_refs
             stamp.heading = heading
@@ -487,7 +490,7 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
         pages.append(build_page(pg))
 
     album = Album(
-        title=req.title or "My Album",
+        title=req.title or "",
         author=req.author or "",
         source_path=req.source_path or "album.slbum",
         page_setup=PageSetup(width=w_mm, height=h_mm),
@@ -500,6 +503,7 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
     if req.border_style and req.border_style != "none":
         ps = album.page_setup
         ps.has_border = True
+        ps.border_style = req.border_style
         if req.border_style == "solid" or req.border_style == "dashed":
             ps.border_outer = 0.5
             ps.border_inner1 = 0.0
@@ -508,11 +512,26 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
             ps.border_outer = 0.5
             ps.border_inner1 = 0.3
             ps.border_inner2 = 0.0
-        else:
+        elif req.border_style == "dotted":
             ps.border_outer = 0.5
             ps.border_inner1 = 0.0
             ps.border_inner2 = 0.0
+        elif req.border_style in ("greek_key", "rope"):
+            ps.border_outer = 0.5
+            ps.border_inner1 = 0.0
+            ps.border_inner2 = 0.0
+        else:
+            # Ornamental borders (classic, victorian, artdeco, laurel, gothic, filigree)
+            ps.border_outer = 0.5
+            ps.border_inner1 = 0.3
+            ps.border_inner2 = 0.0
         ps.border_spacing = 1.0
+        # Match canvas border margin: 12 CSS px at _sc=2.5 → 4.8mm
+        border_margin_mm = 12.0 / req.scale
+        ps.margin_left = border_margin_mm
+        ps.margin_top = border_margin_mm
+        ps.margin_right = border_margin_mm
+        ps.margin_bottom = border_margin_mm
         if req.border_color:
             try:
                 c = req.border_color.lstrip("#")
@@ -562,29 +581,20 @@ async def export_from_state(req: CanvasStateRequest):
 
     try:
         album = _canvas_state_to_album(req)
-        generator = PDFGenerator()
 
         if fmt == "pdf":
             import tempfile
             with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
                 pdf_path = tmp.name
-                generator.generate(album, pdf_path, base_url="http://localhost:8080")
+                PDFGenerator().generate(album, pdf_path, base_url="http://localhost:8080")
             filename = req.source_path.replace(".slbum", ".pdf").replace(".txt", ".pdf") or "album.pdf"
             return FileResponse(
                 pdf_path, media_type="application/pdf", filename=filename,
                 background=BackgroundTask(_cleanup, pdf_path),
             )
         elif fmt == "png":
-            import fitz
             import tempfile
-            pdf_bytes = generator.generate_to_bytes(album)
-            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-            if doc.page_count == 0:
-                doc.close()
-                raise HTTPException(status_code=400, detail="No pages to export")
-            pix = doc[0].get_pixmap(matrix=fitz.Matrix(2.0, 2.0), alpha=False)
-            png_bytes = pix.tobytes("png")
-            doc.close()
+            png_bytes = PNGGenerator().generate_to_bytes(album, dpi=200)
             with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
                 tmp.write(png_bytes)
                 png_path = tmp.name
@@ -594,15 +604,8 @@ async def export_from_state(req: CanvasStateRequest):
                 background=BackgroundTask(_cleanup, png_path),
             )
         elif fmt == "svg":
-            import fitz
             import tempfile
-            pdf_bytes = generator.generate_to_bytes(album)
-            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-            if doc.page_count == 0:
-                doc.close()
-                raise HTTPException(status_code=400, detail="No pages to export")
-            svg_text = doc[0].get_svg_image()
-            doc.close()
+            svg_text = SVGExporter().generate_to_string(album)
             with tempfile.NamedTemporaryFile(suffix=".svg", delete=False, mode="w", encoding="utf-8") as tmp:
                 tmp.write(svg_text)
                 svg_path = tmp.name
@@ -612,8 +615,8 @@ async def export_from_state(req: CanvasStateRequest):
                 background=BackgroundTask(_cleanup, svg_path),
             )
         else:  # html
-            html = generator.get_html_preview(album)
             import re
+            html = HTMLRenderer(album, None).render()
             html = re.sub(
                 r'src="([^\/"][^"]*\.(?:png|jpg|jpeg|gif|bmp|tiff|tif|webp))"',
                 r'src="/images/\1"',
@@ -879,6 +882,18 @@ async def websocket_preview(websocket: WebSocket):
     except Exception:
         active_connections.pop(client_id, None)
 
+
+@app.websocket("/ws/reload")
+async def websocket_reload(websocket: WebSocket):
+    """Keep-alive endpoint for dev auto-reload.
+    When uvicorn restarts (--reload), all WebSocket connections drop.
+    The browser detects the onclose event and reloads the page."""
+    await websocket.accept()
+    try:
+        while True:
+            await websocket.receive_text()
+    except (WebSocketDisconnect, Exception):
+        pass
 
 
 # ============================================================

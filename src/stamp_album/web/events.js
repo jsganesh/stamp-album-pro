@@ -235,8 +235,14 @@ function init() {
     $("btn-preview").addEventListener("click", function() {
         if (S.openPreview) S.openPreview();
     });
-    $("btn-export").addEventListener("click", function() {
-        if (S.exportPDF) S.exportPDF();
+    $("btn-export").addEventListener("click", function(e) {
+        e.stopPropagation();
+    });
+    document.querySelectorAll(".export-dd-item").forEach(function(el) {
+        el.addEventListener("click", function() {
+            var fmt = this.getAttribute("data-fmt");
+            if (S.exportFormat) S.exportFormat(fmt);
+        });
     });
     $("btn-dsl").addEventListener("click", function() {
         var panel = $("dsl-panel");
@@ -248,8 +254,8 @@ function init() {
     $("btn-preview-refresh").addEventListener("click", function() {
         if (S.openPreview) S.openPreview();
     });
-    $("btn-preview-export").addEventListener("click", function() {
-        if (S.exportPDF) S.exportPDF();
+    $("btn-preview-export").addEventListener("click", function(e) {
+        e.stopPropagation();
     });
     var previewOverlay$ = $("preview-overlay");
     if (previewOverlay$) previewOverlay$.classList.remove("open");
@@ -270,7 +276,7 @@ function init() {
     $("def-bdr-c").addEventListener("change", function() { S._defBdrC = this.value; });
     $("def-fill-c").addEventListener("change", function() { S._defFillC = this.value; });
     $("pg-size").addEventListener("change", function() {
-        var sizes = { a4: [595, 842], letter: [612, 792], a3: [842, 1191] };
+        var sizes = { a4: [595, 842], a5: [420, 595], a3: [842, 1191], letter: [612, 792], legal: [612, 1009] };
         var v = sizes[this.value] || sizes.a4;
         S._pw = v[0]; S._ph = v[1];
         $("page").className = "page " + this.value;

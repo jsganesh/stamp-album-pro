@@ -2,7 +2,7 @@
 Live preview panel for StampAlbum Pro.
 
 Renders a real-time preview of the album as the user edits,
-using WeasyPrint to generate page images for accurate preview.
+using PyMuPDF (PDF draw) + rasterize for accurate preview.
 """
 
 from PyQt6.QtCore import Qt, pyqtSignal
@@ -31,7 +31,7 @@ class PreviewPanel(QWidget):
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
-        self._html_content: str = ""
+        self._album = None
         self._page_count: int = 0
         self._current_page: int = 0
         self._zoom_level: float = 1.0
@@ -141,56 +141,35 @@ class PreviewPanel(QWidget):
             self._current_page += 1
             self._update_display()
 
-    def set_html_content(self, html: str):
+    def set_album(self, album):
         """
-        Set the HTML content to display.
+        Set the album to display.
 
         Args:
-            html: HTML string to render
+            album: Album model to render
         """
-        self._html_content = html
+        self._album = album
         self._render_pages()
         self._current_page = 0
         self._update_display()
 
     def _render_pages(self):
-        """Render HTML pages to QPixmap images via WeasyPrint PDF + PyMuPDF.
-
-        WeasyPrint 60+ removed per-page PNG rendering (write_to_image),
-        so we render to PDF in memory and rasterize pages with PyMuPDF.
-        This path is cross-platform (Windows/macOS/Linux) and arm64-safe.
-        """
-        from weasyprint import HTML
+        """Render album pages to QPixmap images via PNGGenerator."""
+        from stamp_album.engines.raster import PNGGenerator
 
         self._page_images = []
         self._page_count = 0
         self._error_message = None
 
-        if not self._html_content:
+        if not self._album:
             return
 
         try:
-            # Render HTML to an in-memory PDF (the only output WeasyPrint 68 supports)
-            pdf_bytes = HTML(string=self._html_content).write_pdf()
-
-            # Rasterize each PDF page to a QPixmap using PyMuPDF
-            import fitz  # PyMuPDF
-
-            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-            self._page_count = doc.page_count
-
-            # Render at ~144 DPI (2x of 72) for a crisp preview
-            zoom = 2.0
-            matrix = fitz.Matrix(zoom, zoom)
-
-            for page in doc:
-                pix = page.get_pixmap(matrix=matrix, alpha=False)
-                png_bytes = pix.tobytes("png")
-                pixmap = QPixmap()
-                pixmap.loadFromData(png_bytes)
-                self._page_images.append(pixmap)
-
-            doc.close()
+            png_bytes = PNGGenerator().generate_to_bytes(self._album, dpi=200)
+            pixmap = QPixmap()
+            pixmap.loadFromData(png_bytes)
+            self._page_images.append(pixmap)
+            self._page_count = 1
         except Exception as e:
             self._page_count = 0
             self._page_images = []
@@ -257,7 +236,7 @@ class PreviewPanel(QWidget):
 
     def clear(self):
         """Clear the preview."""
-        self._html_content = ""
+        self._album = None
         self._page_count = 0
         self._current_page = 0
         self._page_images = []

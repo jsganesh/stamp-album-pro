@@ -160,6 +160,28 @@ function init() {
         el.fs = parseFloat(this.value) || 12; pushUndo(); render();
     });
 
+    // ── Philatelic data change handlers ──
+    $("phdg").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.hdg = this.value; pushUndo(); render();
+    });
+    $("pcat").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.cat = this.value; pushUndo(); render();
+    });
+    $("pdenom").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.denom = this.value; pushUndo(); render();
+    });
+    $("pcond").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.cond = this.value; pushUndo(); render();
+    });
+    $("pperf").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.perf = this.value; pushUndo(); render();
+    });
+
     // ── Buttons ──
     $("btn-new").addEventListener("click", newAlbum);
     $("btn-open").addEventListener("click", function() { $("file-inp").click(); });
@@ -219,7 +241,7 @@ function init() {
             indentUnit: 2,
             tabSize: 2,
             autofocus: false,
-            placeholder: '# Enter DSL commands here...\nALBUM_TITLE("My Album")\nPAGE_START\nSTAMP_ADD(40 30 "Description" "" "" "")',
+            placeholder: '',
         });
         // Custom DSL highlighting (simple keyword-based)
         CodeMirror.defineMode("text/x-stampalbum", function() {
@@ -248,6 +270,7 @@ function init() {
     $("btn-app-dsl").addEventListener("click", function() {
         var dsl = _cmEditor ? _cmEditor.getValue() : $("dsl-ta").value;
         parseDSL(dsl);
+        if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
         pushUndo();
         render();
         showToast("DSL applied", "success");
@@ -270,10 +293,14 @@ function init() {
     $("btn-preview").addEventListener("click", openPreview);
     $("btn-preview-close").addEventListener("click", function() { $("preview-overlay").classList.remove("open"); });
     $("btn-preview-refresh").addEventListener("click", openPreview);
-    $("btn-preview-export").addEventListener("click", function() { if (exportPDF) exportPDF(); });
 
-    // ── Export ──
-    $("btn-export").addEventListener("click", function() { if (exportPDF) exportPDF(); });
+    // ── Export Dropdown ──
+    document.querySelectorAll(".export-dd-item").forEach(function(el) {
+        el.addEventListener("click", function() {
+            var fmt = this.getAttribute("data-fmt");
+            if (S.exportFormat) S.exportFormat(fmt);
+        });
+    });
 
     // ── Image Upload ──
     $("img-upl-btn").addEventListener("click", function() { $("upl-inp").click(); });
@@ -312,13 +339,13 @@ function init() {
 
     // ── Page Size / Grid ──
     $("pg-size").addEventListener("change", function() {
-        var s = { a4: [595, 842], letter: [612, 792], a3: [842, 1191] };
+        var s = { a4: [595, 842], a5: [420, 595], a3: [842, 1191], letter: [612, 792], legal: [612, 1009] };
         var v = s[this.value] || s.a4;
         S._pw = v[0]; S._ph = v[1];
         $("page").className = "page " + this.value;
         render();
         S.updateGrid();
-        if (S.renderPageBorder) S.renderPageBorder(S._pageBorder || "double");
+        if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
         S.schedulePreviewRefresh();
     });
     $("grid").addEventListener("change", function() {
@@ -432,6 +459,14 @@ function init() {
             if (e.target === this) this.classList.remove("open");
         });
     }
+
+    // ── Properties panel actions ──
+    $("btn-dup-el").addEventListener("click", function() {
+        if (!S.sel) { showToast("Select an element first", "error"); return; }
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        S.add(Object.assign({}, el, { id: "el" + (S.nid++), x: el.x + 20, y: el.y + 20 }));
+    });
+    $("btn-center").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("center"); });
 
     // ── Alignment toolbar ──
     $("btn-align-l").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("left"); });
@@ -656,7 +691,7 @@ function init() {
     // ── Init ──
     S.renderPageDots();
     S.updateGrid();
-    if (S.renderPageBorder) S.renderPageBorder(S._pageBorder || "double");
+    if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
     loadFileList();
     loadImageList();
     S.updateTitle();

@@ -241,7 +241,7 @@ function add(p) {
         fs: p.fs || 12,
         align: p.align || "left",
         bdr: p.bdr || "solid",
-        bdrC: p.bdrC || "#2C2C2C",
+        bdrC: p.bdrC || "#000",
         bdrW: p.bdrW || 0.5,
         fill: p.fill || "#FEFEFE",
         fillA: p.fillA || 100,

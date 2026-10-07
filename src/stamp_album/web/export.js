@@ -25,8 +25,10 @@ function buildCanvasState(format) {
         scale: S._sc,
         source_path: S._currentFile || "album.slbum",
         format: format || "html",
-        title: (S._currentFile || "My Album").replace(/\.(slbum|txt)$/, ""),
-        author: ""
+        title: (S._currentFile || "").replace(/\.(slbum|txt)$/, ""),
+        author: "",
+        border_style: S._pageBorder || "",
+        border_color: S._pageBorderC || ""
     };
 }
 
@@ -100,9 +102,7 @@ function exportFormat(fmt) {
     .catch(function(err) { showToast("Export failed: " + err, "error"); });
 }
 
-// ── Exports ──
-S.buildCanvasState = buildCanvasState;
-S.openPreview = openPreview;
+// ── Export ──
 S.exportFormat = exportFormat;
 
 })();

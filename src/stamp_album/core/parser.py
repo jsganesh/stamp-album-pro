@@ -289,6 +289,8 @@ class AlbumParser:
                     ps.border_spacing = float(params[2])
             elif cmd == "ALBUM_PAGES_DECORATIVE_BORDER":
                 album.page_setup.decorative_border_file = unquote(params[0])
+            elif cmd == "ALBUM_BORDER_STYLE":
+                album.page_setup.border_style = params[0]
             elif cmd == "ALBUM_PAGES_SPACING":
                 album.page_setup.hspace = float(params[0])
                 album.page_setup.vspace = float(params[1])
@@ -629,8 +631,25 @@ class AlbumParser:
                 )
                 current_row.stamps.append(stamp)
                 current_stamp = stamp
+            elif cmd == "PAGE_TEXT_AT":
+                # PAGE_TEXT_AT (x y w h "font" size "text" "align")
+                if current_page is None:
+                    raise ParseError("PAGE_TEXT_AT command outside of PAGE_START block", line_number, line)
+                stamp = Stamp(
+                    abs_x=float(params[0]),
+                    abs_y=float(params[1]),
+                    width=float(params[2]),
+                    height=float(params[3]),
+                    font_id=unquote(params[4]),
+                    font_size=float(params[5]),
+                    description=unquote(params[6]),
+                    is_text_element=True,
+                )
+                if not hasattr(current_page, "absolute_stamps"):
+                    current_page.absolute_stamps = []
+                current_page.absolute_stamps.append(stamp)
             elif cmd == "STAMP_ADD_AT":
-                # STAMP_ADD_AT (x y width height "description" "catalog1" "catalog2" "catalog3")
+                # STAMP_ADD_AT (x y width height "description" "catalog1" "catalog2" "catalog3" SHAPE "bdr" "bdrC" bdrW "fill" fillA)
                 if current_page is None:
                     raise ParseError("STAMP_ADD_AT command outside of PAGE_START block", line_number, line)
                 description = unquote(params[4]) if len(params) > 4 else ""
@@ -639,6 +658,28 @@ class AlbumParser:
                     catalog_refs.append(unquote(params[j]))
                 while len(catalog_refs) < 3:
                     catalog_refs.append("")
+                shape = StampShape.RECTANGLE
+                if len(params) > 8 and params[8]:
+                    try:
+                        shape = StampShape[params[8].upper()]
+                    except KeyError:
+                        pass
+                border_color = None
+                if len(params) > 10 and params[10]:
+                    try:
+                        val = unquote(params[10])
+                        if val:
+                            border_color = parse_color(val)
+                    except Exception:
+                        pass
+                fill_color = None
+                if len(params) > 12 and params[12]:
+                    try:
+                        val = unquote(params[12])
+                        if val:
+                            fill_color = parse_color(val)
+                    except Exception:
+                        pass
                 stamp = Stamp(
                     abs_x=float(params[0]),
                     abs_y=float(params[1]),
@@ -646,7 +687,9 @@ class AlbumParser:
                     height=float(params[3]),
                     description=description,
                     catalog_refs=catalog_refs,
-                    shape=StampShape.RECTANGLE,
+                    shape=shape,
+                    border_color=border_color,
+                    fill_color=fill_color,
                 )
                 if not hasattr(current_page, "absolute_stamps"):
                     current_page.absolute_stamps = []

@@ -12,15 +12,15 @@ A web-based stamp album designer with an InDesign-like free-form page layout fee
 ## Tech stack
 - Backend: Python / FastAPI
 - Frontend: Browser-based visual canvas (SVG shapes, contentEditable text)
-- PDF generation: PyMuPDF direct drawing (branch `v2-pymupdf`) — no WeasyPrint
+- PDF generation: PyMuPDF direct drawing — no WeasyPrint
 - Entry point: `stamp-album` (opens in browser, downloads go to Downloads folder)
 - Desktop mode: `stamp-album --desktop` (pywebview window, opt-in)
 - Auto-reload: `STAMP_ALBUM_RELOAD=1 stamp-album` (dev mode)
 - Tests: 211 tests (maintain this coverage — do not break existing tests)
 - DSL: advanced toggle, not the default mode
-- Branches: `main`/`master` (stable, WeasyPrint), `v2-pymupdf` (PyMuPDF, current dev)
+- Branch: `main` (PyMuPDF, primary)
 
-## Current version state (v2-pymupdf)
+## Current version state
 - PDF generation rewritten: PyMuPDF direct drawing replaces WeasyPrint entirely
 - No native library dependencies (Pango/Cairo/GLib) — pure Python PDF generation
 - System fonts embedded by scanning `/Library/Fonts`, `~/Library/Fonts`, `/System/Library/Fonts`
@@ -43,7 +43,7 @@ A web-based stamp album designer with an InDesign-like free-form page layout fee
 - Default export UX: browser download to Downloads folder (not native dialog)
 - Run the full test suite (`pytest` or equivalent) before committing any change
 - Commit at logical boundaries, not mid-feature
-- Two PDF backends exist: keep `main`/`master` (WeasyPrint) stable, develop on `v2-pymupdf`
+- Single PDF backend: PyMuPDF direct drawing (no WeasyPrint)
 
 ## PDF architecture (v2-pymupdf)
 - `src/stamp_album/engines/pdf_generator.py` — single file containing:

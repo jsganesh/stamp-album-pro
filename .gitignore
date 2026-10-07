@@ -54,4 +54,7 @@ htmlcov/
 # Distribution
 *.tar.gz
 *.whl
-uv.lock
+
+# Notebook / local environments
+.ipynb_checkpoints/
+.venv

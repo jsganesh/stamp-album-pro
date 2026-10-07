@@ -3,16 +3,13 @@
 var S = window.StampAlbum;
 var $ = S.$, showToast = S.showToast, pushUndo = S.pushUndo, render = S.render;
 var parseDSL = S.parseDSL, escapeDSL = S.escapeDSL;
-var renderPageBorder = S.renderPageBorder;
 
 // ── Wizard ──
 function applyWizard() {
-    var title = $("wiz-title").value || "My Album";
+    var title = $("wiz-title").value || "";
     var author = $("wiz-author").value || "";
     var pgSize = $("wiz-pg-size").value || "a4";
     var orient = $("wiz-orient").value || "portrait";
-    var border = $("wiz-border").value || "solid";
-    var columns = parseInt($("wiz-columns").value) || 0;
     var tpl = $("wiz-template").value;
 
     if (tpl && tpl !== "blank") {
@@ -24,27 +21,15 @@ function applyWizard() {
     lines.push('ALBUM_TITLE("' + escapeDSL(title) + '")');
     if (author) lines.push('ALBUM_AUTHOR("' + escapeDSL(author) + '")');
 
-    var w = pgSize === "a4" ? 210 : pgSize === "letter" ? 216 : 297;
-    var h = pgSize === "a4" ? 297 : pgSize === "letter" ? 279 : 420;
+    var w = pgSize === "a4" ? 210 : pgSize === "a5" ? 148 : pgSize === "letter" ? 216 : pgSize === "legal" ? 216 : 297;
+    var h = pgSize === "a4" ? 297 : pgSize === "a5" ? 210 : pgSize === "letter" ? 279 : pgSize === "legal" ? 356 : 420;
     if (orient === "landscape") { var t = w; w = h; h = t; }
     lines.push("ALBUM_PAGES_SIZE(" + w + " " + h + ")");
     lines.push("ALBUM_PAGES_MARGINS(15 15 15 15)");
 
-    if (border !== "none") {
-        lines.push('ALBUM_PAGES_BORDER(0.1 0.5 0.1 1.0)');
-        lines.push('COLOUR_ALBUM_BORDER("#666")');
-    }
-
     if (title) lines.push('PAGE_TEXT_CENTRE("HB" 16 "' + escapeDSL(title) + '")');
 
-    if (columns > 1) {
-        lines.push("PAGE_COLUMN_START(" + columns + ")");
-    }
-
     parseDSL(lines.join("\n"));
-    S._pageBorder = border;
-    S._pageBorderC = "";
-    if (renderPageBorder) renderPageBorder(border);
     pushUndo();
     render();
     $("wizard-panel").classList.remove("open");

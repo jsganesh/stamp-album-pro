@@ -74,6 +74,8 @@ class AlbumSerializer:
                 f"ALBUM_PAGES_BORDER({ps.border_outer} {ps.border_inner1} "
                 f"{ps.border_inner2} {ps.border_spacing})"
             )
+            if ps.border_style:
+                lines.append(f"ALBUM_BORDER_STYLE({ps.border_style})")
 
         for font in album.fonts:
             lines.append(
@@ -142,18 +144,25 @@ class AlbumSerializer:
 
                 for stamp in row.stamps:
                     cmd = self._format_stamp_shape(stamp)
+                    catalog = list(stamp.catalog_refs) if stamp.catalog_refs else []
+                    while len(catalog) < 3:
+                        catalog.append("")
+
                     if stamp.image_path:
                         desc = self._escape_string(stamp.description)
                         img = self._escape_string(stamp.image_path)
                         lines.append(
                             f'STAMP_ADD_IMG({stamp.width} {stamp.height} '
-                            f'"{img}" "{desc}")'
+                            f'"{img}" "{desc}" '
+                            f'"{catalog[0]}" "{catalog[1]}" "{catalog[2]}")'
                         )
                     elif stamp.shape == StampShape.RECTANGLE:
                         if stamp.description:
                             desc = self._escape_string(stamp.description)
                             lines.append(
-                                f'STAMP_ADD({stamp.width} {stamp.height} "{desc}")'
+                                f'STAMP_ADD({stamp.width} {stamp.height} '
+                                f'"{desc}" "{catalog[0]}" "{catalog[1]}" '
+                                f'"{catalog[2]}")'
                             )
                         else:
                             lines.append(
@@ -163,7 +172,8 @@ class AlbumSerializer:
                         desc = self._escape_string(stamp.description)
                         lines.append(
                             f'{cmd}({stamp.width} {stamp.height} '
-                            f'"{desc}" "" "" "")'
+                            f'"{desc}" "{catalog[0]}" "{catalog[1]}" '
+                            f'"{catalog[2]}")'
                         )
 
                     if stamp.heading:
@@ -172,6 +182,46 @@ class AlbumSerializer:
                             f'{stamp.heading.size} '
                             f'"{self._escape_string(stamp.heading.text)}")'
                         )
+
+            # ── Absolute-position stamps (canvas drag-and-drop) ──
+            for stamp in page.absolute_stamps:
+                if stamp.is_text_element:
+                    lines.append(
+                        f'PAGE_TEXT_AT({stamp.abs_x} {stamp.abs_y} '
+                        f'{stamp.width} {stamp.height} '
+                        f'"{stamp.font_id}" {stamp.font_size} '
+                        f'"{self._escape_string(stamp.description)}" "")'
+                    )
+                else:
+                    catalog = list(stamp.catalog_refs) if stamp.catalog_refs else []
+                    while len(catalog) < 3:
+                        catalog.append("")
+                    shape_code = ""
+                    if stamp.shape and stamp.shape != StampShape.RECTANGLE:
+                        shape_code = " " + stamp.shape.name
+                    # Only emit extended border/fill fields when they differ from defaults
+                    bdr_ext = ""
+                    if stamp.shape != StampShape.RECTANGLE or stamp.border_color is not None or stamp.fill_color is not None:
+                        bdr = "solid"
+                        bdrC = self._format_color(stamp.border_color) if stamp.border_color else ""
+                        bdrW = 1
+                        fill = self._format_color(stamp.fill_color) if stamp.fill_color else ""
+                        fillA = 100
+                        bdr_ext = f' "{bdr}" "{bdrC}" {bdrW} "{fill}" {fillA}'
+                    lines.append(
+                        f'STAMP_ADD_AT({stamp.abs_x} {stamp.abs_y} '
+                        f'{stamp.width} {stamp.height} '
+                        f'"{self._escape_string(stamp.description)}" '
+                        f'"{catalog[0]}" "{catalog[1]}" "{catalog[2]}"'
+                        f'{shape_code}{bdr_ext})'
+                    )
+
+                if stamp.heading:
+                    lines.append(
+                        f'STAMP_HEADING("{stamp.heading.font_id}" '
+                        f'{stamp.heading.size} '
+                        f'"{self._escape_string(stamp.heading.text)}")'
+                    )
 
             lines.append("")
 

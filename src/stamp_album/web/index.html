@@ -54,7 +54,7 @@
     <div class="tb-group">
         <button id="btn-wizard" title="Quick Setup Wizard">⚡ Wizard</button>
         <button id="btn-preview" title="Preview (Ctrl+P)">👁 Preview</button>
-        <button id="btn-export" title="Export to PDF">📄 Export</button>
+        <div class="export-dd" id="btn-export-dd"><button id="btn-export" title="Export">📄 Export ▾</button><div class="export-dd-menu"><div class="export-dd-item" data-fmt="pdf">📄 PDF</div><div class="export-dd-item" data-fmt="png">🖼 PNG</div><div class="export-dd-item" data-fmt="svg">✏️ SVG</div><div class="export-dd-item" data-fmt="html">🌐 HTML</div></div></div>
         <button id="btn-dsl" title="DSL Editor">🔧 DSL</button>
     </div>
     <div class="tb-group">
@@ -114,7 +114,7 @@
     <section id="ca">
         <div id="ca-toolbar">
             <label>Page:</label>
-            <select id="pg-size"><option value="a4">A4</option><option value="letter">Letter</option><option value="a3">A3</option></select>
+            <select id="pg-size"><option value="a4">A4</option><option value="a5">A5</option><option value="a3">A3</option><option value="letter">Letter</option><option value="legal">Legal</option></select>
             <div id="pg-dots"></div>
             <label>Columns:</label>
             <select id="col-mode"><option value="1">Single</option><option value="2">Two</option><option value="3">Three</option></select>
@@ -124,7 +124,7 @@
             <select id="grid"><option value="0">Off</option><option value="5">5mm</option><option value="10">10mm</option></select>
             <span class="spacer"></span>
             <label>Border:</label>
-            <select id="def-bdr"><option value="solid">Solid</option><option value="double">Double</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option><option value="none">None</option></select>
+            <select id="def-bdr"><option value="none">None</option><option value="solid">Solid</option><option value="double">Double</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option><option value="classic">✦ Classic</option><option value="victorian">✦ Victorian</option><option value="artdeco">✦ Art Deco</option><option value="greek_key">⌇ Greek Key</option><option value="rope">◍ Rope</option><option value="laurel">☘ Laurel</option><option value="gothic">⛧ Gothic</option><option value="filigree">✦ Filigree</option></select>
             <input type="color" id="def-bdr-c" value="#666" title="Border color">
             <label>Fill:</label>
             <input type="color" id="def-fill-c" value="#ffffff" title="Fill color">
@@ -176,35 +176,15 @@
     <div id="wizard-body">
         <div class="wiz-group">
             <label>Album Title</label>
-            <input type="text" id="wiz-title" placeholder="My Album">
+            <input type="text" id="wiz-title" placeholder="Album Title">
             <label>Author</label>
             <input type="text" id="wiz-author" placeholder="Your Name">
         </div>
         <div class="wiz-group">
             <label>Page Size</label>
-            <select id="wiz-pg-size"><option value="a4">A4 (210×297mm)</option><option value="letter">Letter (216×279mm)</option><option value="a3">A3 (297×420mm)</option></select>
+            <select id="wiz-pg-size"><option value="a4">A4 (210×297mm)</option><option value="a5">A5 (148×210mm)</option><option value="a3">A3 (297×420mm)</option><option value="letter">Letter (216×279mm)</option><option value="legal">Legal (216×356mm)</option></select>
             <label>Orientation</label>
             <select id="wiz-orient"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select>
-        </div>
-        <div class="wiz-group">
-            <label>Border Style</label>
-            <select id="wiz-border">
-                <option value="none">None</option>
-                <option value="solid">Solid Line</option>
-                <option value="double" selected>Double Line</option>
-                <option value="dashed">Dashed</option>
-                <option value="dotted">Dotted</option>
-                <option value="classic">✦ Classic Ornate</option>
-                <option value="victorian">✦ Victorian Filigree</option>
-                <option value="artdeco">✦ Art Deco</option>
-                <option value="greek_key">✦ Greek Key</option>
-                <option value="rope">✦ Rope Twist</option>
-                <option value="laurel">✦ Laurel Wreath</option>
-                <option value="gothic">✦ Gothic Arch</option>
-                <option value="filigree">✦ Filigree Gold</option>
-            </select>
-            <label>Columns</label>
-            <select id="wiz-columns"><option value="0">Single</option><option value="2">Two Columns</option><option value="3">Three Columns</option></select>
         </div>
         <div class="wiz-group">
             <label>Template</label>
@@ -276,7 +256,7 @@
 
 <!-- Preview Overlay -->
 <div id="preview-overlay">
-    <div class="preview-hdr"><span>👁 Live Preview</span><span class="spacer"></span><button id="btn-preview-refresh">↻ Refresh</button><button id="btn-preview-export">📄 Export PDF</button><button id="btn-preview-close">✕ Close</button></div>
+        <div class="preview-hdr"><span>👁 Live Preview</span><span class="spacer"></span><button id="btn-preview-refresh">↻ Refresh</button><div class="export-dd" id="btn-preview-export-dd"><button id="btn-preview-export">📄 Export ▾</button><div class="export-dd-menu"><div class="export-dd-item" data-fmt="pdf">📄 PDF</div><div class="export-dd-item" data-fmt="png">🖼 PNG</div><div class="export-dd-item" data-fmt="svg">✏️ SVG</div><div class="export-dd-item" data-fmt="html">🌐 HTML</div></div></div><button id="btn-preview-close">✕ Close</button></div>
     <div id="preview-body"><iframe id="preview-frame" width="900" height="1200"></iframe></div>
 </div>
 
@@ -319,11 +299,17 @@
 <script src="app.js?v={{{VERSION}}}"></script>
 <script src="render.js?v={{{VERSION}}}"></script>
 <script src="undo.js?v={{{VERSION}}}"></script>
+<script src="dsl_core.js?v={{{VERSION}}}"></script>
 <script src="dsl.js?v={{{VERSION}}}"></script>
 <script src="files.js?v={{{VERSION}}}"></script>
 <script src="tutorial.js?v={{{VERSION}}}"></script>
+<script src="export.js?v={{{VERSION}}}"></script>
 <script src="events.js?v={{{VERSION}}}"></script>
 <script src="borders.js?v={{{VERSION}}}"></script>
 <script src="init.js?v={{{VERSION}}}"></script>
+<script>
+// Auto-reload on server restart (dev mode only)
+(function(){if(location.hostname!="localhost"&&location.hostname!="127.0.0.1")return;var p=location.protocol==="https:"?"wss:":"ws:",ws=new WebSocket(p+"//"+location.host+"/ws/reload");ws.onclose=function(){setTimeout(function(){location.reload()},500)};})();
+</script>
 </body>
 </html>

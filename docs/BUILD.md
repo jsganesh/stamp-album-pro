@@ -17,7 +17,7 @@ wrapping the FastAPI web application in a native window via
 │                  ▲ HTTP                    │
 │  ┌───────────────┴─────────────────────┐ │
 │  │  FastAPI server (localhost, daemon) │ │  ← started by desktop.py
-│  │  WeasyPrint → PDF, PyMuPDF → PNG    │ │
+│  │  PyMuPDF direct drawing → PDF/PNG/SVG │ │
 │  └─────────────────────────────────────┘ │
 └─────────────────────────────────────────┘
 ```
@@ -44,18 +44,15 @@ Or just run the web app and use a browser (works everywhere):
 python -m stamp_album.api          # then open http://localhost:8080
 ```
 
-## Native dependencies (WeasyPrint)
+## Native dependencies
 
-WeasyPrint needs Pango/Cairo/GDK-Pixbuf. **PyMuPDF** (rasterization for
-PNG/SVG preview) ships as a self-contained wheel — no system libs needed.
+**PDF/PNG/SVG generation (PyMuPDF)** ships as a self-contained wheel on every
+platform — no system libraries needed. The WeasyPrint-based pipeline (and its
+Pango/Cairo/GDK-Pixbuf requirement) has been fully replaced; nothing in this
+section applies to the export path anymore.
 
-| OS | Install command |
-|----|-----------------|
-| **macOS (Apple Silicon)** | `brew install pango glib gdk-pixbuf libffi harfbuzz fribidi cairo` |
-| **macOS (Intel)** | Same — Homebrew installs to `/usr/local`; the build script detects both prefixes |
-| **Windows** | Install [GTK3 runtime](https://github.com/tschoonj/GTK-for-Windows-Runtime-Installer/releases) **or** use the MSYS2 Pango bundle. WeasyPrint docs: https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#windows |
-| **Linux (Debian/Ubuntu)** | `sudo apt install libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 libffi-dev` |
-| **Linux (Fedora)** | `sudo dnf install pango gdk-pixbuf2 cairo` |
+The only native dependency left is pywebview's window-rendering backend,
+which is either built into the OS or installed automatically:
 
 pywebview's native rendering backend per OS:
 - **macOS**: WKWebView (built in, via pyobjc — installed automatically)
@@ -82,7 +79,8 @@ pyinstaller --name "StampAlbumPro" --windowed --onedir ^
   src/stamp_album/desktop.py
 ```
 
-Ship the GTK3 runtime DLLs alongside (or document the GTK install step).
+No extra runtime DLLs to bundle — PyMuPDF is self-contained, and WebView2
+ships with Windows 10/11.
 
 ### Linux (AppImage / binary)
 
@@ -99,15 +97,15 @@ For the hosted/SaaS version, run the FastAPI app in a container:
 
 ```dockerfile
 FROM python:3.12-slim
-RUN apt-get update && apt-get install -y \
-    libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 libffi-dev \
-    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY . .
 RUN pip install --no-cache-dir -e .
 EXPOSE 8080
 CMD ["python", "-m", "stamp_album.api"]
 ```
+
+No system packages needed — PyMuPDF ships as a self-contained wheel, which
+also keeps this image smaller than the old WeasyPrint-based build.
 
 ```bash
 docker build -t stampalbum-pro .

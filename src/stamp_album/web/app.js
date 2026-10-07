@@ -2,11 +2,11 @@
 (function(){
 var E = [], sel = null, nid = 1, _sc = 2.5, _sn = 5, _pw = 595, _ph = 842, _init = false;
 var _drg = false, _dragEl = null, _dragH = null, _ds = {};
-var _defBdr = "solid", _defBdrC = "#666", _defFillC = "#fff";
+var _defBdr = "solid", _defBdrC = "#000", _defFillC = "#fff";
 var _collapsed = { sb: false, rp: false };
 var _currentFile = null, _currentPage = 0, _pages = [ [] ];
 var _dirty = false;
-var _colMode = 1, _colGap = 10.0, _pageBorder = "double", _pageBorderC = "";  // Column layout mode, gap (mm), page border style
+var _colMode = 1, _colGap = 10.0, _pageBorder = "", _pageBorderC = "";  // Column layout mode, gap (mm), page border style
 
 // ── Forward references (set by render.js after load) ──
 var render = function() { S.render(); };
@@ -135,7 +135,7 @@ function switchPage(idx, silent) {
     sel = null;
     renderPageDots();
     render();
-    if (S.renderPageBorder) S.renderPageBorder(_pageBorder || "double");
+    if (S.renderPageBorder) S.renderPageBorder(_pageBorder);
     updateProps();
 }
 function addPage() {
@@ -176,6 +176,14 @@ function renderPageDots() {
     addDot.title = "Add page";
     addDot.addEventListener("click", addPage);
     c.appendChild(addDot);
+    if (_pages.length > 1) {
+        var delDot = document.createElement("span");
+        delDot.className = "pg-dot del";
+        delDot.textContent = "−";
+        delDot.title = "Delete current page";
+        delDot.addEventListener("click", deletePage);
+        c.appendChild(delDot);
+    }
 }
 
 // ── Grid lines ──
@@ -244,7 +252,7 @@ function buildCanvasState(format) {
         scale: _sc,
         source_path: _currentFile || "album.slbum",
         format: format || "html",
-        title: (_currentFile || "My Album").replace(/\.(slbum|txt)$/, ""),
+        title: (_currentFile || "").replace(/\.(slbum|txt)$/, ""),
         author: "",
         border_style: _pageBorder || "",
         border_color: _pageBorderC || ""
@@ -366,53 +374,6 @@ function loadTemplateList() {
         .catch(function() { /* ignore — template endpoint may not exist */ });
 }
 
-// ── Wizard ──
-function applyWizard() {
-    var title = $("wiz-title").value || "My Album";
-    var author = $("wiz-author").value || "";
-    var pgSize = $("wiz-pg-size").value || "a4";
-    var orient = $("wiz-orient").value || "portrait";
-    var border = $("wiz-border").value || "solid";
-    var columns = parseInt($("wiz-columns").value) || 0;
-    var tpl = $("wiz-template").value;
-
-    if (tpl && tpl !== "blank") {
-        // Quick Apply button on template section
-        $("btn-wiz-template").click();
-        return;
-    }
-
-    var lines = [];
-    lines.push('ALBUM_TITLE("' + title + '")');
-    if (author) lines.push('ALBUM_AUTHOR("' + author + '")');
-
-    var w = pgSize === "a4" ? 210 : pgSize === "letter" ? 216 : 297;
-    var h = pgSize === "a4" ? 297 : pgSize === "letter" ? 279 : 420;
-    if (orient === "landscape") { var t = w; w = h; h = t; }
-    lines.push("ALBUM_PAGES_SIZE(" + w + " " + h + ")");
-    lines.push("ALBUM_PAGES_MARGINS(15 15 15 15)");
-
-    if (border !== "none") {
-        lines.push('ALBUM_PAGES_BORDER(0.1 0.5 0.1 1.0)');
-        lines.push('COLOUR_ALBUM_BORDER("#666")');
-    }
-
-    if (title) lines.push('PAGE_TEXT_CENTRE("HB" 16 "' + title + '")');
-
-    if (columns > 1) {
-        lines.push("PAGE_COLUMN_START(" + columns + ")");
-    }
-
-    S.parseDSL(lines.join("\n"));
-    S.pushUndo();
-    render();
-    // Apply ornamental border if selected
-    _pageBorder = border;
-    if (S.renderPageBorder) S.renderPageBorder(border);
-    $("wizard-panel").classList.remove("open");
-    showToast("Album created from wizard", "success");
-}
-
 // ── DSL functions (escapeDSL, buildDSL, parseDSL) defined in dsl.js ──
 
 // ── Exports (shared state + functions for render.js, events.js, init.js) ──
@@ -458,7 +419,6 @@ Object.defineProperties(S, {
     buildCanvasState: { value: buildCanvasState }, openPreview: { value: openPreview },
     schedulePreviewRefresh: { value: schedulePreviewRefresh }, refreshPreview: { value: refreshPreview },
     exportPDF: { value: exportPDF }, loadTemplateList: { value: loadTemplateList },
-    applyWizard: { value: applyWizard },
     // ── Alignment functions ──
     alignSelected: { value: alignSelected },
     distributeSelected: { value: distributeSelected },

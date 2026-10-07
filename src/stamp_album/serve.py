@@ -72,7 +72,7 @@ def _wait_and_open(url: str, timeout: float = 20.0) -> None:
 
 def main() -> int:
     """Start the server and open the app in the default browser."""
-    # macOS: ensure WeasyPrint can find Homebrew native libraries
+    # macOS: ensure fitz/PyMuPDF can find system font directories
     if sys.platform == "darwin":
         for brew_prefix in ("/opt/homebrew", "/usr/local"):
             lib_dir = os.path.join(brew_prefix, "lib")

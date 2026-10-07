@@ -105,7 +105,13 @@ A modern web application for creating professional stamp album pages for display
 
 ---
 
-## Phase 3: Desktop Application (Complete)
+## Phase 3: Desktop Application (Complete — now legacy)
+
+> This phase describes the original PyQt6 desktop editor, which used
+> WeasyPrint for rendering. Per BUILD.md, this UI is legacy and no longer
+> the primary product — it's optional (`pip install -e ".[legacy]"`). The
+> current primary desktop path is the web app wrapped in pywebview, using
+> the PyMuPDF engine described in Phase 1/Technical Requirements below.
 
 ### 3.1 PyQt6 Desktop App
 - **Main window**: Split editor + preview layout
@@ -120,7 +126,7 @@ A modern web application for creating professional stamp album pages for display
 - **Undo/Redo**: Full edit history
 
 ### 3.3 Desktop Preview
-- **WeasyPrint rendering**: Accurate page preview as images
+- **WeasyPrint rendering** *(legacy PyQt6 app only)*: Accurate page preview as images
 - **Page navigation**: Multi-page album support
 - **Zoom controls**: 50% to 200% zoom levels
 - **Toggle**: Show/hide preview panel
@@ -133,7 +139,7 @@ A modern web application for creating professional stamp album pages for display
 
 ### 3.5 macOS App Bundle
 - **PyInstaller**: Self-contained `.app` bundle
-- **Bundled dylibs**: WeasyPrint native libraries included
+- **Bundled dylibs**: WeasyPrint native libraries included *(legacy PyQt6 app only — the current PyMuPDF-based build needs no bundled dylibs at all; see BUILD.md)*
 - **No brew required**: Works without Homebrew on target machines
 - **Build script**: `./build.sh` for reproducible builds
 
@@ -165,7 +171,9 @@ A modern web application for creating professional stamp album pages for display
 - String literals in quotes
 
 ### Output Format
-- PDF generation via WeasyPrint
+- PDF/PNG/SVG generation via PyMuPDF (direct drawing) — see CONTEXT.md's
+  "PDF architecture (v2-pymupdf)" for the current pipeline. (WeasyPrint was
+  used only in the now-legacy PyQt6 desktop app, Phase 3.)
 - Measurements in millimeters
 - Font sizes in points
 - HTML preview rendering
