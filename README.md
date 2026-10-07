@@ -1,270 +1,89 @@
 # StampAlbum Pro
 
-A modern stamp album typesetter with live preview, a web-based editor, and advanced typography.
+Design and print stamp album pages. StampAlbum Pro pairs a drag-and-drop page canvas with a text-based page description (DSL) and exports print-ready pages.
 
-## Overview
+> **Status: alpha (v0.2.0).** Developed on macOS. The automated test suite also runs on Windows and Linux in CI. There are no packaged installers yet, so run it from source (see below).
 
-StampAlbum Pro is a web application for creating professional stamp album pages for display and competition use. It generates high-quality PDF output from a declarative text-based configuration format, with a live preview that updates as you type.
+![Main editor](docs/screenshots/01-main-editor.png)
 
-## Features
+## What it does today
 
-- **Web-based editor**: Visual canvas with drag-and-drop, SVG shapes, and live preview
-- **Live preview**: Auto-renders HTML preview as you design
-- **File management**: Create, open, save, and delete `.slbum` album files from the browser sidebar
-- **PDF export**: One-click PDF generation and download
-- **Visual canvas**: Free-form stamp positioning with drag, resize, and alignment guides
-- **Stamp shapes**: Rectangle, triangle, diamond, oval, hexagon, octagon, pentagon
-- **Text elements**: Labels, headings, and descriptions with inline editing
-- **Grid fill**: Duplicate stamps in a grid pattern
-- **Undo/redo**: Full history with Ctrl+Z / Ctrl+Y
-- **Templates**: Pre-built album templates by country and era
-- **Quick Setup Wizard**: Create a new album with page size, border, and template selection
-- **Image support**: Upload and place images on album pages
-- **Responsive layout**: Works on desktop and tablet browsers
+- **Visual canvas:** place, drag, resize and align stamps and text elements on a page
+- **Stamp shapes:** rectangle, triangle, diamond, oval, hexagon, octagon, pentagon
+- **Borders:** ornamental page and stamp borders, including edge patterns (greek key, rope) and corner ornaments
+- **Pages:** add and delete pages; page sizes include A5 and Legal
+- **Layout tools:** grid fill and undo/redo
+- **Images:** upload and place images on a page
+- **Starter templates:** four `.slbum` albums in `templates/` (one-column quadrille, compact two-column, Europe two-column, worldwide three-column)
+- **DSL mode:** an advanced text view of the same page, for precise or bulk editing
+- **Export:** PDF, PNG and SVG
+- **Album files:** create, open, save and delete `.slbum` albums from the sidebar
 
-## Installation
+![DSL editor](docs/screenshots/04-dsl-editor.png)
 
-### Option 1: Install from PyPI (recommended)
+## What it does not do yet
 
-```bash
-pip install stamp-album-pro
-stamp-album
-```
+- **No exhibition-rule checking.** The goal is pages that meet international exhibition standards, but this release does not verify compliance with any federation's rules. Check your pages against the current regulations yourself.
+- **No installers.** There is no signed macOS app or Windows installer yet. The PyInstaller specs in `packaging/` are out of date.
+- **Cloud sync and collections are experimental.** <!-- VERIFY: wording; cloud_sync.py and collection.py exist -->
 
-### Option 2: Install from source
+## Run from source
+
+Requirements: Python 3.10 or newer (CI tests 3.10, 3.11 and 3.13) and [uv](https://docs.astral.sh/uv/).
 
 ```bash
-# Clone the repository
 git clone https://github.com/jsganesh/stamp-album-pro.git
 cd stamp-album-pro
+uv sync --extra dev
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -e ".[dev]"
+uv run stamp-album             # starts the app at http://127.0.0.1:8080 and opens your browser
+uv run stamp-album --desktop   # the same app in a native window (pywebview) <!-- VERIFY -->
 ```
 
-### Legacy Desktop Editor (optional)
+Other modes: `--web` (browser mode, explicit), `--dev` (auto-reload while developing), `--cli` (headless PDF generation) and `--legacy-qt` (the old PyQt6 editor, needs the `legacy` extra). <!-- VERIFY: --cli arguments -->
 
-The legacy PyQt6 desktop editor is optional. Install it with:
+Without uv: `python -m venv .venv`, activate it, then `pip install -e ".[dev]"`.
 
-```bash
-pip install -e ".[legacy]"
-```
+Platform notes <!-- VERIFY -->:
+- **macOS:** the main development platform.
+- **Windows:** tests pass in CI; the app itself has not been checked there yet.
+- **Linux:** tests pass in CI on Ubuntu; the app itself is not verified.
 
-### macOS Native Dependencies
-
-None! StampAlbum Pro uses PyMuPDF for PDF generation — no native libraries (Pango, Cairo, GLib) required.
-
-## Quick Start
-
-### Run the app (recommended — works on Windows, macOS, Linux)
-
-```bash
-stamp-album
-```
-
-This opens StampAlbum Pro in your **default web browser** — cross-platform,
-no installation needed beyond the `pip install`. Exports download to your
-Downloads folder.
-
-Alternative commands:
-
-```bash
-stamp-album --browser    # open in your default web browser instead
-stamp-album-web          # same as --browser
-stamp-album-browser      # same as --browser
-stamp-album --legacy-qt  # legacy PyQt6 editor (requires: pip install ".[legacy]")
-```
-
-Environment overrides:
-
-```bash
-STAMP_ALBUM_PORT=9000 stamp-album       # use a specific port
-STAMP_ALBUM_NO_BROWSER=1 stamp-album    # start server without opening a browser
-STAMP_ALBUM_RELOAD=1 stamp-album        # auto-reload on code changes (development)
-```
-
-### Run directly from source
-
-```bash
-python -m stamp_album            # desktop window (default)
-python -m stamp_album --browser  # browser mode
-python -m stamp_album.serve      # browser mode (explicit)
-python -m stamp_album.api        # server only, then open http://localhost:8080
-```
-
-### Command Line
-
-```bash
-# Generate a PDF from an album file
-python -m stamp_album -c examples/sample.txt -o output.pdf
-
-# Generate with HTML preview
-python -m stamp_album -c examples/sample.txt -p
-```
-
-### Desktop App (macOS / Windows / Linux)
-
-```bash
-# Build the desktop binary with PyInstaller
-pip install pyinstaller
-pyinstaller stamp-album.spec
-
-# Run the app
-# macOS:
-open "dist/StampAlbum Pro.app"
-# Windows: dist\StampAlbumPro\StampAlbumPro.exe
-# Linux: ./dist/StampAlbumPro/StampAlbumPro
-```
-
-## Web App Screenshots
-
-![Main Editor](docs/screenshots/01-main-editor.png)
-
-*The main editor: drag-and-drop stamp palette (left), visual canvas (center), properties panel (right), and Quick Setup Wizard (bottom).*
-
-![DSL Editor](docs/screenshots/04-dsl-editor.png)
-
-*DSL editor panel for advanced users — direct text-based album definition with apply/close controls.*
-
-The web interface features:
-
-| Component | Description |
-|-----------|-------------|
-| **Toolbar** | New, Open, Save, Export PDF with keyboard shortcuts |
-| **Canvas** | Visual drag-and-drop page layout with grid snap |
-| **Sidebar** | Stamp palette, text tools, image manager, file browser |
-| **Properties** | Position, size, border, fill, font for selected element |
-| **Wizard** | Quick Setup with page size, border, template selection |
-| **DSL Panel** | Advanced text-based album definition (toggle) |
-
-## DSL Syntax
-
-### Basic Album Structure
-
-```
-# Document metadata
-ALBUM_TITLE ("My Album")
-ALBUM_AUTHOR ("Author Name")
-
-# Page setup
-ALBUM_PAGES_SIZE (210.0 297.0)          # A4 size in mm
-ALBUM_PAGES_MARGINS (20.0 15.0 15.0 15.0)  # left, right, top, bottom
-ALBUM_PAGES_BORDER (0.1 0.5 0.1 1.0)    # triple line border
-ALBUM_PAGES_SPACING (6.0 6.0)           # horizontal, vertical spacing
-
-# Page title
-ALBUM_PAGES_TITLE (TB 16 "Album Title")
-
-# Define pages
-PAGE_START
-
-PAGE_TEXT_CENTRE (HS 12 "Section Heading")
-
-ROW_START_FS (HN 8 0.5 6.0)             # font, size, spacing, width
-STAMP_ADD (32.0 37.0 "Description" "sg 1" "" "sacc 1")
-STAMP_ADD (32.0 37.0 "Description" "sg 2" "" "sacc 2")
-```
-
-### Commands
-
-| Command | Description |
-|---------|-------------|
-| `ALBUM_TITLE` | Set album title |
-| `ALBUM_PAGES_SIZE` | Set page dimensions (mm) |
-| `ALBUM_PAGES_MARGINS` | Set page margins (mm) |
-| `ALBUM_PAGES_BORDER` | Set line border |
-| `ALBUM_PAGES_TITLE` | Set page title |
-| `PAGE_START` | Begin a new page |
-| `PAGE_TEXT` | Add left-aligned text |
-| `PAGE_TEXT_CENTRE` | Add centered text |
-| `PAGE_TEXT_RIGHT` | Add right-aligned text |
-| `PAGE_RULE_H` | Add horizontal rule |
-| `ROW_START_FS` | Start fixed-space row |
-| `ROW_START_ES` | Start equal-space row |
-| `ROW_START_JS` | Start justified-space row |
-| `STAMP_ADD` | Add rectangular stamp |
-| `STAMP_ADD_TRIANGLE` | Add triangle stamp |
-| `STAMP_ADD_DIAMOND` | Add diamond stamp |
-| `STAMP_ADD_OVAL` | Add oval stamp |
-| `STAMP_HEADING` | Add heading to stamp |
-| `COLOUR_*` | Set element colors |
-
-### Font Identifiers
-
-| ID | Font |
-|----|------|
-| CN, CB, CI, CS | Courier variants |
-| TN, TB, TI, TS | Times variants |
-| HN, HB, HI, HS | Helvetica variants |
-
-Define custom fonts with `ALBUM_DEFINE_FONT (ID "Font Name")`.
-
-## API Reference
-
-The FastAPI server provides these endpoints:
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/` | Web application |
-| `GET` | `/docs` | Interactive API documentation (Swagger UI) |
-| `GET` | `/files` | List all `.slbum` files |
-| `GET` | `/files/{name}` | Read a file |
-| `POST` | `/files/{name}` | Save a file |
-| `DELETE` | `/files/{name}` | Delete a file |
-| `POST` | `/render` | Render DSL to HTML preview |
-| `POST` | `/parse` | Parse DSL to JSON model |
-| `POST` | `/visual-update` | Update stamp position (visual builder) |
-| `POST` | `/export` | Generate and download PDF |
-
-## Architecture
-
-```
-src/stamp_album/
-├── api.py              # FastAPI web server
-├── __main__.py         # CLI entry point (desktop mode)
-├── core/
-│   ├── models.py       # Album data structures
-│   ├── parser.py       # DSL parser
-│   └── serializer.py   # Model-to-DSL round-trip
-├── engines/
-│   ├── pdf_generator.py    # PyMuPDF direct drawing (PDF/PNG/SVG)
-│   ├── font_manager.py     # Font discovery/validation
-│   └── layout_engine.py    # Auto-layout algorithms
-├── ui/                 # PyQt6 desktop interface
-│   ├── main_window.py
-│   ├── editor.py
-│   ├── preview_panel.py
-│   └── visual_builder.py
-└── web/                # Web application frontend
-    ├── index.html
-    ├── style.css
-    └── app.js
-```
+The `launcher/` folder has launch scripts that need no terminal typing: a `.command` file for macOS (or `bash launcher/make-app.sh` to build `dist/StampAlbum.app`), a `.bat` file for Windows and a `.desktop` file for Linux. <!-- VERIFY: untested -->
 
 ## Development
 
 ```bash
-# Run tests
-pytest
-
-# Format code
-black src/
-
-# Lint
-ruff check src/
-
-# Type check
-mypy src/
+make test                    # pytest on src/tests
+uv run ruff check src        # lint (advisory: there is a known backlog)
 ```
 
-## License
+CI runs the tests on macOS, Windows and Ubuntu from the locked dependencies in `uv.lock`. It also builds the wheel and checks that it contains the web UI, contains no test code, and imports in a clean environment.
 
-MIT License - see LICENSE file for details.
+## Project layout
 
-## Contributing
+```
+src/stamp_album/
+  api.py        FastAPI backend (albums, templates, export)
+  core/         models, DSL parser, serializer
+  engines/      layout and rendering (HTML preview, PDF, PNG, SVG)
+  web/          browser UI (HTML, JS, CSS)
+  ui/           legacy PyQt6 editor (optional, not maintained)
+templates/      starter albums (.slbum)
+assets/         sample album files
+launcher/       launch scripts for macOS, Windows and Linux
+packaging/      PyInstaller specs (known stale)
+docs/           architecture and build notes
+```
 
-Contributions are welcome! Please read the contributing guidelines before submitting pull requests.
+## Documentation
+
+- [ARCHITECTURE.md](ARCHITECTURE.md): how the rendering pipeline fits together. Some sections predate the ReportLab engines. <!-- VERIFY -->
+- [docs/BUILD.md](docs/BUILD.md): packaging notes (out of date, being updated)
+- [CHANGELOG.md](CHANGELOG.md): what changed in each release
+
+## Licence
+
+MIT, see [LICENSE](LICENSE).
+
+Licensing note: PyMuPDF is a current runtime dependency (it is listed in `pyproject.toml` and imported at startup). It is available under AGPL-3.0 or a commercial licence, so review that before distributing binaries.
