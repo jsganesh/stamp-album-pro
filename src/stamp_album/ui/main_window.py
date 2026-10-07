@@ -734,7 +734,7 @@ class MainWindow(QMainWindow):
         QMessageBox.about(
             self,
             "About StampAlbum Pro",
-            "StampAlbum Pro v0.1.0\n\n"
+            "StampAlbum Pro v0.2.0\n\n"
             "Modern stamp album typesetter with live preview\n"
             "and advanced typography.\n\n"
             "© 2026 Stamp Album Pro Contributors\n"
