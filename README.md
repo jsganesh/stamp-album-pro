@@ -78,7 +78,7 @@ docs/           architecture and build notes
 
 ## Documentation
 
-- [ARCHITECTURE.md](ARCHITECTURE.md): how the rendering pipeline fits together. Some sections predate the ReportLab engines. <!-- VERIFY -->
+- [ARCHITECTURE.md](ARCHITECTURE.md): how the rendering pipeline fits together. Some sections predate the ReportLab engines.
 - [docs/BUILD.md](docs/BUILD.md): packaging notes (out of date, being updated)
 - [CHANGELOG.md](CHANGELOG.md): what changed in each release
 

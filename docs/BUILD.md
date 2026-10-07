@@ -1,5 +1,7 @@
 # Cross-Platform Build & Packaging Guide
 
+> **Out of date.** This guide predates the ReportLab engines and the move of the PyInstaller specs to `packaging/` (the specs are stale and do not yet produce a working app). To run from source, use the README. The build and Docker sections below have not been checked against the current code.
+
 StampAlbum Pro ships as a **single desktop app** on Windows, macOS, and Linux by
 wrapping the FastAPI web application in a native window via
 [pywebview](https://pywebview.flowrl.com/). One codebase, three platforms.
