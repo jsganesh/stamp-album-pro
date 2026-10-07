@@ -25,7 +25,6 @@ Design and print stamp album pages. StampAlbum Pro pairs a drag-and-drop page ca
 
 - **No exhibition-rule checking.** The goal is pages that meet international exhibition standards, but this release does not verify compliance with any federation's rules. Check your pages against the current regulations yourself.
 - **No installers.** There is no signed macOS app or Windows installer yet. The PyInstaller specs in `packaging/` are out of date.
-- **Cloud sync and collections are experimental.** <!-- VERIFY: wording; cloud_sync.py and collection.py exist -->
 
 ## Run from source
 
@@ -37,19 +36,21 @@ cd stamp-album-pro
 uv sync --extra dev
 
 uv run stamp-album             # starts the app at http://127.0.0.1:8080 and opens your browser
-uv run stamp-album --desktop   # the same app in a native window (pywebview) <!-- VERIFY -->
+uv run stamp-album --desktop   # the same app in a native window (pywebview)
 ```
 
-Other modes: `--web` (browser mode, explicit), `--dev` (auto-reload while developing), `--cli` (headless PDF generation) and `--legacy-qt` (the old PyQt6 editor, needs the `legacy` extra). <!-- VERIFY: --cli arguments -->
+Other modes: `--web` (browser mode, explicit), `--dev` (auto-reload while developing) and `--legacy-qt` (the old PyQt6 editor, needs the `legacy` extra).
+
+Headless PDF generation from a DSL file: `uv run stamp-album -c album.slbum -o album.pdf`. Add `-p` to also write an HTML preview; `stamp-album --cli --help` lists every option.
 
 Without uv: `python -m venv .venv`, activate it, then `pip install -e ".[dev]"`.
 
-Platform notes <!-- VERIFY -->:
+Platform notes:
 - **macOS:** the main development platform.
 - **Windows:** tests pass in CI; the app itself has not been checked there yet.
 - **Linux:** tests pass in CI on Ubuntu; the app itself is not verified.
 
-The `launcher/` folder has launch scripts that need no terminal typing: a `.command` file for macOS (or `bash launcher/make-app.sh` to build `dist/StampAlbum.app`), a `.bat` file for Windows and a `.desktop` file for Linux. <!-- VERIFY: untested -->
+The `launcher/` folder contains launch scripts (a `.command` file for macOS, a `.bat` file for Windows, a `.desktop` file for Linux; see `launcher/README.md`). They have not been tested for 0.2.0.
 
 ## Development
 
