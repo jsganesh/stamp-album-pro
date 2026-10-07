@@ -61,7 +61,7 @@ class TestBuildItemDSL:
 
     def test_full_dropped_sequence_renders(self, parser):
         """A realistic click/drag sequence produces a complete, renderable album."""
-        from stamp_album.engines.pdf_generator import HTMLRenderer
+        from stamp_album.engines.html_renderer import HTMLRenderer
 
         dsl = (
             'ALBUM_TITLE("Test")\n'

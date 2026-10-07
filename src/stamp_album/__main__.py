@@ -163,7 +163,7 @@ def _run_cli(args: list[str]):
     print(f"PDF generated: {output_path}")
 
     if parsed.preview:
-        from stamp_album.engines.pdf_generator import HTMLRenderer
+        from stamp_album.engines.html_renderer import HTMLRenderer
         html = HTMLRenderer(album, None).render()
         preview_path = str(Path(output_path).with_suffix(".html"))
         Path(preview_path).write_text(html, encoding="utf-8")

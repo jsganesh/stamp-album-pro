@@ -12,7 +12,7 @@ A web-based stamp album designer with an InDesign-like free-form page layout fee
 ## Tech stack
 - Backend: Python / FastAPI
 - Frontend: Browser-based visual canvas (SVG shapes, contentEditable text)
-- PDF generation: PyMuPDF direct drawing — no WeasyPrint
+- PDF/PNG/SVG export: ReportLab, Pillow and SVG engines in `engines/` (the former PyMuPDF engine was removed); HTML preview: `engines/html_renderer.py`
 - Entry point: `stamp-album` (opens in browser, downloads go to Downloads folder)
 - Desktop mode: `stamp-album --desktop` (pywebview window, opt-in)
 - Auto-reload: `STAMP_ALBUM_RELOAD=1 stamp-album` (dev mode)
@@ -21,10 +21,10 @@ A web-based stamp album designer with an InDesign-like free-form page layout fee
 - Branch: `main` is the only branch; older lines are archived as `archive/*` tags
 
 ## Current version state
-- PDF generation rewritten: PyMuPDF direct drawing replaces WeasyPrint entirely
+- PDF generation was rewritten twice: WeasyPrint, then PyMuPDF (v2), then ReportLab/Pillow/SVG (v0.2.0)
 - No native library dependencies (Pango/Cairo/GLib) — pure Python PDF generation
 - System fonts embedded by scanning `/Library/Fonts`, `~/Library/Fonts`, `/System/Library/Fonts`
-- Font resolution: font IDs (HN, HB, TN, etc.) → system .ttf/.ttc files via `fitz.Font(fontfile=...)`
+- Font resolution: font IDs (HN, HB, TN, etc.) → system .ttf/.ttc files (see `engines/pdf.py`)
 - Stamp shapes: rectangle, oval, diamond, triangle, hexagon, octagon, pentagon
 - HTMLRenderer: renders both DSL-based rows and canvas drag-and-drop stamps
 - Column layout support: `PAGE_COLUMN_START` → `column-container cols-N` with gap styling
@@ -43,10 +43,10 @@ A web-based stamp album designer with an InDesign-like free-form page layout fee
 - Default export UX: browser download to Downloads folder (not native dialog)
 - Run the full test suite (`make test`) before committing any change; setup is `uv sync --extra dev`, and CI runs the suite from `uv.lock` on macOS, Windows and Ubuntu
 - Commit at logical boundaries, not mid-feature
-- No WeasyPrint. Both the legacy PyMuPDF engine and the newer ReportLab/Pillow/SVG engines exist in `engines/`; check which one `api.py` calls before changing export code
+- No WeasyPrint and no PyMuPDF. Exports use the ReportLab/Pillow/SVG engines in `engines/`; the HTML preview is `engines/html_renderer.py`
 
 ## PDF architecture (historical: v2-pymupdf)
-> Since v0.2.0 the export code also includes the newer ReportLab/Pillow/SVG engines (`engines/pdf.py`, `raster.py`, `svg_export.py`, plus shared `borders.py` and `layout.py`). See ARCHITECTURE.md and check the code before relying on the list below.
+> The PyMuPDF engine described below was removed after v0.2.0. Exports now use the ReportLab/Pillow/SVG engines (`engines/pdf.py`, `raster.py`, `svg_export.py`); the HTML preview renderer is `engines/html_renderer.py`. Treat the list below as history and check the code before relying on it.
 - `src/stamp_album/engines/pdf_generator.py` — single file containing:
   - `PDFGenerator` — direct PyMuPDF drawing for PDF/PNG/SVG export
   - `HTMLRenderer` — HTML/CSS preview from Album/Page/Stamp models
