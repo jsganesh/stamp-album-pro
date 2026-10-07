@@ -1,7 +1,7 @@
 """
 ReportLab-based PDF generation engine.
 
-Replaces the PyMuPDF-based PDFGenerator in pdf_generator.py.
+Replaced the former PyMuPDF-based engine, which has been removed.
 Uses borders.py for shared geometry data.
 """
 
@@ -29,7 +29,7 @@ from stamp_album.engines.borders import (
 from stamp_album.engines.layout import layout_rows
 
 
-# ── Font resolution (same logic as pdf_generator.py) ──
+# ── Font resolution ──
 
 _BUILTIN_FONT_MAP = {
     "CN": "Courier",

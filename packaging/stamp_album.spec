@@ -34,7 +34,7 @@ a = Analysis(
         "stamp_album.ui.syntax_highlighter",
         "stamp_album.core.parser",
         "stamp_album.core.models",
-        "stamp_album.engines.pdf_generator",
+        "stamp_album.engines.html_renderer",
         "stamp_album.engines.layout_engine",
         "stamp_album.engines.font_manager",
         "PIL",

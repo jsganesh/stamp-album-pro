@@ -5,12 +5,19 @@ PDF, PNG and SVG export live in pdf.py, raster.py and svg_export.py.
 """
 
 from __future__ import annotations
+
 from stamp_album.core.models import (
-    Album, FormattedText, Page, StampShape,
+    Album,
+    FormattedText,
+    Page,
+    StampShape,
 )
 from stamp_album.engines.borders import (
-    ORNAMENTAL_STYLES, EDGE_STYLES, corner_ornament_svg, edge_pattern_svg,
+    EDGE_STYLES,
+    ORNAMENTAL_STYLES,
     SHAPE_POLYGON_VIEWBOX,
+    corner_ornament_svg,
+    edge_pattern_svg,
 )
 from stamp_album.engines.layout import layout_rows
 
