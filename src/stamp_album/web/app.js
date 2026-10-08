@@ -356,6 +356,19 @@ function exportPDF() {
     });
 }
 
+// ── Page size: single place that sizes the on-screen page from millimetres ──
+// The page element used to be sized only by a CSS class (.a4 etc.), so a
+// landscape or custom-size album loaded from DSL kept the portrait A4 box.
+function applyPageSize(wmm, hmm) {
+    _pw = wmm * _sc;
+    _ph = hmm * _sc;
+    var pg = document.getElementById("page");
+    if (pg) {
+        pg.style.width = _pw + "px";
+        pg.style.height = _ph + "px";
+    }
+}
+
 // ── Template list ──
 function loadTemplateList() {
     var sel = $("wiz-template");
@@ -419,6 +432,7 @@ Object.defineProperties(S, {
     buildCanvasState: { value: buildCanvasState }, openPreview: { value: openPreview },
     schedulePreviewRefresh: { value: schedulePreviewRefresh }, refreshPreview: { value: refreshPreview },
     exportPDF: { value: exportPDF }, loadTemplateList: { value: loadTemplateList },
+    applyPageSize: { value: applyPageSize },
     // ── Alignment functions ──
     alignSelected: { value: alignSelected },
     distributeSelected: { value: distributeSelected },

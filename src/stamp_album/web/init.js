@@ -341,8 +341,8 @@ function init() {
     $("pg-size").addEventListener("change", function() {
         var s = { a4: [525, 742.5], a5: [370, 525], a3: [742.5, 1050], letter: [539.75, 698.5], legal: [539.75, 889] }; // mm x 2.5 px/mm
         var v = s[this.value] || s.a4;
-        S._pw = v[0]; S._ph = v[1];
         $("page").className = "page " + this.value;
+        S.applyPageSize(v[0] / S._sc, v[1] / S._sc);
         render();
         S.updateGrid();
         if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);

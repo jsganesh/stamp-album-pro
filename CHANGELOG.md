@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+- The new-album wizard did nothing: `wizard.js` was never loaded by `index.html`
+- Landscape and custom-size albums displayed as portrait A4: the on-screen page is now sized from the album's millimetre size (`S.applyPageSize`) when loading DSL, using the wizard, or changing the page-size dropdown
+- Wizard paper sizes now match the page-size dropdown (Letter 215.9x279.4, Legal 215.9x355.6)
+
+### Removed
+- Dead `canvas.js` (not loaded) and `events.js` (loaded but never run), both superseded by `render.js` and `init.js`
+
+### Added
+- Browser smoke test (`test_ui_smoke.py`, needs Playwright; skipped otherwise)
+
 ## [0.2.1] - 2026-10-08
 
 ### Fixed

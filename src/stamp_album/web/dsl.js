@@ -62,8 +62,7 @@ function parseDSL(dsl) {
                 el.w = px(el.w); el.h = px(el.h);
             }
         }
-        S._pw = state.pw * S._sc;
-        S._ph = state.ph * S._sc;
+        S.applyPageSize(state.pw, state.ph);
         S._pageBorder = state.pageBorder;
         S._pageBorderC = state.pageBorderC;
         S._colMode = state.colMode;
