@@ -29,11 +29,7 @@ function init() {
     // Palette drag
     document.querySelectorAll(".p-item[draggable]").forEach(function(it) {
         it.addEventListener("dragstart", function(e) {
-            e.dataTransfer.setData("text/plain", JSON.stringify({
-                t: it.dataset.t, s: it.dataset.s || "rectangle", st: it.dataset.st || "",
-                w: parseFloat(it.dataset.w) || 80, h: parseFloat(it.dataset.h) || 60,
-                font: "HN", fs: 12
-            }));
+            e.dataTransfer.setData("text/plain", JSON.stringify(S.paletteItemSpec(it)));
             e.dataTransfer.effectAllowed = "copy";
         });
     });
@@ -65,13 +61,7 @@ function init() {
         var r = pg.getBoundingClientRect();
         var x = Math.max(0, Math.min(snapStep(e.clientX - r.left), S._pw - 40));
         var y = Math.max(0, Math.min(snapStep(e.clientY - r.top), S._ph - 30));
-        var w = d.w || 80, h = d.h || 60;
-        if (d.t === "text") { w = 120; h = d.st === "heading" ? 24 : d.st === "desc" ? 16 : 18; }
-        if (d.t === "freehand") { w = 100; h = 80; }
-        add({ t: d.t || "stamp", s: d.s || "rectangle", x: x, y: y, w: w, h: h,
-            lbl: d.t === "text" ? (d.st === "heading" ? "Heading" : d.st === "desc" ? "Description" : "Label") : "",
-            font: d.font || "HN", fs: d.st === "heading" ? 16 : d.st === "desc" ? 10 : 12,
-            bdr: S._defBdr, bdrC: S._defBdrC, bdrW: 1, fill: S._defFillC, fillA: 100, img: "" });
+        add(S.paletteElement(d, x, y));
     });
 
     // Mouse on canvas
@@ -568,9 +558,9 @@ function init() {
     document.querySelectorAll(".p-item[draggable]").forEach(function(it) {
         it.addEventListener("touchstart", function(e) {
             var touch = e.touches[0];
-            S._ds = { t: it.dataset.t, s: it.dataset.s || "rectangle", st: it.dataset.st || "",
-                w: parseFloat(it.dataset.w) || 80, h: parseFloat(it.dataset.h) || 60,
-                font: "HN", fs: 12, tx: touch.clientX, ty: touch.clientY };
+            S._ds = S.paletteItemSpec(it);
+            S._ds.tx = touch.clientX;
+            S._ds.ty = touch.clientY;
             e.preventDefault();
         }, { passive: false });
     });
@@ -582,21 +572,16 @@ function init() {
         if (!S._ds || !S._ds.t) return;
         var touch = e.changedTouches[0];
         var pg = $("page");
-        if (pg) {
-            var r = pg.getBoundingClientRect();
-            var cx = touch.clientX, cy = touch.clientY;
-            if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
-                var x = Math.max(0, Math.min(Math.round((cx - r.left) / S._sn) * S._sn, S._pw - 40));
-                var y = Math.max(0, Math.min(Math.round((cy - r.top) / S._sn) * S._sn, S._ph - 30));
-                var d = S._ds;
-                var w = d.w || 80, h = d.h || 60;
-                if (d.t === "text") { w = 120; h = d.st === "heading" ? 24 : d.st === "desc" ? 16 : 18; }
-                if (d.t === "freehand") { w = 100; h = 80; }
-                add({ t: d.t || "stamp", s: d.s || "rectangle", x: x, y: y, w: w, h: h,
-                    lbl: d.t === "text" ? (d.st === "heading" ? "Heading" : d.st === "desc" ? "Description" : "Label") : "",
-                    font: d.font || "HN", fs: d.st === "heading" ? 16 : d.st === "desc" ? 10 : 12,
-                    bdr: S._defBdr, bdrC: S._defBdrC, bdrW: 1, fill: S._defFillC, fillA: 100, img: "" });
-            }
+        var cx = touch.clientX, cy = touch.clientY;
+        var r = pg ? pg.getBoundingClientRect() : null;
+        if (r && cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+            // Dropped on the page: place it where the finger lifted.
+            var x = Math.max(0, Math.min(snapStep(cx - r.left), S._pw - 40));
+            var y = Math.max(0, Math.min(snapStep(cy - r.top), S._ph - 30));
+            add(S.paletteElement(S._ds, x, y));
+        } else if (Math.abs(cx - S._ds.tx) < 10 && Math.abs(cy - S._ds.ty) < 10) {
+            // A tap (no real movement): same as a click, add at the page centre.
+            S.addAtCentre(S.paletteElement(S._ds, 0, 0));
         }
         S._ds = {};
     });
@@ -660,6 +645,8 @@ function init() {
     loadFileList();
     loadImageList();
     S.updateTitle();
+
+    if (S.wirePalette) S.wirePalette();
 
     // ── First-run tutorial ──
     if (initTutorial) initTutorial(!!_restored);

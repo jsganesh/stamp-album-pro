@@ -531,3 +531,193 @@ def test_view_menu_can_show_the_tutorial_again(page):
     page.click("#menu-tutorial")
     assert "open" in page.get_attribute("#tutorial-overlay", "class")
     assert page.evaluate("StampAlbum.E.length") == before, "showing the tutorial must not load the sample album"
+
+
+# ── Palette: click, keyboard and tap add the item at the page centre ──
+
+MM = 2.5  # px per mm on the canvas
+OFFSET = 10 * MM  # each repeated add moves 10 mm right and down
+
+
+def _empty_album(page, grid="0"):
+    page.evaluate("StampAlbum.newAlbum(); StampAlbum._snapEnabled = false; StampAlbum.render()")
+    page.select_option("#grid", grid)
+
+
+def _els(page):
+    return page.evaluate("StampAlbum.E.map(e => ({id: e.id, t: e.t, s: e.s,"
+                         " x: e.x, y: e.y, w: e.w, h: e.h}))")
+
+
+def _centre(e):
+    return e["x"] + e["w"] / 2, e["y"] + e["h"] / 2
+
+
+def _page_px(page):
+    return page.evaluate("[StampAlbum._pw, StampAlbum._ph]")
+
+
+def test_clicking_a_palette_item_adds_it_at_the_page_centre(page):
+    _empty_album(page)
+    page.click(".p-item[data-s='oval']")
+    els = _els(page)
+    assert len(els) == 1 and els[0]["s"] == "oval", els
+    pw_, ph_ = _page_px(page)
+    cx, cy = _centre(els[0])
+    assert abs(cx - pw_ / 2) < 1 and abs(cy - ph_ / 2) < 1, (cx, cy, pw_, ph_)
+    assert page.evaluate("StampAlbum.sel") == els[0]["id"], "the new item should be selected"
+
+
+def test_repeated_palette_clicks_step_10mm_right_and_down(page):
+    _empty_album(page)
+    for _ in range(3):
+        page.click(".p-item[data-s='rectangle']")
+    els = _els(page)
+    assert len(els) == 3
+    for a, b in zip(els, els[1:]):
+        assert abs(b["x"] - a["x"] - OFFSET) < 0.01 and abs(b["y"] - a["y"] - OFFSET) < 0.01, els
+
+
+def test_a_different_item_is_also_offset_from_one_already_at_the_centre(page):
+    _empty_album(page)
+    page.click(".p-item[data-st='label']")
+    page.click(".p-item[data-st='heading']")
+    a, b = _els(page)
+    (ax, ay), (bx, by) = _centre(a), _centre(b)
+    assert abs(bx - ax - OFFSET) < 0.01 and abs(by - ay - OFFSET) < 0.01, (a, b)
+
+
+def test_palette_add_follows_the_grid(page):
+    _empty_album(page, grid="5")
+    page.click(".p-item[data-s='hexagon']")
+    page.click(".p-item[data-s='hexagon']")
+    els = _els(page)
+    assert len(els) == 2, els
+    for e in els:
+        for v in (e["x"], e["y"]):
+            assert abs(v / (5 * MM) - round(v / (5 * MM))) < 1e-6, f"{v} px is not on the 5 mm grid"
+
+
+def test_clicked_items_stay_inside_a_small_landscape_page(page):
+    _empty_album(page)
+    _page_setup(page, size="a5", orient="landscape")
+    assert _page_px(page)[0] > _page_px(page)[1], "page setup should have made the page landscape"
+    for _ in range(25):
+        page.click(".p-item[data-s='rectangle']")
+    pw_, ph_ = _page_px(page)
+    els = _els(page)
+    assert len(els) == 25
+    for e in els:
+        assert e["x"] >= 0 and e["y"] >= 0, e
+        assert e["x"] + e["w"] <= pw_ + 0.01 and e["y"] + e["h"] <= ph_ + 0.01, (e, pw_, ph_)
+
+
+def test_palette_add_is_one_undo_step(page):
+    _empty_album(page)
+    page.click(".p-item[data-s='diamond']")
+    page.click(".p-item[data-s='diamond']")
+    page.evaluate("StampAlbum.undo()")
+    assert len(_els(page)) == 1
+    page.evaluate("StampAlbum.undo()")
+    assert len(_els(page)) == 0
+
+
+def test_palette_items_are_named_buttons_reachable_by_keyboard(page):
+    items = page.locator(".p-item")
+    for i in range(items.count()):
+        it = items.nth(i)
+        assert it.get_attribute("role") == "button"
+        assert it.get_attribute("tabindex") == "0"
+        assert (it.get_attribute("aria-label") or "").startswith("Add "), it.inner_html()
+
+
+def test_enter_and_space_on_a_palette_item_add_it(page):
+    _empty_album(page)
+    page.focus(".p-item[data-s='triangle']")
+    page.keyboard.press("Enter")
+    page.keyboard.press("Space")
+    els = _els(page)
+    assert [e["s"] for e in els] == ["triangle", "triangle"], els
+
+
+def _touch(page, selector, end_x=None, end_y=None):
+    """Touch an element, then lift at (end_x, end_y), or where it started."""
+    page.evaluate("""([sel, ex, ey]) => {
+        const it = document.querySelector(sel), r = it.getBoundingClientRect();
+        const sx = r.left + r.width / 2, sy = r.top + r.height / 2;
+        const t0 = new Touch({identifier: 1, target: it, clientX: sx, clientY: sy});
+        const opts = (t, now) => ({touches: now, changedTouches: [t],
+                                   bubbles: true, cancelable: true});
+        it.dispatchEvent(new TouchEvent('touchstart', opts(t0, [t0])));
+        const t1 = new Touch({identifier: 1, target: it, clientX: ex ?? sx, clientY: ey ?? sy});
+        it.dispatchEvent(new TouchEvent('touchend', opts(t1, [])));
+    }""", [selector, end_x, end_y])
+
+
+def test_tapping_a_palette_item_adds_it_at_the_centre(page):
+    _empty_album(page)
+    _touch(page, ".p-item[data-s='pentagon']")
+    els = _els(page)
+    assert len(els) == 1 and els[0]["s"] == "pentagon", els
+    pw_, ph_ = _page_px(page)
+    cx, cy = _centre(els[0])
+    assert abs(cx - pw_ / 2) < 1 and abs(cy - ph_ / 2) < 1
+
+
+def test_touch_drop_with_grid_off_keeps_a_real_position(page):
+    _empty_album(page, grid="0")
+    box = page.locator("#page").bounding_box()
+    _touch(page, ".p-item[data-s='rectangle']", box["x"] + 100, box["y"] + 120)
+    els = _els(page)
+    assert len(els) == 1 and els[0]["x"] == 100 and els[0]["y"] == 120, els
+
+
+# ── Palette hint ──
+
+def _hint_visible(page):
+    return page.locator("#palette-hint").is_visible()
+
+
+def test_palette_hint_shows_until_the_first_item_is_added(page):
+    assert _hint_visible(page)
+    text = page.inner_text("#palette-hint").lower()
+    assert "click" in text and "drag" in text, text
+    page.click(".p-item[data-s='rectangle']")
+    assert not _hint_visible(page)
+
+
+def test_palette_hint_returns_after_idling_on_an_empty_page(page):
+    page.evaluate("StampAlbum.paletteHintIdleMs = 300")
+    page.click(".p-item[data-s='rectangle']")
+    page.evaluate("StampAlbum.E.splice(0); StampAlbum.render()")
+    page.wait_for_selector("#palette-hint", state="visible", timeout=3000)
+
+
+def test_palette_hint_stays_hidden_while_idle_with_items_on_the_page(page):
+    page.evaluate("StampAlbum.paletteHintIdleMs = 200")
+    page.click(".p-item[data-s='rectangle']")
+    page.wait_for_timeout(800)
+    assert page.locator("#palette-hint").count() == 1
+    assert not _hint_visible(page)
+
+
+def test_palette_hint_returns_after_a_drag_that_misses_the_page(page):
+    page.click(".p-item[data-s='rectangle']")
+    page.evaluate("""() => {
+        const it = document.querySelector(".p-item[data-s='oval']");
+        const dt = new DataTransfer();
+        it.dispatchEvent(new DragEvent('dragstart', {dataTransfer: dt, bubbles: true}));
+        it.dispatchEvent(new DragEvent('dragend', {dataTransfer: dt, bubbles: true}));
+    }""")
+    assert _hint_visible(page)
+
+
+def test_palette_hint_returns_after_repeated_clicks_on_a_blank_page(page):
+    _empty_album(page)
+    page.click(".p-item[data-s='rectangle']")
+    page.evaluate("StampAlbum.E.splice(0); StampAlbum.render()")
+    page.evaluate("StampAlbum.paletteHintIdleMs = 600000")
+    box = page.locator("#page").bounding_box()
+    for i in range(3):
+        page.mouse.click(box["x"] + 40 + i * 5, box["y"] + 40)
+    assert _hint_visible(page)

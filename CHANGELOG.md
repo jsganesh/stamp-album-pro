@@ -5,6 +5,8 @@ All notable changes to this project are documented here. The format follows [Kee
 ## [Unreleased]
 
 ### Added
+- Palette click-to-add (UI and UX audit, item 3): clicking a palette item, or pressing Enter or Space on it, adds it at the centre of the page. Each repeat steps 10 mm right and down so items don't stack, staying on the grid and inside the page. Tapping on a touch screen does the same; clicking an image in the Images panel also adds it at the centre. Palette items are now keyboard-focusable buttons named "Add …"
+- A short palette hint ("Click an item to add it to the page, or drag it where you want it") that hides after the first item is added and comes back when the user seems stuck: 20 seconds without input on an empty page, a palette drag let go away from the page, or three clicks on an empty page within 4 seconds
 - Page setup dialog (the **Page** button above the canvas, which now shows the size, for example "A4 · Landscape"): change the open album's paper size and orientation without starting a new album. Elements that would fall outside the new page are moved inside it as a group, keeping their arrangement; their sizes never change, so mounts still match the stamps. The dialog says beforehand how many elements will move and warns if some will overlap or are larger than the page. Applying is one undo step
 - Playwright in the dev extra; CI installs Chromium and runs the browser tests (they fail instead of skipping there)
 - Browser smoke test (`test_ui_smoke.py`; skipped locally without Playwright, required in CI)
@@ -21,6 +23,8 @@ All notable changes to this project are documented here. The format follows [Kee
 - Dead `canvas.js` (not loaded) and `events.js` (loaded but never run), both superseded by `render.js` and `init.js`
 
 ### Fixed
+- Dropping a palette item on the page by touch ignored the grid setting, and with the grid off placed it at an invalid position
+- An element added at the very left or top edge (x or y of 0) was moved to 50 px
 - Dragging with Snap set to Off lost the stamp's position (the step was divided by zero)
 - Snap grid steps were pixels while the grid drawn was millimetres; dragging now moves in whole 5 or 10 mm steps that match the grid
 - Snap to guides never snapped: the guide lines were drawn but the stamp was not moved onto them. The button also showed "on" at start while snapping was off
