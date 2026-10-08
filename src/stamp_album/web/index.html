@@ -41,21 +41,22 @@
     <aside id="sidebar">
         <div class="sec-title">Stamps <span class="sec-toggle" id="sb-toggle">◀</span></div>
         <div class="sec-body" id="sb-body">
+            <p id="palette-hint" class="palette-hint" role="status">Click an item to add it to the page, or drag it where you want it.</p>
             <div class="palette">
-                <div class="p-item" draggable="true" data-t="stamp" data-s="rectangle"><span class="icon">▬</span><span class="lbl">Rectangle</span></div>
-                <div class="p-item" draggable="true" data-t="stamp" data-s="oval"><span class="icon">●</span><span class="lbl">Oval</span></div>
-                <div class="p-item" draggable="true" data-t="stamp" data-s="diamond"><span class="icon">◆</span><span class="lbl">Diamond</span></div>
-                <div class="p-item" draggable="true" data-t="stamp" data-s="triangle"><span class="icon">▲</span><span class="lbl">Triangle</span></div>
-                <div class="p-item" draggable="true" data-t="stamp" data-s="hexagon"><span class="icon">⬡</span><span class="lbl">Hexagon</span></div>
-                <div class="p-item" draggable="true" data-t="stamp" data-s="octagon"><span class="icon">⯃</span><span class="lbl">Octagon</span></div>
-                <div class="p-item" draggable="true" data-t="stamp" data-s="pentagon"><span class="icon">⬠</span><span class="lbl">Pentagon</span></div>
-                <div class="p-item" draggable="true" data-t="freehand"><span class="icon">✎</span><span class="lbl">Free Shape</span></div>
+                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Rectangle" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="rectangle"><span class="icon">▬</span><span class="lbl">Rectangle</span></div>
+                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Oval" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="oval"><span class="icon">●</span><span class="lbl">Oval</span></div>
+                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Diamond" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="diamond"><span class="icon">◆</span><span class="lbl">Diamond</span></div>
+                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Triangle" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="triangle"><span class="icon">▲</span><span class="lbl">Triangle</span></div>
+                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Hexagon" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="hexagon"><span class="icon">⬡</span><span class="lbl">Hexagon</span></div>
+                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Octagon" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="octagon"><span class="icon">⯃</span><span class="lbl">Octagon</span></div>
+                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Pentagon" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="pentagon"><span class="icon">⬠</span><span class="lbl">Pentagon</span></div>
+                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Free Shape" title="Click to add at the page centre, or drag onto the page" data-t="freehand"><span class="icon">✎</span><span class="lbl">Free Shape</span></div>
             </div>
             <div class="sec-title">Text</div>
             <div class="palette">
-                <div class="p-item wide" draggable="true" data-t="text" data-st="label" data-w="120" data-h="18"><span class="icon">🏷</span><span class="lbl">Label — HN 12pt</span></div>
-                <div class="p-item wide" draggable="true" data-t="text" data-st="heading" data-w="140" data-h="24"><span class="icon"><b>H</b></span><span class="lbl">Heading — HB 16pt</span></div>
-                <div class="p-item wide" draggable="true" data-t="text" data-st="desc" data-w="160" data-h="16"><span class="icon">¶</span><span class="lbl">Description — HN 10pt</span></div>
+                <div class="p-item wide" draggable="true" role="button" tabindex="0" aria-label="Add Label, HN 12pt" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="label" data-w="120" data-h="18"><span class="icon">🏷</span><span class="lbl">Label — HN 12pt</span></div>
+                <div class="p-item wide" draggable="true" role="button" tabindex="0" aria-label="Add Heading, HB 16pt" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="heading" data-w="140" data-h="24"><span class="icon"><b>H</b></span><span class="lbl">Heading — HB 16pt</span></div>
+                <div class="p-item wide" draggable="true" role="button" tabindex="0" aria-label="Add Description, HN 10pt" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="desc" data-w="160" data-h="16"><span class="icon">¶</span><span class="lbl">Description — HN 10pt</span></div>
             </div>
             <div class="sec-title">Images <span class="sec-toggle" id="img-toggle">▼</span></div>
             <div class="sec-body" id="img-body">
@@ -272,7 +273,7 @@
         <div class="tutorial-body">
             <div class="tutorial-step active" data-step="1">
                 <span class="tutorial-step-num">1</span>
-                <span class="tutorial-step-text"><b>Design album pages</b><br>Drag shapes from the palette onto the canvas. Each stamp can be resized, moved, and styled freely — just like a desktop publishing app.</span>
+                <span class="tutorial-step-text"><b>Design album pages</b><br>Click a shape in the palette to add it to the page, or drag it where you want it. Each stamp can be resized, moved, and styled freely — just like a desktop publishing app.</span>
             </div>
             <div class="tutorial-step" data-step="2">
                 <span class="tutorial-step-num">2</span>
@@ -313,6 +314,7 @@
 <script src="wizard.js?v={{{VERSION}}}"></script>
 <script src="page_setup.js?v={{{VERSION}}}"></script>
 <script src="toolbar.js?v={{{VERSION}}}"></script>
+<script src="palette.js?v={{{VERSION}}}"></script>
 <script src="init.js?v={{{VERSION}}}"></script>
 <script>
 // Auto-reload on server restart (dev mode only)

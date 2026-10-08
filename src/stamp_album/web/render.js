@@ -235,7 +235,8 @@ function add(p) {
         id: "el" + (S.nid++),
         t: p.t || "stamp",
         s: p.s || "rectangle",
-        x: p.x || 50, y: p.y || 50, w: p.w || 80, h: p.h || 60,
+        x: p.x != null ? p.x : 50, y: p.y != null ? p.y : 50,  // 0 is a real position
+        w: p.w || 80, h: p.h || 60,
         lbl: p.lbl || "",
         font: p.font || "HN",
         fs: p.fs || 12,
