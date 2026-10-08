@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+- Exported pages were about 13% larger than the paper size chosen in the editor (A4 came out at 238.0 × 336.8 mm, A5 at 168 × 238 mm). The editor's paper table held PDF points where millimetres were needed. PDF, SVG and PNG exports now match A3, A4, A5, Letter and Legal exactly.
+
+### Known issues
+- Albums saved before this fix store the old, oversized page size. Open them and re-select the paper size; content may then extend past the page edge.
+
 ### Changed
 - `engines/pdf_generator.py` is now `engines/html_renderer.py` and contains only the HTML preview renderer
 - Startup no longer prints the PyMuPDF `fitz` deprecation warning

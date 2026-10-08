@@ -62,8 +62,8 @@ function parseDSL(dsl) {
                 el.w = px(el.w); el.h = px(el.h);
             }
         }
-        S._pw = px(state.pw);
-        S._ph = px(state.ph);
+        S._pw = state.pw * S._sc;
+        S._ph = state.ph * S._sc;
         S._pageBorder = state.pageBorder;
         S._pageBorderC = state.pageBorderC;
         S._colMode = state.colMode;

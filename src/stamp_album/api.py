@@ -409,8 +409,8 @@ class CanvasElementState(BaseModel):
 class CanvasStateRequest(BaseModel):
     elements: list[CanvasElementState]
     pages: list[list[CanvasElementState]] = []
-    page_width_px: float = 595
-    page_height_px: float = 842
+    page_width_px: float = 525
+    page_height_px: float = 742.5
     scale: float = 2.5
     source_path: str = "album.slbum"
     format: str = "html"

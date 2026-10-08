@@ -339,7 +339,7 @@ function init() {
 
     // ── Page Size / Grid ──
     $("pg-size").addEventListener("change", function() {
-        var s = { a4: [595, 842], a5: [420, 595], a3: [842, 1191], letter: [612, 792], legal: [612, 1009] };
+        var s = { a4: [525, 742.5], a5: [370, 525], a3: [742.5, 1050], letter: [539.75, 698.5], legal: [539.75, 889] }; // mm x 2.5 px/mm
         var v = s[this.value] || s.a4;
         S._pw = v[0]; S._ph = v[1];
         $("page").className = "page " + this.value;
