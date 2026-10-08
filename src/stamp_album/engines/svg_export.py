@@ -87,6 +87,38 @@ def _draw_multiline_text_svg(x: float, y: float, w: float, h: float,
     return "\n".join(parts)
 
 
+def _draw_text_element_svg(stamp: Stamp) -> str:
+    """SVG for a free-form text element (user units are mm, font size is pt)."""
+    from reportlab.pdfbase import pdfmetrics
+    from stamp_album.engines import text_layout
+
+    text = stamp.description or ""
+    if not text:
+        return ""
+    size_mm = (stamp.font_size or 12) / text_layout.PT_PER_MM
+    pad = text_layout.PAD_MM
+
+    def measure(s: str) -> float:  # Helvetica metrics approximate Arial
+        return pdfmetrics.stringWidth(s, "Helvetica", size_mm)
+
+    lines = text_layout.wrap_lines(text, max(0.1, stamp.width - 2 * pad), measure)
+    lh = size_mm * text_layout.LINE_HEIGHT
+    base = stamp.abs_y + pad + size_mm * text_layout.FIRST_BASELINE
+    align = text_layout.normalize_align(stamp.text_align)
+    anchor = {"left": "start", "center": "middle", "right": "end"}.get(align, "start")
+    x = {"start": stamp.abs_x + pad, "middle": stamp.abs_x + stamp.width / 2,
+         "end": stamp.abs_x + stamp.width - pad}[anchor]
+    parts = []
+    for i, line in enumerate(lines):
+        if line:
+            parts.append(
+                f'<text x="{x:.2f}" y="{base + i * lh:.2f}" font-size="{size_mm:.2f}" '
+                f'text-anchor="{anchor}" fill="#333" font-family="Arial,Helvetica,sans-serif">'
+                f'{_xml_escape(line)}</text>'
+            )
+    return "\n".join(parts)
+
+
 def _xml_escape(s: str) -> str:
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
@@ -240,10 +272,7 @@ class SVGExporter:
                 x, y, w, h = stamp.abs_x, stamp.abs_y, stamp.width, stamp.height
 
                 if stamp.is_text_element:
-                    font_s = stamp.font_size or 12
-                    parts.append(_draw_multiline_text_svg(
-                        x, y, w, h, stamp.description or "", font_s, center=False
-                    ))
+                    parts.append(_draw_text_element_svg(stamp))
                 else:
                     border_hex = _color_hex(
                         getattr(stamp, "border_color", None) or

@@ -26,6 +26,7 @@ from stamp_album.engines.borders import (
     edge_pattern_segments,
     regular_polygon_vertices,
 )
+from stamp_album.engines import text_layout
 from stamp_album.engines.layout import layout_rows
 
 
@@ -275,16 +276,28 @@ def _draw_stamp(c: canvas.Canvas, stamp: Stamp, album: Album,
 
 
 def _draw_text_element(c: canvas.Canvas, stamp: Stamp, page_h_pt: float):
-    """Draw a free-form text element."""
+    """Draw a free-form text element: wrapped to its box, top-anchored, aligned."""
     if not stamp.description:
         return
     x = _mm_to_pt(stamp.abs_x)
-    y = page_h_pt - _mm_to_pt(stamp.abs_y + stamp.height)
+    top = page_h_pt - _mm_to_pt(stamp.abs_y)
     w = _mm_to_pt(stamp.width)
-    h = _mm_to_pt(stamp.height)
     font_name = _resolve_reportlab_font(stamp.font_id or "HN", c)
     font_size = stamp.font_size or 12
-    _draw_multiline_text(c, x, y, w, h, stamp.description, font_name, font_size)
+    pad = _mm_to_pt(text_layout.PAD_MM)
+
+    def measure(s: str) -> float:
+        return c.stringWidth(s, font_name, font_size)
+
+    lines = text_layout.wrap_lines(stamp.description, max(1.0, w - 2 * pad), measure)
+    lh = font_size * text_layout.LINE_HEIGHT
+    base = top - pad - font_size * text_layout.FIRST_BASELINE
+    c.setFont(font_name, font_size)
+    c.setFillColorRGB(0.2, 0.2, 0.2)
+    for i, line in enumerate(lines):
+        if line:
+            lx = text_layout.line_x(x, w, measure(line), stamp.text_align, pad)
+            c.drawString(lx, base - i * lh, line)
 
 
 def _draw_page_border(c: canvas.Canvas, album: Album):

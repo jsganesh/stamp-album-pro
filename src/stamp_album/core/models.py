@@ -456,6 +456,7 @@ class Stamp:
     heading: Optional[StampHeading] = None
     footer_text: str = ""
     is_text_element: bool = False  # True for canvas text elements (render without stamp box)
+    text_align: str = "left"  # left, center, right (text elements)
     font_id: str = "HN"  # Font identifier (e.g. HN=Helvetica, HB=Helvetica Bold, HR=Helvetica Roman)
     font_size: float = 10.0  # Font size in points
     border_color: Optional[Color] = None  # Per-stamp border color (falls back to album.color_stamp_border)

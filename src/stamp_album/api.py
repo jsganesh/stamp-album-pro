@@ -476,6 +476,7 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
                 is_text_element=is_text,
                 font_id=el.font or "HN",
                 font_size=el.fs or 12.0,
+                text_align=el.align or "left",
                 border_color=_parse_hex(el.bdrC) or Color(r=0, g=0, b=0),
                 fill_color=_parse_hex(el.fill) or Color(r=1, g=1, b=1),
             )
