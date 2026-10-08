@@ -115,3 +115,44 @@ def test_legacy_oversized_landscape_a4_is_migrated(page):
     page.evaluate("StampAlbum.parseDSL('ALBUM_PAGES_SIZE(336.8 238)\\nPAGE_START'); StampAlbum.render()")
     w, h = _size(page)
     assert abs(w - 742.5) < 1.5 and abs(h - 525) < 1.5
+
+
+# ── Preview (server-rendered HTML) ──
+
+def _preview_html(base_url, elements):
+    import json
+    import urllib.request
+
+    state = {"elements": elements, "pages": [], "page_width_px": 525, "page_height_px": 742.5,
+             "scale": 2.5, "format": "html", "source_path": "t.slbum"}
+    req = urllib.request.Request(base_url + "/render-from-state", data=json.dumps(state).encode(),
+                                 headers={"Content-Type": "application/json"})
+    return urllib.request.urlopen(req).read().decode()
+
+
+def _stamp(shape, x, y, w, h, lbl):
+    return {"t": "stamp", "s": shape, "x": x, "y": y, "w": w, "h": h, "lbl": lbl,
+            "bdr": "solid", "bdrC": "#000000", "bdrW": 1, "fill": "#ffffff", "fillA": 100}
+
+
+@pytest.mark.parametrize("shape", ["rectangle", "oval", "octagon", "diamond"])
+def test_preview_label_is_not_hidden_by_shape(base_url, page, shape):
+    html = _preview_html(base_url, [_stamp(shape, 100, 100, 150, 110, "LABELTEXT")])
+    page.set_content(html)
+    hit = page.evaluate("""() => {
+        const lab = [...document.querySelectorAll('.stamp div')].find(d => d.textContent.includes('LABELTEXT'));
+        const r = lab.getBoundingClientRect();
+        const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return !!el && (el === lab || lab.contains(el));
+    }""")
+    assert hit, "the stamp shape paints over its label"
+
+
+def test_preview_oval_fills_non_square_box(base_url, page):
+    html = _preview_html(base_url, [_stamp("oval", 100, 100, 200, 100, "x")])
+    page.set_content(html)
+    w, h = page.evaluate("""() => {
+        const e = document.querySelector('.stamp svg ellipse').getBoundingClientRect();
+        return [e.width, e.height];
+    }""")
+    assert w > h * 1.5, f"oval rendered {w:.0f}x{h:.0f}, should follow the 2:1 box"
