@@ -16,6 +16,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - The browser draft did not keep the page size, so a landscape album reopened as portrait after a reload
 - The first-run sample album replaced a restored draft for anyone who had not finished the tutorial
 - Undo skipped a step after the first undo, and the first edit after start-up could not be undone
+- Tests: `STAMP_ALBUM_REQUIRE_BROWSER=1` now fails the browser tests when Playwright is not installed; before, the whole browser test file was skipped silently
 - Canvas: text and image elements loaded from a saved album were invisible. The parser gives them a transparent fill with alpha 0, and the canvas applied that alpha as the whole element's opacity. Fill alpha now affects only the fill
 - Preview: a stamp that has an image no longer shows its label (the file name) on top of the image, matching the exports
 - Canvas text now matches the printed page: font sizes are typographic points converted at the canvas scale (a size of 40 was about 13% larger on screen than in the PDF), stamp labels use the same 0.9 factor as the exports, and text elements are top-anchored, 1 mm padded and aligned left/centre/right per their alignment (the canvas always centred them)

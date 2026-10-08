@@ -1,7 +1,7 @@
 """Browser smoke test: loads the real web UI and exercises the main buttons.
 
 Skipped when Playwright or a Chromium browser is unavailable (locally);
-set STAMP_ALBUM_REQUIRE_BROWSER=1 (CI does) to fail instead of skip. It exists
+set STAMP_ALBUM_REQUIRE_BROWSER=1 (CI does) to fail instead of skip, in both cases. It exists
 because no other test loads the UI, which let a wizard whose script was
 never included in index.html ship.
 """
@@ -12,7 +12,13 @@ import time
 
 import pytest
 
-pw = pytest.importorskip("playwright.sync_api")
+try:
+    import playwright.sync_api as pw
+except ImportError as exc:  # Playwright not installed
+    if os.environ.get("STAMP_ALBUM_REQUIRE_BROWSER"):
+        # CI (and anyone who sets the flag) must run these tests, never silently skip them
+        raise ImportError(f"STAMP_ALBUM_REQUIRE_BROWSER is set but Playwright is not installed: {exc}") from exc
+    pytest.skip(f"playwright not installed: {exc}", allow_module_level=True)
 
 
 @pytest.fixture(scope="module")
