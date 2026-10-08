@@ -14,7 +14,7 @@ jobs:
           - { os: macos-latest,   python-version: "3.13" }
           - { os: windows-latest, python-version: "3.11" }
           - { os: windows-latest, python-version: "3.13" }
-          - { os: ubuntu-latest,  python-version: "3.10" }
+          - { os: ubuntu-24.04,  python-version: "3.10" }
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -26,7 +26,7 @@ jobs:
       - run: uv run --no-sync python -m pytest src/tests/ --tb=short
 
   package:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
