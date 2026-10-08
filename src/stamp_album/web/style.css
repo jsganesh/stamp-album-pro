@@ -109,11 +109,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 /* Page wrap — canvas container */
 #page-wrap { flex: 1; overflow: auto; display: flex; justify-content: center; padding: 20px; background: #E0DCD4; position: relative; }
 .page { background: #fff; box-shadow: 0 4px 24px var(--page-shadow); position: relative; flex-shrink: 0; }
-.page.a4 { width: 595px; height: 842px; }
-.page.a5 { width: 420px; height: 595px; }
-.page.a3 { width: 842px; height: 1191px; }
-.page.letter { width: 612px; height: 792px; }
-.page.legal { width: 612px; height: 1009px; }
+.page.a4 { width: 525px; height: 742.5px; }
+.page.a5 { width: 370px; height: 525px; }
+.page.a3 { width: 742.5px; height: 1050px; }
+.page.letter { width: 539.75px; height: 698.5px; }
+.page.legal { width: 539.75px; height: 889px; }
 .page.drag-over { outline: 3px dashed var(--accent); outline-offset: -3px; }
 
 /* Grid lines overlay */
