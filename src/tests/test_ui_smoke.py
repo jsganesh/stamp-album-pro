@@ -1,9 +1,11 @@
 """Browser smoke test: loads the real web UI and exercises the main buttons.
 
-Skipped when Playwright or a Chromium browser is unavailable. It exists
+Skipped when Playwright or a Chromium browser is unavailable (locally);
+set STAMP_ALBUM_REQUIRE_BROWSER=1 (CI does) to fail instead of skip. It exists
 because no other test loads the UI, which let a wizard whose script was
 never included in index.html ship.
 """
+import os
 import socket
 import threading
 import time
@@ -40,6 +42,8 @@ def page(base_url):
         try:
             browser = p.chromium.launch()
         except Exception as exc:  # no browser installed
+            if os.environ.get("STAMP_ALBUM_REQUIRE_BROWSER"):
+                raise  # CI must run these tests, never silently skip them
             pytest.skip(f"chromium unavailable: {exc}")
         pg = browser.new_page(viewport={"width": 1500, "height": 950})
         pg.js_errors = []
