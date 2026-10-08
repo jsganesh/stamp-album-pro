@@ -21,11 +21,13 @@ function pushUndo() {
     S._dirty = true;
     S.updateTitle();
     S.scheduleDraftSave();
+    if (S.updateSelectionUI) S.updateSelectionUI();
 }
 // Start a fresh history whose first entry is the album as it is now.
 function resetUndo() {
     S._undoStack = [snapshot()];
     S._redoStack = [];
+    if (S.updateSelectionUI) S.updateSelectionUI();
 }
 function undo() {
     if (S._undoStack.length < 2) return;

@@ -69,7 +69,7 @@ A modern web application for creating professional stamp album pages for display
 
 ### 2.1 Web Interface
 - **Split view**: Editor and live preview panels
-- **Toolbar**: New, Open, Save, Export PDF actions
+- **Toolbar**: File, Edit and View menus; Undo, Redo, Preview and Export on the bar; align, duplicate, grid fill and delete appear in the page bar when a stamp is selected. Fits narrow windows (icons, then menus, at phone width)
 - **Status bar**: File name, save status, operation feedback
 - **Keyboard shortcuts**: Ctrl+S (save), Ctrl+O (open), Ctrl+N (new), Ctrl+E (export)
 

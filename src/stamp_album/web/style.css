@@ -11,19 +11,40 @@
 }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg1); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; font-size: 16px; }
 
-/* Toolbar */
-#tb { height: var(--toolbar); background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; padding: 0 16px; flex-shrink: 0; }
-#tb .logo { font-weight: 700; font-size: 18px; color: var(--accent); margin-right: 8px; }
-#tb .tb-group { display: flex; align-items: center; gap: 2px; padding: 0 6px; border-right: 1px solid var(--border); }
-#tb .tb-group:last-child { border-right: none; }
-#tb .tb-sep { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
-#tb button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-#tb button { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 7px 14px; border-radius: 4px; cursor: pointer; font-size: 14px; white-space: nowrap; }
-#tb button:hover { background: var(--accent); color: #fff; }
-#tb button:active { background: var(--accent2); color: #fff; }
-#tb button:disabled { opacity: 0.35; cursor: not-allowed; }
-#tb .spacer { flex: 1; }
-#tb #file-name { font-size: 14px; color: var(--text2); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-style: italic; }
+/* Toolbar: logo, File/Edit/View menus, file name, Undo/Redo, Preview, Export, Help */
+#tb { height: var(--toolbar); background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 4px; padding: 0 16px; flex-shrink: 0; min-width: 0; }
+#tb .logo { font-weight: 700; font-size: 17px; color: var(--accent); margin-right: 10px; white-space: nowrap; flex-shrink: 0; }
+#tb .logo-short { display: none; }
+#tb .tb-group { display: flex; align-items: center; gap: 4px; }
+#tb .tb-sep { width: 1px; height: 24px; background: var(--border); margin: 0 6px; flex-shrink: 0; }
+#tb .spacer { flex: 1; min-width: 8px; }
+#tb #file-name { font-size: 14px; color: var(--text2); max-width: 320px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-style: italic; flex-shrink: 1; }
+#tb .ico { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+#tb .chev { fill: none; stroke: currentColor; stroke-width: 2; flex-shrink: 0; }
+#tb .tb-btn { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; background: var(--bg3); border: 1px solid var(--border); color: var(--text); border-radius: 5px; cursor: pointer; font: inherit; font-size: 14px; white-space: nowrap; flex-shrink: 0; }
+#tb .tb-btn:hover { border-color: var(--accent); color: var(--accent); }
+#tb .tb-btn.primary { background: var(--accent); border-color: var(--accent2); color: #fff; }
+#tb .tb-btn.primary:hover { background: var(--accent2); color: #fff; }
+#tb .tb-btn:disabled { opacity: 0.4; cursor: default; border-color: var(--border); color: var(--text); }
+#tb .tb-icon { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; padding: 0; background: transparent; border: 1px solid transparent; border-radius: 5px; color: var(--text); cursor: pointer; flex-shrink: 0; }
+#tb .tb-icon:hover { border-color: var(--border); color: var(--accent); }
+#tb button:focus-visible, #ca-toolbar button:focus-visible, .mi:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* Menus */
+.tb-menus { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.tb-menu { position: relative; }
+.tb-mbtn { display: inline-flex; align-items: center; gap: 4px; height: 34px; padding: 0 11px; background: transparent; border: 1px solid transparent; border-radius: 5px; color: var(--text); font: inherit; font-size: 14px; cursor: pointer; }
+.tb-mbtn:hover, .tb-mbtn[aria-expanded="true"] { background: var(--bg3); border-color: var(--border); }
+.tb-menu-list { position: absolute; top: calc(100% + 4px); left: 0; z-index: 1500; min-width: 250px; background: #fff; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 28px rgba(0,0,0,0.14); padding: 6px 0; display: flex; flex-direction: column; }
+.tb-menu-list[hidden] { display: none; }
+.mi { display: flex; align-items: center; gap: 8px; min-height: 34px; padding: 0 14px 0 34px; position: relative; background: transparent; border: none; color: var(--text); font: inherit; font-size: 14px; text-align: left; cursor: pointer; white-space: nowrap; }
+.mi:hover:not(:disabled), .mi:focus-visible { background: var(--bg2); }
+.mi:disabled { color: #8a8378; cursor: default; }
+.mi[data-danger] { color: var(--accent); }
+.mi .mk { margin-left: auto; padding-left: 24px; font-size: 12px; color: var(--text2); font-family: 'SF Mono', Menlo, Consolas, monospace; }
+.mi .mcheck { position: absolute; left: 12px; top: 50%; width: 14px; height: 14px; margin-top: -7px; }
+.mi[aria-checked="true"] .mcheck::after { content: ""; position: absolute; left: 4px; top: 0; width: 5px; height: 10px; border: solid var(--accent); border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
+.msep { height: 1px; background: var(--bg3); margin: 5px 0; }
 
 /* Status bar */
 #status-bar { height: 28px; background: var(--bg3); border-top: 1px solid var(--border); display: flex; align-items: center; gap: 6px; padding: 0 12px; font-size: 12px; color: var(--text2); flex-shrink: 0; }
@@ -36,7 +57,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .export-dd-menu { display: none; position: absolute; top: 100%; right: 0; background: #fff; border: 1px solid var(--border); border-radius: 4px; min-width: 160px; z-index: 100; box-shadow: 0 4px 16px var(--page-shadow); }
 .export-dd:hover .export-dd-menu, .export-dd:focus-within .export-dd-menu { display: block; }
 .export-dd-item { padding: 10px 16px; font-size: 14px; color: var(--text); cursor: pointer; white-space: nowrap; }
-.export-dd-item:hover { background: var(--accent); color: #fff; }
+.export-dd-item:hover, .export-dd-item:focus-visible { background: var(--accent); color: #fff; outline: none; }
 .export-dd-item + .export-dd-item { border-top: 1px solid var(--border); }
 
 /* Main layout */
@@ -95,11 +116,21 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 /* Canvas area */
 #ca { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 300px; }
-#ca-toolbar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap; }
+#ca-toolbar { display: flex; align-items: center; gap: 8px; min-height: 55px; padding: 8px 12px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap; }
 #ca-toolbar label { font-size: 12px; color: var(--text2); }
 #ca-toolbar select, #ca-toolbar input { background: #fff; border: 1px solid var(--border); color: var(--text); padding: 4px 8px; border-radius: 3px; font-size: 13px; }
 #ca-toolbar input[type="color"] { width: 32px; height: 26px; padding: 1px; cursor: pointer; }
 #ca-toolbar .spacer { flex: 1; }
+#ca-toolbar .ca-group { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+#ca-toolbar .ca-group[hidden] { display: none; }
+#ca-toolbar .ca-sep { width: 1px; height: 22px; background: var(--border); }
+#ca-toolbar .ico { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#ca-toolbar .ca-icon { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 30px; padding: 0; }
+#ca-toolbar .ca-btn { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; }
+#ca-toolbar .ca-btn.danger { color: var(--accent); }
+#sel-tools { padding: 3px 6px 3px 10px; border-radius: 6px; background: #FFF6E5; border: 1px solid #E8C98A; }
+#sel-tools .sel-lbl { font-size: 12px; color: #6B3A00; }
+#sel-tools .ca-sep { background: #E8C98A; }
 #btn-page-setup { background: #fff; border: 1px solid var(--border); color: var(--text); padding: 4px 10px; border-radius: 3px; font-size: 13px; cursor: pointer; white-space: nowrap; }
 #btn-page-setup:hover { border-color: var(--accent); color: var(--accent); }
 #btn-page-setup::after { content: " ▾"; color: var(--text2); }
@@ -362,25 +393,45 @@ body.large-text #ca-toolbar input { font-size: 13px; }
 body.large-text .sec-title { font-size: 13px; }
 body.large-text .help-row { font-size: 14px; }
 body.large-text .help-sec { font-size: 12px; }
-body.large-text button { padding: 6px 12px; }
-#btn-large-text.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+body.large-text button:not(.mi):not(.tb-mbtn):not(.tb-icon):not(.ca-icon) { padding: 6px 12px; }
+body.large-text .mi, body.large-text .tb-mbtn { font-size: 17px; }
 
 /* ── Responsive / small-screen tweaks ── */
+/* Below 1500 px the selected-stamp actions are icons, so the page bar stays one row */
+@media (max-width: 1499px) {
+    #sel-tools .ca-btn .lbl { display: none; }
+    #sel-tools .ca-btn { width: 32px; padding: 0; justify-content: center; }
+}
+/* Narrower windows: Undo/Redo become icon buttons (named by aria-label) */
+@media (max-width: 1180px) {
+    #tb .tb-history .lbl { display: none; }
+    #tb .tb-history .tb-btn { width: 36px; padding: 0; justify-content: center; }
+    #tb #file-name { max-width: 170px; }
+}
 @media (max-width: 900px) {
     :root { --sidebar: 200px; --props: 240px; }
-    #tb button { padding: 5px 8px; font-size: 12px; }
+    #tb { padding: 0 10px; }
+    #tb #file-name, #tb .tb-sep { display: none; }
+    #tb .tb-btn .lbl { display: none; }
+    #tb .tb-btn { width: 36px; padding: 0; justify-content: center; }
+    #tb .tb-btn .chev { display: none; }
+    #ca-toolbar .ca-btn .lbl { display: none; }
 }
-@media (max-width: 800px) {
-    :root { --sidebar: 200px; --props: 260px; }
-    #tb button { padding: 5px 8px; font-size: 12px; }
-}
+/* Phone width: Undo, Redo and Preview move into the Edit and View menus */
 @media (max-width: 600px) {
-    :root { --sidebar: 180px; --props: 220px; }
+    :root { --sidebar: 180px; --props: 220px; --toolbar: 56px; }
+    #tb { gap: 2px; padding: 0 8px; }
+    #tb .logo { font-size: 15px; margin-right: 4px; }
+    #tb .logo-long { display: none; }
+    #tb .logo-short { display: inline; }
+    #tb .tb-history, #tb #btn-preview, #tb #btn-help-tb { display: none; }
+    .tb-mbtn { height: 44px; padding: 0 8px; font-size: 15px; }
+    #tb .tb-btn { width: 44px; height: 44px; }
+    .tb-menu-list { position: fixed; left: 8px; right: 8px; top: calc(var(--toolbar) + 4px); min-width: 0; }
+    .mi { min-height: 44px; }
+    #ca { min-width: 0; }
+    #ca-toolbar { gap: 6px; }
     #sidebar.collapsible { width: 100%; position: fixed; z-index: 900; height: 100%; top: 0; left: 0; }
-    #tb .logo { font-size: 14px; margin-right: 6px; }
-    #tb button { padding: 4px 6px; font-size: 11px; }
-    #ca-toolbar { flex-wrap: wrap; gap: 4px; }
-    #ca-toolbar label { font-size: 10px; }
     .palette { grid-template-columns: 1fr 1fr; }
 }
 

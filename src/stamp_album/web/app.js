@@ -454,9 +454,6 @@ Object.defineProperties(S, {
     applyPageSize: { value: applyPageSize },
     // ── Alignment functions ──
     alignSelected: { value: alignSelected },
-    distributeSelected: { value: distributeSelected },
-    matchSize: { value: matchSize },
-    toggleAlignGroup: { value: toggleAlignGroup },
     toggleSnap: { value: toggleSnap },
     toggleLargeText: { value: toggleLargeText },
     resetApp: { value: resetApp },
@@ -487,66 +484,18 @@ function alignSelected(direction) {
     showToast("Aligned: " + direction, "success");
 }
 
-function distributeSelected(axis) {
-    if (!S.sel) { showToast("Select elements first", "error"); return; }
-    var sel = S.E.filter(function(el) { return el.id === S.sel; });
-    if (sel.length < 2) { showToast("Select at least 2 elements to distribute", "error"); return; }
-    var sorted = sel.slice().sort(function(a, b) {
-        return axis === "h" ? a.x - b.x : a.y - b.y;
-    });
-    var first = sorted[0], last = sorted[sorted.length - 1];
-    var span = axis === "h" ? (last.x + last.w - first.x) : (last.y + last.h - first.y);
-    var totalSize = sorted.reduce(function(s, el) {
-        return s + (axis === "h" ? el.w : el.h);
-    }, 0);
-    var gap = (span - totalSize) / (sorted.length - 1);
-    var cursor = axis === "h" ? first.x : first.y;
-    sorted.forEach(function(el) {
-        if (axis === "h") { el.x = Math.round(cursor); cursor += el.w + gap; }
-        else { el.y = Math.round(cursor); cursor += el.h + gap; }
-    });
-    S.pushUndo();
-    S.render();
-    showToast("Distributed: " + (axis === "h" ? "horizontally" : "vertically"), "success");
-}
 
-function matchSize(axis) {
-    if (!S.sel) { showToast("Select elements first", "error"); return; }
-    var sel = S.E.filter(function(el) { return el.id === S.sel; });
-    if (sel.length < 2) { showToast("Select at least 2 elements to match", "error"); return; }
-    var ref = sel[0];
-    sel.forEach(function(el) {
-        if (el.id === ref.id) return;
-        if (axis === "w") { el.w = ref.w; }
-        else { el.h = ref.h; }
-    });
-    S.pushUndo();
-    S.render();
-    S.updateProps();
-    showToast("Matched: " + (axis === "w" ? "width" : "height"), "success");
-}
 
-function toggleAlignGroup() {
-    var group = document.getElementById("align-group");
-    if (!group) return;
-    var isVisible = group.style.display !== "none";
-    group.style.display = isVisible ? "none" : "flex";
-}
 
+// Snap to guides is on at start; View > Snap to guides shows and changes it.
 function toggleSnap() {
-    var btn = document.getElementById("btn-snap");
-    if (!btn) return;
-    btn.classList.toggle("active");
-    S._snapEnabled = btn.classList.contains("active");
-    showToast(S._snapEnabled ? "Snap-to-guide ON" : "Snap-to-guide OFF", "info");
+    S._snapEnabled = !S._snapEnabled;
+    showToast(S._snapEnabled ? "Snap to guides on" : "Snap to guides off", "info");
 }
 
 function toggleLargeText() {
-    var btn = document.getElementById("btn-large-text");
-    if (!btn) return;
-    btn.classList.toggle("active");
     document.body.classList.toggle("large-text");
-    showToast(document.body.classList.contains("large-text") ? "Large Text ON" : "Large Text OFF", "info");
+    showToast(document.body.classList.contains("large-text") ? "Large text on" : "Large text off", "info");
 }
 
 function resetApp() {
@@ -556,6 +505,7 @@ function resetApp() {
     localStorage.removeItem(_draftFileKey);
     location.reload();
 }
+S._snapEnabled = true;
 window.StampAlbum = S;
 
 // ── Init (events.js provides S.init) ──

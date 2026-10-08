@@ -6,12 +6,26 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 - Page setup dialog (the **Page** button above the canvas, which now shows the size, for example "A4 · Landscape"): change the open album's paper size and orientation without starting a new album. Elements that would fall outside the new page are moved inside it as a group, keeping their arrangement; their sizes never change, so mounts still match the stamps. The dialog says beforehand how many elements will move and warns if some will overlap or are larger than the page. Applying is one undo step
+- Playwright in the dev extra; CI installs Chromium and runs the browser tests (they fail instead of skipping there)
+- Browser smoke test (`test_ui_smoke.py`; skipped locally without Playwright, required in CI)
 
 ### Changed
+- Toolbar regrouped into **File**, **Edit** and **View** menus, with Undo, Redo, Preview and Export kept on the bar (UI and UX audit, item 2). Align, Duplicate, Grid fill and Delete appear in the page bar only while a stamp is selected. The toolbar now fits 1440 and 1024 px windows and phone width without sideways scrolling; buttons use line icons and are labelled for screen readers. Wizard is now File › New from wizard; Reset app moved to the bottom of the View menu; View › Show tutorial again is new
+- The page bar's **Border** sets the page border only (it used to change the default border of new stamps too); it is labelled Page border and shows the loaded album's border
+- **Snap** is one control: the grid (Off, 5 mm, 10 mm) in the page bar, and View › Snap to guides
 - The wizard is now the **New Album Wizard** and asks "Discard unsaved changes?" before replacing an album with unsaved changes, like **New**
 - Undo now covers the whole album (all pages and the page size), so adding or deleting a page and Page setup can be undone
 
+### Removed
+- Columns and Gap controls (albums that use columns keep them when opened and saved), and Distribute and Match size, which always failed because only one stamp can be selected
+- Dead `canvas.js` (not loaded) and `events.js` (loaded but never run), both superseded by `render.js` and `init.js`
+
 ### Fixed
+- Dragging with Snap set to Off lost the stamp's position (the step was divided by zero)
+- Snap grid steps were pixels while the grid drawn was millimetres; dragging now moves in whole 5 or 10 mm steps that match the grid
+- Snap to guides never snapped: the guide lines were drawn but the stamp was not moved onto them. The button also showed "on" at start while snapping was off
+- Albums with columns lost them on the next save: loading treated `PAGE_COLUMN_STOP` as turning columns off
+- The Help button opened and immediately closed the shortcuts overlay (two handlers each toggled it)
 - An empty album lost its page size and orientation when saved: the album header is now written even with no elements
 - The browser draft did not keep the page size, so a landscape album reopened as portrait after a reload
 - The first-run sample album replaced a restored draft for anyone who had not finished the tutorial
@@ -32,13 +46,6 @@ All notable changes to this project are documented here. The format follows [Kee
 - The new-album wizard did nothing: `wizard.js` was never loaded by `index.html`
 - Landscape and custom-size albums displayed as portrait A4: the on-screen page is now sized from the album's millimetre size (`S.applyPageSize`) when loading DSL, using the wizard, or changing the page-size dropdown
 - Wizard paper sizes now match the page-size dropdown (Letter 215.9x279.4, Legal 215.9x355.6)
-
-### Removed
-- Dead `canvas.js` (not loaded) and `events.js` (loaded but never run), both superseded by `render.js` and `init.js`
-
-### Added
-- Playwright in the dev extra; CI installs Chromium and runs the browser tests (they fail instead of skipping there)
-- Browser smoke test (`test_ui_smoke.py`; skipped locally without Playwright, required in CI)
 
 ## [0.2.1] - 2026-10-08
 

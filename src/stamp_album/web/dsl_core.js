@@ -138,11 +138,10 @@ function parseDSL(dsl) {
         }
 
         if (t.match(/^PAGE_COLUMN_NEXT/)) { continue; }
-        if (t.match(/^PAGE_COLUMN_STOP/)) {
-            state.colMode = 1;
-            state.colGap = 10.0;
-            continue;
-        }
+        // The editor keeps one column setting for the album, which buildDSL writes
+        // around each page; STOP ends that block but must not clear the setting,
+        // or every album with columns loses them on its next save.
+        if (t.match(/^PAGE_COLUMN_STOP/)) { continue; }
 
         var mVspace = t.match(/^PAGE_VSPACE\(\s*([\d.]+)\)/);
         if (mVspace) {

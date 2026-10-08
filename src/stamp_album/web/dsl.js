@@ -77,13 +77,9 @@ function parseDSL(dsl) {
         S.sel = null;
         // DOM updates (applyPageSize above sized the page and its label)
         $("page").className = "page";
-        if (state.colMode > 1) {
-            $("col-mode").value = state.colMode;
-            $("col-gap").value = state.colGap;
-        } else {
-            $("col-mode").value = 1;
-            $("col-gap").value = 10.0;
-        }
+        // Columns have no toolbar control; an album that has them keeps them (S._colMode).
+        $("def-bdr").value = S._pageBorder || "none";
+        if (S._pageBorderC) $("def-bdr-c").value = S._pageBorderC;
         S.renderPageDots();
         render();
         S.updateProps();
