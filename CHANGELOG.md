@@ -25,7 +25,8 @@ All notable changes to this project are documented here. The format follows [Kee
 - Dead `canvas.js` (not loaded) and `events.js` (loaded but never run), both superseded by `render.js` and `init.js`
 
 ### Added
-- Browser smoke test (`test_ui_smoke.py`, needs Playwright; skipped otherwise)
+- Playwright in the dev extra; CI installs Chromium and runs the browser tests (they fail instead of skipping there)
+- Browser smoke test (`test_ui_smoke.py`; skipped locally without Playwright, required in CI)
 
 ## [0.2.1] - 2026-10-08
 

@@ -23,7 +23,15 @@ jobs:
       - run: uv sync --extra dev --frozen --python "${{ matrix.python-version }}"
       - run: uv run --no-sync ruff check src
         continue-on-error: true
+      - name: Install Chromium for the browser tests
+        run: uv run --no-sync python -m playwright install --with-deps chromium
+        if: runner.os == 'Linux'
+      - name: Install Chromium for the browser tests
+        run: uv run --no-sync python -m playwright install chromium
+        if: runner.os != 'Linux'
       - run: uv run --no-sync python -m pytest src/tests/ --tb=short
+        env:
+          STAMP_ALBUM_REQUIRE_BROWSER: "1"
 
   package:
     runs-on: ubuntu-24.04
