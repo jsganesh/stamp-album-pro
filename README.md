@@ -14,7 +14,7 @@ Design and print stamp album pages. StampAlbum Pro pairs a drag-and-drop page ca
 - **Pages:** add and delete pages; page sizes include A5 and Legal
 - **Layout tools:** grid fill and undo/redo
 - **Images:** upload and place images on a page
-- **Starter templates:** four `.slbum` albums in `templates/` (one-column quadrille, compact two-column, Europe two-column, worldwide three-column)
+- **Starter templates:** four `.slbum` albums in `templates/` (one-column quadrille, compact two-column, Europe two-column, worldwide three-column). These use the legacy row-based layout and currently export with layout problems (see the changelog)
 - **DSL mode:** an advanced text view of the same page, for precise or bulk editing
 - **Export:** PDF, PNG and SVG
 - **Album files:** create, open, save and delete `.slbum` albums from the sidebar

@@ -4,11 +4,16 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-08
+
 ### Fixed
 - Exported pages were about 13% larger than the paper size chosen in the editor (A4 came out at 238.0 × 336.8 mm, A5 at 168 × 238 mm). The editor's paper table held PDF points where millimetres were needed. PDF, SVG and PNG exports now match A3, A4, A5, Letter and Legal exactly.
 
 ### Known issues
 - Albums saved before this fix store the old, oversized page size. Open them and re-select the paper size; content may then extend past the page edge.
+- Starter templates (the row-based files in `templates/`) export to PDF with stamps outside the page margins and without their headings. The row and column DSL commands are legacy and are being retired.
+- Text elements export left-aligned and without their box borders, so centring and borders shown in the editor are not reproduced in PDF, SVG or PNG.
+- The PNG export draws the octagon vertex-up, unlike the editor, SVG and PDF, and the HTML preview differs from the exports for some shapes.
 
 ### Changed
 - `engines/pdf_generator.py` is now `engines/html_renderer.py` and contains only the HTML preview renderer
