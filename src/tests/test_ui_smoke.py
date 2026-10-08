@@ -184,3 +184,36 @@ def test_canvas_text_alignment_and_top_anchor(page, align):
         assert info["right"] < 10
     else:
         assert abs(info["left"] - info["right"]) < 3
+
+
+# ── Elements loaded from a file must be visible on the canvas ──
+
+LOADED = (
+    "ALBUM_PAGES_SIZE(210 297)\n"
+    "PAGE_START\n"
+    'PAGE_TEXT_AT(10 10 100 30 "HB" 20 "Bahrain" "left")\n'
+    'STAMP_ADD_IMG(20 60 40 48 "arms.png" "cap" "" "")'
+)
+
+
+def test_loaded_text_and_image_elements_are_not_transparent(page):
+    page.evaluate("d => { StampAlbum.parseDSL(d.replace(/\\\\n/g, '\\n')); StampAlbum.render(); }", LOADED)
+    ops = page.evaluate("[...document.querySelectorAll('#page .cel')].map(c => parseFloat(getComputedStyle(c).opacity))")
+    assert len(ops) == 2
+    assert all(o == 1 for o in ops), f"loaded elements rendered with opacity {ops}"
+
+
+def test_fill_alpha_does_not_fade_the_whole_element(page):
+    page.evaluate("""() => { StampAlbum.parseDSL('ALBUM_PAGES_SIZE(210 297)\\nPAGE_START\\nPAGE_TEXT_AT(10 10 100 30 "HN" 12 "Hi" "left")');
+        StampAlbum.E[0].fill = '#ff0000'; StampAlbum.E[0].fillA = 50; StampAlbum.render(); }""")
+    info = page.evaluate("""() => { const c = document.querySelector('#page .cel');
+        return [getComputedStyle(c).opacity, getComputedStyle(c).backgroundColor]; }""")
+    assert info[0] == "1"
+    assert "rgba(255, 0, 0, 0.5)" in info[1]
+
+
+def test_preview_shows_no_label_over_an_image(base_url, page):
+    el = {"t": "image", "s": "rectangle", "x": 100, "y": 100, "w": 150, "h": 150, "lbl": "SHOULDNOTSHOW",
+          "img": "arms.png", "bdr": "none", "fill": "transparent"}
+    html = _preview_html(base_url, [el])
+    assert "SHOULDNOTSHOW" not in html

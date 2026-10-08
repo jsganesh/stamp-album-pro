@@ -5,6 +5,8 @@ All notable changes to this project are documented here. The format follows [Kee
 ## [Unreleased]
 
 ### Fixed
+- Canvas: text and image elements loaded from a saved album were invisible. The parser gives them a transparent fill with alpha 0, and the canvas applied that alpha as the whole element's opacity. Fill alpha now affects only the fill
+- Preview: a stamp that has an image no longer shows its label (the file name) on top of the image, matching the exports
 - Canvas text now matches the printed page: font sizes are typographic points converted at the canvas scale (a size of 40 was about 13% larger on screen than in the PDF), stamp labels use the same 0.9 factor as the exports, and text elements are top-anchored, 1 mm padded and aligned left/centre/right per their alignment (the canvas always centred them)
 - PNG export no longer stretches images: they are fitted inside their box and centred, like the PDF and preview
 - Stamp shapes are now identical in the canvas, preview, PDF, PNG and SVG: the PDF and PNG used a different "regular polygon" outline (the octagon looked 7-sided); one shared outline definition (`polygon_points`) is used everywhere. The PDF triangle was drawn upside down and is now apex-up

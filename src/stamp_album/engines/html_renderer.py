@@ -251,11 +251,18 @@ class HTMLRenderer:
                 img_html = ""
                 if stamp.image_path:
                     img_html = f'<img src="{stamp.image_path}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;pointer-events:none;z-index:1;">'
+                # Like the exports, a stamp that has an image shows no label over it.
+                label_html = ""
+                if not stamp.image_path:
+                    label_html = (
+                        f'<div style="position:relative;z-index:2;font-size:{desc_font_size}pt;'
+                        f'padding:1mm 2mm;text-align:center;line-height:1.3;">{desc}</div>'
+                    )
                 parts.append(
                     f'<div class="stamp" style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;">'
                     f'{shape_html}'
                     f'{img_html}'
-                    f'<div style="position:relative;z-index:2;font-size:{desc_font_size}pt;padding:1mm 2mm;text-align:center;line-height:1.3;">{desc}</div>'
+                    f'{label_html}'
                     f'</div>'
                 )
 
