@@ -18,7 +18,6 @@ from stamp_album.engines.borders import (
     SHAPE_POLYGON_VIEWBOX,
     corner_ornament_svg,
     edge_pattern_svg,
-    regular_polygon_vertices,
 )
 from stamp_album.engines.layout import layout_rows
 

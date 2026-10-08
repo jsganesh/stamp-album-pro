@@ -5,6 +5,8 @@ All notable changes to this project are documented here. The format follows [Kee
 ## [Unreleased]
 
 ### Fixed
+- Stamp shapes are now identical in the canvas, preview, PDF, PNG and SVG: the PDF and PNG used a different "regular polygon" outline (the octagon looked 7-sided); one shared outline definition (`polygon_points`) is used everywhere. The PDF triangle was drawn upside down and is now apex-up
+- PNG stamp labels, headings, catalogue references and footers were drawn about 3x too small (points used as pixels); they are now point-based and placed like the PDF (heading above, catalogue and footer below)
 - Preview: stamp labels were hidden behind the stamp shape; ovals and other shapes were squeezed into a square instead of filling their box; shape outlines were hairline-thin and are now a constant 0.5 pt like the PDF
 - PDF export: images with transparency (for example a coat of arms PNG) no longer get a solid black background
 - Text elements in exports: alignment (left/centre/right) is now honoured in PDF, PNG, SVG and the preview; text wraps inside its box; text is anchored to the top of its box instead of overflowing upwards (the PDF clipped large headings at the page top)

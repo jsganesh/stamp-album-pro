@@ -115,6 +115,23 @@ SHAPE_POLYGON_VIEWBOX: dict[str, str] = {
     "PENTAGON": "50,0 100,38 82,100 18,100 0,38",
 }
 
+def polygon_points(shape_name: str, x: float, y: float, w: float, h: float) -> list[tuple[float, float]]:
+    """Vertices of a stamp shape fitted to the box (x, y, w, h), top-left origin, y down.
+
+    Single source of truth: the canvas, the HTML preview and every export use
+    the same 100x100 outlines (SHAPE_POLYGON_VIEWBOX), so shapes match everywhere.
+    Returns [] for shapes that are not polygons (rectangle, oval).
+    """
+    spec = SHAPE_POLYGON_VIEWBOX.get(shape_name)
+    if not spec:
+        return []
+    pts = []
+    for pair in spec.split():
+        px, py = pair.split(",")
+        pts.append((x + float(px) / 100.0 * w, y + float(py) / 100.0 * h))
+    return pts
+
+
 SHAPE_POLYGON_NAMES: dict[str, str] = {
     "TRIANGLE": "TRIANGLE",
     "TRIANGLE_INV": "TRIANGLE_INV",
