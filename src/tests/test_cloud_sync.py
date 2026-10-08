@@ -16,13 +16,14 @@ class TestAuth:
     """Tests for user authentication."""
 
     def test_register_user(self, client):
+        username = "testuser_" + str(__import__("time").time())[:10]
         response = client.post("/api/auth/register", json={
-            "username": "testuser_" + str(__import__("time").time())[:10],
+            "username": username,
             "password": "password123",
             "display_name": "Test User",
         })
         assert response.status_code == 200
-        assert response.json()["user"]["username"] == "testuser_" + str(__import__("time").time())[:10]
+        assert response.json()["user"]["username"] == username
 
     def test_register_duplicate_fails(self, client):
         client.post("/api/auth/register", json={"username": "dup", "password": "pass1234"})
