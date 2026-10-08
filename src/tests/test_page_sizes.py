@@ -14,23 +14,33 @@ def _scale():
     return float(m.group(1))
 
 
-def _check(table):
+def _check(table, scale=None):
+    scale = _scale() if scale is None else scale
     assert set(table) == set(PAPER_MM), sorted(table)
     for name, (w, h) in table.items():
         ew, eh = PAPER_MM[name]
-        assert abs(w / _scale() - ew) < 0.2 and abs(h / _scale() - eh) < 0.2, (name, w, h)
+        assert abs(w / scale - ew) < 0.2 and abs(h / scale - eh) < 0.2, (name, w, h)
 
 
-def _js_table(filename):
+def _js_table(filename, var=None):
     text = (WEB / filename).read_text(encoding="utf-8")
+    if var:
+        m = re.search(r"var %s\s*=\s*\{[^}]*\}" % var, text)
+        assert m, f"{var} not found in {filename}"
+        text = m.group(0)
     pat = r"\b(%s)\s*:\s*\[\s*([\d.]+)\s*,\s*([\d.]+)\s*\]" % NAMES
     return {m.group(1): (float(m.group(2)), float(m.group(3))) for m in re.finditer(pat, text)}
 
 
 
 
-def test_init_js_paper_table():
-    _check(_js_table("init.js"))
+def test_dsl_core_paper_table():
+    # Page setup and file loading both use this table (millimetres)
+    _check(_js_table("dsl_core.js", "PAPER_MM"), scale=1)
+
+
+def test_wizard_paper_table():
+    _check(_js_table("wizard.js"), scale=1)
 
 
 def test_css_page_sizes():

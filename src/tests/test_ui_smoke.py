@@ -1,7 +1,7 @@
 """Browser smoke test: loads the real web UI and exercises the main buttons.
 
 Skipped when Playwright or a Chromium browser is unavailable (locally);
-set STAMP_ALBUM_REQUIRE_BROWSER=1 (CI does) to fail instead of skip. It exists
+set STAMP_ALBUM_REQUIRE_BROWSER=1 (CI does) to fail instead of skip, in both cases. It exists
 because no other test loads the UI, which let a wizard whose script was
 never included in index.html ship.
 """
@@ -12,7 +12,13 @@ import time
 
 import pytest
 
-pw = pytest.importorskip("playwright.sync_api")
+try:
+    import playwright.sync_api as pw
+except ImportError as exc:  # Playwright not installed
+    if os.environ.get("STAMP_ALBUM_REQUIRE_BROWSER"):
+        # CI (and anyone who sets the flag) must run these tests, never silently skip them
+        raise ImportError(f"STAMP_ALBUM_REQUIRE_BROWSER is set but Playwright is not installed: {exc}") from exc
+    pytest.skip(f"playwright not installed: {exc}", allow_module_level=True)
 
 
 @pytest.fixture(scope="module")
@@ -92,14 +98,14 @@ def test_landscape_dsl_sizes_page(page):
     assert w > h
 
 
-def test_page_size_dropdown_resets_inline_size(page):
+def test_page_setup_resets_inline_size(page):
     page.evaluate("StampAlbum.parseDSL('ALBUM_PAGES_SIZE(297 210)\\nPAGE_START'); StampAlbum.render()")
-    page.select_option("#pg-size", "a5")
+    _page_setup(page, size="a5", orient="portrait")
     w, h = _size(page)
     assert abs(w - 370) < 1.5 and abs(h - 525) < 1.5
 
 
-@pytest.mark.parametrize("btn", ["btn-new", "btn-wizard", "btn-preview", "btn-dsl", "btn-grid", "btn-undo", "btn-redo"])
+@pytest.mark.parametrize("btn", ["btn-new", "btn-wizard", "btn-page-setup", "btn-preview", "btn-dsl", "btn-grid", "btn-undo", "btn-redo"])
 def test_main_buttons_do_not_throw(page, btn):
     page.click("#" + btn, force=True)
     page.wait_for_timeout(150)
@@ -111,7 +117,7 @@ def test_legacy_oversized_a4_is_migrated(page):
     w, h = _size(page)
     assert abs(w - 525) < 1.5 and abs(h - 742.5) < 1.5
     assert "ALBUM_PAGES_SIZE(210 297)" in page.evaluate("StampAlbum.buildDSL()")
-    assert page.evaluate("document.getElementById('pg-size').value") == "a4"
+    assert page.inner_text("#btn-page-setup").strip() == "A4 · Portrait"
     assert page.js_errors == []
 
 
@@ -221,3 +227,128 @@ def test_preview_shows_no_label_over_an_image(base_url, page):
           "img": "arms.png", "bdr": "none", "fill": "transparent"}
     html = _preview_html(base_url, [el])
     assert "SHOULDNOTSHOW" not in html
+
+
+# ── Page setup on the open album ──
+
+TWO_STAMPS = ("ALBUM_PAGES_SIZE(210 297)\\nPAGE_START\\n"
+              "STAMP_ADD_AT(20 20 40 30 \\\"a\\\" \\\"\\\" \\\"\\\" \\\"\\\")\\n"
+              "STAMP_ADD_AT(20 250 40 30 \\\"b\\\" \\\"\\\" \\\"\\\" \\\"\\\")")
+
+
+def _load(page, dsl):
+    page.evaluate("StampAlbum.parseDSL(\"" + dsl + "\"); StampAlbum.render()")
+
+
+def _stamps(page):
+    import re
+
+    dsl = page.evaluate("StampAlbum.buildDSL()")
+    return [tuple(float(v) for v in m.groups()) for m in re.finditer(r"STAMP_ADD_AT\(([\d.]+) ([\d.]+) ([\d.]+) ([\d.]+)", dsl)]
+
+
+def _page_setup(page, size=None, orient=None, apply=True):
+    page.click("#btn-page-setup")
+    if size:
+        page.select_option("#ps-size", size)
+    if orient:
+        page.check("#ps-orient-" + orient)
+    if apply:
+        page.click("#ps-apply")
+
+
+def test_page_setup_switches_open_album_to_landscape(page):
+    _load(page, TWO_STAMPS)
+    _page_setup(page, orient="landscape")
+    w, h = _size(page)
+    assert w > h, f"page should be landscape, got {w}x{h}"
+    assert "ALBUM_PAGES_SIZE(297 210)" in page.evaluate("StampAlbum.buildDSL()")
+    assert len(_stamps(page)) == 2, "the open album's elements must be kept"
+    assert page.inner_text("#btn-page-setup").strip() == "A4 · Landscape"
+    assert not page.is_visible("#page-setup-overlay")
+    assert page.js_errors == []
+
+
+def test_page_setup_warns_then_moves_elements_inside(page):
+    _load(page, TWO_STAMPS)
+    _page_setup(page, orient="landscape", apply=False)
+    assert "1 element" in page.inner_text("#ps-note")
+    page.click("#ps-apply")
+    (ax, ay, _, _), (bx, by, bw, bh) = _stamps(page)
+    assert (ax, ay) == (20, 20), "elements that already fit stay put"
+    assert bx == 20, "only the overflowing axis changes"
+    assert by + bh <= 210 - 15 + 0.1, f"stamp b should be inside the page margin, bottom at {by + bh}"
+    assert (bw, bh) == (40, 30), "sizes are never changed"
+
+
+def test_page_setup_note_is_quiet_when_everything_fits(page):
+    _load(page, TWO_STAMPS)
+    _page_setup(page, size="a3", apply=False)
+    assert "element" not in page.inner_text("#ps-note")
+
+
+def test_page_setup_cancel_changes_nothing(page):
+    _load(page, TWO_STAMPS)
+    _page_setup(page, orient="landscape", apply=False)
+    page.click("#ps-cancel")
+    w, h = _size(page)
+    assert h > w
+    assert _stamps(page)[1][1] == 250
+
+
+def test_page_setup_is_one_undo_step(page):
+    _load(page, TWO_STAMPS)
+    page.evaluate("StampAlbum.resetUndo()")
+    _page_setup(page, orient="landscape")
+    page.click("#btn-undo")
+    w, h = _size(page)
+    assert h > w, "undo should restore the portrait page"
+    assert _stamps(page)[1][1] == 250, "undo should restore element positions"
+    assert page.inner_text("#btn-page-setup").strip() == "A4 · Portrait"
+    page.click("#btn-redo")
+    w, h = _size(page)
+    assert w > h, "redo should re-apply the landscape page"
+    assert _stamps(page)[1][1] < 250
+
+
+def test_undo_steps_back_one_state_at_a_time(page):
+    page.evaluate("StampAlbum.newAlbum()")
+    for i in range(3):
+        page.evaluate(f"StampAlbum.E.push({{id: 'u{i}', t: 'stamp', s: 'rectangle', x: 50, y: {50 + i * 100}, w: 100, h: 75}}); StampAlbum.pushUndo()")
+    page.click("#btn-undo")
+    page.click("#btn-undo")
+    assert page.evaluate("StampAlbum.E.length") == 1
+    page.click("#btn-redo")
+    assert page.evaluate("StampAlbum.E.length") == 2
+
+
+def test_first_edit_after_load_can_be_undone(page):
+    before = page.evaluate("StampAlbum.E.length")
+    page.evaluate("StampAlbum.E.push({id: 'z1', t: 'stamp', s: 'rectangle', x: 50, y: 50, w: 100, h: 75}); StampAlbum.pushUndo()")
+    page.click("#btn-undo")
+    assert page.evaluate("StampAlbum.E.length") == before
+
+
+def test_landscape_survives_a_reload_from_draft(page):
+    _load(page, TWO_STAMPS)
+    _page_setup(page, orient="landscape")
+    page.evaluate("StampAlbum.saveDraft()")
+    page.reload()
+    page.wait_for_function("window.StampAlbum && document.getElementById('page')")
+    w, h = _size(page)
+    assert w > h, f"draft should restore the landscape page, got {w}x{h}"
+    assert page.inner_text("#btn-page-setup").strip() == "A4 · Landscape"
+
+
+def test_wizard_asks_before_replacing_unsaved_album(page):
+    _load(page, TWO_STAMPS)
+    page.evaluate("StampAlbum.pushUndo()")  # make the album dirty
+    messages = []
+    page.once("dialog", lambda d: (messages.append(d.message), d.dismiss()))
+    page.click("#btn-wizard")
+    page.click("#btn-wiz-apply")
+    assert messages and "Discard" in messages[0]
+    assert len(_stamps(page)) == 2, "declining must keep the open album"
+    page.once("dialog", lambda d: d.accept())
+    page.click("#btn-wiz-apply")
+    assert len(_stamps(page)) == 0, "accepting creates the new album"

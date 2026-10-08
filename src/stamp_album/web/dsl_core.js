@@ -35,7 +35,6 @@ function buildDSL(state) {
         totalEls += (pages[pi] || []).length;
     }
     var hasBorder = state.pageBorder && state.pageBorder !== "none";
-    if (totalEls === 0 && !hasBorder) return "";
 
     if (hasBorder) {
         var outer = 0.5, inner1 = 0, inner2 = 0, spacing = 1.0;
@@ -50,12 +49,12 @@ function buildDSL(state) {
             lines.push('COLOUR_ALBUM_BORDER("' + state.pageBorderC + '")');
         }
     }
-    if (totalEls > 0) {
-        var title = state.currentFile ? state.currentFile.replace(/\.(slbum|txt)$/, "") : "";
-        lines.push('ALBUM_TITLE("' + title + '")');
-        lines.push("ALBUM_PAGES_SIZE(" + state.pw + " " + state.ph + ")");
-        lines.push("ALBUM_PAGES_MARGINS(15 15 15 15)");
-    }
+    // The header is written even for an empty album, so a new landscape or
+    // non-A4 album keeps its page size before anything is placed on it.
+    var title = state.currentFile ? state.currentFile.replace(/\.(slbum|txt)$/, "") : "";
+    lines.push('ALBUM_TITLE("' + title + '")');
+    lines.push("ALBUM_PAGES_SIZE(" + (state.pw || 210) + " " + (state.ph || 297) + ")");
+    lines.push("ALBUM_PAGES_MARGINS(15 15 15 15)");
 
     for (var pi = 0; pi < pages.length; pi++) {
         var els = pages[pi];
@@ -271,8 +270,97 @@ function countOutside(pages, width, height) {
     return n;
 }
 
+// Name a page size for people: "A4 · Landscape", or "200 × 150 mm" for a custom size.
+var PAPER_LABEL = { a4: "A4", a5: "A5", a3: "A3", letter: "Letter", legal: "Legal" };
+function describePageSize(pw, ph) {
+    var names = Object.keys(PAPER_MM);
+    for (var i = 0; i < names.length; i++) {
+        var size = PAPER_MM[names[i]];
+        if (sizeNear(pw, ph, size)) return { name: names[i], landscape: false, label: PAPER_LABEL[names[i]] + " · Portrait" };
+        if (sizeNear(pw, ph, [size[1], size[0]])) return { name: names[i], landscape: true, label: PAPER_LABEL[names[i]] + " · Landscape" };
+    }
+    var r = function(v) { return Math.round(v * 10) / 10; };
+    return { name: null, landscape: pw > ph, label: r(pw) + " × " + r(ph) + " mm" };
+}
+
+// Fit one axis of one page's elements inside [0, dim]. Sizes never change.
+// The page's elements move as a group so their arrangement is kept: if the
+// group fits inside the margin it is shifted, otherwise the gaps between
+// elements are narrowed in proportion. Returns the new start positions.
+function _fitAxis(els, pos, size, dim, margin) {
+    var starts = els.map(function(el) { return el[pos]; });
+    var overflow = els.some(function(el) { return el[pos] < -1e-6 || el[pos] + el[size] > dim + 1e-6; });
+    if (!overflow) return starts;
+    var bmin = Math.min.apply(null, starts);
+    var bmax = Math.max.apply(null, els.map(function(el) { return el[pos] + el[size]; }));
+    var biggest = Math.max.apply(null, els.map(function(el) { return el[size]; }));
+    var end = dim - margin, top = Math.max(0, Math.min(bmin, margin));
+    if (end - top < biggest) { top = 0; end = dim; }
+    if (bmax - bmin <= end - top) {
+        // Shift the whole group just enough to bring it inside the margin.
+        var shift = bmax > end ? end - bmax : 0;
+        if (bmin + shift < top) shift = top - bmin;
+        return starts.map(function(p) { return p + shift; });
+    }
+    // Too tall/wide to shift: keep the first element where it is (or at the
+    // margin) and narrow the gaps so the furthest element ends at the margin.
+    var anchor = Math.max(0, Math.min(bmin, end - biggest));
+    var k = 1;
+    els.forEach(function(el) {
+        var span = el[pos] - bmin;
+        if (span > 1e-6) k = Math.min(k, Math.max(0, (end - anchor - el[size]) / span));
+    });
+    return els.map(function(el) {
+        if (el[size] > dim) return 0;  // bigger than the page: pin to the edge
+        var p = anchor + (el[pos] - bmin) * k;
+        return Math.min(Math.max(p, 0), Math.max(0, dim - el[size]));
+    });
+}
+
+function _overlaps(a, b) {
+    return a.x < b.x + b.w - 1e-6 && b.x < a.x + a.w - 1e-6 && a.y < b.y + b.h - 1e-6 && b.y < a.y + a.h - 1e-6;
+}
+
+// Move elements that would fall outside a width x height page back inside it.
+// Units are whatever the elements use (margin in the same units). Element
+// sizes are never changed, because stamp mounts must match the real stamps.
+// opts.dryRun counts without changing anything.
+// Returns { moved, pages, tooBig, overlaps }.
+function fitToPage(pages, width, height, margin, opts) {
+    opts = opts || {};
+    var res = { moved: 0, pages: 0, tooBig: 0, overlaps: 0 };
+    var round = function(v) { return Math.round(v * 100) / 100; };
+    for (var pi = 0; pi < pages.length; pi++) {
+        var els = pages[pi] || [];
+        if (!els.length) continue;
+        var xs = _fitAxis(els, "x", "w", width, margin || 0);
+        var ys = _fitAxis(els, "y", "h", height, margin || 0);
+        var movedHere = 0, after = [];
+        for (var ei = 0; ei < els.length; ei++) {
+            var el = els[ei], nx = round(xs[ei]), ny = round(ys[ei]);
+            if (el.w > width + 1e-6 || el.h > height + 1e-6) res.tooBig++;
+            if (Math.abs(nx - el.x) > 1e-6 || Math.abs(ny - el.y) > 1e-6) movedHere++;
+            after.push({ x: nx, y: ny, w: el.w, h: el.h, before: el });
+        }
+        if (!movedHere) continue;
+        res.moved += movedHere;
+        res.pages++;
+        // Count overlaps the move created (not ones the page already had).
+        for (var a = 0; a < after.length; a++) {
+            for (var b = a + 1; b < after.length; b++) {
+                if (_overlaps(after[a], after[b]) && !_overlaps(after[a].before, after[b].before)) res.overlaps++;
+            }
+        }
+        if (!opts.dryRun) {
+            after.forEach(function(n) { n.before.x = n.x; n.before.y = n.y; });
+        }
+    }
+    return res;
+}
+
 // ── Exports ──
-var EXPORTS = { escapeDSL: escapeDSL, serializeEl: serializeEl, buildDSL: buildDSL, parseDSL: parseDSL, normalizePageSize: normalizePageSize, countOutside: countOutside };
+var EXPORTS = { escapeDSL: escapeDSL, serializeEl: serializeEl, buildDSL: buildDSL, parseDSL: parseDSL, normalizePageSize: normalizePageSize, countOutside: countOutside,
+                describePageSize: describePageSize, fitToPage: fitToPage, PAPER_MM: PAPER_MM };
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = EXPORTS;
 }

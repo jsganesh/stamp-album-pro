@@ -7,10 +7,21 @@ var $ = S.$, showToast = S.showToast, parseDSL = S.parseDSL, updateTitle = S.upd
 var _tutorialStep = 1;
 var _tutorialMax = 4;
 
-function initTutorial() {
+// draftRestored: the user's own work was restored, so don't replace it with the sample.
+function initTutorial(draftRestored) {
     if (localStorage.getItem("stampalbum-tutorial-done")) return;
+    if (!draftRestored) loadSampleAlbum();
 
-    // Auto-load a sample album so the canvas isn't empty
+    var overlay = $("tutorial-overlay");
+    if (overlay) {
+        overlay.classList.add("open");
+        _tutorialStep = 1;
+        _showTutorialStep();
+    }
+}
+
+// Auto-load a sample album so the canvas isn't empty
+function loadSampleAlbum() {
     var sampleDSL = [
         'ALBUM_TITLE("My First Album")',
         'ALBUM_PAGES_SIZE(210.0 297.0)',
@@ -27,13 +38,6 @@ function initTutorial() {
     parseDSL(sampleDSL);
     S._dirty = false;
     updateTitle();
-
-    var overlay = $("tutorial-overlay");
-    if (overlay) {
-        overlay.classList.add("open");
-        _tutorialStep = 1;
-        _showTutorialStep();
-    }
 }
 
 function _showTutorialStep() {
