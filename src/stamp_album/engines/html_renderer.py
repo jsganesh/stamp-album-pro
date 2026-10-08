@@ -184,15 +184,15 @@ class HTMLRenderer:
                 font_size = stamp.font_size or 10
                 if stamp.shape == StampShape.OVAL:
                     shape_html = (
-                        f'<svg width="{w}mm" height="{h}mm" viewBox="0 0 100 100" style="position:absolute;top:0;left:0;">'
-                        f'<ellipse cx="50" cy="50" rx="50" ry="50" fill="#fff" stroke="#666" stroke-width="0.3"/>'
+                        f'<svg width="{w}mm" height="{h}mm" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;top:0;left:0;">'
+                        f'<ellipse cx="50" cy="50" rx="50" ry="50" fill="#fff" stroke="#666" stroke-width="0.67" vector-effect="non-scaling-stroke"/>'
                         f'</svg>'
                     )
                 elif stamp.shape in shape_polygons:
                     pts = shape_polygons[stamp.shape]
                     shape_html = (
-                        f'<svg width="{w}mm" height="{h}mm" viewBox="0 0 100 100" style="position:absolute;top:0;left:0;">'
-                        f'<polygon points="{pts}" fill="#fff" stroke="#666" stroke-width="0.3"/>'
+                        f'<svg width="{w}mm" height="{h}mm" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;top:0;left:0;">'
+                        f'<polygon points="{pts}" fill="#fff" stroke="#666" stroke-width="0.67" vector-effect="non-scaling-stroke"/>'
                         f'</svg>'
                     )
                 else:
@@ -200,7 +200,7 @@ class HTMLRenderer:
                 parts.append(
                     f'<div class="stamp" style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;">'
                     f'{shape_html}'
-                    f'<div style="font-size:{font_size}pt;padding:1mm;text-align:center;">{desc}</div>'
+                    f'<div style="position:relative;z-index:2;font-size:{font_size}pt;padding:1mm;text-align:center;">{desc}</div>'
                     f'</div>'
                 )
 
@@ -232,15 +232,15 @@ class HTMLRenderer:
                 desc_font_size = round(font_size * 0.9, 1)
                 if stamp.shape == StampShape.OVAL:
                     shape_html = (
-                        f'<svg width="{w}mm" height="{h}mm" viewBox="0 0 100 100" style="position:absolute;top:0;left:0;">'
-                        f'<ellipse cx="50" cy="50" rx="50" ry="50" fill="{bg}" stroke="{bc}" stroke-width="0.3"/>'
+                        f'<svg width="{w}mm" height="{h}mm" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;top:0;left:0;">'
+                        f'<ellipse cx="50" cy="50" rx="50" ry="50" fill="{bg}" stroke="{bc}" stroke-width="0.67" vector-effect="non-scaling-stroke"/>'
                         f'</svg>'
                     )
                 elif stamp.shape in shape_polygons:
                     pts = shape_polygons[stamp.shape]
                     shape_html = (
-                        f'<svg width="{w}mm" height="{h}mm" viewBox="0 0 100 100" style="position:absolute;top:0;left:0;">'
-                        f'<polygon points="{pts}" fill="{bg}" stroke="{bc}" stroke-width="0.3"/>'
+                        f'<svg width="{w}mm" height="{h}mm" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;top:0;left:0;">'
+                        f'<polygon points="{pts}" fill="{bg}" stroke="{bc}" stroke-width="0.67" vector-effect="non-scaling-stroke"/>'
                         f'</svg>'
                     )
                 else:
@@ -255,7 +255,7 @@ class HTMLRenderer:
                     f'<div class="stamp" style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;">'
                     f'{shape_html}'
                     f'{img_html}'
-                    f'<div style="font-size:{desc_font_size}pt;padding:1mm 2mm;text-align:center;line-height:1.3;">{desc}</div>'
+                    f'<div style="position:relative;z-index:2;font-size:{desc_font_size}pt;padding:1mm 2mm;text-align:center;line-height:1.3;">{desc}</div>'
                     f'</div>'
                 )
 
