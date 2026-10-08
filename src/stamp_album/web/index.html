@@ -17,51 +17,23 @@
 <body>
 
 <header id="tb">
-    <span class="logo">📮 StampAlbum Pro</span>
-    <div class="tb-group">
-        <button id="btn-new" title="New Album (Ctrl+N)">✚ New</button>
-        <button id="btn-open" title="Open File (Ctrl+O)">📂 Open</button>
-        <button id="btn-save" title="Save Album (Ctrl+S)">💾 Save</button>
-    </div>
-    <div class="tb-group">
-        <button id="btn-dup" title="Duplicate Element">⧉ Duplicate</button>
-        <button id="btn-grid" title="Grid Fill">⊞ Grid Fill</button>
-    </div>
-    <span class="spacer"></span>
+    <span class="logo"><span class="logo-long">StampAlbum Pro</span><span class="logo-short" aria-hidden="true">StampAlbum</span></span>
+    <nav class="tb-menus" aria-label="Main menu">
+        <div class="tb-menu"><button class="tb-mbtn" id="menu-file-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-file">File <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="tb-menu-list" id="menu-file" role="menu" aria-label="File" hidden><button class="mi" role="menuitem" id="btn-new">New album</button><button class="mi" role="menuitem" id="btn-wizard">New from wizard…</button><button class="mi" role="menuitem" id="menu-template">New from template…</button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="btn-open">Open…<span class="mk">⌘O</span></button><button class="mi" role="menuitem" id="btn-save">Save<span class="mk">⌘S</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-page-setup">Page setup…</button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-export-pdf" data-fmt="pdf">Export as PDF</button><button class="mi" role="menuitem" id="menu-export-png" data-fmt="png">Export as PNG</button><button class="mi" role="menuitem" id="menu-export-svg" data-fmt="svg">Export as SVG</button><button class="mi" role="menuitem" id="menu-export-html" data-fmt="html">Export as HTML</button></div></div>
+        <div class="tb-menu"><button class="tb-mbtn" id="menu-edit-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-edit">Edit <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="tb-menu-list" id="menu-edit" role="menu" aria-label="Edit" hidden><button class="mi" role="menuitem" id="menu-undo">Undo<span class="mk">⌘Z</span></button><button class="mi" role="menuitem" id="menu-redo">Redo<span class="mk">⇧⌘Z</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-dup">Duplicate<span class="mk">⌘D</span></button><button class="mi" role="menuitem" id="menu-grid">Grid fill…</button><button class="mi" role="menuitem" id="menu-del">Delete<span class="mk">Del</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-add-page">Add page</button><button class="mi" role="menuitem" id="menu-del-page">Delete page</button></div></div>
+        <div class="tb-menu"><button class="tb-mbtn" id="menu-view-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-view">View <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="tb-menu-list" id="menu-view" role="menu" aria-label="View" hidden><button class="mi" role="menuitem" id="menu-preview">Preview<span class="mk">F5</span></button><button class="mi" role="menuitem" id="btn-dsl">DSL editor</button><div class="msep" role="separator"></div><button class="mi" id="btn-snap" role="menuitemcheckbox" aria-checked="false"><span class="mcheck" aria-hidden="true"></span>Snap to guides</button><button class="mi" id="btn-large-text" role="menuitemcheckbox" aria-checked="false"><span class="mcheck" aria-hidden="true"></span>Large text</button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-tutorial">Show tutorial again</button><button class="mi" role="menuitem" id="btn-help">Keyboard shortcuts<span class="mk">?</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="btn-reset" data-danger="1">Reset app…</button></div></div>
+    </nav>
+    <span class="tb-sep"></span>
     <span id="file-name" title="Current file name"></span>
     <span class="spacer"></span>
-    <div class="tb-group">
-        <button id="btn-undo" title="Undo (Ctrl+Z)">↩ Undo</button>
-        <button id="btn-redo" title="Redo (Ctrl+Y)">↪ Redo</button>
-        <button id="btn-del" title="Delete Element (Del)">🗑 Delete</button>
+    <div class="tb-group tb-history">
+        <button id="btn-undo" class="tb-btn" title="Undo (⌘Z)" aria-label="Undo"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 010 10h-3"/></svg><span class="lbl">Undo</span></button>
+        <button id="btn-redo" class="tb-btn" title="Redo (⇧⌘Z)" aria-label="Redo"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 14l5-5-5-5"/><path d="M20 9H9a5 5 0 000 10h3"/></svg><span class="lbl">Redo</span></button>
     </div>
-    <div class="tb-group" id="align-group" style="display:none">
-        <button id="btn-align-l" title="Align Left (Ctrl+L)">⬒ Left</button>
-        <button id="btn-align-c" title="Align Center (Ctrl+E)">⊙ Center</button>
-        <button id="btn-align-r" title="Align Right (Ctrl+R)">⬓ Right</button>
-        <button id="btn-align-t" title="Align Top">⬑ Top</button>
-        <button id="btn-align-m" title="Align Middle">⬕ Middle</button>
-        <button id="btn-align-b" title="Align Bottom">⬐ Bottom</button>
-        <span class="tb-sep"></span>
-        <button id="btn-dist-h" title="Distribute Horizontally">⇋ Dist H</button>
-        <button id="btn-dist-v" title="Distribute Vertically">⇳ Dist V</button>
-        <span class="tb-sep"></span>
-        <button id="btn-match-w" title="Match Width">⫉ W</button>
-        <button id="btn-match-h" title="Match Height">⫉ H</button>
-        <span class="tb-sep"></span>
-        <button id="btn-snap" title="Toggle Snap-to-Guide" class="active">🧲 Snap</button>
-    </div>
-    <div class="tb-group">
-        <button id="btn-wizard" title="New Album Wizard: start a new album">⚡ Wizard</button>
-        <button id="btn-preview" title="Preview (Ctrl+P)">👁 Preview</button>
-        <div class="export-dd" id="btn-export-dd"><button id="btn-export" title="Export">📄 Export ▾</button><div class="export-dd-menu"><div class="export-dd-item" data-fmt="pdf">📄 PDF</div><div class="export-dd-item" data-fmt="png">🖼 PNG</div><div class="export-dd-item" data-fmt="svg">✏️ SVG</div><div class="export-dd-item" data-fmt="html">🌐 HTML</div></div></div>
-        <button id="btn-dsl" title="DSL Editor">🔧 DSL</button>
-    </div>
-    <div class="tb-group">
-        <button id="btn-large-text" title="Toggle Large Text Mode">🔤 A+</button>
-        <button id="btn-reset" title="Reset App — clears saved state and reloads">⟳ Reset</button>
-        <button id="btn-help" title="Keyboard Shortcuts (?)">❓ Help</button>
-    </div>
+    <span class="tb-sep tb-history"></span>
+    <button id="btn-preview" class="tb-btn" title="Preview (F5)" aria-label="Preview"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="lbl">Preview</span></button>
+    <div class="export-dd" id="btn-export-dd"><button id="btn-export" class="tb-btn primary" title="Export" aria-label="Export" aria-haspopup="menu"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span class="lbl">Export</span><svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="export-dd-menu" role="menu"><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="pdf">PDF</div><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="png">PNG</div><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="svg">SVG</div><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="html">HTML</div></div></div>
+    <button id="btn-help-tb" class="tb-icon" title="Help and keyboard shortcuts (?)" aria-label="Help and keyboard shortcuts"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 015.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
 </header>
 
 <div id="main">
@@ -113,21 +85,33 @@
     <!-- Canvas Area -->
     <section id="ca">
         <div id="ca-toolbar">
-            <label for="btn-page-setup">Page:</label>
-            <button id="btn-page-setup" title="Page setup: paper size and orientation">A4 · Portrait</button>
-            <div id="pg-dots"></div>
-            <label>Columns:</label>
-            <select id="col-mode"><option value="1">Single</option><option value="2">Two</option><option value="3">Three</option></select>
-            <label>Gap:</label>
-            <input type="number" id="col-gap" min="2" max="20" value="10" step="0.5" style="width:50px" title="Column gap in mm">
-            <label>Snap:</label>
-            <select id="grid"><option value="0">Off</option><option value="5">5mm</option><option value="10">10mm</option></select>
+            <span class="ca-group">
+                <label for="btn-page-setup">Page</label>
+                <button id="btn-page-setup" title="Page setup: paper size and orientation">A4 · Portrait</button>
+                <div id="pg-dots"></div>
+            </span>
+            <span class="ca-group">
+                <label for="grid">Snap</label>
+                <select id="grid" title="Snap moves to a grid"><option value="0">Off</option><option value="5" selected>5 mm grid</option><option value="10">10 mm grid</option></select>
+            </span>
             <span class="spacer"></span>
-            <label>Border:</label>
-            <select id="def-bdr"><option value="none">None</option><option value="solid">Solid</option><option value="double">Double</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option><option value="classic">✦ Classic</option><option value="victorian">✦ Victorian</option><option value="artdeco">✦ Art Deco</option><option value="greek_key">⌇ Greek Key</option><option value="rope">◍ Rope</option><option value="laurel">☘ Laurel</option><option value="gothic">⛧ Gothic</option><option value="filigree">✦ Filigree</option></select>
-            <input type="color" id="def-bdr-c" value="#666" title="Border color">
-            <label>Fill:</label>
-            <input type="color" id="def-fill-c" value="#ffffff" title="Fill color">
+            <span class="ca-group" id="page-defaults">
+                <label for="def-bdr">Page border</label>
+                <select id="def-bdr"><option value="none">None</option><option value="solid">Solid</option><option value="double">Double</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option><option value="classic">Classic</option><option value="victorian">Victorian</option><option value="artdeco">Art Deco</option><option value="greek_key">Greek Key</option><option value="rope">Rope</option><option value="laurel">Laurel</option><option value="gothic">Gothic</option><option value="filigree">Filigree</option></select>
+                <input type="color" id="def-bdr-c" value="#666666" title="Page border colour" aria-label="Page border colour">
+                <span class="ca-sep"></span>
+                <label for="def-fill-c">Stamp fill</label>
+                <input type="color" id="def-fill-c" value="#ffffff" title="Fill colour for new stamps">
+            </span>
+            <span class="ca-group" id="sel-tools" role="toolbar" aria-label="Selected stamp" hidden>
+                                <span class="sel-lbl">Align</span>
+                <button id="btn-align-l" class="ca-icon" title="Align left" aria-label="Align left"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3v18"/><rect x="8" y="6" width="12" height="4"/><rect x="8" y="14" width="7" height="4"/></svg></button><button id="btn-align-c" class="ca-icon" title="Align centre" aria-label="Align centre"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><rect x="5" y="6" width="14" height="4"/><rect x="8" y="14" width="8" height="4"/></svg></button><button id="btn-align-r" class="ca-icon" title="Align right" aria-label="Align right"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 3v18"/><rect x="4" y="6" width="12" height="4"/><rect x="9" y="14" width="7" height="4"/></svg></button>
+                <button id="btn-align-t" class="ca-icon" title="Align top" aria-label="Align top"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18"/><rect x="6" y="8" width="4" height="12"/><rect x="14" y="8" width="4" height="7"/></svg></button><button id="btn-align-m" class="ca-icon" title="Align middle" aria-label="Align middle"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18"/><rect x="6" y="5" width="4" height="14"/><rect x="14" y="8" width="4" height="8"/></svg></button><button id="btn-align-b" class="ca-icon" title="Align bottom" aria-label="Align bottom"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18"/><rect x="6" y="4" width="4" height="12"/><rect x="14" y="9" width="4" height="7"/></svg></button>
+                <span class="ca-sep"></span>
+                <button id="btn-dup" class="ca-btn" title="Duplicate (⌘D)" aria-label="Duplicate"><svg class="ico" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M4 16V5a1 1 0 011-1h11"/></svg><span class="lbl">Duplicate</span></button>
+                <button id="btn-grid" class="ca-btn" title="Grid fill: copy into rows and columns" aria-label="Grid fill"><svg class="ico" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span class="lbl">Grid fill</span></button>
+                <button id="btn-del" class="ca-btn danger" title="Delete (Del)" aria-label="Delete"><svg class="ico" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg><span class="lbl">Delete</span></button>
+            </span>
         </div>
         <div id="page-wrap">
             <div class="page a4" id="page">
@@ -328,6 +312,7 @@
 <script src="borders.js?v={{{VERSION}}}"></script>
 <script src="wizard.js?v={{{VERSION}}}"></script>
 <script src="page_setup.js?v={{{VERSION}}}"></script>
+<script src="toolbar.js?v={{{VERSION}}}"></script>
 <script src="init.js?v={{{VERSION}}}"></script>
 <script>
 // Auto-reload on server restart (dev mode only)

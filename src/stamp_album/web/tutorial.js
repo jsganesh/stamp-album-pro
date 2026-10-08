@@ -11,7 +11,11 @@ var _tutorialMax = 4;
 function initTutorial(draftRestored) {
     if (localStorage.getItem("stampalbum-tutorial-done")) return;
     if (!draftRestored) loadSampleAlbum();
+    showTutorial();
+}
 
+// Open the tutorial overlay at step 1 (also View > Show tutorial again).
+function showTutorial() {
     var overlay = $("tutorial-overlay");
     if (overlay) {
         overlay.classList.add("open");
@@ -71,6 +75,7 @@ function _wireTutorialEvents() {
 
 // ── Exports ──
 S.initTutorial = initTutorial;
+S.showTutorial = showTutorial;
 S._wireTutorialEvents = _wireTutorialEvents;
 
 })();

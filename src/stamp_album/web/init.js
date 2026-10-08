@@ -13,6 +13,13 @@ var initTutorial = S.initTutorial, _wireTutorialEvents = S._wireTutorialEvents;
 var drawAlignmentGuides = S.drawAlignmentGuides, clearAlignmentGuides = S.clearAlignmentGuides;
 
 // ── Canvas init ──
+// Round a drag or drop distance (px) to the snap grid, which is set in mm.
+// Snap Off (0) leaves it free.
+function snapStep(px) {
+    var step = (S._sn || 0) * S._sc;
+    return step > 0 ? Math.round(px / step) * step : px;
+}
+
 function init() {
     if (S._init) return;
     S._init = true;
@@ -43,8 +50,8 @@ function init() {
                 if (f.type.startsWith("image/")) {
                     uploadImageFile(f, function(imgName) {
                         var r = pg.getBoundingClientRect();
-                        var x = Math.max(0, Math.min(Math.round((e.clientX - r.left) / S._sn) * S._sn, S._pw - 40));
-                        var y = Math.max(0, Math.min(Math.round((e.clientY - r.top) / S._sn) * S._sn, S._ph - 30));
+                        var x = Math.max(0, Math.min(snapStep(e.clientX - r.left), S._pw - 40));
+                        var y = Math.max(0, Math.min(snapStep(e.clientY - r.top), S._ph - 30));
                         add({ t: "image", s: "rectangle", x: x, y: y, w: 80, h: 60,
                             lbl: f.name, img: "/images/" + imgName,
                             bdr: "solid", bdrC: "#999", bdrW: 0.5, fill: "#fff", fillA: 100, font: "HN", fs: 12 });
@@ -56,8 +63,8 @@ function init() {
         var d;
         try { d = JSON.parse(e.dataTransfer.getData("text/plain")); } catch (_) { return; }
         var r = pg.getBoundingClientRect();
-        var x = Math.max(0, Math.min(Math.round((e.clientX - r.left) / S._sn) * S._sn, S._pw - 40));
-        var y = Math.max(0, Math.min(Math.round((e.clientY - r.top) / S._sn) * S._sn, S._ph - 30));
+        var x = Math.max(0, Math.min(snapStep(e.clientX - r.left), S._pw - 40));
+        var y = Math.max(0, Math.min(snapStep(e.clientY - r.top), S._ph - 30));
         var w = d.w || 80, h = d.h || 60;
         if (d.t === "text") { w = 120; h = d.st === "heading" ? 24 : d.st === "desc" ? 16 : 18; }
         if (d.t === "freehand") { w = 100; h = 80; }
@@ -84,8 +91,8 @@ function init() {
 
     document.addEventListener("mousemove", function(e) {
         if (!S._drg || !S._dragEl) return;
-        var dx = Math.round((e.clientX - S._ds.x) / S._sn) * S._sn;
-        var dy = Math.round((e.clientY - S._ds.y) / S._sn) * S._sn;
+        var dx = snapStep(e.clientX - S._ds.x);
+        var dy = snapStep(e.clientY - S._ds.y);
         var h = S._dragH, x = S._ds.ox, y = S._ds.oy, w = S._ds.ow, oh = S._ds.oh;
         if (h === "move") { x += dx; y += dy; } else {
             if (h.indexOf("w") >= 0) { x += dx; w -= dx; }
@@ -99,6 +106,14 @@ function init() {
         S._dragEl.y = Math.max(0, Math.min(y, S._ph - S._dragEl.h));
         S._dragEl.w = Math.min(w, S._pw - S._dragEl.x);
         S._dragEl.h = Math.min(oh, S._ph - S._dragEl.y);
+        if (h === "move") {
+            drawAlignmentGuides(S._dragEl);
+            if (S._snapEnabled) {
+                var p = S.applySnap(S._dragEl, S._dragEl.x, S._dragEl.y, S._dragEl.w, S._dragEl.h);
+                S._dragEl.x = Math.max(0, Math.min(p.x, S._pw - S._dragEl.w));
+                S._dragEl.y = Math.max(0, Math.min(p.y, S._ph - S._dragEl.h));
+            }
+        }
         render();
         updateProps();
         if (h === "move") drawAlignmentGuides(S._dragEl);
@@ -183,9 +198,6 @@ function init() {
     });
 
     // ── Buttons ──
-    $("btn-new").addEventListener("click", newAlbum);
-    $("btn-open").addEventListener("click", function() { $("file-inp").click(); });
-    $("btn-save").addEventListener("click", saveFile);
     $("btn-dup").addEventListener("click", function() {
         if (!S.sel) { showToast("Select an element first", "error"); return; }
         var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
@@ -344,25 +356,13 @@ function init() {
         S.updateGrid();
     });
 
-    // ── Column layout ──
-    $("col-mode").addEventListener("change", function() {
-        S._colMode = parseInt(this.value) || 1;
-        render();
-    });
-    $("col-gap").addEventListener("change", function() {
-        S._colGap = parseFloat(this.value) || 10.0;
-        render();
-    });
-
-    // ── Default colors — also update page border ──
+    // ── Page border (the album's border; stamps keep their own in Properties) ──
     $("def-bdr").addEventListener("change", function() {
-        S._defBdr = this.value;
         S._pageBorder = this.value;
         if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
         S.schedulePreviewRefresh();
     });
     $("def-bdr-c").addEventListener("change", function() {
-        S._defBdrC = this.value;
         S._pageBorderC = this.value;
         if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
         S.schedulePreviewRefresh();
@@ -420,6 +420,7 @@ function init() {
     document.addEventListener("keydown", function(e) {
         if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
         if ($("page-setup-overlay").classList.contains("open")) return;  // the dialog handles its own keys
+        if (e.target.closest && e.target.closest(".tb-menu")) return;  // menus handle their own keys
         if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); return; }
         if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.key === "z" && e.shiftKey))) { e.preventDefault(); redo(); return; }
         if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); saveFile(); return; }
@@ -436,13 +437,9 @@ function init() {
         if (e.key === "?") { e.preventDefault(); $("help-overlay").classList.toggle("open"); }
     });
 
-    // ── Help overlay ──
-    var btnHelp = $("btn-help");
+    // ── Help overlay (opened from View > Keyboard shortcuts, the ? button or the ? key) ──
     var helpOverlay = $("help-overlay");
     var btnHelpClose = $("btn-help-close");
-    if (btnHelp && helpOverlay) {
-        btnHelp.addEventListener("click", function() { helpOverlay.classList.toggle("open"); });
-    }
     if (btnHelpClose && helpOverlay) {
         btnHelpClose.addEventListener("click", function() { helpOverlay.classList.remove("open"); });
     }
@@ -467,19 +464,9 @@ function init() {
     $("btn-align-t").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("top"); });
     $("btn-align-m").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("middle"); });
     $("btn-align-b").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("bottom"); });
-    $("btn-dist-h").addEventListener("click", function() { if (S.distributeSelected) S.distributeSelected("h"); });
-    $("btn-dist-v").addEventListener("click", function() { if (S.distributeSelected) S.distributeSelected("v"); });
-    $("btn-match-w").addEventListener("click", function() { if (S.matchSize) S.matchSize("w"); });
-    $("btn-match-h").addEventListener("click", function() { if (S.matchSize) S.matchSize("h"); });
-    $("btn-snap").addEventListener("click", function() { if (S.toggleSnap) S.toggleSnap(); });
 
-    // Show alignment group when element is selected
-    var origSelect = S.select;
-    S.select = function(id) {
-        origSelect(id);
-        var group = $("align-group");
-        if (group) group.style.display = id ? "flex" : "none";
-    };
+    // ── Menus, selection tools (toolbar.js) ──
+    S.wireToolbar();
 
     // ── Font population ──
     S.populateFonts();
@@ -546,21 +533,6 @@ function init() {
     // ── New file button ──
     $("btn-new-file").addEventListener("click", newAlbum);
 
-    // ── Large Text Mode ──
-    $("btn-large-text").addEventListener("click", function() { if (S.toggleLargeText) S.toggleLargeText(); });
-
-    // ── Reset App ──
-    $("btn-reset").addEventListener("click", function() { if (S.resetApp) S.resetApp(); });
-
-    // ── Help overlay ──
-    $("btn-help").addEventListener("click", function() {
-        var overlay = $("help-overlay");
-        if (overlay) overlay.classList.toggle("open");
-    });
-    $("btn-help-close").addEventListener("click", function() {
-        var overlay = $("help-overlay");
-        if (overlay) overlay.classList.remove("open");
-    });
 
     // ── CSV / Excel Import ──
     $("btn-import-csv").addEventListener("click", function() {

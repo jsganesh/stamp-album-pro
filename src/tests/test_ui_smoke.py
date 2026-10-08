@@ -73,8 +73,13 @@ def test_wizard_applies_function_exists(page):
     assert page.evaluate("typeof StampAlbum.applyWizard") == "function"
 
 
-def test_wizard_creates_landscape_album(page):
+def _open_wizard(page):
+    page.click("#menu-file-btn")
     page.click("#btn-wizard")
+
+
+def test_wizard_creates_landscape_album(page):
+    _open_wizard(page)
     page.select_option("#wiz-orient", "landscape")
     page.fill("#wiz-title", "Landscape test")
     page.click("#btn-wiz-apply")
@@ -86,7 +91,7 @@ def test_wizard_creates_landscape_album(page):
 
 
 def test_wizard_portrait_a4(page):
-    page.click("#btn-wizard")
+    _open_wizard(page)
     page.click("#btn-wiz-apply")
     w, h = _size(page)
     assert h > w
@@ -105,9 +110,23 @@ def test_page_setup_resets_inline_size(page):
     assert abs(w - 370) < 1.5 and abs(h - 525) < 1.5
 
 
-@pytest.mark.parametrize("btn", ["btn-new", "btn-wizard", "btn-page-setup", "btn-preview", "btn-dsl", "btn-grid", "btn-undo", "btn-redo"])
-def test_main_buttons_do_not_throw(page, btn):
-    page.click("#" + btn, force=True)
+# (menu to open first, or None; button id). Grid fill needs a selected stamp.
+MAIN_BUTTONS = [("file", "btn-new"), ("file", "btn-wizard"), (None, "btn-page-setup"), (None, "btn-preview"),
+                ("view", "btn-dsl"), (None, "btn-grid"), (None, "btn-undo"), (None, "btn-redo")]
+
+
+@pytest.mark.parametrize("menu,btn", MAIN_BUTTONS)
+def test_main_buttons_do_not_throw(page, menu, btn):
+    page.on("dialog", lambda d: d.dismiss())  # Grid fill prompts for rows and columns
+    if btn == "btn-grid":
+        page.evaluate("StampAlbum.select(StampAlbum.E[0].id)")
+    if btn in ("btn-undo", "btn-redo"):  # enabled only when there is something to undo or redo
+        page.evaluate("StampAlbum.E.push({id: 'u1', t: 'stamp', s: 'rectangle', x: 50, y: 50, w: 100, h: 75}); StampAlbum.pushUndo()")
+        if btn == "btn-redo":
+            page.evaluate("StampAlbum.undo()")
+    if menu:
+        page.click(f"#menu-{menu}-btn")
+    page.click("#" + btn)
     page.wait_for_timeout(150)
     assert page.js_errors == []
 
@@ -345,10 +364,170 @@ def test_wizard_asks_before_replacing_unsaved_album(page):
     page.evaluate("StampAlbum.pushUndo()")  # make the album dirty
     messages = []
     page.once("dialog", lambda d: (messages.append(d.message), d.dismiss()))
-    page.click("#btn-wizard")
+    _open_wizard(page)
     page.click("#btn-wiz-apply")
     assert messages and "Discard" in messages[0]
     assert len(_stamps(page)) == 2, "declining must keep the open album"
     page.once("dialog", lambda d: d.accept())
     page.click("#btn-wiz-apply")
     assert len(_stamps(page)) == 0, "accepting creates the new album"
+
+
+# ── Toolbar: File, Edit and View menus; selection tools; fits narrow windows ──
+
+@pytest.mark.parametrize("width", [1440, 1024, 768, 390])
+def test_toolbar_fits_without_sideways_scroll(page, width):
+    page.set_viewport_size({"width": width, "height": 900})
+    page.wait_for_timeout(100)
+    r = page.evaluate("""(() => {
+        const out = (el) => [...el.querySelectorAll('button, select, input, span, label')]
+            .filter(e => { const b = e.getBoundingClientRect(); return b.width > 0 && b.right > innerWidth + 1; })
+            .map(e => e.id || e.className || e.tagName);
+        const logo = document.querySelector('#tb .logo').getBoundingClientRect();
+        return { doc: document.documentElement.scrollWidth - innerWidth,
+                 tb: out(document.getElementById('tb')), ca: out(document.getElementById('ca-toolbar')),
+                 logoLines: Math.round(logo.height / 20) };
+    })()""")
+    assert r["doc"] <= 0, f"page scrolls sideways by {r['doc']} px"
+    assert r["tb"] == [] and r["ca"] == [], r
+    assert r["logoLines"] <= 1, "the logo must not wrap"
+
+
+def test_every_toolbar_button_has_a_name(page):
+    for width in (1440, 1024, 390):
+        page.set_viewport_size({"width": width, "height": 900})
+        unnamed = page.evaluate("""[...document.querySelectorAll('#tb button')]
+            .filter(b => b.offsetParent && !(b.innerText.trim() || b.getAttribute('aria-label')))
+            .map(b => b.id)""")
+        assert unnamed == [], f"at {width} px"
+
+
+def test_menus_open_close_and_only_one_at_a_time(page):
+    assert not page.is_visible("#menu-file")
+    page.click("#menu-file-btn")
+    assert page.is_visible("#menu-file")
+    assert page.get_attribute("#menu-file-btn", "aria-expanded") == "true"
+    page.keyboard.press("Escape")
+    assert not page.is_visible("#menu-file")
+    assert page.get_attribute("#menu-file-btn", "aria-expanded") == "false"
+    page.click("#menu-file-btn")
+    page.click("#menu-edit-btn")
+    assert page.is_visible("#menu-edit") and not page.is_visible("#menu-file")
+    page.mouse.click(700, 600)
+    assert not page.is_visible("#menu-edit")
+
+
+def test_menu_items_reach_their_actions(page):
+    _open_wizard(page)
+    assert "open" in page.get_attribute("#wizard-panel", "class")
+    assert not page.is_visible("#menu-file"), "choosing an item closes the menu"
+    page.click("#menu-file-btn")
+    page.click("#menu-page-setup")
+    assert page.is_visible("#page-setup-overlay")
+    page.click("#ps-cancel")
+    assert page.locator("#menu-file [data-fmt]").count() == 4, "File menu lists PDF, PNG, SVG and HTML export"
+    page.click("#menu-view-btn")
+    page.click("#btn-help")
+    assert "open" in page.get_attribute("#help-overlay", "class")
+    assert page.js_errors == []
+
+
+def test_edit_menu_disables_selection_items_without_a_selection(page):
+    page.evaluate("StampAlbum.select(null)")
+    page.click("#menu-edit-btn")
+    assert page.is_disabled("#menu-dup") and page.is_disabled("#menu-del")
+    page.keyboard.press("Escape")
+    page.evaluate("StampAlbum.select(StampAlbum.E[0].id)")
+    page.click("#menu-edit-btn")
+    assert not page.is_disabled("#menu-dup") and not page.is_disabled("#menu-del")
+
+
+def test_selection_tools_show_only_with_a_selection(page):
+    page.evaluate("StampAlbum.select(null)")
+    assert not page.is_visible("#sel-tools")
+    assert page.is_visible("#def-bdr"), "page defaults show when nothing is selected"
+    page.evaluate("StampAlbum.select(StampAlbum.E[0].id)")
+    assert page.is_visible("#sel-tools") and page.is_visible("#btn-align-l") and page.is_visible("#btn-del")
+    assert not page.is_visible("#def-bdr")
+    page.evaluate("StampAlbum.select(null)")
+    assert not page.is_visible("#sel-tools")
+
+
+def test_columns_distribute_and_match_controls_are_gone(page):
+    for gone in ("col-mode", "col-gap", "btn-dist-h", "btn-dist-v", "btn-match-w", "btn-match-h", "align-group"):
+        assert page.locator("#" + gone).count() == 0, gone
+
+
+def test_album_with_columns_still_saves_its_columns(page):
+    _load(page, "ALBUM_PAGES_SIZE(210 297)\\nPAGE_START\\nPAGE_COLUMN_START(2 10.0)\\n"
+                "STAMP_ADD_AT(20 20 40 30 \\\"a\\\" \\\"\\\" \\\"\\\" \\\"\\\")\\nPAGE_COLUMN_STOP")
+    assert "PAGE_COLUMN_START(2 10.0)" in page.evaluate("StampAlbum.buildDSL()")
+    assert page.js_errors == []
+
+
+def test_border_control_sets_the_page_border_only(page):
+    before = page.evaluate("StampAlbum._defBdr")
+    page.evaluate("StampAlbum.select(null)")
+    page.select_option("#def-bdr", "double")
+    assert page.evaluate("StampAlbum._pageBorder") == "double"
+    assert page.evaluate("StampAlbum._defBdr") == before, "new stamps keep their own default border"
+
+
+def test_snap_to_guides_state_matches_the_view_menu(page):
+    page.click("#menu-view-btn")
+    shown = page.get_attribute("#btn-snap", "aria-checked") == "true"
+    assert page.evaluate("!!StampAlbum._snapEnabled") == shown
+    page.click("#btn-snap")
+    page.click("#menu-view-btn")
+    assert (page.get_attribute("#btn-snap", "aria-checked") == "true") == page.evaluate("!!StampAlbum._snapEnabled") != shown
+
+
+def _one_stamp(page, x=100, y=100, extra=""):
+    page.evaluate("StampAlbum.newAlbum(); StampAlbum.E.push({id: 'd1', t: 'stamp', s: 'rectangle', x: %s, y: %s, w: 100, h: 75, lbl: 'd'});"
+                  "%s StampAlbum.render()" % (x, y, extra))
+
+
+def _drag(page, el_id, dx, dy):
+    box = page.locator(f".cel[data-id='{el_id}']").bounding_box()
+    sx, sy = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+    page.mouse.move(sx, sy)
+    page.mouse.down()
+    page.mouse.move(sx + dx / 2, sy + dy / 2, steps=3)
+    page.mouse.move(sx + dx, sy + dy, steps=3)
+    page.mouse.up()
+    return page.evaluate(f"(() => {{ const e = StampAlbum.E.find(e => e.id === '{el_id}'); return [e.x, e.y]; }})()")
+
+
+def test_drag_with_snap_off_keeps_a_real_position(page):
+    _one_stamp(page)
+    page.evaluate("StampAlbum._snapEnabled = false")
+    page.select_option("#grid", "0")
+    x, y = _drag(page, "d1", 37, 23)
+    assert x is not None and y is not None, "dragging with Snap Off lost the stamp's position"
+    assert abs(x - 137) < 1.5 and abs(y - 123) < 1.5, (x, y)
+
+
+def test_grid_snap_steps_are_millimetres(page):
+    _one_stamp(page)
+    page.evaluate("StampAlbum._snapEnabled = false")
+    page.select_option("#grid", "5")
+    x, y = _drag(page, "d1", 37, 23)
+    step = 5 * 2.5  # 5 mm at 2.5 px per mm
+    assert abs((x - 100) / step - round((x - 100) / step)) < 1e-6, f"x moved {x - 100} px, not whole 5 mm steps"
+    assert abs(x - 137.5) < 0.01 and abs(y - 125) < 0.01, (x, y)
+
+
+def test_snap_to_guides_pulls_a_stamp_onto_a_guide(page):
+    _one_stamp(page, 300, 400, "StampAlbum.E.push({id: 'd2', t: 'stamp', s: 'rectangle', x: 100, y: 100, w: 100, h: 75, lbl: 'e'});")
+    page.evaluate("StampAlbum._snapEnabled = true")
+    page.select_option("#grid", "0")
+    x, _ = _drag(page, "d1", -197, 0)  # left edge lands 3 px from d2's left edge
+    assert x == 100, f"stamp should snap onto the guide at 100, got {x}"
+
+
+def test_view_menu_can_show_the_tutorial_again(page):
+    before = page.evaluate("StampAlbum.E.length")
+    page.click("#menu-view-btn")
+    page.click("#menu-tutorial")
+    assert "open" in page.get_attribute("#tutorial-overlay", "class")
+    assert page.evaluate("StampAlbum.E.length") == before, "showing the tutorial must not load the sample album"

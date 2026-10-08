@@ -388,6 +388,7 @@ function getShapePath(shape, w, h) {
 
 // ── Render canvas ──
 function render() {
+    if (S.updateSelectionUI) S.updateSelectionUI();
     var pg = $("page");
     pg.querySelectorAll(".cel").forEach(function(el) { el.remove(); });
     pg.querySelectorAll(".col-guide").forEach(function(el) { el.remove(); });
