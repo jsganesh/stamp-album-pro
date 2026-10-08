@@ -220,7 +220,7 @@ class HTMLRenderer:
                 font_family = _font_id_to_css(stamp.font_id) if stamp.font_id else "Helvetica,Arial,sans-serif"
                 parts.append(
                     f'<div class="text-el" style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;'
-                    f'font-size:{font_size}pt;line-height:1.3;font-family:{font_family};padding:1mm;word-wrap:break-word;">{desc}</div>'
+                    f'font-size:{font_size}pt;line-height:1.3;font-family:{font_family};padding:1mm;word-wrap:break-word;text-align:{_css_align(stamp.text_align)};">{desc}</div>'
                 )
             else:
                 stamp_bc = getattr(stamp, 'border_color', None) or getattr(self.album, 'color_stamp_border', None)
@@ -408,6 +408,11 @@ _FONT_CSS_MAP = {
     "HI": "Helvetica,Arial,sans-serif",
     "HS": "Helvetica,Arial,sans-serif",
 }
+
+
+def _css_align(align) -> str:
+    a = (align or 'left').lower()
+    return a if a in ('left', 'center', 'right', 'justify') else 'left'
 
 
 def _font_id_to_css(font_id: str) -> str:

@@ -22,6 +22,7 @@ from stamp_album.engines.borders import (
     edge_pattern_segments,
     regular_polygon_vertices,
 )
+from stamp_album.engines import text_layout
 from stamp_album.engines.layout import layout_rows
 
 
@@ -55,14 +56,53 @@ def _get_system_font_dirs():
     return [Path("/usr/share/fonts"), Path("/usr/local/share/fonts"), Path.home() / ".fonts"]
 
 
-def _resolve_pillow_font(font_id: str, size: float) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
-    """Resolve font ID to a Pillow ImageFont."""
-    if font_id in _BUILTIN_FONT_MAP_NAMES:
-        name = _BUILTIN_FONT_MAP_NAMES[font_id]
+# Font files tried (in order) for the built-in PDF base-14 families. Pillow's
+# truetype() searches the OS font directories, so bare file names work.
+_FONT_FILE_CANDIDATES = {
+    "H": {
+        "N": ["Helvetica.ttc", "Arial.ttf", "arial.ttf", "LiberationSans-Regular.ttf", "DejaVuSans.ttf"],
+        "B": ["Arial Bold.ttf", "arialbd.ttf", "LiberationSans-Bold.ttf", "DejaVuSans-Bold.ttf"],
+        "I": ["Arial Italic.ttf", "ariali.ttf", "LiberationSans-Italic.ttf", "DejaVuSans-Oblique.ttf"],
+        "S": ["Arial Bold Italic.ttf", "arialbi.ttf", "LiberationSans-BoldItalic.ttf", "DejaVuSans-BoldOblique.ttf"],
+    },
+    "T": {
+        "N": ["Times New Roman.ttf", "times.ttf", "LiberationSerif-Regular.ttf", "DejaVuSerif.ttf"],
+        "B": ["Times New Roman Bold.ttf", "timesbd.ttf", "LiberationSerif-Bold.ttf", "DejaVuSerif-Bold.ttf"],
+        "I": ["Times New Roman Italic.ttf", "timesi.ttf", "LiberationSerif-Italic.ttf", "DejaVuSerif.ttf"],
+        "S": ["Times New Roman Bold Italic.ttf", "timesbi.ttf", "LiberationSerif-BoldItalic.ttf", "DejaVuSerif-Bold.ttf"],
+    },
+    "C": {
+        "N": ["Courier New.ttf", "cour.ttf", "LiberationMono-Regular.ttf", "DejaVuSansMono.ttf"],
+        "B": ["Courier New Bold.ttf", "courbd.ttf", "LiberationMono-Bold.ttf", "DejaVuSansMono-Bold.ttf"],
+        "I": ["Courier New Italic.ttf", "couri.ttf", "LiberationMono-Italic.ttf", "DejaVuSansMono.ttf"],
+        "S": ["Courier New Bold Italic.ttf", "courbi.ttf", "LiberationMono-BoldItalic.ttf", "DejaVuSansMono-Bold.ttf"],
+    },
+}
+
+
+def _default_font(size: float):
+    """Last-resort font that still honours *size* (load_default ignores it on old Pillow)."""
+    for name in ("DejaVuSans.ttf", "Arial.ttf", "arial.ttf"):
         try:
             return ImageFont.truetype(name, size)
         except Exception:
-            pass
+            continue
+    try:
+        return ImageFont.load_default(size=size)
+    except TypeError:
+        return ImageFont.load_default()
+
+
+def _resolve_pillow_font(font_id: str, size: float) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    """Resolve font ID to a Pillow ImageFont of the requested pixel size."""
+    if font_id in _BUILTIN_FONT_MAP_NAMES:
+        family, style = font_id[0], font_id[1]
+        for name in _FONT_FILE_CANDIDATES.get(family, {}).get(style, []):
+            try:
+                return ImageFont.truetype(name, size)
+            except Exception:
+                continue
+        return _default_font(size)
     for d in _get_system_font_dirs():
         if not d.is_dir():
             continue
@@ -75,7 +115,7 @@ def _resolve_pillow_font(font_id: str, size: float) -> ImageFont.FreeTypeFont | 
                         return ImageFont.truetype(str(f), size)
                     except Exception:
                         continue
-    return ImageFont.load_default()
+    return _default_font(size)
 
 
 def _resolve_image_path(image_path: Optional[str]) -> Optional[Path]:
@@ -195,13 +235,27 @@ def _draw_stamp(draw: ImageDraw.ImageDraw, stamp: Stamp, album: Album, font_size
         draw.text((x + (w - tw) / 2, ft_y), stamp.footer_text, fill=(77, 77, 77), font=ft_font)
 
 
-def _draw_text_element(draw: ImageDraw.ImageDraw, stamp: Stamp):
-    """Draw a free-form text element."""
+def _draw_text_element(draw: ImageDraw.ImageDraw, stamp: Stamp, px_per_mm: float):
+    """Draw a free-form text element (stamp geometry already in pixels).
+
+    Font sizes are points, so convert to pixels at this image's resolution.
+    """
     if not stamp.description:
         return
-    font = _resolve_pillow_font(stamp.font_id or "HN", stamp.font_size or 12)
-    _draw_multiline_text(draw, stamp.abs_x, stamp.abs_y, stamp.width, stamp.height,
-                         stamp.description, font, stamp.font_size or 12)
+    size_px = (stamp.font_size or 12) * px_per_mm * 25.4 / 72.0
+    font = _resolve_pillow_font(stamp.font_id or "HN", size_px)
+    pad = text_layout.PAD_MM * px_per_mm
+
+    def measure(s: str) -> float:
+        return draw.textlength(s, font=font)
+
+    lines = text_layout.wrap_lines(stamp.description, max(1.0, stamp.width - 2 * pad), measure)
+    lh = size_px * text_layout.LINE_HEIGHT
+    top = stamp.abs_y + pad + size_px * (text_layout.LINE_HEIGHT - 1) / 2
+    for i, line in enumerate(lines):
+        if line:
+            lx = text_layout.line_x(stamp.abs_x, stamp.width, measure(line), stamp.text_align, pad)
+            draw.text((lx, top + i * lh), line, fill=(51, 51, 51), font=font)
 
 
 def _draw_page_border(draw: ImageDraw.ImageDraw, album: Album, page_w_mm: float, page_h_mm: float, scale: float):
@@ -414,8 +468,7 @@ class PNGGenerator:
                 stamp.abs_x, stamp.abs_y, stamp.width, stamp.height = x, y, w, h
                 try:
                     if stamp.is_text_element:
-                        font = _resolve_pillow_font(stamp.font_id or "HN", stamp.font_size or 12)
-                        _draw_multiline_text(draw, x, y, w, h, stamp.description, font, stamp.font_size or 12)
+                        _draw_text_element(draw, stamp, scale)
                     else:
                         _draw_stamp(draw, stamp, album, stamp.font_size or 12)
                 finally:

@@ -5,6 +5,9 @@ All notable changes to this project are documented here. The format follows [Kee
 ## [Unreleased]
 
 ### Fixed
+- Text elements in exports: alignment (left/centre/right) is now honoured in PDF, PNG, SVG and the preview; text wraps inside its box; text is anchored to the top of its box instead of overflowing upwards (the PDF clipped large headings at the page top)
+- PNG text was drawn about 3x too small (point sizes were used as pixels) and fell back to a fixed 10 px bitmap font when Helvetica/Arial was not found
+- SVG text used `pt` font sizes inside a millimetre viewBox
 - Albums saved by v0.2.0 and earlier with the oversized page (for example A4 saved as 238 x 336.8 mm) are corrected to the real paper size on load, with a notice; landscape is handled too
 - The new-album wizard did nothing: `wizard.js` was never loaded by `index.html`
 - Landscape and custom-size albums displayed as portrait A4: the on-screen page is now sized from the album's millimetre size (`S.applyPageSize`) when loading DSL, using the wizard, or changing the page-size dropdown
