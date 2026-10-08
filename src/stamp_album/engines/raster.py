@@ -192,11 +192,12 @@ def _draw_stamp(draw: ImageDraw.ImageDraw, stamp: Stamp, album: Album, px_per_mm
         if img_fp:
             try:
                 img = Image.open(img_fp).convert("RGBA")
-                img = img.resize((int(w), int(h)), Image.LANCZOS)
-                if img.mode == "RGBA":
-                    draw._image.paste(img, (int(x), int(y)), img)
-                else:
-                    draw._image.paste(img, (int(x), int(y)))
+                # Fit inside the box keeping the aspect ratio, centred (like the PDF).
+                fit = min(w / img.width, h / img.height)
+                nw, nh = max(1, int(img.width * fit)), max(1, int(img.height * fit))
+                img = img.resize((nw, nh), Image.LANCZOS)
+                ox, oy = int(x + (w - nw) / 2), int(y + (h - nh) / 2)
+                draw._image.paste(img, (ox, oy), img)
             except Exception:
                 pass
 

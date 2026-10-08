@@ -431,7 +431,7 @@ function render() {
                 l.spellcheck = false;
                 var fc = S.fontCSS(el.font || "HN");
                 l.style.fontFamily = fc.family;
-                l.style.fontSize = Math.max(9, (el.fs || 10)) + "px";
+                l.style.fontSize = S.ptPx((el.fs || 12) * 0.9) + "px";  // exports draw stamp labels at 0.9 x size
                 l.style.fontWeight = fc.weight;
                 l.style.fontStyle = fc.style;
                 l.style.marginTop = "2px";
@@ -447,7 +447,7 @@ function render() {
                 var denom = document.createElement("span");
                 denom.className = "stamp-denom";
                 denom.textContent = el.denom;
-                denom.style.cssText = "font-size:9px;font-weight:600;color:#333;margin-top:1px;";
+                denom.style.cssText = "font-size:" + S.ptPx(8) + "px;font-weight:600;color:#333;margin-top:1px;";
                 inner.appendChild(denom);
             }
 
@@ -458,7 +458,7 @@ function render() {
                 var hdg = document.createElement("div");
                 hdg.className = "stamp-hdg";
                 hdg.textContent = el.hdg;
-                hdg.style.cssText = "position:absolute;bottom:-18px;left:0;right:0;text-align:center;font-size:9px;color:#333;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
+                hdg.style.cssText = "position:absolute;bottom:-18px;left:0;right:0;text-align:center;font-size:" + S.ptPx(9) + "px;color:#333;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
                 d.appendChild(hdg);
             }
         }
@@ -508,7 +508,17 @@ function render() {
             l.spellcheck = false;
             var fc = S.fontCSS(el.font || "HN");
             l.style.fontFamily = fc.family;
-            l.style.fontSize = (el.fs || 12) + "px";
+            l.style.fontSize = S.ptPx(el.fs || 12) + "px";
+            if (el.t === "text") {
+                // Match the exports: text boxes are top-anchored, padded 1 mm and
+                // aligned per the element's alignment (left by default).
+                l.style.textAlign = el.align || "left";
+                l.style.width = "100%";
+                l.style.maxWidth = "100%";
+                l.style.boxSizing = "border-box";
+                l.style.padding = Math.round(S._sc) + "px";
+                d.style.alignItems = "flex-start";
+            }
             l.style.fontWeight = fc.weight;
             l.style.fontStyle = fc.style;
             l.addEventListener("blur", function() {

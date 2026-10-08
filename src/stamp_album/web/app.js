@@ -87,6 +87,10 @@ function showToast(msg, type) {
 
 // ── Utility ──
 function $(id) { return document.getElementById(id); }
+// Font sizes are typographic points everywhere (DSL, PDF, PNG, SVG, preview).
+// The canvas draws at _sc px per mm, so convert points to canvas pixels:
+// 1 pt = 25.4/72 mm. This keeps on-screen text proportional to the printed page.
+function ptPx(pt) { return Math.round(pt * (25.4 / 72) * _sc * 100) / 100; }
 function mm(px) { return Math.round(px / _sc * 10) / 10; }
 function px(mm) { return Math.round(mm * _sc); }
 function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
@@ -420,7 +424,7 @@ Object.defineProperties(S, {
     _undoPaused: { get: function(){ return _undoPaused; }, set: function(v){ _undoPaused = v; } },
     _init: { get: function(){ return _init; }, set: function(v){ _init = v; } },
     SYSTEM_FONTS: { get: function(){ return SYSTEM_FONTS; }, set: function(v){ SYSTEM_FONTS = v; } },
-    $: { value: $ }, mm: { value: mm }, px: { value: px }, clamp: { value: clamp },
+    $: { value: $ }, mm: { value: mm }, px: { value: px }, ptPx: { value: ptPx }, clamp: { value: clamp },
     fontCSS: { value: fontCSS }, showToast: { value: showToast },
     // pushUndo/undo/redo/loadElements defined in undo.js
     saveDraft: { value: saveDraft }, scheduleDraftSave: { value: scheduleDraftSave },
