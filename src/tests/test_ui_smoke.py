@@ -100,3 +100,18 @@ def test_main_buttons_do_not_throw(page, btn):
     page.click("#" + btn, force=True)
     page.wait_for_timeout(150)
     assert page.js_errors == []
+
+
+def test_legacy_oversized_a4_is_migrated(page):
+    page.evaluate("StampAlbum.parseDSL('ALBUM_PAGES_SIZE(238 336.8)\\nPAGE_START\\nSTAMP_ADD_AT(20 20 40 30 \"x\" \"\" \"\" \"\")'); StampAlbum.render()")
+    w, h = _size(page)
+    assert abs(w - 525) < 1.5 and abs(h - 742.5) < 1.5
+    assert "ALBUM_PAGES_SIZE(210 297)" in page.evaluate("StampAlbum.buildDSL()")
+    assert page.evaluate("document.getElementById('pg-size').value") == "a4"
+    assert page.js_errors == []
+
+
+def test_legacy_oversized_landscape_a4_is_migrated(page):
+    page.evaluate("StampAlbum.parseDSL('ALBUM_PAGES_SIZE(336.8 238)\\nPAGE_START'); StampAlbum.render()")
+    w, h = _size(page)
+    assert abs(w - 742.5) < 1.5 and abs(h - 525) < 1.5

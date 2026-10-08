@@ -5,6 +5,7 @@ All notable changes to this project are documented here. The format follows [Kee
 ## [Unreleased]
 
 ### Fixed
+- Albums saved by v0.2.0 and earlier with the oversized page (for example A4 saved as 238 x 336.8 mm) are corrected to the real paper size on load, with a notice; landscape is handled too
 - The new-album wizard did nothing: `wizard.js` was never loaded by `index.html`
 - Landscape and custom-size albums displayed as portrait A4: the on-screen page is now sized from the album's millimetre size (`S.applyPageSize`) when loading DSL, using the wizard, or changing the page-size dropdown
 - Wizard paper sizes now match the page-size dropdown (Letter 215.9x279.4, Legal 215.9x355.6)
