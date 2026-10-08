@@ -233,7 +233,7 @@ def _draw_stamp(c: canvas.Canvas, stamp: Stamp, album: Album,
         img_fp = _resolve_image_path(stamp.image_path)
         if img_fp:
             try:
-                c.drawImage(str(img_fp), x, y, w, h, preserveAspectRatio=True)
+                c.drawImage(str(img_fp), x, y, w, h, preserveAspectRatio=True, mask="auto")
             except Exception:
                 pass
 

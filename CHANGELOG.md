@@ -5,6 +5,7 @@ All notable changes to this project are documented here. The format follows [Kee
 ## [Unreleased]
 
 ### Fixed
+- PDF export: images with transparency (for example a coat of arms PNG) no longer get a solid black background
 - Text elements in exports: alignment (left/centre/right) is now honoured in PDF, PNG, SVG and the preview; text wraps inside its box; text is anchored to the top of its box instead of overflowing upwards (the PDF clipped large headings at the page top)
 - PNG text was drawn about 3x too small (point sizes were used as pixels) and fell back to a fixed 10 px bitmap font when Helvetica/Arial was not found
 - SVG text used `pt` font sizes inside a millimetre viewBox
