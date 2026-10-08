@@ -69,7 +69,7 @@ def _run_gui():
 
     app = QApplication(sys.argv)
     app.setApplicationName("StampAlbum Pro")
-    app.setApplicationVersion("0.2.0")
+    app.setApplicationVersion("0.2.1")
     app.setOrganizationName("StampAlbum")
 
     window = MainWindow()
@@ -111,7 +111,7 @@ def _run_cli(args: list[str]):
     parser.add_argument(
         "--version",
         action="version",
-        version="StampAlbum Pro v0.2.0",
+        version="StampAlbum Pro v0.2.1",
     )
     parser.add_argument(
         "-v", "--verbose",
