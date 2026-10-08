@@ -493,7 +493,15 @@ function render() {
             d.style.border = (el.bdrW || 0) + "pt " + (el.bdr || "solid") + " " + (el.bdrC || "#666");
             d.style.backgroundColor = el.fill || "transparent";
         }
-        if (el.fillA !== undefined && el.fillA < 100 && el.t !== "stamp") d.style.opacity = el.fillA / 100;
+        // "Fill alpha" applies to the fill only. It used to be applied as the whole
+        // element's opacity, so text and images loaded from a file (parsed with a
+        // transparent fill, alpha 0) were completely invisible on the canvas.
+        if (el.fillA !== undefined && el.fillA < 100 && el.t !== "stamp") {
+            var fa = Math.max(0, el.fillA) / 100;
+            var fsvg = d.querySelector(".shape-svg path");
+            if (fsvg) fsvg.setAttribute("fill-opacity", fa);
+            else if (el.fill && el.fill !== "transparent") d.style.backgroundColor = S.withAlpha(el.fill, fa);
+        }
 
         if (el.img && el.t !== "stamp") {
             var img = document.createElement("img");

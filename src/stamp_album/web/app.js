@@ -91,6 +91,13 @@ function $(id) { return document.getElementById(id); }
 // The canvas draws at _sc px per mm, so convert points to canvas pixels:
 // 1 pt = 25.4/72 mm. This keeps on-screen text proportional to the printed page.
 function ptPx(pt) { return Math.round(pt * (25.4 / 72) * _sc * 100) / 100; }
+// "#rgb"/"#rrggbb" + alpha (0..1) -> rgba(); other colour strings are returned unchanged.
+function withAlpha(color, alpha) {
+    var m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(color || "");
+    if (!m) return color;
+    var h = m[1].length === 3 ? m[1].replace(/./g, "$&$&") : m[1];
+    return "rgba(" + parseInt(h.slice(0, 2), 16) + "," + parseInt(h.slice(2, 4), 16) + "," + parseInt(h.slice(4, 6), 16) + "," + alpha + ")";
+}
 function mm(px) { return Math.round(px / _sc * 10) / 10; }
 function px(mm) { return Math.round(mm * _sc); }
 function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
@@ -424,7 +431,7 @@ Object.defineProperties(S, {
     _undoPaused: { get: function(){ return _undoPaused; }, set: function(v){ _undoPaused = v; } },
     _init: { get: function(){ return _init; }, set: function(v){ _init = v; } },
     SYSTEM_FONTS: { get: function(){ return SYSTEM_FONTS; }, set: function(v){ SYSTEM_FONTS = v; } },
-    $: { value: $ }, mm: { value: mm }, px: { value: px }, ptPx: { value: ptPx }, clamp: { value: clamp },
+    $: { value: $ }, mm: { value: mm }, px: { value: px }, ptPx: { value: ptPx }, withAlpha: { value: withAlpha }, clamp: { value: clamp },
     fontCSS: { value: fontCSS }, showToast: { value: showToast },
     // pushUndo/undo/redo/loadElements defined in undo.js
     saveDraft: { value: saveDraft }, scheduleDraftSave: { value: scheduleDraftSave },
