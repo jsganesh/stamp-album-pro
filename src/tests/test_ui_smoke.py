@@ -156,3 +156,31 @@ def test_preview_oval_fills_non_square_box(base_url, page):
         return [e.width, e.height];
     }""")
     assert w > h * 1.5, f"oval rendered {w:.0f}x{h:.0f}, should follow the 2:1 box"
+
+
+# ── Canvas text matches the printed page ──
+
+def test_canvas_font_size_is_points_at_page_scale(page):
+    page.evaluate("StampAlbum.parseDSL('ALBUM_PAGES_SIZE(210 297)\\nPAGE_START\\nPAGE_TEXT_AT(10 10 100 30 \"HB\" 40 \"Bahrain\" \"left\")'); StampAlbum.render()")
+    px = page.evaluate("parseFloat(getComputedStyle(document.querySelector('#page .cel .elbl')).fontSize)")
+    # 40 pt = 14.11 mm; the canvas draws 2.5 px per mm
+    assert px == pytest.approx(40 * 25.4 / 72 * 2.5, abs=0.1)
+
+
+@pytest.mark.parametrize("align", ["left", "center", "right"])
+def test_canvas_text_alignment_and_top_anchor(page, align):
+    page.evaluate("a => { StampAlbum.parseDSL('ALBUM_PAGES_SIZE(210 297)\\nPAGE_START\\nPAGE_TEXT_AT(10 10 100 60 \"HN\" 12 \"Hi\" \"' + a + '\")'); StampAlbum.render() }", align)
+    info = page.evaluate("""() => {
+        const cel = document.querySelector('#page .cel');
+        const s = cel.querySelector('.elbl');
+        const range = document.createRange(); range.selectNodeContents(s);
+        const t = range.getBoundingClientRect(), box = cel.getBoundingClientRect();
+        return {top: t.top - box.top, left: t.left - box.left, right: box.right - t.right, w: box.width};
+    }""")
+    assert info["top"] < 10, "text must sit at the top of its box, not vertically centred"
+    if align == "left":
+        assert info["left"] < 10
+    elif align == "right":
+        assert info["right"] < 10
+    else:
+        assert abs(info["left"] - info["right"]) < 3

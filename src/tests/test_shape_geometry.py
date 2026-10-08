@@ -100,3 +100,25 @@ def test_png_stamp_label_has_readable_size(client):
     cap_h_mm = (bbox[3] - bbox[1]) / (200 / 25.4)
     # default 12 pt * 0.9 capitals are ~2.7 mm; the old bug drew them ~0.6 mm
     assert cap_h_mm > 2.0, f"label capitals only {cap_h_mm:.2f} mm tall"
+
+
+# ── PNG images keep their aspect ratio ──
+
+def test_png_image_keeps_aspect_ratio(client, tmp_path, monkeypatch):
+    from pathlib import Path
+    images = tmp_path / "StampAlbum" / "images"
+    images.mkdir(parents=True)
+    Image.new("RGB", (60, 80), (200, 30, 30)).save(images / "tall.png")  # 3:4
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+    state = _state("rectangle", "png", lbl="")
+    state["elements"][0].update({"t": "image", "img": "tall.png", "bdr": "none", "fill": "transparent",
+                                 "x": 50, "y": 50, "w": 200, "h": 200})  # square box
+    r = client.post("/export-from-state", json=state)
+    im = Image.open(io.BytesIO(r.content)).convert("RGB")
+    r_, g_, b_ = im.split()
+    # the image is (200, 30, 30); the stamp outline is black, so match on a strong red channel
+    mask = Image.merge("L", [r_]).point(lambda v: 255 if v > 150 else 0)
+    mask = Image.composite(mask, Image.new("L", im.size, 0), g_.point(lambda v: 255 if v < 100 else 0))
+    bbox = mask.getbbox()
+    w, h = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    assert w / h == pytest.approx(0.75, abs=0.03), f"image drawn {w}x{h}, should keep 3:4"
