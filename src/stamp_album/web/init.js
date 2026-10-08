@@ -337,17 +337,8 @@ function init() {
         el.img = ""; pushUndo(); render();
     });
 
-    // ── Page Size / Grid ──
-    $("pg-size").addEventListener("change", function() {
-        var s = { a4: [525, 742.5], a5: [370, 525], a3: [742.5, 1050], letter: [539.75, 698.5], legal: [539.75, 889] }; // mm x 2.5 px/mm
-        var v = s[this.value] || s.a4;
-        $("page").className = "page " + this.value;
-        S.applyPageSize(v[0] / S._sc, v[1] / S._sc);
-        render();
-        S.updateGrid();
-        if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
-        S.schedulePreviewRefresh();
-    });
+    // ── Page setup / Grid ──
+    S.wirePageSetup();
     $("grid").addEventListener("change", function() {
         S._sn = parseInt(this.value) || 0;
         S.updateGrid();
@@ -428,6 +419,7 @@ function init() {
     // ── Keyboard shortcuts ──
     document.addEventListener("keydown", function(e) {
         if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
+        if ($("page-setup-overlay").classList.contains("open")) return;  // the dialog handles its own keys
         if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); return; }
         if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.key === "z" && e.shiftKey))) { e.preventDefault(); redo(); return; }
         if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); saveFile(); return; }
@@ -689,6 +681,7 @@ function init() {
     }
 
     // ── Init ──
+    S.applyPageSize(S._pw / S._sc, S._ph / S._sc);
     S.renderPageDots();
     S.updateGrid();
     if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
@@ -697,8 +690,9 @@ function init() {
     S.updateTitle();
 
     // ── First-run tutorial ──
-    if (initTutorial) initTutorial();
+    if (initTutorial) initTutorial(!!_restored);
     if (_wireTutorialEvents) _wireTutorialEvents();
+    S.resetUndo();  // after any sample album, so the first edit can be undone
 
     console.log("StampAlbum Pro: ready");
 }

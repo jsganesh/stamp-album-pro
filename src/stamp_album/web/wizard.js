@@ -5,7 +5,9 @@ var $ = S.$, showToast = S.showToast, pushUndo = S.pushUndo, render = S.render;
 var parseDSL = S.parseDSL, escapeDSL = S.escapeDSL;
 
 // ── Wizard ──
+// The wizard always starts a new album; to change the open album's page use Page setup.
 function applyWizard() {
+    if (S._dirty && !confirm("Discard unsaved changes?")) return;
     var title = $("wiz-title").value || "";
     var author = $("wiz-author").value || "";
     var pgSize = $("wiz-pg-size").value || "a4";
@@ -31,7 +33,6 @@ function applyWizard() {
     if (title) lines.push('PAGE_TEXT_CENTRE("HB" 16 "' + escapeDSL(title) + '")');
 
     parseDSL(lines.join("\n"));
-    $("pg-size").value = PAPER[pgSize] ? pgSize : "a4";
     pushUndo();
     render();
     $("wizard-panel").classList.remove("open");

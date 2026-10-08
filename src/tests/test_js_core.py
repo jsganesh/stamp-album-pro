@@ -10,7 +10,7 @@ NODE = shutil.which("node")
 
 
 @pytest.mark.skipif(NODE is None, reason="node is not installed")
-@pytest.mark.parametrize("name", ["test_page_size_migration.mjs", "test_dsl_roundtrip.mjs"])
+@pytest.mark.parametrize("name", ["test_page_size_migration.mjs", "test_dsl_roundtrip.mjs", "test_page_setup.mjs"])
 def test_node_suite(name):
     r = subprocess.run([NODE, str(TESTS / name)], capture_output=True, text=True,
                        encoding="utf-8", errors="replace", timeout=60)

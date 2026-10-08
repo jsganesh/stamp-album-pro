@@ -4,7 +4,18 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+- Page setup dialog (the **Page** button above the canvas, which now shows the size, for example "A4 · Landscape"): change the open album's paper size and orientation without starting a new album. Elements that would fall outside the new page are moved inside it as a group, keeping their arrangement; their sizes never change, so mounts still match the stamps. The dialog says beforehand how many elements will move and warns if some will overlap or are larger than the page. Applying is one undo step
+
+### Changed
+- The wizard is now the **New Album Wizard** and asks "Discard unsaved changes?" before replacing an album with unsaved changes, like **New**
+- Undo now covers the whole album (all pages and the page size), so adding or deleting a page and Page setup can be undone
+
 ### Fixed
+- An empty album lost its page size and orientation when saved: the album header is now written even with no elements
+- The browser draft did not keep the page size, so a landscape album reopened as portrait after a reload
+- The first-run sample album replaced a restored draft for anyone who had not finished the tutorial
+- Undo skipped a step after the first undo, and the first edit after start-up could not be undone
 - Canvas: text and image elements loaded from a saved album were invisible. The parser gives them a transparent fill with alpha 0, and the canvas applied that alpha as the whole element's opacity. Fill alpha now affects only the fill
 - Preview: a stamp that has an image no longer shows its label (the file name) on top of the image, matching the exports
 - Canvas text now matches the printed page: font sizes are typographic points converted at the canvas scale (a size of 40 was about 13% larger on screen than in the PDF), stamp labels use the same 0.9 factor as the exports, and text elements are top-anchored, 1 mm padded and aligned left/centre/right per their alignment (the canvas always centred them)

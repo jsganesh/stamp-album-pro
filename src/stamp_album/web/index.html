@@ -52,7 +52,7 @@
         <button id="btn-snap" title="Toggle Snap-to-Guide" class="active">🧲 Snap</button>
     </div>
     <div class="tb-group">
-        <button id="btn-wizard" title="Quick Setup Wizard">⚡ Wizard</button>
+        <button id="btn-wizard" title="New Album Wizard: start a new album">⚡ Wizard</button>
         <button id="btn-preview" title="Preview (Ctrl+P)">👁 Preview</button>
         <div class="export-dd" id="btn-export-dd"><button id="btn-export" title="Export">📄 Export ▾</button><div class="export-dd-menu"><div class="export-dd-item" data-fmt="pdf">📄 PDF</div><div class="export-dd-item" data-fmt="png">🖼 PNG</div><div class="export-dd-item" data-fmt="svg">✏️ SVG</div><div class="export-dd-item" data-fmt="html">🌐 HTML</div></div></div>
         <button id="btn-dsl" title="DSL Editor">🔧 DSL</button>
@@ -113,8 +113,8 @@
     <!-- Canvas Area -->
     <section id="ca">
         <div id="ca-toolbar">
-            <label>Page:</label>
-            <select id="pg-size"><option value="a4">A4</option><option value="a5">A5</option><option value="a3">A3</option><option value="letter">Letter</option><option value="legal">Legal</option></select>
+            <label for="btn-page-setup">Page:</label>
+            <button id="btn-page-setup" title="Page setup: paper size and orientation">A4 · Portrait</button>
             <div id="pg-dots"></div>
             <label>Columns:</label>
             <select id="col-mode"><option value="1">Single</option><option value="2">Two</option><option value="3">Three</option></select>
@@ -172,7 +172,7 @@
 
 <!-- Wizard Panel (bottom) -->
 <div id="wizard-panel">
-    <div class="wiz-hdr"><span>⚡ Quick Setup Wizard</span><span class="spacer"></span><button id="btn-app-wiz">Apply</button><button id="btn-cls-wiz">✕</button></div>
+    <div class="wiz-hdr"><span>⚡ New Album Wizard</span><span class="spacer"></span><button id="btn-app-wiz">Apply</button><button id="btn-cls-wiz">✕</button></div>
     <div id="wizard-body">
         <div class="wiz-group">
             <label>Album Title</label>
@@ -208,6 +208,27 @@
 <div id="dsl-panel">
     <div class="dsl-hdr"><span>DSL Editor (Advanced)</span><span class="spacer"></span><button id="btn-app-dsl">Apply</button><button id="btn-cls-dsl">✕</button></div>
     <div id="dsl-editor"><textarea id="dsl-ta" spellcheck="false"></textarea></div>
+</div>
+
+<!-- Page Setup Dialog -->
+<div id="page-setup-overlay" role="dialog" aria-modal="true" aria-labelledby="ps-title">
+    <div class="ps-box">
+        <div class="ps-hdr"><span id="ps-title">Page setup</span><span class="spacer"></span><button id="ps-close" aria-label="Close">✕</button></div>
+        <div class="ps-body">
+            <label for="ps-size">Paper size</label>
+            <select id="ps-size"><option value="a4">A4 (210 × 297 mm)</option><option value="a5">A5 (148 × 210 mm)</option><option value="a3">A3 (297 × 420 mm)</option><option value="letter">Letter (216 × 279 mm)</option><option value="legal">Legal (216 × 356 mm)</option></select>
+            <fieldset class="ps-orient">
+                <legend>Orientation</legend>
+                <label><input type="radio" name="ps-orient" id="ps-orient-portrait" value="portrait"> Portrait</label>
+                <label><input type="radio" name="ps-orient" id="ps-orient-landscape" value="landscape"> Landscape</label>
+            </fieldset>
+            <p id="ps-note" aria-live="polite"></p>
+        </div>
+        <div class="ps-actions">
+            <button id="ps-cancel">Cancel</button>
+            <button class="primary" id="ps-apply">Apply</button>
+        </div>
+    </div>
 </div>
 
 <!-- Help Overlay -->
@@ -306,6 +327,7 @@
 <script src="export.js?v={{{VERSION}}}"></script>
 <script src="borders.js?v={{{VERSION}}}"></script>
 <script src="wizard.js?v={{{VERSION}}}"></script>
+<script src="page_setup.js?v={{{VERSION}}}"></script>
 <script src="init.js?v={{{VERSION}}}"></script>
 <script>
 // Auto-reload on server restart (dev mode only)

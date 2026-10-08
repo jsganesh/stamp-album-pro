@@ -75,13 +75,8 @@ function parseDSL(dsl) {
         S.E = S._pages[state.currentPage] || [];
         S._currentPage = state.currentPage;
         S.sel = null;
-        // DOM updates
-        if (size.name) {
-            $("pg-size").value = size.name;
-            $("page").className = "page " + size.name;
-        } else {
-            $("page").className = "page";
-        }
+        // DOM updates (applyPageSize above sized the page and its label)
+        $("page").className = "page";
         if (state.colMode > 1) {
             $("col-mode").value = state.colMode;
             $("col-gap").value = state.colGap;

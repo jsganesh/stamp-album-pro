@@ -23,7 +23,9 @@ var _draftDebounceMs = 500;
 
 function saveDraft() {
     try {
-        var state = { v: 1, pages: _pages, currentPage: _currentPage, elements: E };
+        var pages = _pages.slice();
+        pages[_currentPage] = E;
+        var state = { v: 1, pages: pages, currentPage: _currentPage, elements: E, pw: _pw / _sc, ph: _ph / _sc };
         localStorage.setItem(_draftKey, JSON.stringify(state));
         if (_currentFile) localStorage.setItem(_draftFileKey, _currentFile);
         else localStorage.removeItem(_draftFileKey);
@@ -44,6 +46,7 @@ function loadDraft() {
         if (_currentPage >= _pages.length) _currentPage = _pages.length - 1;
         E = _pages[_currentPage] || [];
         sel = null;
+        if (state.pw > 0 && state.ph > 0) applyPageSize(state.pw, state.ph);
         var savedFile = localStorage.getItem(_draftFileKey);
         if (savedFile) _currentFile = savedFile;
         return true;
@@ -231,9 +234,7 @@ function newAlbum() {
     _currentPage = 0;
     _pages = [[]];
     _dirty = false;
-    _undoStack = [];
-    _redoStack = [];
-    _undoStack.push(JSON.stringify(E));
+    S.resetUndo();
     render();
     updateProps();
     renderPageDots();
@@ -370,6 +371,8 @@ function exportPDF() {
 // ── Page size: single place that sizes the on-screen page from millimetres ──
 // The page element used to be sized only by a CSS class (.a4 etc.), so a
 // landscape or custom-size album loaded from DSL kept the portrait A4 box.
+// Also keeps everything that depends on the page size in step: the Page
+// setup button label, the grid and the page border.
 function applyPageSize(wmm, hmm) {
     _pw = wmm * _sc;
     _ph = hmm * _sc;
@@ -378,6 +381,11 @@ function applyPageSize(wmm, hmm) {
         pg.style.width = _pw + "px";
         pg.style.height = _ph + "px";
     }
+    var btn = document.getElementById("btn-page-setup");
+    var core = window.StampAlbumDSL;
+    if (btn && core && core.describePageSize) btn.textContent = core.describePageSize(wmm, hmm).label;
+    if (S.updateGrid) S.updateGrid();
+    if (S.renderPageBorder) S.renderPageBorder(_pageBorder);
 }
 
 // ── Template list ──
