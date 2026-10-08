@@ -229,8 +229,50 @@ function parseDSL(dsl) {
     return state;
 }
 
+// ── Page sizes (mm) ──
+var PAPER_MM = { a4: [210, 297], a5: [148, 210], a3: [297, 420], letter: [215.9, 279.4], legal: [215.9, 355.6] };
+// Up to v0.2.0 the editor treated PDF points as pixels at 2.5 px/mm, so albums saved
+// from it carry (points / 2.5) instead of millimetres.
+var LEGACY_PAGE_MM = { a4: [238.0, 336.8], a5: [168.0, 238.0], a3: [336.8, 476.4], letter: [244.8, 316.8], legal: [244.8, 403.6] };
+var PAGE_TOL_MM = 0.5;
+
+function sizeNear(w, h, size) {
+    return Math.abs(w - size[0]) <= PAGE_TOL_MM && Math.abs(h - size[1]) <= PAGE_TOL_MM;
+}
+
+// Map a page size read from a file onto a real paper size.
+// Returns { name, pw, ph, migrated, landscape }; name is a paper key for portrait pages, else null.
+function normalizePageSize(pw, ph) {
+    var groups = [{ table: PAPER_MM, migrated: false }, { table: LEGACY_PAGE_MM, migrated: true }];
+    for (var g = 0; g < groups.length; g++) {
+        var names = Object.keys(groups[g].table);
+        for (var i = 0; i < names.length; i++) {
+            var name = names[i], size = groups[g].table[name], paper = PAPER_MM[name];
+            if (sizeNear(pw, ph, size)) {
+                return { name: name, pw: paper[0], ph: paper[1], migrated: groups[g].migrated, landscape: false };
+            }
+            if (sizeNear(pw, ph, [size[1], size[0]])) {
+                return { name: null, pw: paper[1], ph: paper[0], migrated: groups[g].migrated, landscape: true };
+            }
+        }
+    }
+    return { name: null, pw: pw, ph: ph, migrated: false, landscape: false };
+}
+
+// Count elements (in mm) that extend past a width x height page.
+function countOutside(pages, width, height) {
+    var n = 0;
+    for (var pi = 0; pi < pages.length; pi++) {
+        for (var ei = 0; ei < pages[pi].length; ei++) {
+            var el = pages[pi][ei];
+            if (el.x + el.w > width + 0.5 || el.y + el.h > height + 0.5) n++;
+        }
+    }
+    return n;
+}
+
 // ── Exports ──
-var EXPORTS = { escapeDSL: escapeDSL, serializeEl: serializeEl, buildDSL: buildDSL, parseDSL: parseDSL };
+var EXPORTS = { escapeDSL: escapeDSL, serializeEl: serializeEl, buildDSL: buildDSL, parseDSL: parseDSL, normalizePageSize: normalizePageSize, countOutside: countOutside };
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = EXPORTS;
 }

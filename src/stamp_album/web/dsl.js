@@ -55,6 +55,10 @@ function parseDSL(dsl) {
     var state = CORE.parseDSL(dsl);
     // Apply state to S (convert mm → px)
     function applyState() {
+        // Map the file's page size onto a real paper size (also repairs albums saved by v0.2.0 and earlier)
+        var size = CORE.normalizePageSize(state.pw, state.ph);
+        var outside = size.migrated ? CORE.countOutside(state.pages, size.pw, size.ph) : 0;
+        state.pw = size.pw; state.ph = size.ph;
         for (var pi = 0; pi < state.pages.length; pi++) {
             for (var ei = 0; ei < state.pages[pi].length; ei++) {
                 var el = state.pages[pi][ei];
@@ -72,8 +76,11 @@ function parseDSL(dsl) {
         S._currentPage = state.currentPage;
         S.sel = null;
         // DOM updates
-        if (state.pw === 210 && state.ph === 297) {
-            $("pg-size").value = "a4";
+        if (size.name) {
+            $("pg-size").value = size.name;
+            $("page").className = "page " + size.name;
+        } else {
+            $("page").className = "page";
         }
         if (state.colMode > 1) {
             $("col-mode").value = state.colMode;
@@ -87,6 +94,10 @@ function parseDSL(dsl) {
         S.updateProps();
         S.updateGrid();
         S.updateTitle();
+        if (size.migrated) {
+            showToast("Page size corrected to " + size.pw + " x " + size.ph + " mm (older versions saved it oversized)." +
+                (outside ? " " + outside + " element" + (outside === 1 ? "" : "s") + " now extend past the page edge." : ""), "info");
+        }
     }
     applyState();
 }
