@@ -20,7 +20,7 @@ from stamp_album.engines.borders import (
     ORNAMENTAL_STYLES,
     get_ornament_segments,
     edge_pattern_segments,
-    regular_polygon_vertices,
+    polygon_points,
 )
 from stamp_album.engines import text_layout
 from stamp_album.engines.layout import layout_rows
@@ -141,16 +141,8 @@ def _draw_shape(draw: ImageDraw.ImageDraw, x: float, y: float, w: float, h: floa
     """Draw a stamp shape on a Pillow ImageDraw (top-left origin)."""
     if shape == StampShape.OVAL:
         draw.ellipse([x, y, x + w, y + h], fill=fill_rgb, outline=border_rgb, width=1)
-    elif shape == StampShape.DIAMOND:
-        pts = [(x + w / 2, y), (x + w, y + h / 2), (x + w / 2, y + h), (x, y + h / 2)]
-        draw.polygon(pts, fill=fill_rgb, outline=border_rgb)
-    elif shape == StampShape.TRIANGLE:
-        pts = [(x + w / 2, y), (x + w, y + h), (x, y + h)]
-        draw.polygon(pts, fill=fill_rgb, outline=border_rgb)
-    elif shape in (StampShape.HEXAGON, StampShape.OCTAGON, StampShape.PENTAGON):
-        n_map = {StampShape.HEXAGON: 6, StampShape.OCTAGON: 8, StampShape.PENTAGON: 5}
-        verts = regular_polygon_vertices(x + w / 2, y + h / 2, w / 2, h / 2, n_map[shape])
-        draw.polygon(verts, fill=fill_rgb, outline=border_rgb)
+    elif polygon_points(shape.name, x, y, w, h):
+        draw.polygon(polygon_points(shape.name, x, y, w, h), fill=fill_rgb, outline=border_rgb)
     else:  # RECTANGLE
         draw.rectangle([x, y, x + w, y + h], fill=fill_rgb, outline=border_rgb, width=1)
 
@@ -170,9 +162,13 @@ def _draw_multiline_text(draw: ImageDraw.ImageDraw, x: float, y: float, w: float
         draw.text((line_x, start_y + i * line_height), line, fill=(51, 51, 51), font=font)
 
 
-def _draw_stamp(draw: ImageDraw.ImageDraw, stamp: Stamp, album: Album, font_size_pt: float):
-    """Draw a single stamp on Pillow."""
-    scale = font_size_pt / 12.0  # approximate, caller sets this
+def _draw_stamp(draw: ImageDraw.ImageDraw, stamp: Stamp, album: Album, px_per_mm: float):
+    """Draw a single stamp on Pillow (stamp geometry already in pixels).
+
+    All font sizes are points, converted to pixels at *px_per_mm*; label,
+    heading, catalogue and footer placement mirror the PDF engine.
+    """
+    pt_px = px_per_mm * 25.4 / 72.0  # pixels per typographic point
     x = stamp.abs_x
     y = stamp.abs_y
     w = stamp.width
@@ -205,34 +201,30 @@ def _draw_stamp(draw: ImageDraw.ImageDraw, stamp: Stamp, album: Album, font_size
                 pass
 
     if stamp.description and not stamp.image_path:
-        font = _resolve_pillow_font(stamp.font_id or "HN", (stamp.font_size or 12) * 0.9)
-        _draw_multiline_text(draw, x, y, w, h, stamp.description, font,
-                             (stamp.font_size or 12) * 0.9, center=True)
+        label_px = (stamp.font_size or 12) * 0.9 * pt_px
+        font = _resolve_pillow_font(stamp.font_id or "HN", label_px)
+        _draw_multiline_text(draw, x, y, w, h, stamp.description, font, label_px, center=True)
 
-    # Philatelic data: heading above stamp
+    mm = px_per_mm
+
+    def _centered_baseline(text: str, font, baseline_y: float, fill):
+        tw = draw.textlength(text, font=font)
+        draw.text((x + (w - tw) / 2, baseline_y), text, fill=fill, font=font, anchor="ls")
+
+    # Philatelic data: heading above the stamp
     if stamp.heading and stamp.heading.text:
-        hdg_font = _resolve_pillow_font(stamp.heading.font_id or "HN", stamp.heading.size or 9)
-        hdg_size = stamp.heading.size or 9
-        hdg_y = y + h + int(hdg_size * 0.4)
-        _, _, tw, _ = draw.textbbox((0, 0), stamp.heading.text, font=hdg_font)
-        draw.text((x + (w - tw) / 2, hdg_y), stamp.heading.text, fill=(51, 51, 51), font=hdg_font)
+        hdg_font = _resolve_pillow_font(stamp.heading.font_id or "HN", (stamp.heading.size or 9) * pt_px)
+        _centered_baseline(stamp.heading.text, hdg_font, y - 1 * mm, (51, 51, 51))
 
-    # Catalog references below stamp
+    # Catalogue references below the stamp
     if stamp.catalog_refs:
-        cat_font = _resolve_pillow_font("HN", 8)
-        cat_text = " · ".join(stamp.catalog_refs)
-        cat_y = y + h - h + int(-3.5 * 2.83)  # ~3.5mm below stamp bottom
-        # Calculate from bottom of stamp
-        cat_y = y + h + 4
-        _, _, tw, _ = draw.textbbox((0, 0), cat_text, font=cat_font)
-        draw.text((x + (w - tw) / 2, cat_y), cat_text, fill=(102, 102, 102), font=cat_font)
+        cat_font = _resolve_pillow_font("HN", 8 * pt_px)
+        _centered_baseline(" · ".join(stamp.catalog_refs), cat_font, y + h + 3.5 * mm, (102, 102, 102))
 
     # Footer (denomination + condition + perforation)
     if stamp.footer_text:
-        ft_font = _resolve_pillow_font("HN", 8)
-        ft_y = y + h + 2
-        _, _, tw, _ = draw.textbbox((0, 0), stamp.footer_text, font=ft_font)
-        draw.text((x + (w - tw) / 2, ft_y), stamp.footer_text, fill=(77, 77, 77), font=ft_font)
+        ft_font = _resolve_pillow_font("HN", 8 * pt_px)
+        _centered_baseline(stamp.footer_text, ft_font, y + h + 1.5 * mm, (77, 77, 77))
 
 
 def _draw_text_element(draw: ImageDraw.ImageDraw, stamp: Stamp, px_per_mm: float):
@@ -453,7 +445,7 @@ class PNGGenerator:
                 stamp.width = stamp.width * scale
                 stamp.height = stamp.height * scale
                 try:
-                    _draw_stamp(draw, stamp, album, stamp.font_size or 12)
+                    _draw_stamp(draw, stamp, album, scale)
                 finally:
                     stamp.abs_x, stamp.abs_y, stamp.width, stamp.height = orig_ax, orig_ay, orig_w, orig_h
 
@@ -470,7 +462,7 @@ class PNGGenerator:
                     if stamp.is_text_element:
                         _draw_text_element(draw, stamp, scale)
                     else:
-                        _draw_stamp(draw, stamp, album, stamp.font_size or 12)
+                        _draw_stamp(draw, stamp, album, scale)
                 finally:
                     stamp.abs_x, stamp.abs_y, stamp.width, stamp.height = orig_x, orig_y, orig_w, orig_h
 

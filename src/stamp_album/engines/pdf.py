@@ -24,7 +24,7 @@ from stamp_album.engines.borders import (
     ORNAMENTAL_STYLES,
     get_ornament_segments,
     edge_pattern_segments,
-    regular_polygon_vertices,
+    polygon_points,
 )
 from stamp_album.engines import text_layout
 from stamp_album.engines.layout import layout_rows
@@ -133,29 +133,9 @@ def _draw_stamp_shape(
         c.circle(0, 0, rx, fill=1, stroke=1)
         c.restoreState()
 
-    elif shape == StampShape.DIAMOND:
-        cx, cy = x + w / 2, y + h / 2
-        pts = [(cx, y), (x + w, cy), (cx, y + h), (x, cy)]
-        p = c.beginPath()
-        p.moveTo(*pts[0])
-        for pt in pts[1:]:
-            p.lineTo(*pt)
-        p.close()
-        c.drawPath(p, fill=1, stroke=1)
-
-    elif shape == StampShape.TRIANGLE:
-        pts = [(x + w / 2, y), (x + w, y + h), (x, y + h)]
-        p = c.beginPath()
-        p.moveTo(*pts[0])
-        for pt in pts[1:]:
-            p.lineTo(*pt)
-        p.close()
-        c.drawPath(p, fill=1, stroke=1)
-
-    elif shape in (StampShape.HEXAGON, StampShape.OCTAGON, StampShape.PENTAGON):
-        n_map = {StampShape.HEXAGON: 6, StampShape.OCTAGON: 8, StampShape.PENTAGON: 5}
-        n = n_map[shape]
-        verts = regular_polygon_vertices(x + w / 2, y + h / 2, w / 2, h / 2, n)
+    elif polygon_points(shape.name, 0, 0, 1, 1):
+        # Canonical outlines are top-left / y-down; PDF is y-up, so flip within the box.
+        verts = [(px, y + h - py) for px, py in polygon_points(shape.name, x, 0, w, h)]
         p = c.beginPath()
         p.moveTo(*verts[0])
         for v in verts[1:]:
