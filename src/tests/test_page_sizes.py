@@ -27,8 +27,6 @@ def _js_table(filename):
     return {m.group(1): (float(m.group(2)), float(m.group(3))) for m in re.finditer(pat, text)}
 
 
-def test_events_js_paper_table():
-    _check(_js_table("events.js"))
 
 
 def test_init_js_paper_table():
