@@ -366,11 +366,13 @@ function init() {
     $("def-bdr").addEventListener("change", function() {
         S._pageBorder = this.value;
         if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
+        S.scheduleDraftSave();
         S.schedulePreviewRefresh();
     });
     $("def-bdr-c").addEventListener("change", function() {
         S._pageBorderC = this.value;
         if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
+        S.scheduleDraftSave();
         S.schedulePreviewRefresh();
     });
     $("def-fill-c").addEventListener("change", function() {
@@ -678,6 +680,8 @@ function init() {
     S.renderPageDots();
     S.updateGrid();
     if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
+    $("def-bdr").value = S._pageBorder || "none";  // a restored draft may carry a page border
+    if (S._pageBorderC) $("def-bdr-c").value = S._pageBorderC;
     loadFileList();
     loadImageList();
     S.updateTitle();

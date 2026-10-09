@@ -25,7 +25,8 @@ function saveDraft() {
     try {
         var pages = _pages.slice();
         pages[_currentPage] = E;
-        var state = { v: 1, pages: pages, currentPage: _currentPage, elements: E, pw: _pw / _sc, ph: _ph / _sc };
+        var state = { v: 1, pages: pages, currentPage: _currentPage, elements: E, pw: _pw / _sc, ph: _ph / _sc,
+                      pageBorder: _pageBorder || "", pageBorderC: _pageBorderC || "" };
         localStorage.setItem(_draftKey, JSON.stringify(state));
         if (_currentFile) localStorage.setItem(_draftFileKey, _currentFile);
         else localStorage.removeItem(_draftFileKey);
@@ -47,6 +48,9 @@ function loadDraft() {
         E = _pages[_currentPage] || [];
         sel = null;
         if (state.pw > 0 && state.ph > 0) applyPageSize(state.pw, state.ph);
+        // The page border is part of the album (drafts saved before it was kept have none).
+        _pageBorder = state.pageBorder || "";
+        _pageBorderC = state.pageBorderC || "";
         var savedFile = localStorage.getItem(_draftFileKey);
         if (savedFile) _currentFile = savedFile;
         return true;

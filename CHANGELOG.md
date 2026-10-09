@@ -26,6 +26,13 @@ All notable changes to this project are documented here. The format follows [Kee
 - Dead `canvas.js` (not loaded) and `events.js` (loaded but never run), both superseded by `render.js` and `init.js`
 
 ### Fixed
+- Saving an album to a file lost each stamp's heading, catalogue number, denomination, condition and perforation, and a rectangle stamp's border settings (they survived a browser reload but not Save and Open). They are now written to the file; older versions of the app skip the new lines
+- Exports made from a saved file printed empty catalogue fields ("SG 10 ·  · sacc 10")
+- A browser reload dropped the page border
+- Every opened album gained a blank first page and opened on its last page; the first-run sample showed "Page 2 of 2"
+- Toasts stacked when two messages came close together; a new one now replaces the one showing
+- The Properties panel ran past its right edge at 1440 px with an element selected
+- The Keyboard shortcuts dialog listed keys that did nothing (Ctrl+P, Ctrl+N, Ctrl+L/E/R; in a browser these hit the address bar, open a window or reload) and missed Ctrl+D; F5 is now listed once, as Preview
 - Backspace while editing a stamp's label on the page asked to delete the whole stamp
 - The Import section's ▼ toggle did nothing
 - A collapsed sidebar or Properties panel left its controls reachable by Tab while hidden; the handle that reopens it can now be reached from the keyboard

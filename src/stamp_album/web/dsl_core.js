@@ -16,12 +16,17 @@ function serializeEl(el) {
     } else if (el.t === "text") {
         return 'PAGE_TEXT_AT(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + (el.font || "HN") + '" ' + (el.fs || 12) + ' "' + (el.lbl || "Text") + '" "' + (el.align || "left") + '")';
     } else {
-        var shape = el.s || "rectangle";
-        if (shape === "rectangle" || shape === "rect") {
-            // Short format — no extended fields, so album default colors are used
-            return 'STAMP_ADD_AT(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + (el.lbl || "") + '" "" "" "")';
+        // Every stamp, rectangles included, is written in the extended format so its border
+        // and fill are kept. The first catalogue field holds the catalogue number.
+        var shape = el.s === "rect" ? "rectangle" : (el.s || "rectangle");
+        var lines = ['STAMP_ADD_AT(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + (el.lbl || "") + '" "' + (el.cat || "") + '" "" "" ' + shape + ' "' + (el.bdr || "solid") + '" "' + (el.bdrC || "#000") + '" ' + (el.bdrW != null ? el.bdrW : 0.5) + ' "' + (el.fill || "#FEFEFE") + '" ' + (el.fillA != null ? el.fillA : 100) + ')'];
+        // Heading above the stamp (a command the Python parser and exports already read)
+        if (el.hdg) lines.push('STAMP_HEADING("HN" 9 "' + el.hdg + '")');
+        // Denomination, condition, perforation. Older versions skip this line.
+        if (el.denom || el.cond || el.perf) {
+            lines.push('STAMP_DETAILS("' + (el.denom || "") + '" "' + (el.cond || "") + '" "' + (el.perf || "") + '")');
         }
-        return 'STAMP_ADD_AT(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + (el.lbl || "") + '" "" "" "" ' + shape + ' "' + (el.bdr || "solid") + '" "' + (el.bdrC || "#000") + '" ' + (el.bdrW || 0.5) + ' "' + (el.fill || "#FEFEFE") + '" ' + (el.fillA != null ? el.fillA : 100) + ')';
+        return lines.join("\n");
     }
 }
 
@@ -88,6 +93,7 @@ function parseDSL(dsl) {
     var currentElements = [];
     var nid = 0;
     var sawPageStart = false;
+    var lastStamp = null;  // the stamp a STAMP_HEADING or STAMP_DETAILS line describes
 
     var lines = dsl.split("\n");
     for (var i = 0; i < lines.length; i++) {
@@ -130,6 +136,7 @@ function parseDSL(dsl) {
                 state.currentPage = state.pages.length - 1;
             }
             sawPageStart = true;
+            lastStamp = null;
             _rowX = _pageMargin;
             _rowY = 12;
             continue;
@@ -194,7 +201,27 @@ function parseDSL(dsl) {
                 fill = mAt[8] || "#FEFEFE";
                 fillA = 100;
             }
-            currentElements.push({ id: "el" + (nid++), t: "stamp", s: shape, x: parseFloat(mAt[1]), y: parseFloat(mAt[2]), w: parseFloat(mAt[3]), h: parseFloat(mAt[4]), lbl: mAt[5] || "", bdr: bdr, bdrC: bdrC, bdrW: bdrW, fill: fill, fillA: fillA, img: "", font: "HN", fs: 12 });
+            lastStamp = { id: "el" + (nid++), t: "stamp", s: shape, x: parseFloat(mAt[1]), y: parseFloat(mAt[2]), w: parseFloat(mAt[3]), h: parseFloat(mAt[4]), lbl: mAt[5] || "", bdr: bdr, bdrC: bdrC, bdrW: bdrW, fill: fill, fillA: fillA, img: "", font: "HN", fs: 12 };
+            // In the extended format the first catalogue field is the catalogue number
+            // (free shapes use it for their marker).
+            if (ext && shape !== "freehand" && mAt[6]) lastStamp.cat = mAt[6];
+            currentElements.push(lastStamp);
+            continue;
+        }
+
+        // Heading and details lines belong to the stamp just before them.
+        var mHdg = t.match(/^STAMP_HEADING\(\s*"([^"]*)"\s+([\d.]+)\s+(?:"?\w+"?\s+)?"([^"]*)"\s*\)/);
+        if (mHdg) {
+            if (lastStamp) lastStamp.hdg = mHdg[3];
+            continue;
+        }
+        var mDet = t.match(/^STAMP_DETAILS\(\s*"([^"]*)"\s+"([^"]*)"\s+"([^"]*)"\s*\)/);
+        if (mDet) {
+            if (lastStamp) {
+                if (mDet[1]) lastStamp.denom = mDet[1];
+                if (mDet[2]) lastStamp.cond = mDet[2];
+                if (mDet[3]) lastStamp.perf = mDet[3];
+            }
             continue;
         }
 

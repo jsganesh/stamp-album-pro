@@ -656,8 +656,6 @@ class AlbumParser:
                 catalog_refs = []
                 for j in range(5, min(len(params), 8)):
                     catalog_refs.append(unquote(params[j]))
-                while len(catalog_refs) < 3:
-                    catalog_refs.append("")
                 shape = StampShape.RECTANGLE
                 if len(params) > 8 and params[8]:
                     try:
@@ -691,6 +689,10 @@ class AlbumParser:
                     border_color=border_color,
                     fill_color=fill_color,
                 )
+                # Empty catalogue fields (and a free shape's marker) are not catalogue numbers;
+                # the exports print every entry, so keep only real ones.
+                is_freehand = len(params) > 8 and params[8].lower() == "freehand"
+                stamp.catalog_refs = [] if is_freehand else [r for r in catalog_refs if r]
                 if not hasattr(current_page, "absolute_stamps"):
                     current_page.absolute_stamps = []
                 current_page.absolute_stamps.append(stamp)
@@ -780,6 +782,11 @@ class AlbumParser:
                         text=text,
                         vertical_alignment=v_align,
                     )
+            elif cmd == "STAMP_DETAILS":
+                # STAMP_DETAILS ("denomination" "condition" "perforation"), written after a stamp
+                if current_stamp:
+                    parts = [unquote(p) for p in params[:3]]
+                    current_stamp.footer_text = " · ".join(p for p in parts if p)
             elif cmd == "STAMP_HEADING_PADDING":
                 album.page_setup.heading_padding = float(params[0])
             elif cmd == "STAMP_BORDER_STYLE":
