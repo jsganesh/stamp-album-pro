@@ -1,10 +1,10 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.15' and sys_platform == 'emscripten'",
-    "python_full_version >= '3.12' and python_full_version < '3.15' and sys_platform == 'emscripten'",
     "python_full_version >= '3.15' and sys_platform != 'emscripten'",
+    "python_full_version >= '3.12' and python_full_version < '3.15' and sys_platform == 'emscripten'",
     "(python_full_version >= '3.11' and python_full_version < '3.15' and sys_platform != 'emscripten') or (python_full_version == '3.11.*' and sys_platform == 'emscripten')",
     "python_full_version < '3.11'",
 ]
@@ -112,6 +112,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/38/6b/3299182794d38815ae6e9c7ede9bb8f2e4aa93c3578bed201c1ea746643a/ast_serialize-0.12.1-cp39-abi3-win32.whl", hash = "sha256:119d1b0cadaba4a6e475f9bbe79eecc79351e373142eabe7c353f0250d70aebb", size = 1125618, upload-time = "2026-10-03T12:24:55.405Z" },
     { url = "https://files.pythonhosted.org/packages/86/14/5d4fb733c18a1d69e237c067b183842f3a7ea1c999a51ddc87093a281c88/ast_serialize-0.12.1-cp39-abi3-win_amd64.whl", hash = "sha256:3d6ed63d4fc1ec867b8cb522d58c36df0e8f05e487bea0ffd102043a37636d72", size = 1165798, upload-time = "2026-10-03T12:24:57.052Z" },
     { url = "https://files.pythonhosted.org/packages/f1/f4/b54123680025c0b7253117418f023d1b2487f1102552acbdd9d8ee96b622/ast_serialize-0.12.1-cp39-abi3-win_arm64.whl", hash = "sha256:610a41351de68199de9a1434499083b4256c0df7658ec1cfc0a0a7b20b08d317", size = 1136560, upload-time = "2026-10-03T12:24:58.689Z" },
+]
+
+[[package]]
+name = "axe-playwright-python"
+version = "0.1.8"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "playwright" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4c/3a/0ac4e97b92a3f8dc98f7dfb3b68c3e8d3811eda630000ccf4f7654e3498a/axe_playwright_python-0.1.8.tar.gz", hash = "sha256:97de160210fd5ce51e552d21d3b0a1cabb850235942737643ee3b9398de81a47", size = 194644, upload-time = "2026-07-24T20:11:06.699Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4c/c6/5fdb6d5d96653927b6a4763a4b7aaa9e468d4a6eda5048b7c2e158d17bc9/axe_playwright_python-0.1.8-py3-none-any.whl", hash = "sha256:fdd263c998388f1a8e67cad02677e612d946248bd44d163be5e8650ea31f95f8", size = 160681, upload-time = "2026-07-24T20:11:05.228Z" },
 ]
 
 [[package]]
@@ -520,8 +532,8 @@ version = "4.66.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15' and sys_platform == 'emscripten'",
-    "python_full_version >= '3.12' and python_full_version < '3.15' and sys_platform == 'emscripten'",
     "python_full_version >= '3.15' and sys_platform != 'emscripten'",
+    "python_full_version >= '3.12' and python_full_version < '3.15' and sys_platform == 'emscripten'",
     "(python_full_version >= '3.11' and python_full_version < '3.15' and sys_platform != 'emscripten') or (python_full_version == '3.11.*' and sys_platform == 'emscripten')",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/87/b6/126c659ab7e0e03e01a5f5d223abf7b2c0691ae92718085a212a3924a2a3/fonttools-4.66.1.tar.gz", hash = "sha256:64967c6ddb0d4c610dfd8cb1485981b2d27972ddfb7d4bbbd9e199d2a089c450", size = 3694174, upload-time = "2026-09-29T16:11:53.706Z" }
@@ -1818,6 +1830,7 @@ dependencies = [
 
 [package.optional-dependencies]
 dev = [
+    { name = "axe-playwright-python" },
     { name = "black" },
     { name = "httpx2" },
     { name = "mypy" },
@@ -1833,6 +1846,7 @@ legacy = [
 
 [package.metadata]
 requires-dist = [
+    { name = "axe-playwright-python", marker = "extra == 'dev'", specifier = ">=0.1.7" },
     { name = "black", marker = "extra == 'dev'", specifier = ">=23.0" },
     { name = "fastapi", specifier = ">=0.110" },
     { name = "fonttools", specifier = ">=4.40" },
@@ -2114,8 +2128,8 @@ version = "17.2"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.15' and sys_platform == 'emscripten'",
-    "python_full_version >= '3.12' and python_full_version < '3.15' and sys_platform == 'emscripten'",
     "python_full_version >= '3.15' and sys_platform != 'emscripten'",
+    "python_full_version >= '3.12' and python_full_version < '3.15' and sys_platform == 'emscripten'",
     "(python_full_version >= '3.11' and python_full_version < '3.15' and sys_platform != 'emscripten') or (python_full_version == '3.11.*' and sys_platform == 'emscripten')",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/01/89/3f825ab71c242fffb62ea8fe638741c290f62f8d7aadf8125ff897747af3/websockets-17.2.tar.gz", hash = "sha256:36c2fb94c990cc2545143b12690e2de6c16300f9dbe5b4f33fa300cf57dc8792", size = 188355, upload-time = "2026-10-03T14:56:53.5Z" }

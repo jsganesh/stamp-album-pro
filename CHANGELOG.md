@@ -5,6 +5,9 @@ All notable changes to this project are documented here. The format follows [Kee
 ## [Unreleased]
 
 ### Added
+- Keyboard access to items on the page (UI and UX audit, item 4): every stamp, text and image is a tab stop named for screen readers (for example "Rectangle stamp, Penny Black, 40 × 30 mm at 20, 25 mm"); focusing one selects it. Arrow keys move the selected item one grid step (1 mm with the grid off), Shift+arrow 10 mm, each press one undo step; Enter jumps to its properties; Delete moves focus to the next item. Listed under View › Keyboard shortcuts
+- Accessibility pass (UI and UX audit, item 4): every Properties and wizard field is tied to its label, with clear spoken names such as "Border width" and "Fill opacity"; icon and emoji buttons have word names ("Close the wizard", "Remove image"); Images-panel tiles, file-list rows, page dots, template cards, the section and panel toggles, Upload image and the preview's Export menu are real buttons that work with Tab, Enter and Space, with a visible focus ring. Headings and landmarks for screen-reader navigation; toasts are announced
+- Automated axe-core scan of the editor and its dialogs in the browser tests (`test_accessibility.py`, via `axe-playwright-python` in the dev extra), so new markup without a label or name fails CI
 - Palette click-to-add (UI and UX audit, item 3): clicking a palette item, or pressing Enter or Space on it, adds it at the centre of the page. Each repeat steps 10 mm right and down so items don't stack, staying on the grid and inside the page. Tapping on a touch screen does the same; clicking an image in the Images panel also adds it at the centre. Palette items are now keyboard-focusable buttons named "Add …"
 - A short palette hint ("Click an item to add it to the page, or drag it where you want it") that hides after the first item is added and comes back when the user seems stuck: 20 seconds without input on an empty page, a palette drag let go away from the page, or three clicks on an empty page within 4 seconds
 - Page setup dialog (the **Page** button above the canvas, which now shows the size, for example "A4 · Landscape"): change the open album's paper size and orientation without starting a new album. Elements that would fall outside the new page are moved inside it as a group, keeping their arrangement; their sizes never change, so mounts still match the stamps. The dialog says beforehand how many elements will move and warns if some will overlap or are larger than the page. Applying is one undo step
@@ -23,6 +26,10 @@ All notable changes to this project are documented here. The format follows [Kee
 - Dead `canvas.js` (not loaded) and `events.js` (loaded but never run), both superseded by `render.js` and `init.js`
 
 ### Fixed
+- Backspace while editing a stamp's label on the page asked to delete the whole stamp
+- The Import section's ▼ toggle did nothing
+- A collapsed sidebar or Properties panel left its controls reachable by Tab while hidden; the handle that reopens it can now be reached from the keyboard
+- An image's delete button never showed on touch screens
 - Dropping a palette item on the page by touch ignored the grid setting, and with the grid off placed it at an invalid position
 - An element added at the very left or top edge (x or y of 0) was moved to 50 px
 - Dragging with Snap set to Off lost the stamp's position (the step was divided by zero)

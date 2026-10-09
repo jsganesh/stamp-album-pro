@@ -17,11 +17,11 @@
 <body>
 
 <header id="tb">
-    <span class="logo"><span class="logo-long">StampAlbum Pro</span><span class="logo-short" aria-hidden="true">StampAlbum</span></span>
+    <h1 class="logo"><span class="logo-long">StampAlbum Pro</span><span class="logo-short" aria-hidden="true">StampAlbum</span></h1>
     <nav class="tb-menus" aria-label="Main menu">
-        <div class="tb-menu"><button class="tb-mbtn" id="menu-file-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-file">File <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="tb-menu-list" id="menu-file" role="menu" aria-label="File" hidden><button class="mi" role="menuitem" id="btn-new">New album</button><button class="mi" role="menuitem" id="btn-wizard">New from wizard…</button><button class="mi" role="menuitem" id="menu-template">New from template…</button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="btn-open">Open…<span class="mk">⌘O</span></button><button class="mi" role="menuitem" id="btn-save">Save<span class="mk">⌘S</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-page-setup">Page setup…</button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-export-pdf" data-fmt="pdf">Export as PDF</button><button class="mi" role="menuitem" id="menu-export-png" data-fmt="png">Export as PNG</button><button class="mi" role="menuitem" id="menu-export-svg" data-fmt="svg">Export as SVG</button><button class="mi" role="menuitem" id="menu-export-html" data-fmt="html">Export as HTML</button></div></div>
-        <div class="tb-menu"><button class="tb-mbtn" id="menu-edit-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-edit">Edit <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="tb-menu-list" id="menu-edit" role="menu" aria-label="Edit" hidden><button class="mi" role="menuitem" id="menu-undo">Undo<span class="mk">⌘Z</span></button><button class="mi" role="menuitem" id="menu-redo">Redo<span class="mk">⇧⌘Z</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-dup">Duplicate<span class="mk">⌘D</span></button><button class="mi" role="menuitem" id="menu-grid">Grid fill…</button><button class="mi" role="menuitem" id="menu-del">Delete<span class="mk">Del</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-add-page">Add page</button><button class="mi" role="menuitem" id="menu-del-page">Delete page</button></div></div>
-        <div class="tb-menu"><button class="tb-mbtn" id="menu-view-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-view">View <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="tb-menu-list" id="menu-view" role="menu" aria-label="View" hidden><button class="mi" role="menuitem" id="menu-preview">Preview<span class="mk">F5</span></button><button class="mi" role="menuitem" id="btn-dsl">DSL editor</button><div class="msep" role="separator"></div><button class="mi" id="btn-snap" role="menuitemcheckbox" aria-checked="false"><span class="mcheck" aria-hidden="true"></span>Snap to guides</button><button class="mi" id="btn-large-text" role="menuitemcheckbox" aria-checked="false"><span class="mcheck" aria-hidden="true"></span>Large text</button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-tutorial">Show tutorial again</button><button class="mi" role="menuitem" id="btn-help">Keyboard shortcuts<span class="mk">?</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="btn-reset" data-danger="1">Reset app…</button></div></div>
+        <div class="tb-menu"><button class="tb-mbtn" id="menu-file-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-file">File <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="tb-menu-list" id="menu-file" role="menu" aria-label="File" hidden><button class="mi" role="menuitem" id="btn-new">New album</button><button class="mi" role="menuitem" id="btn-wizard">New from wizard…</button><button class="mi" role="menuitem" id="menu-template">New from template…</button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="btn-open" aria-keyshortcuts="Meta+O">Open…<span class="mk" aria-hidden="true">⌘O</span></button><button class="mi" role="menuitem" id="btn-save" aria-keyshortcuts="Meta+S">Save<span class="mk" aria-hidden="true">⌘S</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-page-setup">Page setup…</button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-export-pdf" data-fmt="pdf">Export as PDF</button><button class="mi" role="menuitem" id="menu-export-png" data-fmt="png">Export as PNG</button><button class="mi" role="menuitem" id="menu-export-svg" data-fmt="svg">Export as SVG</button><button class="mi" role="menuitem" id="menu-export-html" data-fmt="html">Export as HTML</button></div></div>
+        <div class="tb-menu"><button class="tb-mbtn" id="menu-edit-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-edit">Edit <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="tb-menu-list" id="menu-edit" role="menu" aria-label="Edit" hidden><button class="mi" role="menuitem" id="menu-undo" aria-keyshortcuts="Meta+Z">Undo<span class="mk" aria-hidden="true">⌘Z</span></button><button class="mi" role="menuitem" id="menu-redo" aria-keyshortcuts="Shift+Meta+Z">Redo<span class="mk" aria-hidden="true">⇧⌘Z</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-dup" aria-keyshortcuts="Meta+D">Duplicate<span class="mk" aria-hidden="true">⌘D</span></button><button class="mi" role="menuitem" id="menu-grid">Grid fill…</button><button class="mi" role="menuitem" id="menu-del" aria-keyshortcuts="Delete">Delete<span class="mk" aria-hidden="true">Del</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-add-page">Add page</button><button class="mi" role="menuitem" id="menu-del-page">Delete page</button></div></div>
+        <div class="tb-menu"><button class="tb-mbtn" id="menu-view-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-view">View <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="tb-menu-list" id="menu-view" role="menu" aria-label="View" hidden><button class="mi" role="menuitem" id="menu-preview" aria-keyshortcuts="F5">Preview<span class="mk" aria-hidden="true">F5</span></button><button class="mi" role="menuitem" id="btn-dsl">DSL editor</button><div class="msep" role="separator"></div><button class="mi" id="btn-snap" role="menuitemcheckbox" aria-checked="false"><span class="mcheck" aria-hidden="true"></span>Snap to guides</button><button class="mi" id="btn-large-text" role="menuitemcheckbox" aria-checked="false"><span class="mcheck" aria-hidden="true"></span>Large text</button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-tutorial">Show tutorial again</button><button class="mi" role="menuitem" id="btn-help" aria-keyshortcuts="?">Keyboard shortcuts<span class="mk" aria-hidden="true">?</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="btn-reset" data-danger="1">Reset app…</button></div></div>
     </nav>
     <span class="tb-sep"></span>
     <span id="file-name" title="Current file name"></span>
@@ -38,58 +38,58 @@
 
 <div id="main">
     <!-- Left Sidebar: Palette + Files + Images -->
-    <aside id="sidebar">
-        <div class="sec-title">Stamps <span class="sec-toggle" id="sb-toggle">◀</span></div>
+    <aside id="sidebar" aria-label="Stamps, images and files">
+        <h2 class="sec-title">Stamps <button type="button" class="sec-toggle" id="sb-toggle" aria-label="Hide the sidebar" aria-expanded="true" aria-controls="sidebar"><span aria-hidden="true">◀</span></button></h2>
         <div class="sec-body" id="sb-body">
             <p id="palette-hint" class="palette-hint" role="status">Click an item to add it to the page, or drag it where you want it.</p>
             <div class="palette">
-                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Rectangle" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="rectangle"><span class="icon">▬</span><span class="lbl">Rectangle</span></div>
-                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Oval" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="oval"><span class="icon">●</span><span class="lbl">Oval</span></div>
-                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Diamond" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="diamond"><span class="icon">◆</span><span class="lbl">Diamond</span></div>
-                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Triangle" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="triangle"><span class="icon">▲</span><span class="lbl">Triangle</span></div>
-                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Hexagon" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="hexagon"><span class="icon">⬡</span><span class="lbl">Hexagon</span></div>
-                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Octagon" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="octagon"><span class="icon">⯃</span><span class="lbl">Octagon</span></div>
-                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Pentagon" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="pentagon"><span class="icon">⬠</span><span class="lbl">Pentagon</span></div>
-                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Free Shape" title="Click to add at the page centre, or drag onto the page" data-t="freehand"><span class="icon">✎</span><span class="lbl">Free Shape</span></div>
+                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Rectangle" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="rectangle"><span class="icon" aria-hidden="true">▬</span><span class="lbl">Rectangle</span></div>
+                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Oval" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="oval"><span class="icon" aria-hidden="true">●</span><span class="lbl">Oval</span></div>
+                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Diamond" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="diamond"><span class="icon" aria-hidden="true">◆</span><span class="lbl">Diamond</span></div>
+                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Triangle" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="triangle"><span class="icon" aria-hidden="true">▲</span><span class="lbl">Triangle</span></div>
+                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Hexagon" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="hexagon"><span class="icon" aria-hidden="true">⬡</span><span class="lbl">Hexagon</span></div>
+                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Octagon" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="octagon"><span class="icon" aria-hidden="true">⯃</span><span class="lbl">Octagon</span></div>
+                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Pentagon" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="pentagon"><span class="icon" aria-hidden="true">⬠</span><span class="lbl">Pentagon</span></div>
+                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Free Shape" title="Click to add at the page centre, or drag onto the page" data-t="freehand"><span class="icon" aria-hidden="true">✎</span><span class="lbl">Free Shape</span></div>
             </div>
-            <div class="sec-title">Text</div>
+            <h2 class="sec-title">Text</h2>
             <div class="palette">
-                <div class="p-item wide" draggable="true" role="button" tabindex="0" aria-label="Add Label, HN 12pt" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="label" data-w="120" data-h="18"><span class="icon">🏷</span><span class="lbl">Label — HN 12pt</span></div>
-                <div class="p-item wide" draggable="true" role="button" tabindex="0" aria-label="Add Heading, HB 16pt" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="heading" data-w="140" data-h="24"><span class="icon"><b>H</b></span><span class="lbl">Heading — HB 16pt</span></div>
-                <div class="p-item wide" draggable="true" role="button" tabindex="0" aria-label="Add Description, HN 10pt" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="desc" data-w="160" data-h="16"><span class="icon">¶</span><span class="lbl">Description — HN 10pt</span></div>
+                <div class="p-item wide" draggable="true" role="button" tabindex="0" aria-label="Add Label, HN 12pt" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="label" data-w="120" data-h="18"><span class="icon" aria-hidden="true">🏷</span><span class="lbl">Label — HN 12pt</span></div>
+                <div class="p-item wide" draggable="true" role="button" tabindex="0" aria-label="Add Heading, HB 16pt" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="heading" data-w="140" data-h="24"><span class="icon" aria-hidden="true"><b>H</b></span><span class="lbl">Heading — HB 16pt</span></div>
+                <div class="p-item wide" draggable="true" role="button" tabindex="0" aria-label="Add Description, HN 10pt" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="desc" data-w="160" data-h="16"><span class="icon" aria-hidden="true">¶</span><span class="lbl">Description — HN 10pt</span></div>
             </div>
-            <div class="sec-title">Images <span class="sec-toggle" id="img-toggle">▼</span></div>
+            <h2 class="sec-title">Images <button type="button" class="sec-toggle" id="img-toggle" aria-label="Images" aria-expanded="true" aria-controls="img-body"><span aria-hidden="true">▼</span></button></h2>
             <div class="sec-body" id="img-body">
                 <div class="img-grid" id="img-grid"></div>
-                <div class="img-upl-btn" id="img-upl-btn">📤 Upload Image</div>
-                <input type="file" id="upl-inp" accept="image/*" hidden>
+                <button type="button" class="img-upl-btn" id="img-upl-btn"><span aria-hidden="true">📤 </span>Upload image</button>
+                <input type="file" id="upl-inp" accept="image/*" hidden aria-label="Image file">
             </div>
-            <div class="sec-title">Import <span class="sec-toggle" id="imp-toggle" data-target="imp-body">▼</span></div>
+            <h2 class="sec-title">Import <button type="button" class="sec-toggle" id="imp-toggle" aria-label="Import" aria-expanded="true" aria-controls="imp-body"><span aria-hidden="true">▼</span></button></h2>
             <div class="sec-body" id="imp-body">
                 <div class="imp-btns">
-                    <button class="file-btn" id="btn-import-csv">📊 Import CSV</button>
-                    <button class="file-btn" id="btn-import-excel">📈 Import Excel</button>
+                    <button class="file-btn" id="btn-import-csv"><span aria-hidden="true">📊 </span>Import CSV</button>
+                    <button class="file-btn" id="btn-import-excel"><span aria-hidden="true">📈 </span>Import Excel</button>
                 </div>
                 <div class="imp-hint">CSV or Excel file with columns: country, year, description, catalog_number, denomination, condition</div>
-                <input type="file" id="imp-inp" accept=".csv,.xlsx,.xls" hidden>
+                <input type="file" id="imp-inp" accept=".csv,.xlsx,.xls" hidden aria-label="CSV or Excel file">
             </div>
-            <div class="sec-title">Files <span class="sec-toggle" id="file-toggle">▼</span></div>
+            <h2 class="sec-title">Files <button type="button" class="sec-toggle" id="file-toggle" aria-label="Files" aria-expanded="true" aria-controls="file-body"><span aria-hidden="true">▼</span></button></h2>
             <div class="sec-body" id="file-body">
                 <div class="file-list" id="file-list"></div>
-                <button class="file-btn" id="btn-new-file">✚ New Album</button>
+                <button class="file-btn" id="btn-new-file"><span aria-hidden="true">✚ </span>New album</button>
             </div>
         </div>
     </aside>
 
-    <div class="panel-handle" id="sb-handle"></div>
+    <button type="button" class="panel-handle" id="sb-handle" aria-label="Hide the sidebar" aria-controls="sidebar" aria-expanded="true"></button>
 
     <!-- Canvas Area -->
-    <section id="ca">
+    <main id="ca">
         <div id="ca-toolbar">
             <span class="ca-group">
                 <label for="btn-page-setup">Page</label>
                 <button id="btn-page-setup" title="Page setup: paper size and orientation">A4 · Portrait</button>
-                <div id="pg-dots"></div>
+                <div id="pg-dots" role="group" aria-label="Pages"></div>
             </span>
             <span class="ca-group">
                 <label for="grid">Snap</label>
@@ -115,90 +115,90 @@
             </span>
         </div>
         <div id="page-wrap">
-            <div class="page a4" id="page">
-                <svg id="grid-overlay"><defs><pattern id="grid-pattern" patternUnits="userSpaceOnUse"><path d="M 0 0 L 0 0" fill="none" stroke="#aaa" stroke-width="1" opacity="0.6"/></pattern></defs><rect width="100%" height="100%" fill="url(#grid-pattern)"/></svg>
+            <div class="page a4" id="page" tabindex="-1" role="group" aria-label="Album page" aria-describedby="page-keys">
+                <p id="page-keys" class="sr-only">Tab moves between items on the page. Arrow keys move the selected item one grid step, Shift with an arrow moves it 10 millimetres. Enter edits its properties, Delete removes it.</p><svg id="grid-overlay" aria-hidden="true"><defs><pattern id="grid-pattern" patternUnits="userSpaceOnUse"><path d="M 0 0 L 0 0" fill="none" stroke="#aaa" stroke-width="1" opacity="0.6"/></pattern></defs><rect width="100%" height="100%" fill="url(#grid-pattern)"/></svg>
             </div>
         </div>
-    </section>
+    </main>
 
-    <div class="panel-handle" id="rp-handle"></div>
+    <button type="button" class="panel-handle" id="rp-handle" aria-label="Hide the properties panel" aria-controls="rp" aria-expanded="true"></button>
 
     <!-- Right Panel: Properties -->
-    <aside id="rp">
+    <aside id="rp" aria-label="Properties">
         <div class="rp-none" id="rp-none">Select an element to edit</div>
         <div id="rp-content" style="display:none">
-            <div class="rp-sec"><span class="sec-toggle" id="rp-toggle">▶</span>Position</div>
-            <div class="rp-row"><label>X</label><input type="number" id="px" step="0.5"><span class="unit">mm</span><label>Y</label><input type="number" id="py" step="0.5"><span class="unit">mm</span></div>
-            <div class="rp-row"><label>W</label><input type="number" id="pw" step="0.5"><span class="unit">mm</span><label>H</label><input type="number" id="ph" step="0.5"><span class="unit">mm</span></div>
-            <div class="rp-sec">Border</div>
-            <div class="rp-row"><label>Style</label><select id="pbs"><option value="solid">Solid</option><option value="double">Double</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option><option value="none">None</option></select></div>
-            <div class="rp-row"><label>Color</label><input type="color" id="pbc" value="#666"><label>W</label><input type="number" id="pbw" value="1" min="0" max="5" step="0.5"><span class="unit">pt</span></div>
-            <div class="rp-sec">Fill</div>
-            <div class="rp-row"><label>Color</label><input type="color" id="pfc" value="#fff"><label>Alpha</label><input type="range" id="pfa" min="0" max="100" value="100"><span class="unit" id="pfa-v">100%</span></div>
-            <div class="rp-sec">Text</div>
-            <div class="rp-row"><label>Label</label><input type="text" id="plbl" placeholder="Description"></div>
-            <div class="rp-row"><label>Font</label><select id="pfnt"></select></div>
-            <div class="rp-row"><label>Size</label><input type="number" id="pfs" value="12" min="6" max="72" step="1"><span class="unit">pt</span></div>
-            <div class="rp-sec" id="phil-sec" style="display:none">Philatelic Data</div>
-            <div class="rp-row" id="phil-hdg-row" style="display:none"><label>Heading</label><input type="text" id="phdg" placeholder="e.g. M.V. Kista Dan"></div>
-            <div class="rp-row" id="phil-cat-row" style="display:none"><label>Catalog#</label><input type="text" id="pcat" placeholder="SG#1 / SC#1"></div>
-            <div class="rp-row" id="phil-denom-row" style="display:none"><label>Denom</label><input type="text" id="pdenom" placeholder="½p"></div>
-            <div class="rp-row" id="phil-cond-row" style="display:none"><label>Condition</label><select id="pcond"><option value="">—</option><option value="Mint NH">Mint NH</option><option value="Mint H">Mint Hinged</option><option value="Used">Used</option><option value="FDC">FDC</option><option value="CTO">CTO</option><option value="On Cover">On Cover</option></select></div>
-            <div class="rp-row" id="phil-perf-row" style="display:none"><label>Perf</label><input type="text" id="pperf" placeholder="e.g. A1"></div>
-            <div class="rp-sec" id="img-sec" style="display:none">Image</div>
-            <div class="rp-row" id="img-row" style="display:none"><button id="btn-chg-img" style="flex:1">Change Image</button><button id="btn-rm-img">✕</button></div>
+            <h2 class="rp-sec"><button type="button" class="sec-toggle" id="rp-toggle" aria-label="Hide the properties panel" aria-expanded="true" aria-controls="rp"><span aria-hidden="true">▶</span></button>Position</h2>
+            <div class="rp-row"><label for="px">X</label><input aria-label="X position" type="number" id="px" step="0.5"><span class="unit">mm</span><label for="py">Y</label><input aria-label="Y position" type="number" id="py" step="0.5"><span class="unit">mm</span></div>
+            <div class="rp-row"><label for="pw">W</label><input aria-label="Width" type="number" id="pw" step="0.5"><span class="unit">mm</span><label for="ph">H</label><input aria-label="Height" type="number" id="ph" step="0.5"><span class="unit">mm</span></div>
+            <h2 class="rp-sec">Border</h2>
+            <div class="rp-row"><label for="pbs">Style</label><select aria-label="Border style" id="pbs"><option value="solid">Solid</option><option value="double">Double</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option><option value="none">None</option></select></div>
+            <div class="rp-row"><label for="pbc">Colour</label><input aria-label="Border colour" type="color" id="pbc" value="#666"><label for="pbw">W</label><input aria-label="Border width" type="number" id="pbw" value="1" min="0" max="5" step="0.5"><span class="unit">pt</span></div>
+            <h2 class="rp-sec">Fill</h2>
+            <div class="rp-row"><label for="pfc">Colour</label><input aria-label="Fill colour" type="color" id="pfc" value="#fff"><label for="pfa">Opacity</label><input aria-label="Fill opacity" type="range" id="pfa" min="0" max="100" value="100" aria-valuetext="100%"><span class="unit" id="pfa-v" aria-hidden="true">100%</span></div>
+            <h2 class="rp-sec">Text</h2>
+            <div class="rp-row"><label for="plbl">Label</label><input type="text" id="plbl" placeholder="Description"></div>
+            <div class="rp-row"><label for="pfnt">Font</label><select id="pfnt"></select></div>
+            <div class="rp-row"><label for="pfs">Size</label><input aria-label="Font size" type="number" id="pfs" value="12" min="6" max="72" step="1"><span class="unit">pt</span></div>
+            <h2 class="rp-sec" id="phil-sec" style="display:none">Philatelic data</h2>
+            <div class="rp-row" id="phil-hdg-row" style="display:none"><label for="phdg">Heading</label><input type="text" id="phdg" placeholder="e.g. M.V. Kista Dan"></div>
+            <div class="rp-row" id="phil-cat-row" style="display:none"><label for="pcat">Catalogue #</label><input aria-label="Catalogue number" type="text" id="pcat" placeholder="SG#1 / SC#1"></div>
+            <div class="rp-row" id="phil-denom-row" style="display:none"><label for="pdenom">Denom</label><input aria-label="Denomination" type="text" id="pdenom" placeholder="½p"></div>
+            <div class="rp-row" id="phil-cond-row" style="display:none"><label for="pcond">Condition</label><select id="pcond"><option value="">Not set</option><option value="Mint NH">Mint NH</option><option value="Mint H">Mint Hinged</option><option value="Used">Used</option><option value="FDC">FDC</option><option value="CTO">CTO</option><option value="On Cover">On Cover</option></select></div>
+            <div class="rp-row" id="phil-perf-row" style="display:none"><label for="pperf">Perf</label><input aria-label="Perforation" type="text" id="pperf" placeholder="e.g. A1"></div>
+            <h2 class="rp-sec" id="img-sec" style="display:none">Image</h2>
+            <div class="rp-row" id="img-row" style="display:none"><button id="btn-chg-img" style="flex:1">Change image</button><button id="btn-rm-img" aria-label="Remove image"><span aria-hidden="true">✕</span></button></div>
             <div class="rp-actions">
-                <button id="btn-dup-el">⧉ Duplicate</button>
-                <button id="btn-center">⊙ Center</button>
+                <button id="btn-dup-el"><span aria-hidden="true">⧉ </span>Duplicate</button>
+                <button id="btn-center"><span aria-hidden="true">⊙ </span>Centre</button>
             </div>
         </div>
     </aside>
 </div>
 
 <!-- Wizard Panel (bottom) -->
-<div id="wizard-panel">
-    <div class="wiz-hdr"><span>⚡ New Album Wizard</span><span class="spacer"></span><button id="btn-app-wiz">Apply</button><button id="btn-cls-wiz">✕</button></div>
+<div id="wizard-panel" role="dialog" aria-labelledby="wiz-title-hdr">
+    <div class="wiz-hdr"><h2 id="wiz-title-hdr"><span aria-hidden="true">⚡ </span>New album wizard</h2><span class="spacer"></span><button id="btn-app-wiz">Apply</button><button id="btn-cls-wiz" aria-label="Close the wizard"><span aria-hidden="true">✕</span></button></div>
     <div id="wizard-body">
         <div class="wiz-group">
-            <label>Album Title</label>
+            <label for="wiz-title">Album title</label>
             <input type="text" id="wiz-title" placeholder="Album Title">
-            <label>Author</label>
+            <label for="wiz-author">Author</label>
             <input type="text" id="wiz-author" placeholder="Your Name">
         </div>
         <div class="wiz-group">
-            <label>Page Size</label>
+            <label for="wiz-pg-size">Page size</label>
             <select id="wiz-pg-size"><option value="a4">A4 (210×297mm)</option><option value="a5">A5 (148×210mm)</option><option value="a3">A3 (297×420mm)</option><option value="letter">Letter (216×279mm)</option><option value="legal">Legal (216×356mm)</option></select>
-            <label>Orientation</label>
+            <label for="wiz-orient">Orientation</label>
             <select id="wiz-orient"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select>
         </div>
         <div class="wiz-group">
-            <label>Template</label>
+            <label for="wiz-template">Template</label>
             <select id="wiz-template"><option value="blank">Blank Page</option></select>
             <div class="wiz-hint">Choose a pre-built album template to start quickly</div>
         </div>
     </div>
     <div class="wiz-actions">
-        <button id="btn-wiz-template">📚 Template Gallery</button>
+        <button id="btn-wiz-template"><span aria-hidden="true">📚 </span>Template gallery</button>
         <button class="primary" id="btn-wiz-apply">Create Album</button>
     </div>
 </div>
 
 <!-- Template Gallery Panel -->
-<div id="template-gallery-panel">
-    <div class="tg-hdr"><span>📚 Template Gallery</span><span class="spacer"></span><button id="btn-tg-close">✕</button></div>
+<div id="template-gallery-panel" role="dialog" aria-labelledby="tg-title">
+    <div class="tg-hdr"><h2 id="tg-title"><span aria-hidden="true">📚 </span>Template gallery</h2><span class="spacer"></span><button id="btn-tg-close" aria-label="Close the template gallery"><span aria-hidden="true">✕</span></button></div>
     <div id="template-grid" class="tg-grid"></div>
 </div>
 
 <!-- DSL Panel (bottom) -->
-<div id="dsl-panel">
-    <div class="dsl-hdr"><span>DSL Editor (Advanced)</span><span class="spacer"></span><button id="btn-app-dsl">Apply</button><button id="btn-cls-dsl">✕</button></div>
-    <div id="dsl-editor"><textarea id="dsl-ta" spellcheck="false"></textarea></div>
+<div id="dsl-panel" role="dialog" aria-labelledby="dsl-title">
+    <div class="dsl-hdr"><h2 id="dsl-title">DSL editor (advanced)</h2><span class="spacer"></span><button id="btn-app-dsl">Apply</button><button id="btn-cls-dsl" aria-label="Close the DSL editor"><span aria-hidden="true">✕</span></button></div>
+    <div id="dsl-editor"><textarea id="dsl-ta" spellcheck="false" aria-label="Album DSL"></textarea></div>
 </div>
 
 <!-- Page Setup Dialog -->
 <div id="page-setup-overlay" role="dialog" aria-modal="true" aria-labelledby="ps-title">
     <div class="ps-box">
-        <div class="ps-hdr"><span id="ps-title">Page setup</span><span class="spacer"></span><button id="ps-close" aria-label="Close">✕</button></div>
+        <div class="ps-hdr"><h2 id="ps-title">Page setup</h2><span class="spacer"></span><button id="ps-close" aria-label="Close page setup"><span aria-hidden="true">✕</span></button></div>
         <div class="ps-body">
             <label for="ps-size">Paper size</label>
             <select id="ps-size"><option value="a4">A4 (210 × 297 mm)</option><option value="a5">A5 (148 × 210 mm)</option><option value="a3">A3 (297 × 420 mm)</option><option value="letter">Letter (216 × 279 mm)</option><option value="legal">Legal (216 × 356 mm)</option></select>
@@ -217,28 +217,33 @@
 </div>
 
 <!-- Help Overlay -->
-<div id="help-overlay">
+<div id="help-overlay" role="dialog" aria-labelledby="help-title">
     <div class="help-box">
-        <div class="help-hdr"><span>⌨ Keyboard Shortcuts</span><span class="spacer"></span><button id="btn-help-close">✕</button></div>
+        <div class="help-hdr"><h2 id="help-title"><span aria-hidden="true">⌨ </span>Keyboard shortcuts</h2><span class="spacer"></span><button id="btn-help-close" aria-label="Close keyboard shortcuts"><span aria-hidden="true">✕</span></button></div>
         <div class="help-body">
             <div class="help-col">
-                <div class="help-sec">File</div>
+                <h3 class="help-sec">File</h3>
                 <div class="help-row"><kbd>Ctrl+N</kbd> <span>New Album</span></div>
                 <div class="help-row"><kbd>Ctrl+O</kbd> <span>Open File</span></div>
                 <div class="help-row"><kbd>Ctrl+S</kbd> <span>Save</span></div>
                 <div class="help-row"><kbd>Ctrl+P</kbd> <span>Preview</span></div>
-                <div class="help-sec">Edit</div>
+                <h3 class="help-sec">Edit</h3>
                 <div class="help-row"><kbd>Ctrl+Z</kbd> <span>Undo</span></div>
                 <div class="help-row"><kbd>Ctrl+Y</kbd> <span>Redo</span></div>
                 <div class="help-row"><kbd>Del</kbd> <span>Delete Element</span></div>
                 <div class="help-row"><kbd>Esc</kbd> <span>Deselect</span></div>
+                <h3 class="help-sec">On the page</h3>
+                <div class="help-row"><kbd>Tab</kbd> <span>Next item</span></div>
+                <div class="help-row"><kbd>Arrows</kbd> <span>Move one grid step</span></div>
+                <div class="help-row"><kbd>Shift+Arrows</kbd> <span>Move 10 mm</span></div>
+                <div class="help-row"><kbd>Enter</kbd> <span>Edit properties</span></div>
             </div>
             <div class="help-col">
-                <div class="help-sec">Align</div>
+                <h3 class="help-sec">Align</h3>
                 <div class="help-row"><kbd>Ctrl+L</kbd> <span>Align Left</span></div>
                 <div class="help-row"><kbd>Ctrl+E</kbd> <span>Align Center</span></div>
                 <div class="help-row"><kbd>Ctrl+R</kbd> <span>Align Right</span></div>
-                <div class="help-sec">Other</div>
+                <h3 class="help-sec">Other</h3>
                 <div class="help-row"><kbd>F5</kbd> <span>Refresh Preview</span></div>
                 <div class="help-row"><kbd>?</kbd> <span>This Help</span></div>
             </div>
@@ -249,27 +254,27 @@
 <!-- Status Bar -->
 <footer id="status-bar">
     <span id="sb-page">Page 1 of 1</span>
-    <span class="sb-sep">│</span>
+    <span class="sb-sep" aria-hidden="true">│</span>
     <span id="sb-elements">0 elements</span>
-    <span class="sb-sep">│</span>
+    <span class="sb-sep" aria-hidden="true">│</span>
     <span id="sb-selection">No selection</span>
     <span id="sb-align"></span>
     <span class="sb-spacer"></span>
     <span id="sb-zoom">100%</span>
-    <span class="sb-sep">│</span>
+    <span class="sb-sep" aria-hidden="true">│</span>
     <span id="sb-dirty" class="sb-dirty-hidden">● Unsaved</span>
 </footer>
 
 <!-- Preview Overlay -->
-<div id="preview-overlay">
-        <div class="preview-hdr"><span>👁 Live Preview</span><span class="spacer"></span><button id="btn-preview-refresh">↻ Refresh</button><div class="export-dd" id="btn-preview-export-dd"><button id="btn-preview-export">📄 Export ▾</button><div class="export-dd-menu"><div class="export-dd-item" data-fmt="pdf">📄 PDF</div><div class="export-dd-item" data-fmt="png">🖼 PNG</div><div class="export-dd-item" data-fmt="svg">✏️ SVG</div><div class="export-dd-item" data-fmt="html">🌐 HTML</div></div></div><button id="btn-preview-close">✕ Close</button></div>
-    <div id="preview-body"><iframe id="preview-frame" width="900" height="1200"></iframe></div>
+<div id="preview-overlay" role="dialog" aria-labelledby="preview-title">
+        <div class="preview-hdr"><h2 id="preview-title"><span aria-hidden="true">👁 </span>Live preview</h2><span class="spacer"></span><button id="btn-preview-refresh"><span aria-hidden="true">↻ </span>Refresh</button><div class="export-dd" id="btn-preview-export-dd"><button id="btn-preview-export" aria-haspopup="menu"><span aria-hidden="true">📄 </span>Export<span aria-hidden="true"> ▾</span></button><div class="export-dd-menu" role="menu" aria-label="Export format"><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="pdf"><span aria-hidden="true">📄 </span>PDF</div><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="png"><span aria-hidden="true">🖼 </span>PNG</div><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="svg"><span aria-hidden="true">✏️ </span>SVG</div><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="html"><span aria-hidden="true">🌐 </span>HTML</div></div></div><button id="btn-preview-close"><span aria-hidden="true">✕ </span>Close</button></div>
+    <div id="preview-body"><iframe id="preview-frame" title="Album preview" width="900" height="1200"></iframe></div>
 </div>
 
 <!-- Tutorial Overlay -->
-<div id="tutorial-overlay">
+<div id="tutorial-overlay" role="dialog" aria-labelledby="tutorial-title">
     <div class="tutorial-box">
-        <div class="tutorial-hdr">👋 Welcome to StampAlbum Pro</div>
+        <h2 class="tutorial-hdr" id="tutorial-title"><span aria-hidden="true">👋 </span>Welcome to StampAlbum Pro</h2>
         <div class="tutorial-body">
             <div class="tutorial-step active" data-step="1">
                 <span class="tutorial-step-num">1</span>
@@ -296,10 +301,10 @@
 </div>
 
 <!-- Toast container -->
-<div id="toast-container"></div>
+<div id="toast-container" role="status" aria-live="polite"></div>
 
 <!-- Hidden inputs -->
-<input type="file" id="file-inp" accept=".slbum,.txt" hidden>
+<input type="file" id="file-inp" accept=".slbum,.txt" hidden aria-label="Album file">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
 <script src="app.js?v={{{VERSION}}}"></script>
@@ -315,6 +320,7 @@
 <script src="page_setup.js?v={{{VERSION}}}"></script>
 <script src="toolbar.js?v={{{VERSION}}}"></script>
 <script src="palette.js?v={{{VERSION}}}"></script>
+<script src="page_keys.js?v={{{VERSION}}}"></script>
 <script src="init.js?v={{{VERSION}}}"></script>
 <script>
 // Auto-reload on server restart (dev mode only)

@@ -173,30 +173,34 @@ function deletePage() {
 function renderPageDots() {
     var c = $("pg-dots");
     if (!c) return;
+    // Page dots are real buttons, so they take Tab focus and work with Enter/Space.
+    // Focus is put back on the matching dot after the row is rebuilt.
+    var hadFocus = c.contains(document.activeElement) ? document.activeElement.dataset.dot : null;
     c.innerHTML = "";
-    for (var i = 0; i < _pages.length; i++) {
-        var dot = document.createElement("span");
-        dot.className = "pg-dot" + (i === _currentPage ? " active" : "");
-        dot.textContent = i + 1;
-        dot.title = "Page " + (i + 1);
-        (function(idx) {
-            dot.addEventListener("click", function() { switchPage(idx); });
-        })(i);
-        c.appendChild(dot);
+    function dotButton(cls, text, name, onClick, key) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "pg-dot" + cls;
+        b.textContent = text;
+        b.title = name;
+        b.setAttribute("aria-label", name);
+        b.dataset.dot = key;
+        b.addEventListener("click", onClick);
+        c.appendChild(b);
+        return b;
     }
-    var addDot = document.createElement("span");
-    addDot.className = "pg-dot add";
-    addDot.textContent = "+";
-    addDot.title = "Add page";
-    addDot.addEventListener("click", addPage);
-    c.appendChild(addDot);
-    if (_pages.length > 1) {
-        var delDot = document.createElement("span");
-        delDot.className = "pg-dot del";
-        delDot.textContent = "−";
-        delDot.title = "Delete current page";
-        delDot.addEventListener("click", deletePage);
-        c.appendChild(delDot);
+    for (var i = 0; i < _pages.length; i++) {
+        (function(idx) {
+            var dot = dotButton(idx === _currentPage ? " active" : "", String(idx + 1), "Page " + (idx + 1),
+                                function() { switchPage(idx); }, "p" + idx);
+            if (idx === _currentPage) dot.setAttribute("aria-current", "page");
+        })(i);
+    }
+    dotButton(" add", "+", "Add page", addPage, "add");
+    if (_pages.length > 1) dotButton(" del", "−", "Delete current page", deletePage, "del");
+    if (hadFocus) {
+        var back = c.querySelector('[data-dot="' + hadFocus + '"]') || c.querySelector('[aria-current="page"]');
+        if (back) back.focus();
     }
 }
 
