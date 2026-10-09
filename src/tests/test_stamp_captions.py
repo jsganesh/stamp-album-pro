@@ -152,7 +152,13 @@ def test_editor_layout_matches_the_exports():
         f"console.log(JSON.stringify(c.captionLayout({json.dumps(el)}, {X}, {Y}, {W}, {H}, m)));"
     )
     js = json.loads(
-        subprocess.run(["node", "-e", script], capture_output=True, text=True, check=True).stdout
+        subprocess.run(
+            [shutil.which("node"), "-e", script],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",  # the details line has "·"; Windows would decode as cp1252
+            check=True,
+        ).stdout
     )
     s = _stamp(heading=el["hdg"], description=el["lbl"], catalog_refs=[el["cat"]], font_id="TN")
     py = cl.layout(s, X, Y, W, H, _fake_measure)
