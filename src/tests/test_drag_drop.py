@@ -49,7 +49,8 @@ STAMP_ADD_AT(10 20 40 30 "Stamp" "SG 1" "" "sacc 1")
         album = parser.parse(source)
         stamp = album.pages[0].absolute_stamps[0]
         assert stamp.description == "Stamp"
-        assert stamp.catalog_refs == ["SG 1", "", "sacc 1"]
+        # Empty catalogue fields are dropped: exports print "SG 1 · sacc 1", not "SG 1 ·  · sacc 1".
+        assert stamp.catalog_refs == ["SG 1", "sacc 1"]
 
     def test_mixed_row_and_absolute_stamps(self, parser):
         source = """PAGE_START
