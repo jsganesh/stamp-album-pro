@@ -283,6 +283,7 @@ function select(id) {
     $("pfc").value = el.fill || "#FEFEFE";
     $("pfa").value = el.fillA || 100;
     $("pfa-v").textContent = (el.fillA || 100) + "%";
+    $("pfa").setAttribute("aria-valuetext", (el.fillA || 100) + "%");
     $("pfnt").value = el.font || "HN";
     $("pfs").value = el.fs || 12;
     var isImg = el.t === "image";
@@ -391,12 +392,21 @@ function getShapePath(shape, w, h) {
 function render() {
     if (S.updateSelectionUI) S.updateSelectionUI();
     var pg = $("page");
+    // Every render rebuilds the elements, so remember which one had keyboard focus
+    // and put focus back on its replacement afterwards.
+    var active = document.activeElement;
+    var focusedId = active && active.classList && active.classList.contains("cel") && pg.contains(active) ? active.dataset.id : null;
     pg.querySelectorAll(".cel").forEach(function(el) { el.remove(); });
     pg.querySelectorAll(".col-guide").forEach(function(el) { el.remove(); });
     S.E.forEach(function(el) {
         var d = document.createElement("div");
         d.className = "cel shape-" + (el.s || "rectangle") + (el.id === S.sel ? " selected" : "");
         d.dataset.id = el.id;
+        d.tabIndex = 0;
+        d.setAttribute("role", "group");  // not "button": the editable label inside is its own control
+        d.setAttribute("aria-roledescription", "page item");
+        d.setAttribute("aria-label", describeElement(el));
+        if (el.id === S.sel) d.setAttribute("aria-current", "true");
         d.style.left = el.x + "px";
         d.style.top = el.y + "px";
         d.style.width = el.w + "px";
@@ -594,8 +604,32 @@ function render() {
             pg.appendChild(guide);
         }
     }
+    if (focusedId) {
+        var again = pg.querySelector('.cel[data-id="' + focusedId + '"]');
+        if (again) {
+            S._refocusing = true;  // page_keys.js must not treat this as a new selection
+            try { again.focus({ preventScroll: true }); } finally { S._refocusing = false; }
+        }
+    }
     // Update status bar
     if (S.updateStatusBar) S.updateStatusBar();
+}
+
+// What a screen reader says for an item on the page, e.g.
+// "Rectangle stamp, Penny Black, 40 × 30 mm at 20, 25 mm"
+var SHAPE_WORDS = { rectangle: "Rectangle", oval: "Oval", diamond: "Diamond", triangle: "Triangle",
+                    hexagon: "Hexagon", octagon: "Octagon", pentagon: "Pentagon" };
+function describeElement(el) {
+    var kind;
+    if (el.t === "text") kind = "Text";
+    else if (el.t === "image") kind = "Image";
+    else if (el.t === "freehand") kind = "Free shape";
+    else kind = (SHAPE_WORDS[el.s] || "Rectangle") + " stamp";
+    var parts = [kind];
+    var text = (el.lbl || el.hdg || "").trim();
+    if (text) parts.push(text.length > 60 ? text.substring(0, 60) + "…" : text);
+    parts.push(mm(el.w) + " × " + mm(el.h) + " mm at " + mm(el.x) + ", " + mm(el.y) + " mm");
+    return parts.join(", ");
 }
 
 // ── Exports ──
@@ -609,5 +643,6 @@ S.updateStatusBar = updateStatusBar;
 S.updateProps = updateProps;
 S.getShapePath = getShapePath;
 S.render = render;
+S.describeElement = describeElement;
 
 })();

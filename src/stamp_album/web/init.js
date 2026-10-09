@@ -153,7 +153,7 @@ function init() {
     });
     $("pfa").addEventListener("input", function() {
         var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
-        el.fillA = parseInt(this.value); $("pfa-v").textContent = this.value + "%";
+        el.fillA = parseInt(this.value); $("pfa-v").textContent = this.value + "%"; this.setAttribute("aria-valuetext", this.value + "%");
     });
     $("pfa").addEventListener("change", function() { pushUndo(); render(); });
     $("pfnt").addEventListener("change", function() {
@@ -213,12 +213,21 @@ function init() {
     });
     $("btn-del").addEventListener("click", function() {
         if (!S.sel) return;
+        var active = document.activeElement;
+        var hadFocus = active && active.classList && active.classList.contains("cel") && active.dataset.id === S.sel;
         if (!confirm("Delete this element?")) return;
+        var idx = S.E.findIndex(function(x) { return x.id === S.sel; });
         S.E = S.E.filter(function(x) { return x.id !== S.sel; });
         S.sel = null;
         pushUndo();
         render();
         updateProps();
+        // Deleting from the keyboard moves focus to the next item, so focus isn't lost
+        if (hadFocus) {
+            var next = S.E[Math.min(idx, S.E.length - 1)];
+            var node = next && $("page").querySelector('.cel[data-id="' + next.id + '"]');
+            if (node) node.focus(); else $("page").focus();
+        }
     });
     $("btn-undo").addEventListener("click", undo);
     $("btn-redo").addEventListener("click", redo);
@@ -302,6 +311,9 @@ function init() {
             var fmt = this.getAttribute("data-fmt");
             if (S.exportFormat) S.exportFormat(fmt);
         });
+        el.addEventListener("keydown", function(e) {
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); this.click(); }
+        });
     });
 
     // ── Image Upload ──
@@ -363,29 +375,40 @@ function init() {
     });
 
     // ── Collapsible Panels ──
+    // The toggle inside each panel and the handle beside it both report the panel's state.
+    function setPanelState(toggle, handle, open, what) {
+        var name = (open ? "Hide the " : "Show the ") + what;
+        [toggle, handle].forEach(function(b) {
+            b.setAttribute("aria-expanded", open ? "true" : "false");
+            b.setAttribute("aria-label", name);
+            b.title = name;
+        });
+    }
     $("sb-toggle").addEventListener("click", function() {
         S._collapsed.sb = !S._collapsed.sb;
         $("sidebar").classList.toggle("collapsed", S._collapsed.sb);
-        this.textContent = S._collapsed.sb ? "▶" : "◀";
+        this.firstElementChild.textContent = S._collapsed.sb ? "▶" : "◀";
+        setPanelState(this, $("sb-handle"), !S._collapsed.sb, "sidebar");
+        if (S._collapsed.sb && document.activeElement === this) $("sb-handle").focus();
     });
     $("rp-toggle").addEventListener("click", function() {
         S._collapsed.rp = !S._collapsed.rp;
         $("rp").classList.toggle("collapsed", S._collapsed.rp);
-        this.textContent = S._collapsed.rp ? "◀" : "▶";
+        this.firstElementChild.textContent = S._collapsed.rp ? "◀" : "▶";
+        setPanelState(this, $("rp-handle"), !S._collapsed.rp, "properties panel");
+        if (S._collapsed.rp && document.activeElement === this) $("rp-handle").focus();
     });
     $("sb-handle").addEventListener("click", function() { $("sb-toggle").click(); });
     $("rp-handle").addEventListener("click", function() { $("rp-toggle").click(); });
 
     // ── Collapsible sections ──
-    $("file-toggle").addEventListener("click", function() {
-        var b = $("file-body");
-        b.classList.toggle("collapsed");
-        this.textContent = b.classList.contains("collapsed") ? "▶" : "▼";
-    });
-    $("img-toggle").addEventListener("click", function() {
-        var b = $("img-body");
-        b.classList.toggle("collapsed");
-        this.textContent = b.classList.contains("collapsed") ? "▶" : "▼";
+    ["file-toggle", "img-toggle", "imp-toggle"].forEach(function(id) {
+        $(id).addEventListener("click", function() {
+            var b = $(this.getAttribute("aria-controls"));
+            var collapsed = b.classList.toggle("collapsed");
+            this.firstElementChild.textContent = collapsed ? "▶" : "▼";
+            this.setAttribute("aria-expanded", collapsed ? "false" : "true");
+        });
     });
 
     // ── File input ──
@@ -409,6 +432,7 @@ function init() {
     // ── Keyboard shortcuts ──
     document.addEventListener("keydown", function(e) {
         if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
+        if (e.target.isContentEditable) return;  // typing in a label on the page
         if ($("page-setup-overlay").classList.contains("open")) return;  // the dialog handles its own keys
         if (e.target.closest && e.target.closest(".tb-menu")) return;  // menus handle their own keys
         if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); return; }
@@ -455,6 +479,9 @@ function init() {
     $("btn-align-m").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("middle"); });
     $("btn-align-b").addEventListener("click", function() { if (S.alignSelected) S.alignSelected("bottom"); });
 
+    // ── Keyboard on the page: Tab between items, arrows to nudge (page_keys.js) ──
+    S.wirePageKeys();
+
     // ── Menus, selection tools (toolbar.js) ──
     S.wireToolbar();
 
@@ -492,11 +519,16 @@ function init() {
             .then(function(templates) {
                 grid.innerHTML = "";
                 templates.forEach(function(t) {
-                    var card = document.createElement("div");
+                    var card = document.createElement("button");
+                    card.type = "button";
                     card.className = "tg-card";
-                    card.innerHTML = '<div class="tg-card-title">' + t.name + '</div>' +
-                        '<div class="tg-card-desc">' + (t.description || "") + '</div>' +
-                        '<div class="tg-card-cat">' + (t.category || "") + "</div>";
+                    [["tg-card-title", t.name], ["tg-card-desc", t.description || ""], ["tg-card-cat", t.category || ""]].forEach(function(part) {
+                        var d = document.createElement("span");
+                        d.className = part[0];
+                        d.style.display = "block";
+                        d.textContent = part[1];
+                        card.appendChild(d);
+                    });
                     card.addEventListener("click", function() {
                         fetch("/api/templates/" + t.id)
                             .then(function(r) { return r.json(); })

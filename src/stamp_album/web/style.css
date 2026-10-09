@@ -64,7 +64,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 #main { display: flex; flex: 1; overflow: hidden; }
 
 /* Panel handles */
-.panel-handle { width: 6px; background: var(--bg3); cursor: col-resize; flex-shrink: 0; transition: background 0.15s; display: flex; align-items: center; justify-content: center; }
+.panel-handle { border: none; padding: 0; font: inherit; width: 6px; background: var(--bg3); cursor: col-resize; flex-shrink: 0; transition: background 0.15s; display: flex; align-items: center; justify-content: center; }
 .panel-handle:hover { background: var(--accent); }
 .panel-handle::after { content: '\22ee'; color: var(--text2); font-size: 10px; }
 .panel-handle.collapsed { width: 20px; }
@@ -72,9 +72,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 /* Sidebar */
 #sidebar { width: var(--sidebar); background: var(--bg2); border-right: 1px solid var(--border); overflow-y: auto; overflow-x: hidden; flex-shrink: 0; transition: width 0.2s; display: flex; flex-direction: column; min-width: 0; }
-#sidebar.collapsed { width: 0; overflow: hidden; }
+#sidebar.collapsed { width: 0; overflow: hidden; visibility: hidden; }  /* hidden panels leave the tab order */
 .sec-title { font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 10px 6px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-.sec-title .sec-toggle { cursor: pointer; color: var(--text2); font-size: 12px; }
+.sec-toggle { cursor: pointer; color: var(--text2); font-size: 12px; background: none; border: none; border-radius: 3px; padding: 2px 6px; line-height: 1; font-family: inherit; }
+.sec-toggle:hover { color: var(--accent); }
 .sec-body { overflow-y: auto; min-height: 0; flex: 1; }
 .sec-body.collapsed { display: none; }
 
@@ -98,7 +99,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .file-item:hover { border-color: var(--accent); }
 .file-item.active { border-color: var(--accent); background: rgba(139,0,0,0.06); }
 .file-item .fn { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.file-item .fdel { cursor: pointer; color: var(--text2); font-size: 14px; padding: 0 4px; }
+.file-item .fdel { cursor: pointer; color: var(--text2); font-size: 14px; padding: 0 4px; background: none; border: none; border-radius: 3px; }
+.file-item .file-open { all: unset; flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; cursor: pointer; }
 .file-item .fdel:hover { color: var(--accent); }
 .file-item .favicon { font-size: 14px; }
 .file-btn { width: 100%; padding: 8px; background: #fff; border: 1px dashed var(--border); color: var(--text2); border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 4px; }
@@ -109,8 +111,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .img-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; cursor: pointer; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
 .img-item:hover { border-color: var(--accent); }
 .img-item img { max-width: 100%; max-height: 100%; object-fit: contain; }
-.img-del { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: none; line-height: 18px; text-align: center; }
-.img-item:hover .img-del { display: block; }
+.img-del { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: block; opacity: 0; line-height: 18px; text-align: center; padding: 0; }
+.img-item:hover .img-del, .img-item:focus-within .img-del { opacity: 1; }
+@media (hover: none) { .img-del { opacity: 1; } }
+.img-add { all: unset; box-sizing: border-box; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.img-add img { max-width: 100%; max-height: 100%; object-fit: contain; }
 .img-upl-btn { width: 100%; padding: 8px; background: #fff; border: 1px dashed var(--border); color: var(--text2); border-radius: 4px; cursor: pointer; font-size: 12px; text-align: center; }
 .img-upl-btn:hover { border-color: var(--accent); color: var(--text); }
 
@@ -164,7 +169,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 #preview-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; display: none; flex-direction: column; }
 #preview-overlay.open { display: flex; }
 #preview-overlay .preview-hdr { display: flex; align-items: center; padding: 12px 18px; background: #fff; border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 8px; }
-#preview-overlay .preview-hdr span { font-size: 14px; font-weight: 600; color: var(--text); }
+#preview-overlay .preview-hdr h2 { font-size: 14px; font-weight: 600; color: var(--text); }
 #preview-overlay .preview-hdr .spacer { flex: 1; }
 #preview-overlay .preview-hdr button { background: var(--bg2); border: 1px solid var(--border); color: var(--text); padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; }
 #preview-overlay .preview-hdr button:hover { background: var(--accent); color: #fff; }
@@ -211,7 +216,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 /* Right panel (properties) */
 #rp { width: var(--props); background: var(--bg2); border-left: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; transition: width 0.2s; }
-#rp.collapsed { width: 0; overflow: hidden; }
+#rp.collapsed { width: 0; overflow: hidden; visibility: hidden; }
 .rp-sec { font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px 6px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
 .rp-row { display: flex; align-items: center; gap: 8px; padding: 5px 12px; }
 .rp-row label { font-size: 12px; color: var(--text2); min-width: 60px; }
@@ -229,14 +234,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 #wizard-panel { height: 0; overflow: hidden; background: var(--bg2); border-top: 1px solid var(--border); display: flex; flex-direction: column; transition: height 0.2s; flex-shrink: 0; }
 #wizard-panel.open { height: 240px; }
 #wizard-panel .wiz-hdr { display: flex; align-items: center; padding: 8px 14px; gap: 8px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-#wizard-panel .wiz-hdr span { font-size: 13px; font-weight: 600; }
+#wizard-panel .wiz-hdr h2 { font-size: 13px; font-weight: 600; }
 #wizard-panel .wiz-hdr .spacer { flex: 1; }
 #wizard-panel .wiz-hdr button { background: #fff; border: 1px solid var(--border); color: var(--text); padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 12px; }
 #wizard-body { flex: 1; overflow-y: auto; padding: 10px 14px; display: flex; gap: 16px; flex-wrap: wrap; }
 .wiz-group { min-width: 180px; flex: 1; }
 .wiz-group label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 4px; }
 .wiz-group select, .wiz-group input { width: 100%; background: #fff; border: 1px solid var(--border); color: var(--text); padding: 5px 10px; border-radius: 3px; font-size: 13px; margin-bottom: 6px; }
-.wiz-group .wiz-hint { font-size: 11px; color: var(--text2); opacity: 0.7; }
+.wiz-group .wiz-hint { font-size: 11px; color: var(--text2); }
 .wiz-actions { display: flex; gap: 8px; padding: 8px 14px; border-top: 1px solid var(--border); flex-shrink: 0; }
 .wiz-actions button { background: #fff; border: 1px solid var(--border); color: var(--text); padding: 6px 14px; border-radius: 3px; cursor: pointer; font-size: 12px; }
 .wiz-actions button:hover { background: var(--accent); color: #fff; }
@@ -246,7 +251,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 #dsl-panel { height: 0; overflow: hidden; background: var(--bg2); border-top: 1px solid var(--border); display: flex; flex-direction: column; transition: height 0.2s; flex-shrink: 0; }
 #dsl-panel.open { height: 180px; }
 #dsl-panel .dsl-hdr { display: flex; align-items: center; padding: 8px 12px; gap: 8px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-#dsl-panel .dsl-hdr span { font-size: 13px; font-weight: 600; }
+#dsl-panel .dsl-hdr h2 { font-size: 13px; font-weight: 600; }
 #dsl-panel .dsl-hdr button { background: #fff; border: 1px solid var(--border); color: var(--text); padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 12px; }
 #dsl-panel .dsl-hdr .spacer { flex: 1; }
 #dsl-editor { flex: 1; overflow: hidden; }
@@ -310,6 +315,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     overflow-y: auto;
 }
 .tg-card {
+    text-align: left; font: inherit; color: inherit; width: 100%;
     background: var(--bg1);
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -462,3 +468,21 @@ body.large-text .mi, body.large-text .tb-mbtn { font-size: 17px; }
 @keyframes palette-hint-in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .palette-hint { animation: none; } }
 .p-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ── Accessibility ── */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+h1.logo { margin: 0; }
+.wiz-hdr h2, .dsl-hdr h2, .tg-hdr h2, .ps-hdr h2, .help-hdr h2, .preview-hdr h2 { font: inherit; font-weight: 600; margin: 0; }
+.tg-hdr h2 { font-size: 14px; }
+/* One visible focus ring for every keyboard target outside the top toolbar */
+button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible,
+[role="button"]:focus-visible, [role="menuitem"]:focus-visible, .p-item:focus-visible, .tg-card:focus-visible,
+.img-add:focus-visible, .file-open:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cel:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cel:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; box-shadow: 0 0 0 6px rgba(139,0,0,0.18); }
+.img-add:focus-visible { outline-offset: -3px; }  /* the tile clips anything outside it */
+.panel-handle:focus-visible { background: var(--accent); outline: 2px solid var(--accent); outline-offset: 0; }
+#ca-toolbar .pg-dot { padding: 0; width: 14px; height: 14px; border-radius: 50%; font-size: 8px; line-height: 1; color: var(--text); }
+#ca-toolbar .pg-dot.add, #ca-toolbar .pg-dot.del { color: var(--text2); font-size: 12px; background: transparent; }
+#ca-toolbar .pg-dot.active { background: var(--accent); color: #fff; }
+#ca-toolbar .pg-dot:hover { background: var(--accent2); color: #fff; }
