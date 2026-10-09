@@ -81,6 +81,8 @@ function showToast(msg, type) {
     type = type || "info";
     var c = document.getElementById("toast-container");
     if (!c) return;
+    // One toast at a time: a new message replaces whichever one is showing.
+    c.textContent = "";
     var t = document.createElement("div");
     t.className = "toast " + type;
     t.textContent = msg;

@@ -87,6 +87,7 @@ function parseDSL(dsl) {
     var _rowX = 0, _rowY = 12, _rowSpacing = 6, _pageMargin = 15;
     var currentElements = [];
     var nid = 0;
+    var sawPageStart = false;
 
     var lines = dsl.split("\n");
     for (var i = 0; i < lines.length; i++) {
@@ -123,8 +124,12 @@ function parseDSL(dsl) {
                 state.pages[state.currentPage] = currentElements;
                 currentElements = [];
             }
-            state.pages.push([]);
-            state.currentPage = state.pages.length - 1;
+            // The first PAGE_START fills the empty starting page; later ones add a page.
+            if (sawPageStart || state.pages[state.currentPage].length > 0) {
+                state.pages.push([]);
+                state.currentPage = state.pages.length - 1;
+            }
+            sawPageStart = true;
             _rowX = _pageMargin;
             _rowY = 12;
             continue;
@@ -220,9 +225,8 @@ function parseDSL(dsl) {
     while (state.pages.length > 1 && state.pages[state.pages.length - 1].length === 0) {
         state.pages.pop();
     }
-    if (state.currentPage >= state.pages.length) {
-        state.currentPage = state.pages.length - 1;
-    }
+    // An opened album starts on its first page.
+    state.currentPage = 0;
 
     return state;
 }
