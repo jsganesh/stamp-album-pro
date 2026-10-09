@@ -261,6 +261,17 @@ function renderPageBorder(style) {
     pg.appendChild(svg);
 }
 
+// ── Inside of the page border ──
+// Canvas pixels from each page edge to the innermost line of the border (0 with no border).
+// Stamp captions should stay inside this area.
+function borderInsetPx(style) {
+    if (!style || style === "none") return 0;
+    var margin = 12;  // as renderPageBorder (and the exports, which use 12 px / scale)
+    if (style === "double" || style === "greek_key" || style === "rope" ||
+        (BORDER_STYLES[style] && BORDER_STYLES[style].corners)) return margin + 4;
+    return margin;
+}
+
 // ── Get border style list for dropdown ──
 function getBorderStyles() {
     return Object.keys(BORDER_STYLES).map(function(k) {
@@ -271,6 +282,7 @@ function getBorderStyles() {
 // ── Exports ──
 S.renderPageBorder = renderPageBorder;
 S.getBorderStyles = getBorderStyles;
+S.borderInsetPx = borderInsetPx;
 S.BORDER_STYLES = BORDER_STYLES;
 
 })();

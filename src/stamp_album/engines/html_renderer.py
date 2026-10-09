@@ -10,6 +10,7 @@ from stamp_album.core.models import (
     Album,
     FormattedText,
     Page,
+    Stamp,
     StampShape,
 )
 from stamp_album.engines.borders import (
@@ -19,6 +20,7 @@ from stamp_album.engines.borders import (
     corner_ornament_svg,
     edge_pattern_svg,
 )
+from stamp_album.engines import caption_layout
 from stamp_album.engines.layout import layout_rows
 
 
@@ -26,6 +28,22 @@ def _xml_escape(s: str) -> str:
     """Escape special XML characters."""
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
 
+
+
+def _captions_html(stamp: Stamp, x: float, y: float, w: float, h: float) -> str:
+    """Heading above the box; description, details and catalogue below (see caption_layout)."""
+    out = []
+    for line in caption_layout.layout(stamp, x, y, w, h, caption_layout.metrics_measure):
+        out.append(
+            f'<div class="caption caption-{line.kind}" style="position:absolute;z-index:2;left:{x}mm;'
+            f'top:{line.top:.2f}mm;width:{w}mm;height:{line.bottom - line.top:.2f}mm;'
+            f'line-height:{line.bottom - line.top:.2f}mm;text-align:center;white-space:nowrap;'
+            f'font-family:{_font_id_to_css(line.font_id)};font-size:{line.size_pt}pt;'
+            f'font-weight:{"bold" if line.bold else "normal"};'
+            f'font-style:{"italic" if line.italic else "normal"};color:{caption_layout.COLOR_HEX};">'
+            f'{_xml_escape(line.text)}</div>'
+        )
+    return "".join(out)
 
 class HTMLRenderer:
     """Renders an Album model to HTML/CSS for live preview."""
@@ -180,8 +198,6 @@ class HTMLRenderer:
         if page_idx < len(row_layout):
             for x, y, stamp in row_layout[page_idx]:
                 w, h = stamp.width, stamp.height
-                desc = (stamp.description or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-                font_size = stamp.font_size or 10
                 if stamp.shape == StampShape.OVAL:
                     shape_html = (
                         f'<svg width="{w}mm" height="{h}mm" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;top:0;left:0;">'
@@ -200,9 +216,9 @@ class HTMLRenderer:
                 parts.append(
                     f'<div class="stamp" style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;">'
                     f'{shape_html}'
-                    f'<div style="position:relative;z-index:2;font-size:{font_size}pt;padding:1mm;text-align:center;">{desc}</div>'
                     f'</div>'
                 )
+                parts.append(_captions_html(stamp, x, y, w, h))
 
         if has_columns:
             parts.append('</div>')  # close column-container
@@ -232,7 +248,6 @@ class HTMLRenderer:
                 bg_color = _color_to_rgb(stamp_fc) if stamp_fc else (1, 1, 1)
                 bc = f"rgb({int(border_color[0]*255)},{int(border_color[1]*255)},{int(border_color[2]*255)})"
                 bg = f"rgb({int(bg_color[0]*255)},{int(bg_color[1]*255)},{int(bg_color[2]*255)})"
-                desc_font_size = round(font_size * 0.9, 1)
                 if stamp.shape == StampShape.OVAL:
                     shape_html = (
                         f'<svg width="{w}mm" height="{h}mm" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;top:0;left:0;">'
@@ -254,48 +269,14 @@ class HTMLRenderer:
                 img_html = ""
                 if stamp.image_path:
                     img_html = f'<img src="{stamp.image_path}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;pointer-events:none;z-index:1;">'
-                # Like the exports, a stamp that has an image shows no label over it.
-                label_html = ""
-                if not stamp.image_path:
-                    label_html = (
-                        f'<div style="position:relative;z-index:2;font-size:{desc_font_size}pt;'
-                        f'padding:1mm 2mm;text-align:center;line-height:1.3;">{desc}</div>'
-                    )
                 parts.append(
                     f'<div class="stamp" style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;">'
                     f'{shape_html}'
                     f'{img_html}'
-                    f'{label_html}'
                     f'</div>'
                 )
 
-                # Philatelic: heading above stamp
-                if stamp.heading and stamp.heading.text:
-                    hdg_sz = stamp.heading.size or 9
-                    parts.append(
-                        f'<div style="position:absolute;left:{x}mm;top:{y - 2.5}mm;'
-                        f'width:{w}mm;text-align:center;font-size:{hdg_sz}pt;'
-                        f'font-weight:600;color:#333;overflow:hidden;'
-                        f'white-space:nowrap;text-overflow:ellipsis;">'
-                        f'{_xml_escape(stamp.heading.text)}</div>'
-                    )
-
-                # Philatelic: catalog references below stamp
-                if stamp.catalog_refs:
-                    cat_text = " · ".join(stamp.catalog_refs)
-                    parts.append(
-                        f'<div style="position:absolute;left:{x}mm;top:{y + h + 1}mm;'
-                        f'width:{w}mm;text-align:center;font-size:8pt;color:#666;">'
-                        f'{_xml_escape(cat_text)}</div>'
-                    )
-
-                # Philatelic: footer (denom · cond · perf)
-                if stamp.footer_text:
-                    parts.append(
-                        f'<div style="position:absolute;left:{x}mm;top:{y + h + 0.2}mm;'
-                        f'width:{w}mm;text-align:center;font-size:8pt;color:#555;">'
-                        f'{_xml_escape(stamp.footer_text)}</div>'
-                    )
+                parts.append(_captions_html(stamp, x, y, w, h))
 
         parts.append("</div>")  # close page
         return "\n".join(parts)

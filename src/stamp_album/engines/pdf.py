@@ -26,7 +26,7 @@ from stamp_album.engines.borders import (
     edge_pattern_segments,
     polygon_points,
 )
-from stamp_album.engines import text_layout
+from stamp_album.engines import caption_layout, text_layout
 from stamp_album.engines.layout import layout_rows
 
 
@@ -147,38 +147,6 @@ def _draw_stamp_shape(
         c.rect(x, y, w, h, fill=1, stroke=1)
 
 
-def _draw_multiline_text(
-    c: canvas.Canvas,
-    x: float, y: float, w: float, h: float,
-    text: str,
-    font_name: str,
-    font_size: float,
-    center: bool = False,
-):
-    """Draw text inside a rect splitting on newlines.
-
-    ReportLab origin is bottom-left, so *y* is the bottom edge of the rect.
-    """
-    if not text:
-        return
-    lines = text.split("\n")
-    line_height = font_size * 1.3
-    total_height = len(lines) * line_height
-    # y is bottom of rect, so start_y is the top of text adjusted for centering
-    start_y = y + max(2, (h - total_height) / 2) + font_size
-    c.setFont(font_name, font_size)
-    c.setFillColorRGB(0.2, 0.2, 0.2)
-
-    for i, line in enumerate(lines):
-        line_y = start_y - i * line_height
-        if center and line.strip():
-            tw = c.stringWidth(line, font_name, font_size)
-            line_x = x + max(2, (w - tw) / 2)
-        else:
-            line_x = x + 2
-        c.drawString(line_x, line_y, line)
-
-
 def _draw_stamp(c: canvas.Canvas, stamp: Stamp, album: Album,
                 pos_x: float | None = None, pos_y: float | None = None):
     """Draw a single stamp (shape + image + text).
@@ -217,42 +185,18 @@ def _draw_stamp(c: canvas.Canvas, stamp: Stamp, album: Album,
             except Exception:
                 pass
 
-    # Label text (skip if image)
-    if stamp.description and not stamp.image_path:
-        font_name = _resolve_reportlab_font(stamp.font_id or "HN", c)
-        font_size = (stamp.font_size or 12) * 0.9
-        _draw_multiline_text(c, x, y, w, h, stamp.description, font_name, font_size, center=True)
+    _draw_captions(c, stamp, sx, sy, page_h_pt)
 
-    # Philatelic data: heading above stamp
-    if stamp.heading and stamp.heading.text:
-        hdg_font = _resolve_reportlab_font(stamp.heading.font_id or "HN", c)
-        hdg_size = stamp.heading.size or 9
-        hdg_y = y + h + _mm_to_pt(1)
-        c.setFont(hdg_font, hdg_size)
-        c.setFillColorRGB(0.2, 0.2, 0.2)
-        tw = c.stringWidth(stamp.heading.text, hdg_font, hdg_size)
-        c.drawString(x + (w - tw) / 2, hdg_y, stamp.heading.text)
 
-    # Catalog references below stamp
-    if stamp.catalog_refs:
-        cat_font = _resolve_reportlab_font("HN", c)
-        cat_size = 8
-        cat_text = " · ".join(stamp.catalog_refs)
-        cat_y = y - _mm_to_pt(3.5)
-        c.setFont(cat_font, cat_size)
-        c.setFillColorRGB(0.4, 0.4, 0.4)
-        tw = c.stringWidth(cat_text, cat_font, cat_size)
-        c.drawString(x + (w - tw) / 2, cat_y, cat_text)
+def _draw_captions(c: canvas.Canvas, stamp: Stamp, sx: float, sy: float, page_h_pt: float):
+    """Heading above the box; description, details and catalogue below (see caption_layout)."""
+    def measure(text: str, font_id: str, size: float) -> float:
+        return c.stringWidth(text, _resolve_reportlab_font(font_id, c), size) / _mm_to_pt(1)
 
-    # Footer (denomination + condition + perforation)
-    if stamp.footer_text:
-        ft_font = _resolve_reportlab_font("HN", c)
-        ft_size = 8
-        ft_y = y - _mm_to_pt(1.5)
-        c.setFont(ft_font, ft_size)
-        c.setFillColorRGB(0.3, 0.3, 0.3)
-        tw = c.stringWidth(stamp.footer_text, ft_font, ft_size)
-        c.drawString(x + (w - tw) / 2, ft_y, stamp.footer_text)
+    c.setFillColorRGB(*caption_layout.COLOR_RGB)
+    for line in caption_layout.layout(stamp, sx, sy, stamp.width, stamp.height, measure):
+        c.setFont(_resolve_reportlab_font(line.font_id, c), line.size_pt)
+        c.drawString(_mm_to_pt(line.x), page_h_pt - _mm_to_pt(line.baseline), line.text)
 
 
 def _draw_text_element(c: canvas.Canvas, stamp: Stamp, page_h_pt: float):

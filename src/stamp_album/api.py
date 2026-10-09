@@ -472,7 +472,8 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
                 abs_y=el.y / SCALE,
                 width=max(1.0, el.w / SCALE),
                 height=max(1.0, el.h / SCALE),
-                description=el.lbl or "",
+                # A picture (coat of arms, map) has no captions; stamps and text keep theirs.
+                description="" if el.t == "image" else (el.lbl or ""),
                 shape=shape_map.get(el.s, StampShape.RECTANGLE),
                 image_path=el.img if el.img else None,
                 is_text_element=is_text,
