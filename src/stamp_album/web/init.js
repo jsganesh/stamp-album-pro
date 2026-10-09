@@ -253,7 +253,11 @@ function init() {
             tabSize: 2,
             autofocus: false,
             placeholder: '',
+            screenReaderLabel: "Album DSL",  // CodeMirror 5.61+: names its hidden input
         });
+        // Older builds ignore screenReaderLabel, so name the input directly too
+        var cmInput = _cmEditor.getInputField && _cmEditor.getInputField();
+        if (cmInput) cmInput.setAttribute("aria-label", "Album DSL");
         // Custom DSL highlighting (simple keyword-based)
         CodeMirror.defineMode("text/x-stampalbum", function() {
             return {
