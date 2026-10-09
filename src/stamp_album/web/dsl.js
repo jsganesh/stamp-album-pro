@@ -44,6 +44,7 @@ function buildDSL() {
         pw: mm(S._pw), ph: mm(S._ph),
         pageBorder: S._pageBorder,
         pageBorderC: S._pageBorderC,
+        theme: S._theme,
         colMode: S._colMode || 1,
         colGap: S._colGap || 10,
         currentFile: S._currentFile || ""
@@ -69,6 +70,7 @@ function parseDSL(dsl) {
         S.applyPageSize(state.pw, state.ph);
         S._pageBorder = state.pageBorder;
         S._pageBorderC = state.pageBorderC;
+        S._theme = state.theme;
         S._colMode = state.colMode;
         S._colGap = state.colGap;
         S._pages = JSON.parse(JSON.stringify(state.pages));
@@ -78,8 +80,7 @@ function parseDSL(dsl) {
         // DOM updates (applyPageSize above sized the page and its label)
         $("page").className = "page";
         // Columns have no toolbar control; an album that has them keeps them (S._colMode).
-        $("def-bdr").value = S._pageBorder || "none";
-        if (S._pageBorderC) $("def-bdr-c").value = S._pageBorderC;
+        S.syncPageBar();
         S.renderPageDots();
         render();
         S.updateProps();

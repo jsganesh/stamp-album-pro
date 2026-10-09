@@ -29,6 +29,7 @@ from stamp_album.core.models import (
     StampShape,
     TextAlignment,
 )
+from stamp_album.core.themes import THEMES
 
 
 # ---------------------------------------------------------------------------
@@ -125,8 +126,24 @@ def unquote(s: str) -> str:
     return result
 
 
+def _apply_theme(album: Album, theme: Optional[str]) -> None:
+    """Colour the page border and marked headings with the album's theme.
+
+    Without a theme, an album's own border colour (older albums) colours its headings too.
+    """
+    if theme:
+        album.color_album_border = Color.from_hex(THEMES[theme])
+    colour = album.color_album_border or Color.from_hex(THEMES["exhibition"])
+    for page in album.pages:
+        for item in getattr(page, "absolute_stamps", []) or []:
+            if item.is_text_element and item.role == "heading":
+                item.text_color = colour
+
+
 def parse_color(val: str) -> Color:
     """Parse a color value."""
+    # The editor writes colours quoted, e.g. COLOUR_ALBUM_BORDER("#2E5E3A")
+    val = val.strip().strip('"')
     if val.startswith("#"):
         return Color.from_hex(val)
     if val.lower().startswith("rgb"):
@@ -158,6 +175,8 @@ class AlbumParser:
         current_page: Optional[Page] = None
         current_row: Optional[Row] = None
         current_stamp: Optional[Stamp] = None
+        last_text: Optional[Stamp] = None  # the text a PAGE_TEXT_ROLE line marks
+        theme: Optional[str] = None
         # Paragraph ended
         paragraph: Optional[Paragraph] = None
         ifdef_stack: list[bool] = [True]
@@ -645,6 +664,7 @@ class AlbumParser:
                     description=unquote(params[6]),
                     is_text_element=True,
                 )
+                last_text = stamp
                 if not hasattr(current_page, "absolute_stamps"):
                     current_page.absolute_stamps = []
                 current_page.absolute_stamps.append(stamp)
@@ -782,6 +802,17 @@ class AlbumParser:
                         text=text,
                         vertical_alignment=v_align,
                     )
+            elif cmd == "PAGE_TEXT_ROLE":
+                # PAGE_TEXT_ROLE ("heading"), written after a text item marked as a heading
+                if last_text is not None and params and unquote(params[0]) == "heading":
+                    last_text.role = "heading"
+            elif cmd == "ALBUM_THEME":
+                name = unquote(params[0]) if params else ""
+                if name in THEMES:
+                    theme = name
+            elif cmd == "ALBUM_PAGES_BORDER_STYLE":
+                if params:
+                    album.page_setup.border_style = unquote(params[0])
             elif cmd == "STAMP_DETAILS":
                 # STAMP_DETAILS ("denomination" "condition" "perforation"), written after a stamp
                 if current_stamp:
@@ -963,6 +994,7 @@ class AlbumParser:
                 content = unquote(line) if line.startswith('"') else line
                 paragraph.lines.append(content)
 
+        _apply_theme(album, theme)
         return album
 
     def parse_file(self, file_path: str) -> Album:

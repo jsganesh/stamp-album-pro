@@ -1,4 +1,6 @@
 """What you enter in the editor survives Save and Open, and a browser reload (browser tests)."""
+
+# ruff: noqa: F811  (pytest fixtures are imported, then named as test arguments)
 from test_ui_smoke import base_url, page  # noqa: F401  (fixtures)
 
 DETAILS = {"phdg": "Penny Black", "pcat": "SG#1", "pdenom": "1/2D", "pperf": "Imperforate"}

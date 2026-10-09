@@ -25,10 +25,19 @@ function elementFrom(d, x, y) {
     var w = d.w || 80, h = d.h || 60;
     if (d.t === "text") { w = 120; h = d.st === "heading" ? 24 : d.st === "desc" ? 16 : 18; }
     if (d.t === "freehand") { w = 100; h = 80; }
-    return { t: d.t || "stamp", s: d.s || "rectangle", x: x, y: y, w: w, h: h,
+    var el = { t: d.t || "stamp", s: d.s || "rectangle", x: x, y: y, w: w, h: h,
         lbl: d.t === "text" ? (d.st === "heading" ? "Heading" : d.st === "desc" ? "Description" : "Label") : "",
         font: d.font || "HN", fs: d.st === "heading" ? 16 : d.st === "desc" ? 10 : 12,
-        bdr: S._defBdr, bdrC: S._defBdrC, bdrW: 1, fill: S._defFillC, fillA: 100, img: "" };
+        bdr: "none", bdrC: "#000000", bdrW: 0, fill: "transparent", fillA: 0, img: "" };
+    if (el.t === "text") {
+        if (d.st === "heading") el.role = "heading";  // drawn in the theme colour
+    } else {
+        // Stamps and free shapes: a thin black frame, no fill
+        S.CORE.applyFrame(el, "thin");
+        el.fill = "#ffffff";
+        el.fillA = 100;
+    }
+    return el;
 }
 
 // Round a page position (px) to the snap grid, which is set in mm. Grid Off leaves it.

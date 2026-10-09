@@ -488,3 +488,11 @@ button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-
 #ca-toolbar .pg-dot.add, #ca-toolbar .pg-dot.del { color: var(--text2); font-size: 12px; background: transparent; }
 #ca-toolbar .pg-dot.active { background: var(--accent); color: #fff; }
 #ca-toolbar .pg-dot:hover { background: var(--accent2); color: #fff; }
+
+/* Page border note: decorative borders suit personal albums, not competition pages */
+.bdr-note { font-size: 11px; color: #8A4B00; background: #FFF6E5; border: 1px solid #E8C98A; border-radius: 4px; padding: 2px 6px; }
+.bdr-note[hidden] { display: none; }
+/* Properties: the Heading tick box sits at its natural size */
+.rp-row input[type="checkbox"] { flex: none; width: 16px; height: 16px; padding: 0; }
+.rp-row .rp-gap { min-width: 60px; }  /* lines the tick box up with the fields above */
+.rp-row label.rp-check { min-width: 0; color: var(--text); }
