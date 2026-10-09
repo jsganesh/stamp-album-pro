@@ -199,6 +199,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 /* ── Philatelic stamp mount ── */
 .stamp-mount { border-radius: 1px; }
+/* Stamp captions are drawn outside the box, where they print */
+.cel.has-captions { overflow: visible; }
+.cel .caption.elbl { max-width: none; padding: 0; word-break: normal; overflow-wrap: normal; color: #000; cursor: text; }
+.cel .caption.elbl:focus { background: rgba(255,255,255,0.95); z-index: 4; }
+.cel.caption-warn .caption { background: rgba(217,119,6,0.22); }
+.caption-warn-badge { position: absolute; top: -9px; right: -9px; width: 16px; height: 16px; border-radius: 50%; background: #b45309; color: #fff; font: bold 11px/16px sans-serif; text-align: center; z-index: 5; pointer-events: auto; cursor: help; }
 .stamp-mount .stamp-inner { pointer-events: auto; }
 .stamp-mount .elbl { color: #222; line-height: 1.2; }
 .stamp-mount.selected { outline: 2px solid var(--accent); outline-offset: 3px; }

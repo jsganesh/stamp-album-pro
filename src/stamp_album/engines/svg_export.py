@@ -19,6 +19,7 @@ from stamp_album.engines.borders import (
     corner_ornament_svg,
     edge_pattern_svg,
 )
+from stamp_album.engines import caption_layout
 from stamp_album.engines.layout import layout_rows
 
 
@@ -64,28 +65,6 @@ def _build_shape_svg(x: float, y: float, w: float, h: float,
     )
 
 
-def _draw_multiline_text_svg(x: float, y: float, w: float, h: float,
-                              text: str, font_size: float, center: bool = False) -> str:
-    """Build SVG <text> element for multiline text."""
-    if not text:
-        return ""
-    lines = text.split("\n")
-    line_height = font_size * 1.3
-    total_height = len(lines) * line_height
-    start_y = y + max(2, (h - total_height) / 2) + font_size
-    parts = []
-    for i, line in enumerate(lines):
-        line_y = start_y + i * line_height
-        anchor = "middle" if center and line.strip() else "start"
-        x_pos = f'x="{x + w / 2}"' if anchor == "middle" else f'x="{x + 2}"'
-        parts.append(
-            f'<text {x_pos} y="{line_y}" font-size="{font_size}pt" '
-            f'text-anchor="{anchor}" fill="#333" font-family="Arial,Helvetica,sans-serif">'
-            f'{_xml_escape(line)}</text>'
-        )
-    return "\n".join(parts)
-
-
 def _draw_text_element_svg(stamp: Stamp) -> str:
     """SVG for a free-form text element (user units are mm, font size is pt)."""
     from reportlab.pdfbase import pdfmetrics
@@ -119,6 +98,26 @@ def _draw_text_element_svg(stamp: Stamp) -> str:
                 f'{_xml_escape(line)}</text>'
             )
     return "\n".join(parts)
+
+
+_SVG_FAMILY = {"H": "Arial,Helvetica,sans-serif", "T": "'Times New Roman',Times,serif",
+               "C": "'Courier New',Courier,monospace"}
+def _captions_svg(stamp: Stamp, x: float, y: float, w: float, h: float) -> str:
+    """Heading above the box; description, details and catalogue below (see caption_layout)."""
+    out = []
+    for line in caption_layout.layout(stamp, x, y, w, h, caption_layout.metrics_measure):
+        style = (' font-weight="bold"' if line.bold else "")
+        style += ' font-style="italic"' if line.italic else ""
+        size = line.size_pt * caption_layout.MM_PER_PT
+        out.append(
+            f'<text class="caption caption-{line.kind}" x="{x + w / 2:.2f}" '
+            f'y="{line.baseline:.2f}" font-size="{size:.2f}" text-anchor="middle"{style} '
+            f'fill="{caption_layout.COLOR_HEX}" '
+            f'font-family="{_SVG_FAMILY[line.font_id[0]]}">'
+            f'{_xml_escape(line.text)}</text>'
+        )
+    return "\n".join(out)
+
 
 
 def _xml_escape(s: str) -> str:
@@ -237,37 +236,7 @@ class SVGExporter:
                             f'href="{fname}" preserveAspectRatio="xMidYMid meet"/>'
                         )
 
-                if stamp.description and not stamp.image_path:
-                    font_s = (stamp.font_size or 12) * 0.9
-                    parts.append(_draw_multiline_text_svg(
-                        x, y, w, h, stamp.description, font_s, center=True
-                    ))
-
-                if stamp.heading and stamp.heading.text:
-                    hdg_sz = stamp.heading.size or 9
-                    parts.append(
-                        f'<text x="{x + w / 2}" y="{y - 1}" font-size="{hdg_sz}pt" '
-                        f'text-anchor="middle" fill="#333" '
-                        f'font-family="Arial,Helvetica,sans-serif">'
-                        f'{_xml_escape(stamp.heading.text)}</text>'
-                    )
-
-                if stamp.catalog_refs:
-                    cat_text = " · ".join(stamp.catalog_refs)
-                    parts.append(
-                        f'<text x="{x + w / 2}" y="{y + h + 6}" font-size="8pt" '
-                        f'text-anchor="middle" fill="#666" '
-                        f'font-family="Arial,Helvetica,sans-serif">'
-                        f'{_xml_escape(cat_text)}</text>'
-                    )
-
-                if stamp.footer_text:
-                    parts.append(
-                        f'<text x="{x + w / 2}" y="{y + h + 3.5}" font-size="8pt" '
-                        f'text-anchor="middle" fill="#555" '
-                        f'font-family="Arial,Helvetica,sans-serif">'
-                        f'{_xml_escape(stamp.footer_text)}</text>'
-                    )
+                parts.append(_captions_svg(stamp, x, y, w, h))
 
             # Absolute stamps (canvas drag-and-drop)
             for stamp in page_data.absolute_stamps:
@@ -296,37 +265,7 @@ class SVGExporter:
                                 f'href="{fname}" preserveAspectRatio="xMidYMid meet"/>'
                             )
 
-                    if stamp.description and not stamp.image_path:
-                        font_s = (stamp.font_size or 12) * 0.9
-                        parts.append(_draw_multiline_text_svg(
-                            x, y, w, h, stamp.description, font_s, center=True
-                        ))
-
-                    if stamp.heading and stamp.heading.text:
-                        hdg_sz = stamp.heading.size or 9
-                        parts.append(
-                            f'<text x="{x + w / 2}" y="{y - 1}" font-size="{hdg_sz}pt" '
-                            f'text-anchor="middle" fill="#333" '
-                            f'font-family="Arial,Helvetica,sans-serif">'
-                            f'{_xml_escape(stamp.heading.text)}</text>'
-                        )
-
-                    if stamp.catalog_refs:
-                        cat_text = " · ".join(stamp.catalog_refs)
-                        parts.append(
-                            f'<text x="{x + w / 2}" y="{y + h + 6}" font-size="8pt" '
-                            f'text-anchor="middle" fill="#666" '
-                            f'font-family="Arial,Helvetica,sans-serif">'
-                            f'{_xml_escape(cat_text)}</text>'
-                        )
-
-                    if stamp.footer_text:
-                        parts.append(
-                            f'<text x="{x + w / 2}" y="{y + h + 3.5}" font-size="8pt" '
-                            f'text-anchor="middle" fill="#555" '
-                            f'font-family="Arial,Helvetica,sans-serif">'
-                            f'{_xml_escape(stamp.footer_text)}</text>'
-                        )
+                    parts.append(_captions_svg(stamp, x, y, w, h))
 
             parts.append('</g>')  # close page group
             y_offset += h_mm + gap

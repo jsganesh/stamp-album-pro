@@ -165,16 +165,18 @@ def _stamp(shape, x, y, w, h, lbl):
 
 
 @pytest.mark.parametrize("shape", ["rectangle", "oval", "octagon", "diamond"])
-def test_preview_label_is_not_hidden_by_shape(base_url, page, shape):
+def test_preview_description_sits_below_the_shape(base_url, page, shape):
     html = _preview_html(base_url, [_stamp(shape, 100, 100, 150, 110, "LABELTEXT")])
     page.set_content(html)
-    hit = page.evaluate("""() => {
-        const lab = [...document.querySelectorAll('.stamp div')].find(d => d.textContent.includes('LABELTEXT'));
+    info = page.evaluate("""() => {
+        const lab = document.querySelector('.caption-description');
+        const box = document.querySelector('.stamp').getBoundingClientRect();
         const r = lab.getBoundingClientRect();
         const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-        return !!el && (el === lab || lab.contains(el));
+        return {visible: !!el && (el === lab || lab.contains(el)), below: r.top - box.bottom};
     }""")
-    assert hit, "the stamp shape paints over its label"
+    assert info["visible"], "something paints over the stamp's description"
+    assert info["below"] > 0, "the description belongs below the box, not inside it"
 
 
 def test_preview_oval_fills_non_square_box(base_url, page):

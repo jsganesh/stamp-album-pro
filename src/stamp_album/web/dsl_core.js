@@ -469,10 +469,123 @@ function fitToPage(pages, width, height, margin, opts) {
     return res;
 }
 
+// ── Stamp captions ──
+// One caption layout for every view. Keep in step with stamp_album/engines/caption_layout.py.
+// Heading above the box (bold, 9 pt); below it the description (8 pt), the details line
+// (8 pt italic) and the catalogue number (8 pt italic). The nearest line box is GAP_MM from
+// the frame; lines are centred and wrapped to the box width; captions are black.
+// Positions are mm from the page's top-left corner. measure(text, fontId, sizePt) -> mm.
+var CAPTION = { GAP_MM: 2, HEADING_PT: 9, CAPTION_PT: 8, LINE_HEIGHT: 1.3, FIRST_BASELINE: 1,
+                MM_PER_PT: 25.4 / 72, COLOR: "#000000" };
+
+function _captionFamily(fid) {
+    fid = fid || "H";
+    var f = fid.charAt(0).toUpperCase();
+    return fid.length <= 2 && "HTC".indexOf(f) !== -1 ? f : "H";
+}
+
+// Greedy word wrap; honours newlines and breaks over-long words (as text_layout.wrap_lines).
+function wrapLines(text, maxWidth, measure) {
+    var out = [];
+    String(text || "").split("\n").forEach(function(para) {
+        if (!para.trim()) { out.push(""); return; }
+        var line = "";
+        para.split(" ").forEach(function(word) {
+            var cand = line ? line + " " + word : word;
+            if (measure(cand) <= maxWidth || !line) line = cand;
+            else { out.push(line); line = word; }
+            while (measure(line) > maxWidth && line.length > 1) {
+                var cut = line.length - 1;
+                while (cut > 1 && measure(line.slice(0, cut)) > maxWidth) cut--;
+                out.push(line.slice(0, cut));
+                line = line.slice(cut);
+            }
+        });
+        out.push(line);
+    });
+    return out;
+}
+
+// The caption texts of an editor element, empty ones dropped.
+function captionParts(el) {
+    var above = [], below = [];
+    var trim = function(v) { return String(v || "").trim(); };
+    if (trim(el.hdg)) above.push({ kind: "heading", text: trim(el.hdg), fontId: "HB", sizePt: CAPTION.HEADING_PT });
+    var fam = _captionFamily(el.font);
+    if (trim(el.lbl)) below.push({ kind: "description", text: trim(el.lbl), fontId: fam + "N", sizePt: CAPTION.CAPTION_PT });
+    var details = [el.denom, el.cond, el.perf].map(trim).filter(Boolean).join(" · ");
+    if (details) below.push({ kind: "details", text: details, fontId: fam + "I", sizePt: CAPTION.CAPTION_PT });
+    if (trim(el.cat)) below.push({ kind: "catalogue", text: trim(el.cat), fontId: fam + "I", sizePt: CAPTION.CAPTION_PT });
+    return { above: above, below: below };
+}
+
+// Which elements carry captions: stamps (any shape) and free shapes.
+function hasCaptions(el) { return !!el && (el.t === "stamp" || el.t === "freehand"); }
+
+function captionLayout(el, x, y, w, h, measure) {
+    var parts = captionParts(el), lh = function(r) { return r.sizePt * CAPTION.LINE_HEIGHT * CAPTION.MM_PER_PT; };
+    function wrapped(list) {
+        var rows = [];
+        list.forEach(function(p) {
+            wrapLines(p.text, Math.max(1, w), function(s) { return measure(s, p.fontId, p.sizePt); }).forEach(function(t) {
+                if (t.trim()) rows.push({ kind: p.kind, text: t, fontId: p.fontId, sizePt: p.sizePt });
+            });
+        });
+        return rows;
+    }
+    function place(r, top) {
+        var tw = measure(r.text, r.fontId, r.sizePt);
+        return { text: r.text, kind: r.kind, fontId: r.fontId, sizePt: r.sizePt, top: top, bottom: top + lh(r),
+                 baseline: top + r.sizePt * CAPTION.FIRST_BASELINE * CAPTION.MM_PER_PT, width: tw, x: x + (w - tw) / 2,
+                 bold: /[BS]$/.test(r.fontId), italic: /[IS]$/.test(r.fontId) };
+    }
+    var out = [], rows = wrapped(parts.above);
+    var top = y - CAPTION.GAP_MM - rows.reduce(function(a, r) { return a + lh(r); }, 0);
+    rows.forEach(function(r) { var l = place(r, top); out.push(l); top = l.bottom; });
+    top = y + h + CAPTION.GAP_MM;
+    wrapped(parts.below).forEach(function(r) { var l = place(r, top); out.push(l); top = l.bottom; });
+    return out;
+}
+
+function captionBounds(lines) {
+    if (!lines || !lines.length) return null;
+    var b = { l: Infinity, t: Infinity, r: -Infinity, b: -Infinity };
+    lines.forEach(function(ln) {
+        b.l = Math.min(b.l, ln.x); b.r = Math.max(b.r, ln.x + ln.width);
+        b.t = Math.min(b.t, ln.top); b.b = Math.max(b.b, ln.bottom);
+    });
+    return b;
+}
+
+// Captions that need attention. items: [{ id, box: {x, y, w, h}, lines }] in mm, where
+// lines is the item's caption layout (empty for items without captions). area: {l, t, r, b},
+// the inside of the page border (or the page). Returns { id: "border" | "overlap" }.
+function captionWarnings(items, area) {
+    var res = {};
+    var hit = function(a, b) { return a.l < b.r - 1e-6 && b.l < a.r - 1e-6 && a.t < b.b - 1e-6 && b.t < a.b - 1e-6; };
+    var rect = function(bx) { return { l: bx.x, t: bx.y, r: bx.x + bx.w, b: bx.y + bx.h }; };
+    var caps = items.map(function(it) { return captionBounds(it.lines); });
+    items.forEach(function(it, i) {
+        var cb = caps[i];
+        if (!cb) return;
+        if (area && (cb.l < area.l - 1e-6 || cb.t < area.t - 1e-6 || cb.r > area.r + 1e-6 || cb.b > area.b + 1e-6)) {
+            res[it.id] = "border";
+            return;
+        }
+        for (var j = 0; j < items.length; j++) {
+            if (j === i) continue;
+            if (hit(cb, rect(items[j].box)) || (caps[j] && hit(cb, caps[j]))) { res[it.id] = "overlap"; return; }
+        }
+    });
+    return res;
+}
+
 // ── Exports ──
 var EXPORTS = { THEMES: THEMES, themeColor: themeColor, FRAMES: FRAMES, frameOf: frameOf, applyFrame: applyFrame,
                 normalizeStamp: normalizeStamp, PLAIN_BORDERS: PLAIN_BORDERS, escapeDSL: escapeDSL, serializeEl: serializeEl, buildDSL: buildDSL, parseDSL: parseDSL, normalizePageSize: normalizePageSize, countOutside: countOutside,
-                describePageSize: describePageSize, fitToPage: fitToPage, PAPER_MM: PAPER_MM };
+                describePageSize: describePageSize, fitToPage: fitToPage, PAPER_MM: PAPER_MM,
+                CAPTION: CAPTION, wrapLines: wrapLines, captionParts: captionParts, hasCaptions: hasCaptions,
+                captionLayout: captionLayout, captionBounds: captionBounds, captionWarnings: captionWarnings };
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = EXPORTS;
 }

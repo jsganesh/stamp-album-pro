@@ -400,6 +400,103 @@ function getShapePath(shape, w, h) {
     return "M 0 0 L " + w + " 0 L " + w + " " + h + " L 0 " + h + " Z";
 }
 
+// ── Stamp captions ──
+// Drawn where they print, from the same layout as the preview and exports
+// (S.CORE.captionLayout, mirrored by engines/caption_layout.py).
+var _measureCtx = null;
+function captionMeasure(text, fontId, sizePt) {
+    if (!_measureCtx) _measureCtx = document.createElement("canvas").getContext("2d");
+    var fc = S.fontCSS(fontId);
+    // Measure at 10 px per mm of font size, then convert back to mm
+    _measureCtx.font = fc.style + " " + fc.weight + " " + (sizePt * S.CORE.CAPTION.MM_PER_PT * 10) + "px " + fc.family;
+    return _measureCtx.measureText(text).width / 10;
+}
+
+function stampCaptionLines(el) {
+    if (!S.CORE.hasCaptions(el)) return [];
+    var sc = S._sc;
+    return S.CORE.captionLayout(el, el.x / sc, el.y / sc, el.w / sc, el.h / sc, captionMeasure);
+}
+
+function captionNode(el, lines, d) {
+    var sc = S._sc, first = lines[0];
+    var lh = (first.bottom - first.top) * sc;
+    var fc = S.fontCSS(first.fontId);
+    var n = document.createElement("div");
+    n.className = "caption caption-" + first.kind;
+    n.textContent = lines.map(function(l) { return l.text; }).join("\n");
+    // Children sit inside the frame, so offset by its width to line up with the box edge.
+    n.style.cssText = "position:absolute;left:" + (-d.clientLeft) + "px;width:" + el.w + "px;" +
+        "top:" + ((first.top - el.y / sc) * sc - d.clientTop) + "px;height:" + (lh * lines.length) + "px;" +
+        "line-height:" + lh + "px;font-size:" + S.ptPx(first.sizePt) + "px;font-family:" + fc.family + ";" +
+        "font-weight:" + (first.bold ? "bold" : "normal") + ";font-style:" + (first.italic ? "italic" : "normal") + ";" +
+        "color:" + S.CORE.CAPTION.COLOR + ";text-align:center;white-space:pre;pointer-events:none;";
+    return n;
+}
+
+function drawCaptions(d, el, lines) {
+    d.classList.add("has-captions");
+    var groups = [];
+    lines.forEach(function(l) {
+        var g = groups[groups.length - 1];
+        if (g && g[0].kind === l.kind) g.push(l); else groups.push([l]);
+    });
+    groups.forEach(function(g) {
+        var n = captionNode(el, g, d);
+        if (g[0].kind === "description") {
+            // The description is edited in place, below the box where it prints.
+            n.classList.add("elbl");
+            n.contentEditable = "true";
+            n.spellcheck = false;
+            n.style.pointerEvents = "auto";
+            n.setAttribute("aria-label", "Description");
+            var before = null;
+            n.addEventListener("focus", function() {
+                before = el.lbl || "";
+                this.textContent = before;
+                this.style.whiteSpace = "pre-wrap";
+                this.style.height = "auto";
+            });
+            // Kept as typed, so a re-render (e.g. selecting another item) never loses the edit
+            n.addEventListener("input", function() { el.lbl = this.textContent; });
+            n.addEventListener("blur", function() {
+                var changed = before !== null && (el.lbl || "") !== before;
+                before = null;
+                if (!changed) {  // put the printed lines back without a re-render, so Tab moves on
+                    this.textContent = g.map(function(l) { return l.text; }).join("\n");
+                    this.style.whiteSpace = "pre";
+                    this.style.height = (g.length * (g[0].bottom - g[0].top) * S._sc) + "px";
+                    return;
+                }
+                S.pushUndo();
+                setTimeout(render, 0);  // after focus has moved, so render can put it back
+            });
+        }
+        d.appendChild(n);
+    });
+}
+
+// Flag stamps whose captions run into another item or past the page border.
+function markCaptionWarnings(items) {
+    var sc = S._sc, inset = S.borderInsetPx ? S.borderInsetPx(S._pageBorder) : 0;
+    var area = { l: inset / sc, t: inset / sc, r: (S._pw - inset) / sc, b: (S._ph - inset) / sc };
+    var warn = S.CORE.captionWarnings(items, area);
+    items.forEach(function(it) {
+        var why = warn[it.id];
+        if (!why) return;
+        var msg = why === "border" ? (inset ? "Captions run past the page border" : "Captions run past the page edge")
+                                   : "Captions run into another item";
+        it.node.classList.add("caption-warn");
+        it.node.setAttribute("aria-description", msg);
+        var b = document.createElement("span");
+        b.className = "caption-warn-badge";
+        b.textContent = "!";
+        b.title = msg;
+        b.setAttribute("aria-hidden", "true");
+        it.node.appendChild(b);
+    });
+}
+
 // ── Render canvas ──
 function render() {
     if (S.updateSelectionUI) S.updateSelectionUI();
@@ -408,8 +505,11 @@ function render() {
     // and put focus back on its replacement afterwards.
     var active = document.activeElement;
     var focusedId = active && active.classList && active.classList.contains("cel") && pg.contains(active) ? active.dataset.id : null;
+    var focusedDesc = active && active.classList && active.classList.contains("caption-description") && pg.contains(active)
+        ? active.closest(".cel").dataset.id : null;
     pg.querySelectorAll(".cel").forEach(function(el) { el.remove(); });
     pg.querySelectorAll(".col-guide").forEach(function(el) { el.remove(); });
+    var captionItems = [];
     S.E.forEach(function(el) {
         var d = document.createElement("div");
         d.className = "cel shape-" + (el.s || "rectangle") + (el.id === S.sel ? " selected" : "");
@@ -445,45 +545,8 @@ function render() {
                 inner.appendChild(img);
             }
 
-            // Label text (color, catalog #)
-            if (el.lbl) {
-                var l = document.createElement("span");
-                l.className = "elbl";
-                l.textContent = el.lbl;
-                l.contentEditable = "true";
-                l.spellcheck = false;
-                var fc = S.fontCSS(el.font || "HN");
-                l.style.fontFamily = fc.family;
-                l.style.fontSize = S.ptPx((el.fs || 12) * 0.9) + "px";  // exports draw stamp labels at 0.9 x size
-                l.style.fontWeight = fc.weight;
-                l.style.fontStyle = fc.style;
-                l.style.marginTop = "2px";
-                l.addEventListener("blur", function() {
-                    el.lbl = this.textContent;
-                    S.pushUndo();
-                });
-                inner.appendChild(l);
-            }
-
-            // Denomination below label
-            if (el.denom) {
-                var denom = document.createElement("span");
-                denom.className = "stamp-denom";
-                denom.textContent = el.denom;
-                denom.style.cssText = "font-size:" + S.ptPx(8) + "px;font-weight:600;color:#333;margin-top:1px;";
-                inner.appendChild(denom);
-            }
-
             d.appendChild(inner);
 
-            // Heading below mount
-            if (el.hdg) {
-                var hdg = document.createElement("div");
-                hdg.className = "stamp-hdg";
-                hdg.textContent = el.hdg;
-                hdg.style.cssText = "position:absolute;bottom:-18px;left:0;right:0;text-align:center;font-size:" + S.ptPx(9) + "px;color:#333;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
-                d.appendChild(hdg);
-            }
         }
         else if (el.s && el.s !== "rectangle" && el.s !== "text" && el.s !== "freehand") {
             var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -584,6 +647,20 @@ function render() {
 
         d.addEventListener("mousedown", function(e) {
             if (e.target.classList.contains("rh")) return;
+            if (e.target.classList.contains("caption-description")) {
+                // Clicking the description edits it in place; it doesn't drag the stamp.
+                e.stopPropagation();
+                if (S.sel === el.id) return;  // already drawn: let the click place the caret
+                e.preventDefault();
+                select(el.id);  // redraws the page, so focus the new description
+                var nd = $("page").querySelector('.cel[data-id="' + el.id + '"] .caption-description');
+                if (nd) {
+                    nd.focus();
+                    var r = document.createRange(); r.selectNodeContents(nd); r.collapse(false);
+                    var sl = window.getSelection(); sl.removeAllRanges(); sl.addRange(r);
+                }
+                return;
+            }
             e.stopPropagation();
             select(el.id);
             S._drg = true;
@@ -593,7 +670,11 @@ function render() {
         });
 
         pg.appendChild(d);
+        var lines = stampCaptionLines(el);
+        if (lines.length) drawCaptions(d, el, lines);
+        captionItems.push({ id: el.id, box: { x: el.x / S._sc, y: el.y / S._sc, w: el.w / S._sc, h: el.h / S._sc }, lines: lines, node: d });
     });
+    markCaptionWarnings(captionItems);
 
     // Draw column guides if columns are enabled
     if (S._colMode > 1) {
@@ -613,6 +694,10 @@ function render() {
             guide.style.zIndex = "1";
             pg.appendChild(guide);
         }
+    }
+    if (focusedDesc) {
+        var desc = pg.querySelector('.cel[data-id="' + focusedDesc + '"] .caption-description');
+        if (desc) desc.focus({ preventScroll: true });
     }
     if (focusedId) {
         var again = pg.querySelector('.cel[data-id="' + focusedId + '"]');

@@ -22,7 +22,7 @@ from stamp_album.engines.borders import (
     edge_pattern_segments,
     polygon_points,
 )
-from stamp_album.engines import text_layout
+from stamp_album.engines import caption_layout, text_layout
 from stamp_album.engines.layout import layout_rows
 
 
@@ -147,28 +147,11 @@ def _draw_shape(draw: ImageDraw.ImageDraw, x: float, y: float, w: float, h: floa
         draw.rectangle([x, y, x + w, y + h], fill=fill_rgb, outline=border_rgb, width=1)
 
 
-def _draw_multiline_text(draw: ImageDraw.ImageDraw, x: float, y: float, w: float, h: float,
-                         text: str, font, font_size: float, center: bool = False):
-    """Draw text inside rect, splitting on newlines (top-left origin)."""
-    if not text:
-        return
-    lines = text.split("\n")
-    line_height = font_size * 1.3
-    total_height = len(lines) * line_height
-    start_y = y + max(2, (h - total_height) / 2)
-    for i, line in enumerate(lines):
-        _, _, tw, _ = draw.textbbox((0, 0), line, font=font)
-        line_x = x + max(2, (w - tw) / 2) if center and line.strip() else x + 2
-        draw.text((line_x, start_y + i * line_height), line, fill=(51, 51, 51), font=font)
-
-
 def _draw_stamp(draw: ImageDraw.ImageDraw, stamp: Stamp, album: Album, px_per_mm: float):
     """Draw a single stamp on Pillow (stamp geometry already in pixels).
 
-    All font sizes are points, converted to pixels at *px_per_mm*; label,
-    heading, catalogue and footer placement mirror the PDF engine.
+    Captions are placed by caption_layout, like every other view.
     """
-    pt_px = px_per_mm * 25.4 / 72.0  # pixels per typographic point
     x = stamp.abs_x
     y = stamp.abs_y
     w = stamp.width
@@ -201,31 +184,32 @@ def _draw_stamp(draw: ImageDraw.ImageDraw, stamp: Stamp, album: Album, px_per_mm
             except Exception:
                 pass
 
-    if stamp.description and not stamp.image_path:
-        label_px = (stamp.font_size or 12) * 0.9 * pt_px
-        font = _resolve_pillow_font(stamp.font_id or "HN", label_px)
-        _draw_multiline_text(draw, x, y, w, h, stamp.description, font, label_px, center=True)
+    _draw_captions(draw, stamp, px_per_mm)
 
-    mm = px_per_mm
 
-    def _centered_baseline(text: str, font, baseline_y: float, fill):
-        tw = draw.textlength(text, font=font)
-        draw.text((x + (w - tw) / 2, baseline_y), text, fill=fill, font=font, anchor="ls")
+def _draw_captions(draw: ImageDraw.ImageDraw, stamp: Stamp, px_per_mm: float):
+    """Heading above the box; description, details and catalogue below (see caption_layout).
 
-    # Philatelic data: heading above the stamp
-    if stamp.heading and stamp.heading.text:
-        hdg_font = _resolve_pillow_font(stamp.heading.font_id or "HN", (stamp.heading.size or 9) * pt_px)
-        _centered_baseline(stamp.heading.text, hdg_font, y - 1 * mm, (51, 51, 51))
+    The stamp geometry is in pixels here; the layout works in mm.
+    """
+    pt_px = px_per_mm * 25.4 / 72.0
+    fonts: dict = {}
 
-    # Catalogue references below the stamp
-    if stamp.catalog_refs:
-        cat_font = _resolve_pillow_font("HN", 8 * pt_px)
-        _centered_baseline(" · ".join(stamp.catalog_refs), cat_font, y + h + 3.5 * mm, (102, 102, 102))
+    def font(font_id: str, size: float):
+        key = (font_id, size)
+        if key not in fonts:
+            fonts[key] = _resolve_pillow_font(font_id, size * pt_px)
+        return fonts[key]
 
-    # Footer (denomination + condition + perforation)
-    if stamp.footer_text:
-        ft_font = _resolve_pillow_font("HN", 8 * pt_px)
-        _centered_baseline(stamp.footer_text, ft_font, y + h + 1.5 * mm, (77, 77, 77))
+    def measure(text: str, font_id: str, size: float) -> float:
+        return draw.textlength(text, font=font(font_id, size)) / px_per_mm
+
+    s = px_per_mm
+    rgb = tuple(int(round(v * 255)) for v in caption_layout.COLOR_RGB)
+    for line in caption_layout.layout(stamp, stamp.abs_x / s, stamp.abs_y / s,
+                                      stamp.width / s, stamp.height / s, measure):
+        draw.text((line.x * s, line.baseline * s), line.text, fill=rgb,
+                  font=font(line.font_id, line.size_pt), anchor="ls")
 
 
 def _draw_text_element(draw: ImageDraw.ImageDraw, stamp: Stamp, px_per_mm: float):
