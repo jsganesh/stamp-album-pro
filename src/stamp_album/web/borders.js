@@ -204,7 +204,8 @@ function renderPageBorder(style) {
     var w = S._pw || 595;
     var h = S._ph || 842;
     var margin = 12;
-    var color = S._pageBorderC || (BORDER_STYLES[style] && BORDER_STYLES[style].color) || "#333";
+    // The album theme's colour, the same one the exports use (styles no longer bring their own)
+    var color = S.themeColor();
 
     var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.id = "page-border";

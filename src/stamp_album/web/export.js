@@ -28,7 +28,8 @@ function buildCanvasState(format) {
         title: (S._currentFile || "").replace(/\.(slbum|txt)$/, ""),
         author: "",
         border_style: S._pageBorder || "",
-        border_color: S._pageBorderC || ""
+        border_color: S.themeColor(),
+        theme_color: S.themeColor()  // marked headings
     };
 }
 

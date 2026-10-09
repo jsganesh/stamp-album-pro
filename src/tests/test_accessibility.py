@@ -97,8 +97,7 @@ def test_axe_dialogs(page, dialog):
 
 PROPERTY_LABELS = {
     "px": "X position", "py": "Y position", "pw": "Width", "ph": "Height",
-    "pbs": "Border style", "pbc": "Border colour", "pbw": "Border width",
-    "pfc": "Fill colour", "pfa": "Fill opacity", "plbl": "Label", "pfnt": "Font", "pfs": "Font size",
+    "pbs": "Frame", "phead": "Mark as heading", "plbl": "Label", "pfnt": "Font", "pfs": "Font size",
     "phdg": "Heading", "pcat": "Catalogue number", "pdenom": "Denomination",
     "pcond": "Condition", "pperf": "Perforation",
 }

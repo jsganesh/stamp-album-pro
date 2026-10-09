@@ -107,12 +107,15 @@ def _draw_text_element_svg(stamp: Stamp) -> str:
     anchor = {"left": "start", "center": "middle", "right": "end"}.get(align, "start")
     x = {"start": stamp.abs_x + pad, "middle": stamp.abs_x + stamp.width / 2,
          "end": stamp.abs_x + stamp.width - pad}[anchor]
+    tc = stamp.text_color  # a marked heading takes the theme colour
+    rgb = (round(tc.r * 255), round(tc.g * 255), round(tc.b * 255)) if tc else None
+    fill = ("#%02X%02X%02X" % rgb) if rgb else "#333"
     parts = []
     for i, line in enumerate(lines):
         if line:
             parts.append(
                 f'<text x="{x:.2f}" y="{base + i * lh:.2f}" font-size="{size_mm:.2f}" '
-                f'text-anchor="{anchor}" fill="#333" font-family="Arial,Helvetica,sans-serif">'
+                f'text-anchor="{anchor}" fill="{fill}" font-family="Arial,Helvetica,sans-serif">'
                 f'{_xml_escape(line)}</text>'
             )
     return "\n".join(parts)

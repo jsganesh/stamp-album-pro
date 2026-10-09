@@ -254,10 +254,22 @@ function add(p) {
         cond: p.cond || "",
         perf: p.perf || ""
     };
+    if (p.role) s.role = p.role;  // a duplicated heading stays a heading
+    S.CORE.normalizeStamp(s);     // stamps: black frame, no fill
     S.E.push(s);
     S.pushUndo();
     select(s.id);
     render();
+}
+
+// On screen the page is drawn at under one pixel per point, so 0.5 pt and 1 pt frames would
+// both round to one pixel. Each frame gets a fixed screen width instead, so they look different;
+// the exports draw the true point widths.
+var FRAME_PX = { thin: 1, medium: 2, double: 3 };
+function frameCSS(el) {
+    var frame = S.CORE.frameOf(el), colour = el.bdrC || "#000000";
+    if (frame === "none") return "none";
+    return FRAME_PX[frame] + "px " + (frame === "double" ? "double " : "solid ") + colour;
 }
 
 // ── Select ──
@@ -277,13 +289,13 @@ function select(id) {
     $("pw").value = mm(el.w);
     $("ph").value = mm(el.h);
     $("plbl").value = el.lbl || "";
-    $("pbs").value = el.bdr || "solid";
-    $("pbc").value = el.bdrC || "#2C2C2C";
-    $("pbw").value = el.bdrW || 0.5;
-    $("pfc").value = el.fill || "#FEFEFE";
-    $("pfa").value = el.fillA || 100;
-    $("pfa-v").textContent = (el.fillA || 100) + "%";
-    $("pfa").setAttribute("aria-valuetext", (el.fillA || 100) + "%");
+    // Stamps and free shapes have a frame; text items can be marked as a heading.
+    var framed = el.t === "stamp" || el.t === "freehand";
+    $("frame-sec").style.display = framed ? "block" : "none";
+    $("frame-row").style.display = framed ? "flex" : "none";
+    $("pbs").value = S.CORE.frameOf(el);
+    $("phead-row").style.display = el.t === "text" ? "flex" : "none";
+    $("phead").checked = el.role === "heading";
     $("pfnt").value = el.font || "HN";
     $("pfs").value = el.fs || 12;
     var isImg = el.t === "image";
@@ -414,10 +426,9 @@ function render() {
 
         /* ── Philatelic stamp mount rendering ── */
         if (el.t === "stamp" && el.s === "rectangle") {
-            // Mount: thick black border (the album mount border)
-            d.style.border = "1.5pt solid " + (el.bdrC || "#2C2C2C");
-            d.style.backgroundColor = el.fill || "#FEFEFE";
-            d.style.boxShadow = "inset 0 0 0 3pt " + (el.fill || "#FEFEFE");
+            // The stamp's frame as chosen in Properties: none, thin, medium or double, in black
+            d.style.border = frameCSS(el);
+            d.style.backgroundColor = el.fill || "#ffffff";
             d.classList.add("stamp-mount");
 
             // Inner content area
@@ -486,16 +497,14 @@ function render() {
             var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
             path.setAttribute("d", getShapePath(el.s, el.w, el.h));
             path.setAttribute("fill", el.fill || "#fff");
-            path.setAttribute("stroke", el.bdrC || "#666");
-            path.setAttribute("stroke-width", (el.bdrW || 1) * 2);
-            if (el.bdr === "dashed") path.setAttribute("stroke-dasharray", "4,2");
-            if (el.bdr === "dotted") path.setAttribute("stroke-dasharray", "1,2");
-            if (el.bdr === "double") {
-                path.setAttribute("stroke-width", 1);
+            // Frame widths are points; the drawing is in canvas pixels
+            var frame = S.CORE.frameOf(el);
+            path.setAttribute("stroke", frame === "none" ? "none" : (el.bdrC || "#000000"));
+            path.setAttribute("stroke-width", frame === "medium" ? FRAME_PX.medium : 1);  // see FRAME_PX
+            if (frame === "double") {
                 var path2 = path.cloneNode();
                 path2.setAttribute("transform", "translate(3,3) scale(0.95)");
                 path2.setAttribute("fill", "none");
-                path2.setAttribute("stroke-width", 1);
                 svg.appendChild(path2);
             }
             svg.appendChild(path);
@@ -541,6 +550,7 @@ function render() {
             }
             l.style.fontWeight = fc.weight;
             l.style.fontStyle = fc.style;
+            if (el.role === "heading") l.style.color = S.themeColor();  // marked headings take the theme colour
             l.addEventListener("blur", function() {
                 el.lbl = this.textContent;
                 var p = this.parentNode;

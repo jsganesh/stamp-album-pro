@@ -1,16 +1,19 @@
 """The Python parser reads the stamp details the editor saves (heading, catalogue, details line)."""
+
 from stamp_album.core.parser import AlbumParser
 
-DSL = "\n".join([
-    'ALBUM_PAGES_SIZE(210 297)',
-    'PAGE_START',
-    'STAMP_ADD_AT(20.0 30.0 40.0 30.0 "Penny Black — 1840" "SG#1" "" "" rectangle "double" "#000" 1 "#ffffff" 100)',
-    'STAMP_HEADING("HN" 9 "Penny Black")',
-    'STAMP_DETAILS("1/2D" "Used" "Imperforate")',
-    'STAMP_ADD_AT(80.0 30.0 40.0 30.0 "Bare" "" "" "" rectangle "solid" "#000" 0.5 "#ffffff" 100)',
-    'STAMP_ADD_AT(20.0 90.0 40.0 30.0 "Only condition" "" "" "" oval "solid" "#000" 0.5 "#ffffff" 100)',
-    'STAMP_DETAILS("" "Mint NH" "")',
-])
+DSL = "\n".join(
+    [
+        "ALBUM_PAGES_SIZE(210 297)",
+        "PAGE_START",
+        'STAMP_ADD_AT(20.0 30.0 40.0 30.0 "Penny Black — 1840" "SG#1" "" "" rectangle "double" "#000" 1 "#ffffff" 100)',
+        'STAMP_HEADING("HN" 9 "Penny Black")',
+        'STAMP_DETAILS("1/2D" "Used" "Imperforate")',
+        'STAMP_ADD_AT(80.0 30.0 40.0 30.0 "Bare" "" "" "" rectangle "solid" "#000" 0.5 "#ffffff" 100)',
+        'STAMP_ADD_AT(20.0 90.0 40.0 30.0 "Only condition" "" "" "" oval "solid" "#000" 0.5 "#ffffff" 100)',
+        'STAMP_DETAILS("" "Mint NH" "")',
+    ]
+)
 
 
 def _stamps():

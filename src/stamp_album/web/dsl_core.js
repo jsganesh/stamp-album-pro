@@ -8,13 +8,66 @@ function escapeDSL(s) {
     return String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
 }
 
+// ── Album themes ──
+// A theme colours the page border and headings marked as headings; everything else is black.
+// Keep in step with stamp_album/core/themes.py.
+var THEMES = {
+    exhibition: { name: "Exhibition", color: "#000000" },
+    green:      { name: "Green",      color: "#2E5E3A" },
+    maroon:     { name: "Maroon",     color: "#7A1F2B" },
+    navy:       { name: "Navy",       color: "#1F3A5F" },
+    brown:      { name: "Brown",      color: "#5C4033" }
+};
+// The colour a state's theme gives the page border and headings. "custom" is an older
+// album's own border colour, kept until a theme is chosen.
+function themeColor(state) {
+    state = state || {};
+    if (state.theme === "custom") return state.pageBorderC || THEMES.exhibition.color;
+    return (THEMES[state.theme] || THEMES.exhibition).color;
+}
+
+// ── Stamp frames ──
+// Stamps are framed in black, as exhibition pages are: no frame, thin, medium or double.
+var FRAMES = {
+    none:   { bdr: "none",   bdrW: 0 },
+    thin:   { bdr: "solid",  bdrW: 0.5 },
+    medium: { bdr: "solid",  bdrW: 1 },
+    double: { bdr: "double", bdrW: 1 }
+};
+var FRAME_COLOR = "#000000";
+function frameOf(el) {
+    if (!el || el.bdr === "none" || (el.bdr !== "double" && !(el.bdrW > 0))) return "none";
+    if (el.bdr === "double") return "double";
+    return el.bdrW > 0.75 ? "medium" : "thin";  // dashed and dotted frames from older albums too
+}
+function applyFrame(el, frame) {
+    var f = FRAMES[frame] || FRAMES.thin;
+    el.bdr = f.bdr;
+    el.bdrW = f.bdrW;
+    el.bdrC = FRAME_COLOR;
+    return el;
+}
+// Older albums could colour, fill or dash a stamp's frame: open them with the nearest black frame, no fill.
+function normalizeStamp(el) {
+    if (el.t !== "stamp") return el;
+    applyFrame(el, frameOf(el));
+    el.fill = "#ffffff";
+    el.fillA = 100;
+    return el;
+}
+
+// Page border styles. The plain ones suit exhibition pages; the rest are for personal albums.
+var PLAIN_BORDERS = ["none", "solid", "double"];
+
 function serializeEl(el) {
     if (el.t === "image") {
         return 'STAMP_ADD_IMG(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + (el.img || "") + '" "' + (el.lbl || "") + '" "" "")';
     } else if (el.t === "freehand") {
         return 'STAMP_ADD_AT(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + (el.lbl || "") + '" "freehand" "" "" ' + (el.s || "freehand") + ' "' + (el.bdr || "solid") + '" "' + (el.bdrC || "#000") + '" ' + (el.bdrW || 0.5) + ' "' + (el.fill || "#FEFEFE") + '" ' + (el.fillA != null ? el.fillA : 100) + ')';
     } else if (el.t === "text") {
-        return 'PAGE_TEXT_AT(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + (el.font || "HN") + '" ' + (el.fs || 12) + ' "' + (el.lbl || "Text") + '" "' + (el.align || "left") + '")';
+        var text = 'PAGE_TEXT_AT(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + (el.font || "HN") + '" ' + (el.fs || 12) + ' "' + (el.lbl || "Text") + '" "' + (el.align || "left") + '")';
+        // A heading mark is its own line, which older versions skip.
+        return el.role === "heading" ? text + '\nPAGE_TEXT_ROLE("heading")' : text;
     } else {
         // Every stamp, rectangles included, is written in the extended format so its border
         // and fill are kept. The first catalogue field holds the catalogue number.
@@ -50,10 +103,11 @@ function buildDSL(state) {
             inner1 = 0.3;
         }
         lines.push("ALBUM_PAGES_BORDER(" + outer + " " + inner1 + " " + inner2 + " " + spacing + ")");
-        if (state.pageBorderC) {
-            lines.push('COLOUR_ALBUM_BORDER("' + state.pageBorderC + '")');
-        }
+        // The style by name, so Classic, Greek key and the others reopen as themselves
+        lines.push('ALBUM_PAGES_BORDER_STYLE("' + state.pageBorder + '")');
+        lines.push('COLOUR_ALBUM_BORDER("' + themeColor(state) + '")');
     }
+    if (state.theme && state.theme !== "custom") lines.push('ALBUM_THEME("' + state.theme + '")');
     // The header is written even for an empty album, so a new landscape or
     // non-A4 album keeps its page size before anything is placed on it.
     var title = state.currentFile ? state.currentFile.replace(/\.(slbum|txt)$/, "") : "";
@@ -94,6 +148,7 @@ function parseDSL(dsl) {
     var nid = 0;
     var sawPageStart = false;
     var lastStamp = null;  // the stamp a STAMP_HEADING or STAMP_DETAILS line describes
+    var lastText = null;   // the text a PAGE_TEXT_ROLE line marks
 
     var lines = dsl.split("\n");
     for (var i = 0; i < lines.length; i++) {
@@ -119,6 +174,18 @@ function parseDSL(dsl) {
             continue;
         }
 
+        var mBorderStyle = t.match(/^ALBUM_PAGES_BORDER_STYLE\(\s*"([\w-]+)"\s*\)/);
+        if (mBorderStyle) {
+            state.pageBorder = mBorderStyle[1];
+            continue;
+        }
+
+        var mTheme = t.match(/^ALBUM_THEME\(\s*"(\w+)"\s*\)/);
+        if (mTheme) {
+            if (THEMES[mTheme[1]]) state.theme = mTheme[1];
+            continue;
+        }
+
         var mBorderColor = t.match(/^COLOUR_ALBUM_BORDER\(\s*"#?([^"]+)"\s*\)|^COLOR_ALBUM_BORDER\(\s*"#?([^"]+)"\s*\)/);
         if (mBorderColor) {
             state.pageBorderC = "#" + (mBorderColor[1] || mBorderColor[2]);
@@ -137,6 +204,7 @@ function parseDSL(dsl) {
             }
             sawPageStart = true;
             lastStamp = null;
+            lastText = null;
             _rowX = _pageMargin;
             _rowY = 12;
             continue;
@@ -232,16 +300,24 @@ function parseDSL(dsl) {
             continue;
         }
 
-        var m2a = t.match(/^PAGE_TEXT_AT\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"([^"]*)"\s+(\d+)\s+"([^"]*)"\s+"([^"]*)"\)/);
+        var m2a = t.match(/^PAGE_TEXT_AT\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"([^"]*)"\s+([\d.]+)\s+"([^"]*)"\s+"([^"]*)"\)/);
         if (m2a) {
-            currentElements.push({ id: "el" + (nid++), t: "text", s: "text", x: parseFloat(m2a[1]), y: parseFloat(m2a[2]), w: parseFloat(m2a[3]), h: parseFloat(m2a[4]), lbl: m2a[7] || "Text", font: m2a[5] || "HN", fs: parseFloat(m2a[6]) || 12, align: m2a[8] === "center" ? "center" : m2a[8] === "right" ? "right" : "left", bdr: "none", fill: "transparent", fillA: 0 });
+            lastText = { id: "el" + (nid++), t: "text", s: "text", x: parseFloat(m2a[1]), y: parseFloat(m2a[2]), w: parseFloat(m2a[3]), h: parseFloat(m2a[4]), lbl: m2a[7] || "Text", font: m2a[5] || "HN", fs: parseFloat(m2a[6]) || 12, align: m2a[8] === "center" ? "center" : m2a[8] === "right" ? "right" : "left", bdr: "none", fill: "transparent", fillA: 0 };
+            currentElements.push(lastText);
             continue;
         }
 
-        var m2 = t.match(/^(PAGE_TEXT|PAGE_TEXT_CENTRE|PAGE_TEXT_CENTER|PAGE_TEXT_RIGHT)\(\s*"([^"]*)"\s+(\d+)\s+"([^"]*)"\)/);
+        // A heading mark belongs to the text just before it.
+        if (t.match(/^PAGE_TEXT_ROLE\(\s*"heading"\s*\)/)) {
+            if (lastText) lastText.role = "heading";
+            continue;
+        }
+
+        var m2 = t.match(/^(PAGE_TEXT|PAGE_TEXT_CENTRE|PAGE_TEXT_CENTER|PAGE_TEXT_RIGHT)\(\s*"([^"]*)"\s+([\d.]+)\s+"([^"]*)"\)/);
         if (m2) {
             var align = m2[1] === "PAGE_TEXT_CENTRE" || m2[1] === "PAGE_TEXT_CENTER" ? "center" : m2[1] === "PAGE_TEXT_RIGHT" ? "right" : "left";
-            currentElements.push({ id: "el" + (nid++), t: "text", s: "text", x: 10, y: _rowY > 12 ? _rowY + 2 : 10, w: 100, h: 20, lbl: m2[4] || "Text", font: m2[2] || "HN", fs: parseFloat(m2[3]) || 12, align: align, bdr: "none", fill: "transparent", fillA: 0 });
+            lastText = { id: "el" + (nid++), t: "text", s: "text", x: 10, y: _rowY > 12 ? _rowY + 2 : 10, w: 100, h: 20, lbl: m2[4] || "Text", font: m2[2] || "HN", fs: parseFloat(m2[3]) || 12, align: align, bdr: "none", fill: "transparent", fillA: 0 };
+            currentElements.push(lastText);
             _rowY += 8;
         }
     }
@@ -254,6 +330,11 @@ function parseDSL(dsl) {
     }
     // An opened album starts on its first page.
     state.currentPage = 0;
+    // Stamps get black frames and no fill.
+    state.pages.forEach(function(p) { p.forEach(normalizeStamp); });
+    // Theme: as saved; else an older album's own border colour ("custom"); else Exhibition.
+    if (!state.theme) state.theme = state.pageBorderC ? "custom" : "exhibition";
+    if (state.theme !== "custom") state.pageBorderC = THEMES[state.theme].color;
 
     return state;
 }
@@ -389,7 +470,8 @@ function fitToPage(pages, width, height, margin, opts) {
 }
 
 // ── Exports ──
-var EXPORTS = { escapeDSL: escapeDSL, serializeEl: serializeEl, buildDSL: buildDSL, parseDSL: parseDSL, normalizePageSize: normalizePageSize, countOutside: countOutside,
+var EXPORTS = { THEMES: THEMES, themeColor: themeColor, FRAMES: FRAMES, frameOf: frameOf, applyFrame: applyFrame,
+                normalizeStamp: normalizeStamp, PLAIN_BORDERS: PLAIN_BORDERS, escapeDSL: escapeDSL, serializeEl: serializeEl, buildDSL: buildDSL, parseDSL: parseDSL, normalizePageSize: normalizePageSize, countOutside: countOutside,
                 describePageSize: describePageSize, fitToPage: fitToPage, PAPER_MM: PAPER_MM };
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = EXPORTS;

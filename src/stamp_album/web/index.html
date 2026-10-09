@@ -98,11 +98,11 @@
             <span class="spacer"></span>
             <span class="ca-group" id="page-defaults">
                 <label for="def-bdr">Page border</label>
-                <select id="def-bdr"><option value="none">None</option><option value="solid">Solid</option><option value="double">Double</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option><option value="classic">Classic</option><option value="victorian">Victorian</option><option value="artdeco">Art Deco</option><option value="greek_key">Greek Key</option><option value="rope">Rope</option><option value="laurel">Laurel</option><option value="gothic">Gothic</option><option value="filigree">Filigree</option></select>
-                <input type="color" id="def-bdr-c" value="#666666" title="Page border colour" aria-label="Page border colour">
+                <select id="def-bdr" aria-describedby="bdr-note"><optgroup label="Plain"><option value="none">None</option><option value="solid">Single</option><option value="double">Double</option></optgroup><optgroup label="Decorative (not for competition)"><option value="classic">Classic</option><option value="victorian">Victorian</option><option value="artdeco">Art Deco</option><option value="greek_key">Greek Key</option><option value="rope">Rope</option><option value="laurel">Laurel</option><option value="gothic">Gothic</option><option value="filigree">Filigree</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option></optgroup></select>
+                <span id="bdr-note" class="bdr-note" hidden>Decorative: not for competition</span>
                 <span class="ca-sep"></span>
-                <label for="def-fill-c">Stamp fill</label>
-                <input type="color" id="def-fill-c" value="#ffffff" title="Fill colour for new stamps">
+                <label for="def-theme">Theme</label>
+                <select id="def-theme" title="Colours the page border and headings. Stamp frames stay black."><option value="exhibition">Exhibition</option><option value="green">Green</option><option value="maroon">Maroon</option><option value="navy">Navy</option><option value="brown">Brown</option></select>
             </span>
             <span class="ca-group" id="sel-tools" role="toolbar" aria-label="Selected stamp" hidden>
                                 <span class="sel-lbl">Align</span>
@@ -130,15 +130,13 @@
             <h2 class="rp-sec"><button type="button" class="sec-toggle" id="rp-toggle" aria-label="Hide the properties panel" aria-expanded="true" aria-controls="rp"><span aria-hidden="true">▶</span></button>Position</h2>
             <div class="rp-row"><label for="px">X</label><input aria-label="X position" type="number" id="px" step="0.5"><span class="unit">mm</span><label for="py">Y</label><input aria-label="Y position" type="number" id="py" step="0.5"><span class="unit">mm</span></div>
             <div class="rp-row"><label for="pw">W</label><input aria-label="Width" type="number" id="pw" step="0.5"><span class="unit">mm</span><label for="ph">H</label><input aria-label="Height" type="number" id="ph" step="0.5"><span class="unit">mm</span></div>
-            <h2 class="rp-sec">Border</h2>
-            <div class="rp-row"><label for="pbs">Style</label><select aria-label="Border style" id="pbs"><option value="solid">Solid</option><option value="double">Double</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option><option value="none">None</option></select></div>
-            <div class="rp-row"><label for="pbc">Colour</label><input aria-label="Border colour" type="color" id="pbc" value="#666"><label for="pbw">W</label><input aria-label="Border width" type="number" id="pbw" value="1" min="0" max="5" step="0.5"><span class="unit">pt</span></div>
-            <h2 class="rp-sec">Fill</h2>
-            <div class="rp-row"><label for="pfc">Colour</label><input aria-label="Fill colour" type="color" id="pfc" value="#fff"><label for="pfa">Opacity</label><input aria-label="Fill opacity" type="range" id="pfa" min="0" max="100" value="100" aria-valuetext="100%"><span class="unit" id="pfa-v" aria-hidden="true">100%</span></div>
+            <h2 class="rp-sec" id="frame-sec">Frame</h2>
+            <div class="rp-row" id="frame-row"><label for="pbs">Frame</label><select id="pbs" title="Stamp frames are black"><option value="none">None</option><option value="thin">Thin</option><option value="medium">Medium</option><option value="double">Double</option></select></div>
             <h2 class="rp-sec">Text</h2>
             <div class="rp-row"><label for="plbl">Label</label><input type="text" id="plbl" placeholder="Description"></div>
             <div class="rp-row"><label for="pfnt">Font</label><select id="pfnt"></select></div>
             <div class="rp-row"><label for="pfs">Size</label><input aria-label="Font size" type="number" id="pfs" value="12" min="6" max="72" step="1"><span class="unit">pt</span></div>
+            <div class="rp-row" id="phead-row"><span class="rp-gap" aria-hidden="true"></span><input type="checkbox" id="phead" aria-describedby="phead-hint"><label for="phead" class="rp-check">Mark as heading</label><span class="unit" id="phead-hint">theme colour</span></div>
             <h2 class="rp-sec" id="phil-sec" style="display:none">Philatelic data</h2>
             <div class="rp-row" id="phil-hdg-row" style="display:none"><label for="phdg">Heading</label><input type="text" id="phdg" placeholder="e.g. M.V. Kista Dan"></div>
             <div class="rp-row" id="phil-cat-row" style="display:none"><label for="pcat">Catalogue #</label><input aria-label="Catalogue number" type="text" id="pcat" placeholder="SG#1 / SC#1"></div>

@@ -135,27 +135,17 @@ function init() {
         var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
         el.lbl = this.value; pushUndo(); render();
     });
+    // Frame: none, thin, medium or double, always black
     $("pbs").addEventListener("change", function() {
         var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
-        el.bdr = this.value; pushUndo(); render();
+        S.CORE.applyFrame(el, this.value); pushUndo(); render();
     });
-    $("pbc").addEventListener("change", function() {
+    // Heading mark: the text is drawn in the theme colour
+    $("phead").addEventListener("change", function() {
         var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
-        el.bdrC = this.value; pushUndo(); render();
+        if (this.checked) el.role = "heading"; else delete el.role;
+        pushUndo(); render();
     });
-    $("pbw").addEventListener("change", function() {
-        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
-        el.bdrW = parseFloat(this.value) || 0; pushUndo(); render();
-    });
-    $("pfc").addEventListener("change", function() {
-        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
-        el.fill = this.value; pushUndo(); render();
-    });
-    $("pfa").addEventListener("input", function() {
-        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
-        el.fillA = parseInt(this.value); $("pfa-v").textContent = this.value + "%"; this.setAttribute("aria-valuetext", this.value + "%");
-    });
-    $("pfa").addEventListener("change", function() { pushUndo(); render(); });
     $("pfnt").addEventListener("change", function() {
         var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
         el.font = this.value; pushUndo(); render();
@@ -362,21 +352,20 @@ function init() {
         S.updateGrid();
     });
 
-    // ── Page border (the album's border; stamps keep their own in Properties) ──
+    // ── Page border and theme (album settings; each is one undo step) ──
     $("def-bdr").addEventListener("change", function() {
         S._pageBorder = this.value;
-        if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
-        S.scheduleDraftSave();
+        S.syncPageBar();  // redraws the border and shows the note for decorative ones
+        pushUndo();
         S.schedulePreviewRefresh();
     });
-    $("def-bdr-c").addEventListener("change", function() {
-        S._pageBorderC = this.value;
-        if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
-        S.scheduleDraftSave();
-        S.schedulePreviewRefresh();
-    });
-    $("def-fill-c").addEventListener("change", function() {
-        S._defFillC = this.value;
+    $("def-theme").addEventListener("change", function() {
+        S._theme = this.value;
+        // A named theme replaces an older album's own colour (Custom is then no longer offered)
+        if (S._theme !== "custom") S._pageBorderC = S.CORE.THEMES[S._theme].color;
+        S.syncPageBar();
+        render();  // marked headings take the new colour
+        pushUndo();
         S.schedulePreviewRefresh();
     });
 
@@ -679,9 +668,7 @@ function init() {
     S.applyPageSize(S._pw / S._sc, S._ph / S._sc);
     S.renderPageDots();
     S.updateGrid();
-    if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
-    $("def-bdr").value = S._pageBorder || "none";  // a restored draft may carry a page border
-    if (S._pageBorderC) $("def-bdr-c").value = S._pageBorderC;
+    S.syncPageBar();  // a restored draft may carry a page border and theme
     loadFileList();
     loadImageList();
     S.updateTitle();

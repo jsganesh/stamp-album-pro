@@ -273,7 +273,8 @@ def _draw_text_element(c: canvas.Canvas, stamp: Stamp, page_h_pt: float):
     lh = font_size * text_layout.LINE_HEIGHT
     base = top - pad - font_size * text_layout.FIRST_BASELINE
     c.setFont(font_name, font_size)
-    c.setFillColorRGB(0.2, 0.2, 0.2)
+    tc = stamp.text_color  # a marked heading takes the theme colour
+    c.setFillColorRGB(*((tc.r, tc.g, tc.b) if tc else (0.2, 0.2, 0.2)))
     for i, line in enumerate(lines):
         if line:
             lx = text_layout.line_x(x, w, measure(line), stamp.text_align, pad)

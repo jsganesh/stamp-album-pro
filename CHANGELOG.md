@@ -5,6 +5,9 @@ All notable changes to this project are documented here. The format follows [Kee
 ## [Unreleased]
 
 ### Added
+- **Album themes** in the page bar: Exhibition (black, the default), Green, Maroon, Navy and Brown. A theme colours the page border and headings marked as headings, in the editor and in every export; everything else stays black. An older album with its own border colour shows as Custom until a theme is chosen. Changing the theme or page border is one undo step and is kept in the draft
+- **Mark as heading** for text items in Properties; the palette's Heading item is marked already. Saved as a `PAGE_TEXT_ROLE("heading")` line after the text
+- Page borders in two groups, Plain (None, Single, Double) and Decorative (Classic, Victorian, Art Deco, Greek Key, Rope, Laurel, Gothic, Filigree, Dashed, Dotted), with a "Decorative: not for competition" note when one of the latter is chosen
 - Keyboard access to items on the page (UI and UX audit, item 4): every stamp, text and image is a tab stop named for screen readers (for example "Rectangle stamp, Penny Black, 40 × 30 mm at 20, 25 mm"); focusing one selects it. Arrow keys move the selected item one grid step (1 mm with the grid off), Shift+arrow 10 mm, each press one undo step; Enter jumps to its properties; Delete moves focus to the next item. Listed under View › Keyboard shortcuts
 - Accessibility pass (UI and UX audit, item 4): every Properties and wizard field is tied to its label, with clear spoken names such as "Border width" and "Fill opacity"; icon and emoji buttons have word names ("Close the wizard", "Remove image"); Images-panel tiles, file-list rows, page dots, template cards, the section and panel toggles, Upload image and the preview's Export menu are real buttons that work with Tab, Enter and Space, with a visible focus ring. Headings and landmarks for screen-reader navigation; toasts are announced
 - Automated axe-core scan of the editor and its dialogs in the browser tests (`test_accessibility.py`, via `axe-playwright-python` in the dev extra), so new markup without a label or name fails CI
@@ -15,6 +18,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - Browser smoke test (`test_ui_smoke.py`; skipped locally without Playwright, required in CI)
 
 ### Changed
+- Stamp frames follow exhibition practice: always black, with a single **Frame** choice in Properties (None, Thin 0.5 pt, Medium 1 pt, Double) in place of border style, colour, width, fill colour and opacity. Albums made before this open with the nearest black frame and no fill. The page bar's page-border colour and stamp-fill pickers are replaced by the theme. On screen, frames are drawn at fixed widths (Thin 1 px, Medium 2 px) so they can be told apart; exports use the point widths
 - Toolbar regrouped into **File**, **Edit** and **View** menus, with Undo, Redo, Preview and Export kept on the bar (UI and UX audit, item 2). Align, Duplicate, Grid fill and Delete appear in the page bar only while a stamp is selected. The toolbar now fits 1440 and 1024 px windows and phone width without sideways scrolling; buttons use line icons and are labelled for screen readers. Wizard is now File › New from wizard; Reset app moved to the bottom of the View menu; View › Show tutorial again is new
 - The page bar's **Border** sets the page border only (it used to change the default border of new stamps too); it is labelled Page border and shows the loaded album's border
 - **Snap** is one control: the grid (Off, 5 mm, 10 mm) in the page bar, and View › Snap to guides
@@ -26,6 +30,10 @@ All notable changes to this project are documented here. The format follows [Kee
 - Dead `canvas.js` (not loaded) and `events.js` (loaded but never run), both superseded by `render.js` and `init.js`
 
 ### Fixed
+- Decorative page borders (Classic, Greek Key and the others) reopened as plain Single or Double; the style is now saved by name
+- Exports made from a saved file drew the page border black whatever its colour (the quoted colour was not read)
+- Text at a fractional size such as 10.5 pt vanished when the album was reopened
+- The first-run sample album's third stamp ran past the page border
 - Saving an album to a file lost each stamp's heading, catalogue number, denomination, condition and perforation, and a rectangle stamp's border settings (they survived a browser reload but not Save and Open). They are now written to the file; older versions of the app skip the new lines
 - Exports made from a saved file printed empty catalogue fields ("SG 10 ·  · sacc 10")
 - A browser reload dropped the page border

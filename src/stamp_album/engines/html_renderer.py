@@ -218,8 +218,11 @@ class HTMLRenderer:
 
             if stamp.is_text_element:
                 font_family = _font_id_to_css(stamp.font_id) if stamp.font_id else "Helvetica,Arial,sans-serif"
+                tc = stamp.text_color  # a marked heading takes the theme colour
+                rgb = (round(tc.r * 255), round(tc.g * 255), round(tc.b * 255)) if tc else None
+                colour = ("color:#%02X%02X%02X;" % rgb) if rgb else ""
                 parts.append(
-                    f'<div class="text-el" style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;'
+                    f'<div class="text-el" style="{colour}left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;'
                     f'font-size:{font_size}pt;line-height:1.3;font-family:{font_family};padding:1mm;word-wrap:break-word;text-align:{_css_align(stamp.text_align)};">{desc}</div>'
                 )
             else:

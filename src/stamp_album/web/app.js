@@ -2,11 +2,13 @@
 (function(){
 var E = [], sel = null, nid = 1, _sc = 2.5, _sn = 5, _pw = 525, _ph = 742.5, _init = false;
 var _drg = false, _dragEl = null, _dragH = null, _ds = {};
-var _defBdr = "solid", _defBdrC = "#000", _defFillC = "#fff";
 var _collapsed = { sb: false, rp: false };
 var _currentFile = null, _currentPage = 0, _pages = [ [] ];
 var _dirty = false;
 var _colMode = 1, _colGap = 10.0, _pageBorder = "", _pageBorderC = "";  // Column layout mode, gap (mm), page border style
+// Album theme: colours the page border and marked headings. "custom" keeps an older album's
+// own border colour (_pageBorderC) until a theme is chosen.
+var _theme = "exhibition";
 
 // ── Forward references (set by render.js after load) ──
 var render = function() { S.render(); };
@@ -26,7 +28,7 @@ function saveDraft() {
         var pages = _pages.slice();
         pages[_currentPage] = E;
         var state = { v: 1, pages: pages, currentPage: _currentPage, elements: E, pw: _pw / _sc, ph: _ph / _sc,
-                      pageBorder: _pageBorder || "", pageBorderC: _pageBorderC || "" };
+                      pageBorder: _pageBorder || "", pageBorderC: _pageBorderC || "", theme: _theme };
         localStorage.setItem(_draftKey, JSON.stringify(state));
         if (_currentFile) localStorage.setItem(_draftFileKey, _currentFile);
         else localStorage.removeItem(_draftFileKey);
@@ -51,6 +53,10 @@ function loadDraft() {
         // The page border is part of the album (drafts saved before it was kept have none).
         _pageBorder = state.pageBorder || "";
         _pageBorderC = state.pageBorderC || "";
+        // Drafts from before themes: an own border colour is "custom", otherwise Exhibition.
+        _theme = state.theme || (_pageBorderC ? "custom" : "exhibition");
+        // ...and their stamps get black frames and no fill, as an opened file's do.
+        _pages.forEach(function(p) { (p || []).forEach(S.CORE.normalizeStamp); });
         var savedFile = localStorage.getItem(_draftFileKey);
         if (savedFile) _currentFile = savedFile;
         return true;
@@ -277,8 +283,37 @@ function buildCanvasState(format) {
         title: (_currentFile || "").replace(/\.(slbum|txt)$/, ""),
         author: "",
         border_style: _pageBorder || "",
-        border_color: _pageBorderC || ""
+        border_color: themeColor(),
+        theme_color: themeColor()  // marked headings
     };
+}
+
+// Show the album's page border and theme in the page bar, and redraw the border.
+// The Custom theme is offered only while an album uses its own border colour.
+function syncPageBar() {
+    var th = $("def-theme");
+    if (th) {
+        var custom = th.querySelector('option[value="custom"]');
+        if (_theme === "custom" && !custom) {
+            custom = document.createElement("option");
+            custom.value = "custom";
+            custom.textContent = "Custom";
+            th.appendChild(custom);
+        } else if (_theme !== "custom" && custom) {
+            custom.remove();
+        }
+        th.value = _theme;
+    }
+    var bdr = $("def-bdr");
+    if (bdr) bdr.value = _pageBorder || "none";
+    var note = $("bdr-note");
+    if (note) note.hidden = S.CORE.PLAIN_BORDERS.indexOf(_pageBorder || "none") !== -1;
+    if (S.renderPageBorder) S.renderPageBorder(_pageBorder);
+}
+
+// The colour the album's theme gives the page border and marked headings.
+function themeColor() {
+    return S.CORE.themeColor({ theme: _theme, pageBorderC: _pageBorderC });
 }
 
 // ── Preview (direct — no DSL parser) ──
@@ -432,9 +467,6 @@ Object.defineProperties(S, {
     _dragEl: { get: function(){ return _dragEl; }, set: function(v){ _dragEl = v; } },
     _dragH: { get: function(){ return _dragH; }, set: function(v){ _dragH = v; } },
     _ds: { get: function(){ return _ds; }, set: function(v){ _ds = v; } },
-    _defBdr: { get: function(){ return _defBdr; }, set: function(v){ _defBdr = v; } },
-    _defBdrC: { get: function(){ return _defBdrC; }, set: function(v){ _defBdrC = v; } },
-    _defFillC: { get: function(){ return _defFillC; }, set: function(v){ _defFillC = v; } },
     _collapsed: { get: function(){ return _collapsed; }, set: function(v){ _collapsed = v; } },
     _currentFile: { get: function(){ return _currentFile; }, set: function(v){ _currentFile = v; } },
     _currentPage: { get: function(){ return _currentPage; }, set: function(v){ _currentPage = v; } },
@@ -444,6 +476,10 @@ Object.defineProperties(S, {
     _colGap: { get: function(){ return _colGap; }, set: function(v){ _colGap = v; } },
     _pageBorder: { get: function(){ return _pageBorder; }, set: function(v){ _pageBorder = v; } },
     _pageBorderC: { get: function(){ return _pageBorderC; }, set: function(v){ _pageBorderC = v; } },
+    _theme: { get: function(){ return _theme; }, set: function(v){ _theme = v; } },
+    themeColor: { value: themeColor }, syncPageBar: { value: syncPageBar },
+    frameOf: { get: function(){ return window.StampAlbumDSL.frameOf; } },
+    CORE: { get: function(){ return window.StampAlbumDSL; } },
     _undoStack: { get: function(){ return _undoStack; }, set: function(v){ _undoStack = v; } },
     _redoStack: { get: function(){ return _redoStack; }, set: function(v){ _redoStack = v; } },
     _undoPaused: { get: function(){ return _undoPaused; }, set: function(v){ _undoPaused = v; } },

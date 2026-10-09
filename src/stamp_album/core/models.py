@@ -461,6 +461,8 @@ class Stamp:
     font_size: float = 10.0  # Font size in points
     border_color: Optional[Color] = None  # Per-stamp border color (falls back to album.color_stamp_border)
     fill_color: Optional[Color] = None  # Per-stamp fill color (falls back to album.color_stamp_background)
+    role: str = ""  # "heading" for text marked as a heading
+    text_color: Optional[Color] = None  # Text items: drawn in this colour (theme's, for headings)
 
 
 # ---------------------------------------------------------------------------

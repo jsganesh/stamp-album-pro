@@ -245,10 +245,12 @@ def _draw_text_element(draw: ImageDraw.ImageDraw, stamp: Stamp, px_per_mm: float
     lines = text_layout.wrap_lines(stamp.description, max(1.0, stamp.width - 2 * pad), measure)
     lh = size_px * text_layout.LINE_HEIGHT
     top = stamp.abs_y + pad + size_px * (text_layout.LINE_HEIGHT - 1) / 2
+    # A marked heading takes the theme colour
+    colour = _color_to_rgb(stamp.text_color) if stamp.text_color else (51, 51, 51)
     for i, line in enumerate(lines):
         if line:
             lx = text_layout.line_x(stamp.abs_x, stamp.width, measure(line), stamp.text_align, pad)
-            draw.text((lx, top + i * lh), line, fill=(51, 51, 51), font=font)
+            draw.text((lx, top + i * lh), line, fill=colour, font=font)
 
 
 def _draw_page_border(draw: ImageDraw.ImageDraw, album: Album, page_w_mm: float, page_h_mm: float, scale: float):

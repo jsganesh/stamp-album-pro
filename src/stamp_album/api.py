@@ -398,6 +398,7 @@ class CanvasElementState(BaseModel):
     fill: str = "#fff"
     fillA: int = 100
     img: str = ""
+    role: str = ""  # "heading" for text marked as a heading
     # Philatelic metadata
     hdg: str = ""
     cat: str = ""
@@ -418,6 +419,7 @@ class CanvasStateRequest(BaseModel):
     author: str = ""
     border_style: str = ""
     border_color: str = ""
+    theme_color: str = ""  # the album theme's colour, for marked headings
 
 
 def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
@@ -483,6 +485,9 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
             stamp.catalog_refs = catalog_refs
             stamp.heading = heading
             stamp.footer_text = footer
+            if is_text and el.role == "heading":
+                stamp.role = "heading"
+                stamp.text_color = _parse_hex(req.theme_color) or _parse_hex(req.border_color)
             page.absolute_stamps.append(stamp)
         return page
 

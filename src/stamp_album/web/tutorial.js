@@ -32,12 +32,13 @@ function loadSampleAlbum() {
         'ALBUM_PAGES_MARGINS(15 15 15 15)',
         'PAGE_START',
         'PAGE_TEXT_CENTRE("HB" 16 "Great Britain — Victorian Era")',
+        'PAGE_TEXT_ROLE("heading")',
         'PAGE_TEXT_CENTRE("HN" 10 "A sample album page to get you started")',
         'PAGE_VSPACE(8)',
         'ROW_START_FS("HN" 8 6.0 6.0)',
-        'STAMP_ADD_AT(15.0 40.0 60.0 45.0 "Penny Black — 1840" "rectangle" "solid" "#fff")',
-        'STAMP_ADD_AT(81.0 40.0 60.0 45.0 "Penny Red — 1841" "rectangle" "solid" "#fff")',
-        'STAMP_ADD_AT(147.0 40.0 60.0 45.0 "Twopence Blue — 1840" "rectangle" "solid" "#fff")',
+        'STAMP_ADD_AT(20.0 40.0 55.0 45.0 "Penny Black — 1840" "rectangle" "solid" "#fff")',
+        'STAMP_ADD_AT(77.5 40.0 55.0 45.0 "Penny Red — 1841" "rectangle" "solid" "#fff")',
+        'STAMP_ADD_AT(135.0 40.0 55.0 45.0 "Twopence Blue — 1840" "rectangle" "solid" "#fff")',
     ].join("\n");
     parseDSL(sampleDSL);
     S._dirty = false;
