@@ -461,6 +461,10 @@ class Stamp:
     font_size: float = 10.0  # Font size in points
     border_color: Optional[Color] = None  # Per-stamp border color (falls back to album.color_stamp_border)
     fill_color: Optional[Color] = None  # Per-stamp fill color (falls back to album.color_stamp_background)
+    # Frame drawn outside the stamp (see engines/frames.py): "none", "thin", "medium" or "double".
+    # width/height are the stamp's own size; the frame adds clearance and its lines around it.
+    frame: str = "thin"
+    is_freehand: bool = False  # a free shape: its outline is the frame, with no clearance
     role: str = ""  # "heading" for text marked as a heading
     text_color: Optional[Color] = None  # Text items: drawn in this colour (theme's, for headings)
 

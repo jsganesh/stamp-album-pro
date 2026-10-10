@@ -88,7 +88,9 @@ def test_png_polygon_matches_canonical(client, monkeypatch, shape, name):
 
 def test_svg_polygon_uses_canonical_points(client):
     svg = client.post("/export-from-state", json=_state("octagon", "svg")).text
-    assert SHAPE_POLYGON_VIEWBOX["OCTAGON"] in svg
+    x, y, w, h = _box_mm()
+    pts = " ".join(f"{px:.3f},{py:.3f}" for px, py in polygon_points("OCTAGON", x, y, w, h))
+    assert f'points="{pts}"' in svg  # the stamp's own outline; its frame is drawn outside it
 
 
 def test_png_stamp_label_has_readable_size(client):

@@ -5,6 +5,8 @@ All notable changes to this project are documented here. The format follows [Kee
 ## [Unreleased]
 
 ### Added
+- **Frame size in Properties**: a selected stamp shows its frame and stamp sizes, for example "Frame 32.4 × 42.4 mm, 1 mm clear all round the stamp (30 × 40 mm, dashed)". On the canvas a faint dashed line marks the stamp's own size inside the frame; it is never printed
+- **Frame warnings**: a stamp whose frame runs past the page border (the page edge when there is no border) or into another item gets the amber "!" badge, as captions do
 - **Caption warnings** in the editor: a stamp whose captions run into another item, or past the page border (the page edge when there is no border), gets an amber "!" badge and tinted captions, with the reason in its tooltip and for screen readers. It updates as stamps are moved or edited
 - **Album themes** in the page bar: Exhibition (black, the default), Green, Maroon, Navy and Brown. A theme colours the page border and headings marked as headings, in the editor and in every export; everything else stays black. An older album with its own border colour shows as Custom until a theme is chosen. Changing the theme or page border is one undo step and is kept in the draft
 - **Mark as heading** for text items in Properties; the palette's Heading item is marked already. Saved as a `PAGE_TEXT_ROLE("heading")` line after the text
@@ -19,6 +21,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - Browser smoke test (`test_ui_smoke.py`; skipped locally without Playwright, required in CI)
 
 ### Changed
+- **Stamp frames are drawn outside the stamp** in the editor, preview, PDF, PNG and SVG, from one geometry (`engines/frames.py` and `frameLines` / `shapeOutline` in `web/dsl_core.js`). A stamp's W and H are its size from the catalogue; the frame leaves 1 mm clear all round, then draws its line or lines: Thin 0.5 pt, Medium 1 pt, Double two 0.5 pt lines 1 pt apart. Shaped stamps keep the 1 mm on every side. Captions, and their warnings, are measured from the frame's outer edge. Albums made before this keep their stored sizes, so their frames grow by the clearance
 - **Stamp captions** have one layout in the editor, preview, PDF, PNG and SVG (shared by `engines/caption_layout.py` and `captionLayout` in `web/dsl_core.js`): the heading above the box in bold 9 pt; below it the description (8 pt), the details line ("1/2D · Used · Imperforate") and the catalogue number, both 8 pt italic. The nearest line is 2 mm from the frame, lines are centred and wrapped to the stamp's width, and captions are black. The description now always sits below the box (it used to be drawn inside a box without an image). In the editor the captions are drawn where they print and the description is edited in place below the box; shaped stamps show their captions too. Pictures have no captions
 - Stamp frames follow exhibition practice: always black, with a single **Frame** choice in Properties (None, Thin 0.5 pt, Medium 1 pt, Double) in place of border style, colour, width, fill colour and opacity. Albums made before this open with the nearest black frame and no fill. The page bar's page-border colour and stamp-fill pickers are replaced by the theme. On screen, frames are drawn at fixed widths (Thin 1 px, Medium 2 px) so they can be told apart; exports use the point widths
 - Toolbar regrouped into **File**, **Edit** and **View** menus, with Undo, Redo, Preview and Export kept on the bar (UI and UX audit, item 2). Align, Duplicate, Grid fill and Delete appear in the page bar only while a stamp is selected. The toolbar now fits 1440 and 1024 px windows and phone width without sideways scrolling; buttons use line icons and are labelled for screen readers. Wizard is now File › New from wizard; Reset app moved to the bottom of the View menu; View › Show tutorial again is new
@@ -32,6 +35,8 @@ All notable changes to this project are documented here. The format follows [Kee
 - Dead `canvas.js` (not loaded) and `events.js` (loaded but never run), both superseded by `render.js` and `init.js`
 
 ### Fixed
+- Exports ignored the stamp's frame: the PDF, PNG and preview drew every frame as one thin line and the SVG as a 0.3 mm line, whatever was chosen. The album file's frame style and width were dropped on loading, and the Python serializer wrote every frame as solid 1 pt without the shape name, so the fields shifted when read back
+- The preview clipped the right and bottom edges of stamp frames
 - Stamp captions overlapped in exports: the PDF details line ran into the frame and the catalogue number into the details; the preview heading overlapped the box; the editor drew the heading below the box and showed only the denomination
 - SVG captions were drawn about three times too large (sizes in points inside a millimetre drawing)
 - Decorative page borders (Classic, Greek Key and the others) reopened as plain Single or Double; the style is now saved by name

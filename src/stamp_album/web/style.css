@@ -199,11 +199,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 /* ── Philatelic stamp mount ── */
 .stamp-mount { border-radius: 1px; }
+/* A stamp's frame is drawn outside its own size; the dashed line marks the stamp (editor only). */
+.cel .stamp-frame { position: absolute; overflow: visible; pointer-events: none; z-index: 0; }
+.cel.stamp-el { overflow: visible; }
+.rp-note { margin: 0; padding: 2px 12px 6px; font-size: 12px; color: var(--text2); line-height: 1.35; }
+.rp-note:empty { display: none; }
 /* Stamp captions are drawn outside the box, where they print */
 .cel.has-captions { overflow: visible; }
 .cel .caption.elbl { max-width: none; padding: 0; word-break: normal; overflow-wrap: normal; color: #000; cursor: text; }
 .cel .caption.elbl:focus { background: rgba(255,255,255,0.95); z-index: 4; }
 .cel.caption-warn .caption { background: rgba(217,119,6,0.22); }
+.cel.caption-warn.frame-warn .caption { background: none; }  /* the frame, not its captions, needs moving */
 .caption-warn-badge { position: absolute; top: -9px; right: -9px; width: 16px; height: 16px; border-radius: 50%; background: #b45309; color: #fff; font: bold 11px/16px sans-serif; text-align: center; z-index: 5; pointer-events: auto; cursor: help; }
 .stamp-mount .stamp-inner { pointer-events: auto; }
 .stamp-mount .elbl { color: #222; line-height: 1.2; }

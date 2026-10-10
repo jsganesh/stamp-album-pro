@@ -18,15 +18,14 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
-from stamp_album.core.models import Album, Color, Stamp, StampShape
+from stamp_album.core.models import Album, Color, Stamp
 from stamp_album.engines.borders import (
     EDGE_STYLES,
     ORNAMENTAL_STYLES,
     get_ornament_segments,
     edge_pattern_segments,
-    polygon_points,
 )
-from stamp_album.engines import caption_layout, text_layout
+from stamp_album.engines import caption_layout, frames, text_layout
 from stamp_album.engines.layout import layout_rows
 
 
@@ -107,44 +106,47 @@ def _set_color(c: canvas.Canvas, rgb: tuple[float, float, float], alpha: float =
     c.setStrokeColorRGB(rgb[0], rgb[1], rgb[2], alpha)
 
 
+def _pdf_outline(c: canvas.Canvas, kind: str, geom, page_h: float, fill: int, stroke: int):
+    """Draw a frames.outline() shape (mm, y down) on the PDF canvas (points, y up)."""
+    pt = _mm_to_pt
+    if kind == "ellipse":
+        cx, cy, rx, ry = geom
+        c.ellipse(pt(cx - rx), page_h - pt(cy + ry), pt(cx + rx), page_h - pt(cy - ry),
+                  fill=fill, stroke=stroke)
+    elif kind == "polygon":
+        p = c.beginPath()
+        p.moveTo(pt(geom[0][0]), page_h - pt(geom[0][1]))
+        for vx, vy in geom[1:]:
+            p.lineTo(pt(vx), page_h - pt(vy))
+        p.close()
+        c.drawPath(p, fill=fill, stroke=stroke)
+    else:
+        rx, ry, rw, rh = geom
+        c.rect(pt(rx), page_h - pt(ry + rh), pt(rw), pt(rh), fill=fill, stroke=stroke)
+
+
 def _draw_stamp_shape(
     c: canvas.Canvas,
+    stamp: Stamp,
     x: float, y: float, w: float, h: float,
-    shape: StampShape,
+    page_h: float,
     border_rgb: tuple[float, float, float],
     fill_rgb: tuple[float, float, float],
 ):
-    """Draw a stamp shape outline on a ReportLab canvas.
+    """Fill the stamp's own outline, then draw its frame outside it (see frames.py).
 
-    Coordinates are in PDF points (y-up from bottom).
+    (x, y, w, h) are mm from the page's top-left corner; *page_h* is the page height in points.
     """
-    c.setStrokeColorRGB(*border_rgb)
+    shape = stamp.shape.name if stamp.shape else "RECTANGLE"
+    c.saveState()
     c.setFillColorRGB(*fill_rgb)
-    c.setLineWidth(0.5)
-
-    if shape == StampShape.OVAL:
-        cx = x + w / 2
-        cy = y + h / 2
-        rx = w / 2
-        ry = h / 2
-        c.saveState()
-        c.translate(cx, cy)
-        c.scale(1, ry / rx)
-        c.circle(0, 0, rx, fill=1, stroke=1)
-        c.restoreState()
-
-    elif polygon_points(shape.name, 0, 0, 1, 1):
-        # Canonical outlines are top-left / y-down; PDF is y-up, so flip within the box.
-        verts = [(px, y + h - py) for px, py in polygon_points(shape.name, x, 0, w, h)]
-        p = c.beginPath()
-        p.moveTo(*verts[0])
-        for v in verts[1:]:
-            p.lineTo(*v)
-        p.close()
-        c.drawPath(p, fill=1, stroke=1)
-
-    else:  # RECTANGLE (default)
-        c.rect(x, y, w, h, fill=1, stroke=1)
+    _pdf_outline(c, *frames.outline(shape, x, y, w, h), page_h, fill=1, stroke=0)
+    c.setStrokeColorRGB(*border_rgb)
+    c.setLineJoin(0)  # mitred corners, as the outline is mitred
+    for ln in frames.lines(stamp):
+        c.setLineWidth(_mm_to_pt(ln.width))
+        _pdf_outline(c, *frames.outline(shape, x, y, w, h, ln.offset), page_h, fill=0, stroke=1)
+    c.restoreState()
 
 
 def _draw_stamp(c: canvas.Canvas, stamp: Stamp, album: Album,
@@ -174,7 +176,7 @@ def _draw_stamp(c: canvas.Canvas, stamp: Stamp, album: Album,
         Color(r=1, g=1, b=1)
     )
 
-    _draw_stamp_shape(c, x, y, w, h, stamp.shape, border_rgb, fill_rgb)
+    _draw_stamp_shape(c, stamp, sx, sy, stamp.width, stamp.height, page_h_pt, border_rgb, fill_rgb)
 
     # Embed image if present
     if stamp.image_path:

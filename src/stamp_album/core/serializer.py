@@ -201,13 +201,18 @@ class AlbumSerializer:
                         shape_code = " " + stamp.shape.name
                     # Only emit extended border/fill fields when they differ from defaults
                     bdr_ext = ""
-                    if stamp.shape != StampShape.RECTANGLE or stamp.border_color is not None or stamp.fill_color is not None:
-                        bdr = "solid"
+                    frame = getattr(stamp, "frame", "thin") or "thin"
+                    if (stamp.shape != StampShape.RECTANGLE or stamp.border_color is not None
+                            or stamp.fill_color is not None or frame != "thin"):
+                        # The frame as the editor writes it (FRAMES in web/dsl_core.js)
+                        bdr, bdrW = {"none": ("none", 0), "medium": ("solid", 1),
+                                     "double": ("double", 1)}.get(frame, ("solid", 0.5))
                         bdrC = self._format_color(stamp.border_color) if stamp.border_color else ""
-                        bdrW = 1
                         fill = self._format_color(stamp.fill_color) if stamp.fill_color else ""
                         fillA = 100
                         bdr_ext = f' "{bdr}" "{bdrC}" {bdrW} "{fill}" {fillA}'
+                        # The extended fields are positional: always write the shape with them
+                        shape_code = " " + (stamp.shape or StampShape.RECTANGLE).name
                     lines.append(
                         f'STAMP_ADD_AT({stamp.abs_x} {stamp.abs_y} '
                         f'{stamp.width} {stamp.height} '

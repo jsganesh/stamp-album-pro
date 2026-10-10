@@ -263,13 +263,66 @@ function add(p) {
 }
 
 // On screen the page is drawn at under one pixel per point, so 0.5 pt and 1 pt frames would
-// both round to one pixel. Each frame gets a fixed screen width instead, so they look different;
-// the exports draw the true point widths.
-var FRAME_PX = { thin: 1, medium: 2, double: 3 };
-function frameCSS(el) {
-    var frame = S.CORE.frameOf(el), colour = el.bdrC || "#000000";
-    if (frame === "none") return "none";
-    return FRAME_PX[frame] + "px " + (frame === "double" ? "double " : "solid ") + colour;
+// both round to one pixel. Each frame line gets a fixed screen width instead, so they look
+// different; the exports draw the true point widths. Lines sit where they print (see
+// S.CORE.frameLines): the frame is outside the stamp, with 1 mm clear all round.
+var FRAME_PX = { thin: 1, medium: 2, double: 1 };
+var FRAME_DOUBLE_STEP_PX = 2;  // centre to centre, so the two lines of a double frame stay apart
+var SVG_NS = "http://www.w3.org/2000/svg";
+
+function outlineNode(o, attrs) {
+    var n;
+    if (o.kind === "ellipse") {
+        n = document.createElementNS(SVG_NS, "ellipse");
+        n.setAttribute("cx", o.cx); n.setAttribute("cy", o.cy); n.setAttribute("rx", o.rx); n.setAttribute("ry", o.ry);
+    } else if (o.kind === "polygon") {
+        n = document.createElementNS(SVG_NS, "polygon");
+        n.setAttribute("points", o.points.map(function(p) { return p[0] + "," + p[1]; }).join(" "));
+    } else {
+        n = document.createElementNS(SVG_NS, "rect");
+        n.setAttribute("x", o.x); n.setAttribute("y", o.y); n.setAttribute("width", o.w); n.setAttribute("height", o.h);
+    }
+    Object.keys(attrs).forEach(function(k) { n.setAttribute(k, attrs[k]); });
+    return n;
+}
+
+// A stamp's fill, its size guide and its frame, in canvas px relative to the stamp's box.
+function stampFrameSVG(el) {
+    var sc = S._sc, frame = S.CORE.frameOf(el), colour = el.bdrC || "#000000";
+    var lines = S.CORE.frameLines(el).map(function(l) { return { offset: l.offset * sc, width: FRAME_PX[frame] }; });
+    if (frame === "double" && lines.length === 2) lines[0].offset = lines[1].offset - FRAME_DOUBLE_STEP_PX;
+    var reach = Math.max(S.CORE.frameOutset(el) * sc, lines.length ? lines[lines.length - 1].offset + 1 : 0) + 2;
+    var svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("class", "stamp-frame");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("viewBox", (-reach) + " " + (-reach) + " " + (el.w + 2 * reach) + " " + (el.h + 2 * reach));
+    svg.style.cssText = "left:" + (-reach) + "px;top:" + (-reach) + "px;width:" + (el.w + 2 * reach) + "px;height:" + (el.h + 2 * reach) + "px;";
+    var own = S.CORE.shapeOutline(el.s, 0, 0, el.w, el.h, 0);
+    svg.appendChild(outlineNode(own, { "class": "stamp-fill", fill: el.fill || "#ffffff", stroke: "none" }));
+    // The stamp's own size (from the catalogue): a faint dashed line, never printed
+    svg.appendChild(outlineNode(own, { "class": "stamp-size-guide", fill: "none", stroke: "#8a8a8a",
+        "stroke-width": 1, "stroke-dasharray": "3 2", "vector-effect": "non-scaling-stroke" }));
+    lines.forEach(function(l) {
+        svg.appendChild(outlineNode(S.CORE.shapeOutline(el.s, 0, 0, el.w, el.h, l.offset),
+            { "class": "frame-line", fill: "none", stroke: colour, "stroke-width": l.width, "stroke-linejoin": "miter" }));
+    });
+    return svg;
+}
+
+// "Frame 32.4 × 42.4 mm (1 mm clear all round)" for the selected stamp, under the Frame choice.
+function frameNote(el) {
+    if (!el || el.t !== "stamp") return "";
+    var sc = S._sc, o = S.CORE.frameOutset(el);
+    var w = el.w / sc, h = el.h / sc;
+    var f = function(v) { return (Math.round(v * 10) / 10).toString(); };
+    if (!o) return "No frame. The stamp is " + f(w) + " × " + f(h) + " mm.";
+    return "Frame " + f(w + 2 * o) + " × " + f(h + 2 * o) + " mm, " + S.CORE.FRAME_CLEARANCE_MM +
+        " mm clear all round the stamp (" + f(w) + " × " + f(h) + " mm, dashed).";
+}
+function updateFrameNote() {
+    var n = $("pframe-size");
+    if (!n) return;
+    n.textContent = frameNote(S.E.find(function(x) { return x.id === S.sel; }));
 }
 
 // ── Select ──
@@ -484,9 +537,11 @@ function markCaptionWarnings(items) {
     items.forEach(function(it) {
         var why = warn[it.id];
         if (!why) return;
-        var msg = why === "border" ? (inset ? "Captions run past the page border" : "Captions run past the page edge")
-                                   : "Captions run into another item";
+        var edge = inset ? "the page border" : "the page edge";
+        var msg = { "border": "Captions run past " + edge, "overlap": "Captions run into another item",
+                    "frame-border": "The frame runs past " + edge, "frame-overlap": "The frame runs into another item" }[why];
         it.node.classList.add("caption-warn");
+        if (why.indexOf("frame") === 0) it.node.classList.add("frame-warn");
         it.node.setAttribute("aria-description", msg);
         var b = document.createElement("span");
         b.className = "caption-warn-badge";
@@ -525,31 +580,37 @@ function render() {
         d.style.height = el.h + "px";
 
         /* ── Philatelic stamp mount rendering ── */
-        if (el.t === "stamp" && el.s === "rectangle") {
-            // The stamp's frame as chosen in Properties: none, thin, medium or double, in black
-            d.style.border = frameCSS(el);
-            d.style.backgroundColor = el.fill || "#ffffff";
-            d.classList.add("stamp-mount");
+        if (el.t === "stamp") {
+            // The fill and the frame chosen in Properties (none, thin, medium or double, in black),
+            // drawn outside the stamp's own size, which shows as a dashed line.
+            d.classList.add("stamp-el");
+            if (!el.s || el.s === "rectangle") d.classList.add("stamp-mount");
+            d.style.border = "none";
+            d.style.backgroundColor = "transparent";
+            d.appendChild(stampFrameSVG(el));
+            // The selection outline goes round the frame, not through it
+            d.style.outlineOffset = Math.round(S.CORE.frameOutset(el) * S._sc + 3) + "px";
 
-            // Inner content area
-            var inner = document.createElement("div");
-            inner.className = "stamp-inner";
-            inner.style.cssText = "position:absolute;inset:4pt;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;";
+            if (!el.s || el.s === "rectangle") {
+                // Inner content area
+                var inner = document.createElement("div");
+                inner.className = "stamp-inner";
+                inner.style.cssText = "position:absolute;inset:4pt;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;";
 
-            if (el.img) {
-                var img = document.createElement("img");
-                img.className = "eimg";
-                img.src = el.img;
-                img.style.maxWidth = "92%";
-                img.style.maxHeight = "60%";
-                inner.appendChild(img);
+                if (el.img) {
+                    var img = document.createElement("img");
+                    img.className = "eimg";
+                    img.src = el.img;
+                    img.style.maxWidth = "92%";
+                    img.style.maxHeight = "60%";
+                    inner.appendChild(img);
+                }
+
+                d.appendChild(inner);
             }
-
-            d.appendChild(inner);
-
         }
         else if (el.s && el.s !== "rectangle" && el.s !== "text" && el.s !== "freehand") {
-            var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            var svg = document.createElementNS(SVG_NS, "svg");
             svg.setAttribute("class", "shape-svg");
             svg.setAttribute("viewBox", "0 0 " + el.w + " " + el.h);
             svg.style.position = "absolute";
@@ -557,19 +618,10 @@ function render() {
             svg.style.left = "0";
             svg.style.width = "100%";
             svg.style.height = "100%";
-            var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            var path = document.createElementNS(SVG_NS, "path");
             path.setAttribute("d", getShapePath(el.s, el.w, el.h));
             path.setAttribute("fill", el.fill || "#fff");
-            // Frame widths are points; the drawing is in canvas pixels
-            var frame = S.CORE.frameOf(el);
-            path.setAttribute("stroke", frame === "none" ? "none" : (el.bdrC || "#000000"));
-            path.setAttribute("stroke-width", frame === "medium" ? FRAME_PX.medium : 1);  // see FRAME_PX
-            if (frame === "double") {
-                var path2 = path.cloneNode();
-                path2.setAttribute("transform", "translate(3,3) scale(0.95)");
-                path2.setAttribute("fill", "none");
-                svg.appendChild(path2);
-            }
+            path.setAttribute("stroke", "none");
             svg.appendChild(path);
             d.appendChild(svg);
             d.style.border = "none";
@@ -672,9 +724,12 @@ function render() {
         pg.appendChild(d);
         var lines = stampCaptionLines(el);
         if (lines.length) drawCaptions(d, el, lines);
-        captionItems.push({ id: el.id, box: { x: el.x / S._sc, y: el.y / S._sc, w: el.w / S._sc, h: el.h / S._sc }, lines: lines, node: d });
+        // A stamp's outer edge is its frame's
+        var box = S.CORE.frameBox(el, el.x / S._sc, el.y / S._sc, el.w / S._sc, el.h / S._sc);
+        captionItems.push({ id: el.id, box: box, lines: lines, node: d, framed: el.t === "stamp" && box.w > el.w / S._sc });
     });
     markCaptionWarnings(captionItems);
+    updateFrameNote();
 
     // Draw column guides if columns are enabled
     if (S._colMode > 1) {

@@ -427,6 +427,7 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
     from stamp_album.core.models import (
         Album, Page, PageSetup, Stamp, StampShape, StampHeading, Color,
     )
+    from stamp_album.engines.frames import frame_of
 
     SCALE = req.scale
     w_mm = req.page_width_px / SCALE
@@ -484,6 +485,9 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
                 fill_color=_parse_hex(el.fill) or Color(r=1, g=1, b=1),
             )
             stamp.catalog_refs = catalog_refs
+            # The frame is drawn outside the stamp's own size (engines/frames.py)
+            stamp.frame = "none" if is_text else frame_of(el.bdr, el.bdrW)
+            stamp.is_freehand = el.t == "freehand"
             stamp.heading = heading
             stamp.footer_text = footer
             if is_text and el.role == "heading":

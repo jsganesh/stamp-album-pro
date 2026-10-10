@@ -6,40 +6,40 @@
 <rect x="0" y="0" width="210.0" height="297.0" fill="#fff" stroke="#ccc" stroke-width="0.1"/>
 <rect x="15.0" y="15.0" width="180.0" height="267.0" fill="none" stroke="#8b0000" stroke-width="0.8"/>
 <rect x="17.8" y="17.8" width="174.4" height="261.4" fill="none" stroke="#8b0000" stroke-width="0.4"/>
-<rect x="0.0" y="20.0" width="32.0" height="37.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
-<text class="caption caption-description" x="16.00" y="61.82" font-size="2.82" text-anchor="middle" fill="#000000" font-family="Arial,Helvetica,sans-serif">row stamp 1</text>
-<text class="caption caption-catalogue" x="16.00" y="65.49" font-size="2.82" text-anchor="middle" font-style="italic" fill="#000000" font-family="Arial,Helvetica,sans-serif">sg 1 · sacc 1</text>
-<ellipse cx="46.5" cy="36.5" rx="14.0" ry="16.5" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
-<text class="caption caption-description" x="46.50" y="57.82" font-size="2.82" text-anchor="middle" fill="#000000" font-family="Arial,Helvetica,sans-serif">row oval</text>
-<text class="caption caption-catalogue" x="46.50" y="61.49" font-size="2.82" text-anchor="middle" font-style="italic" fill="#000000" font-family="Arial,Helvetica,sans-serif">sg 2 · sacc 2a</text>
-<svg x="61.0mm" y="20.0mm" width="28.0mm" height="33.0mm" viewBox="0 0 100 100" style="overflow:visible"><polygon points="50,0 100,50 50,100 0,50" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/></svg>
-<text class="caption caption-description" x="75.00" y="57.82" font-size="2.82" text-anchor="middle" fill="#000000" font-family="Arial,Helvetica,sans-serif">row diamond</text>
-<text class="caption caption-catalogue" x="75.00" y="61.49" font-size="2.82" text-anchor="middle" font-style="italic" fill="#000000" font-family="Arial,Helvetica,sans-serif">sg 3 · sacc 3</text>
-<rect x="15.0" y="30.0" width="40.0" height="30.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
-<text class="caption caption-description" x="35.00" y="64.82" font-size="2.82" text-anchor="middle" fill="#000000" font-family="Arial,Helvetica,sans-serif">abs 1d Red</text>
-<text class="caption caption-catalogue" x="35.00" y="68.49" font-size="2.82" text-anchor="middle" font-style="italic" fill="#000000" font-family="Arial,Helvetica,sans-serif">sg 10 · sacc 10</text>
-<rect x="65.0" y="30.0" width="40.0" height="30.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
-<text class="caption caption-description" x="85.00" y="64.82" font-size="2.82" text-anchor="middle" fill="#000000" font-family="Arial,Helvetica,sans-serif">abs 2d Blue</text>
-<text class="caption caption-catalogue" x="85.00" y="68.49" font-size="2.82" text-anchor="middle" font-style="italic" fill="#000000" font-family="Arial,Helvetica,sans-serif">sg 11 · scott 3 · sacc 11</text>
-<rect x="115.0" y="30.0" width="40.0" height="30.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
-<text class="caption caption-description" x="135.00" y="64.82" font-size="2.82" text-anchor="middle" fill="#000000" font-family="Arial,Helvetica,sans-serif">abs 3d Green</text>
-<text class="caption caption-catalogue" x="135.00" y="68.49" font-size="2.82" text-anchor="middle" font-style="italic" fill="#000000" font-family="Arial,Helvetica,sans-serif">sg 12 · sacc 12</text>
+<rect x="0.000" y="20.000" width="32.000" height="37.000" class="stamp-fill" fill="#f5f5f0" stroke="none"/><rect x="-1.088" y="18.912" width="34.176" height="39.176" class="frame-line" fill="none" stroke="#000000" stroke-width="0.1764" stroke-linejoin="miter"/>
+<text class="caption caption-description" x="16.00" y="63.00" font-size="2.82" text-anchor="middle" fill="#000000" font-family="Arial,Helvetica,sans-serif">row stamp 1</text>
+<text class="caption caption-catalogue" x="16.00" y="66.67" font-size="2.82" text-anchor="middle" font-style="italic" fill="#000000" font-family="Arial,Helvetica,sans-serif">sg 1 · sacc 1</text>
+<ellipse cx="46.500" cy="36.500" rx="14.000" ry="16.500" class="stamp-fill" fill="#f5f5f0" stroke="none"/><ellipse cx="46.500" cy="36.500" rx="15.088" ry="17.588" class="frame-line" fill="none" stroke="#000000" stroke-width="0.1764" stroke-linejoin="miter"/>
+<text class="caption caption-description" x="46.50" y="59.00" font-size="2.82" text-anchor="middle" fill="#000000" font-family="Arial,Helvetica,sans-serif">row oval</text>
+<text class="caption caption-catalogue" x="46.50" y="62.67" font-size="2.82" text-anchor="middle" font-style="italic" fill="#000000" font-family="Arial,Helvetica,sans-serif">sg 2 · sacc 2a</text>
+<polygon points="75.000,20.000 89.000,36.500 75.000,53.000 61.000,36.500" class="stamp-fill" fill="#f5f5f0" stroke="none"/><polygon points="75.000,18.318 90.427,36.500 75.000,54.682 59.573,36.500" class="frame-line" fill="none" stroke="#000000" stroke-width="0.1764" stroke-linejoin="miter"/>
+<text class="caption caption-description" x="75.00" y="59.00" font-size="2.82" text-anchor="middle" fill="#000000" font-family="Arial,Helvetica,sans-serif">row diamond</text>
+<text class="caption caption-catalogue" x="75.00" y="62.67" font-size="2.82" text-anchor="middle" font-style="italic" fill="#000000" font-family="Arial,Helvetica,sans-serif">sg 3 · sacc 3</text>
+<rect x="15.000" y="30.000" width="40.000" height="30.000" class="stamp-fill" fill="#f5f5f0" stroke="none"/><rect x="13.912" y="28.912" width="42.176" height="32.176" class="frame-line" fill="none" stroke="#000000" stroke-width="0.1764" stroke-linejoin="miter"/>
+<text class="caption caption-description" x="35.00" y="66.00" font-size="2.82" text-anchor="middle" fill="#000000" font-family="Arial,Helvetica,sans-serif">abs 1d Red</text>
+<text class="caption caption-catalogue" x="35.00" y="69.67" font-size="2.82" text-anchor="middle" font-style="italic" fill="#000000" font-family="Arial,Helvetica,sans-serif">sg 10 · sacc 10</text>
+<rect x="65.000" y="30.000" width="40.000" height="30.000" class="stamp-fill" fill="#f5f5f0" stroke="none"/><rect x="63.912" y="28.912" width="42.176" height="32.176" class="frame-line" fill="none" stroke="#000000" stroke-width="0.1764" stroke-linejoin="miter"/>
+<text class="caption caption-description" x="85.00" y="66.00" font-size="2.82" text-anchor="middle" fill="#000000" font-family="Arial,Helvetica,sans-serif">abs 2d Blue</text>
+<text class="caption caption-catalogue" x="85.00" y="69.67" font-size="2.82" text-anchor="middle" font-style="italic" fill="#000000" font-family="Arial,Helvetica,sans-serif">sg 11 · scott 3 · sacc 11</text>
+<rect x="115.000" y="30.000" width="40.000" height="30.000" class="stamp-fill" fill="#f5f5f0" stroke="none"/><rect x="113.912" y="28.912" width="42.176" height="32.176" class="frame-line" fill="none" stroke="#000000" stroke-width="0.1764" stroke-linejoin="miter"/>
+<text class="caption caption-description" x="135.00" y="66.00" font-size="2.82" text-anchor="middle" fill="#000000" font-family="Arial,Helvetica,sans-serif">abs 3d Green</text>
+<text class="caption caption-catalogue" x="135.00" y="69.67" font-size="2.82" text-anchor="middle" font-style="italic" fill="#000000" font-family="Arial,Helvetica,sans-serif">sg 12 · sacc 12</text>
 </g>
 <g transform="translate(0,307.0)">
 <rect x="0" y="0" width="210.0" height="297.0" fill="#fff" stroke="#ccc" stroke-width="0.1"/>
 <rect x="15.0" y="15.0" width="180.0" height="267.0" fill="none" stroke="#8b0000" stroke-width="0.8"/>
 <rect x="17.8" y="17.8" width="174.4" height="261.4" fill="none" stroke="#8b0000" stroke-width="0.4"/>
-<rect x="0.0" y="20.0" width="32.0" height="37.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
-<text class="caption caption-description" x="16.00" y="61.82" font-size="2.82" text-anchor="middle" fill="#000000" font-family="Arial,Helvetica,sans-serif">page2 row</text>
-<text class="caption caption-catalogue" x="16.00" y="65.49" font-size="2.82" text-anchor="middle" font-style="italic" fill="#000000" font-family="Arial,Helvetica,sans-serif">sg 20</text>
-<rect x="20.0" y="40.0" width="45.0" height="35.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
-<text class="caption caption-description" x="42.50" y="79.82" font-size="2.82" text-anchor="middle" fill="#000000" font-family="Arial,Helvetica,sans-serif">abs 4d Violet</text>
-<text class="caption caption-catalogue" x="42.50" y="83.49" font-size="2.82" text-anchor="middle" font-style="italic" fill="#000000" font-family="Arial,Helvetica,sans-serif">sg 13 · sacc 13</text>
-<rect x="80.0" y="40.0" width="45.0" height="35.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
-<text class="caption caption-description" x="102.50" y="79.82" font-size="2.82" text-anchor="middle" fill="#000000" font-family="Arial,Helvetica,sans-serif">abs 5d Orange</text>
-<text class="caption caption-catalogue" x="102.50" y="83.49" font-size="2.82" text-anchor="middle" font-style="italic" fill="#000000" font-family="Arial,Helvetica,sans-serif">sg 14 · sacc 14</text>
-<rect x="140.0" y="40.0" width="45.0" height="35.0" fill="#f5f5f0" stroke="#000000" stroke-width="0.3"/>
-<text class="caption caption-description" x="162.50" y="79.82" font-size="2.82" text-anchor="middle" fill="#000000" font-family="Arial,Helvetica,sans-serif">abs 6d Purple</text>
-<text class="caption caption-catalogue" x="162.50" y="83.49" font-size="2.82" text-anchor="middle" font-style="italic" fill="#000000" font-family="Arial,Helvetica,sans-serif">sg 15 · sacc 15</text>
+<rect x="0.000" y="20.000" width="32.000" height="37.000" class="stamp-fill" fill="#f5f5f0" stroke="none"/><rect x="-1.088" y="18.912" width="34.176" height="39.176" class="frame-line" fill="none" stroke="#000000" stroke-width="0.1764" stroke-linejoin="miter"/>
+<text class="caption caption-description" x="16.00" y="63.00" font-size="2.82" text-anchor="middle" fill="#000000" font-family="Arial,Helvetica,sans-serif">page2 row</text>
+<text class="caption caption-catalogue" x="16.00" y="66.67" font-size="2.82" text-anchor="middle" font-style="italic" fill="#000000" font-family="Arial,Helvetica,sans-serif">sg 20</text>
+<rect x="20.000" y="40.000" width="45.000" height="35.000" class="stamp-fill" fill="#f5f5f0" stroke="none"/><rect x="18.912" y="38.912" width="47.176" height="37.176" class="frame-line" fill="none" stroke="#000000" stroke-width="0.1764" stroke-linejoin="miter"/>
+<text class="caption caption-description" x="42.50" y="81.00" font-size="2.82" text-anchor="middle" fill="#000000" font-family="Arial,Helvetica,sans-serif">abs 4d Violet</text>
+<text class="caption caption-catalogue" x="42.50" y="84.67" font-size="2.82" text-anchor="middle" font-style="italic" fill="#000000" font-family="Arial,Helvetica,sans-serif">sg 13 · sacc 13</text>
+<rect x="80.000" y="40.000" width="45.000" height="35.000" class="stamp-fill" fill="#f5f5f0" stroke="none"/><rect x="78.912" y="38.912" width="47.176" height="37.176" class="frame-line" fill="none" stroke="#000000" stroke-width="0.1764" stroke-linejoin="miter"/>
+<text class="caption caption-description" x="102.50" y="81.00" font-size="2.82" text-anchor="middle" fill="#000000" font-family="Arial,Helvetica,sans-serif">abs 5d Orange</text>
+<text class="caption caption-catalogue" x="102.50" y="84.67" font-size="2.82" text-anchor="middle" font-style="italic" fill="#000000" font-family="Arial,Helvetica,sans-serif">sg 14 · sacc 14</text>
+<rect x="140.000" y="40.000" width="45.000" height="35.000" class="stamp-fill" fill="#f5f5f0" stroke="none"/><rect x="138.912" y="38.912" width="47.176" height="37.176" class="frame-line" fill="none" stroke="#000000" stroke-width="0.1764" stroke-linejoin="miter"/>
+<text class="caption caption-description" x="162.50" y="81.00" font-size="2.82" text-anchor="middle" fill="#000000" font-family="Arial,Helvetica,sans-serif">abs 6d Purple</text>
+<text class="caption caption-catalogue" x="162.50" y="84.67" font-size="2.82" text-anchor="middle" font-style="italic" fill="#000000" font-family="Arial,Helvetica,sans-serif">sg 15 · sacc 15</text>
 </g>
 </svg>

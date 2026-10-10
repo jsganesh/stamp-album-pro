@@ -47,6 +47,79 @@ function applyFrame(el, frame) {
     el.bdrC = FRAME_COLOR;
     return el;
 }
+// The frame is drawn outside the stamp: a stamp's w and h are its own size, as in the catalogue.
+// FRAME_CLEARANCE_MM of clear space all round, then the line or lines (points, inside out).
+// Free shapes have no clearance: their outline is the frame. Keep in step with engines/frames.py.
+var FRAME_CLEARANCE_MM = 1;
+var FRAME_LINES_PT = { none: [], thin: [0.5], medium: [1], double: [0.5, 0.5] };
+var FRAME_DOUBLE_GAP_PT = 1;
+var MM_PER_PT = 25.4 / 72;
+function frameClearance(el) {
+    return frameOf(el) === "none" || el.t === "freehand" ? 0 : FRAME_CLEARANCE_MM;
+}
+// [{ offset, width }] in mm, inside out: offset runs from the stamp edge to the line's centre.
+function frameLines(el) {
+    if (!el || (el.t !== "stamp" && el.t !== "freehand")) return [];
+    var out = [], edge = frameClearance(el);
+    FRAME_LINES_PT[frameOf(el)].forEach(function(wPt, i) {
+        if (i) edge += FRAME_DOUBLE_GAP_PT * MM_PER_PT;
+        var w = wPt * MM_PER_PT;
+        out.push({ offset: edge + w / 2, width: w });
+        edge += w;
+    });
+    return out;
+}
+// Distance from the stamp edge to the frame's outer edge (mm); 0 with no frame.
+function frameOutset(el) {
+    var ls = frameLines(el), last = ls[ls.length - 1];
+    return last ? last.offset + last.width / 2 : 0;
+}
+function frameBox(el, x, y, w, h) {
+    var o = frameOutset(el);
+    return { x: x - o, y: y - o, w: w + 2 * o, h: h + 2 * o };
+}
+// Stamp outlines on a 100 x 100 grid, as SHAPE_POLYGON_VIEWBOX in engines/borders.py.
+var SHAPE_POLYGONS = {
+    triangle: [[50, 0], [100, 100], [0, 100]],
+    triangle_inverted: [[0, 0], [100, 0], [50, 100]],
+    diamond: [[50, 0], [100, 50], [50, 100], [0, 50]],
+    hexagon: [[25, 0], [75, 0], [100, 50], [75, 100], [25, 100], [0, 50]],
+    octagon: [[30, 0], [70, 0], [100, 30], [100, 70], [70, 100], [30, 100], [0, 70], [0, 30]],
+    pentagon: [[50, 0], [100, 38], [82, 100], [18, 100], [0, 38]]
+};
+// A convex polygon moved outward by d on every side, corners mitred.
+function _offsetPolygon(pts, d) {
+    if (!d) return pts.slice();
+    var n = pts.length, cx = 0, cy = 0, edges = [], out = [];
+    pts.forEach(function(p) { cx += p[0] / n; cy += p[1] / n; });
+    for (var i = 0; i < n; i++) {
+        var a = pts[i], b = pts[(i + 1) % n], dx = b[0] - a[0], dy = b[1] - a[1];
+        var ln = Math.hypot(dx, dy) || 1, nx = dy / ln, ny = -dx / ln;
+        if (nx * ((a[0] + b[0]) / 2 - cx) + ny * ((a[1] + b[1]) / 2 - cy) < 0) { nx = -nx; ny = -ny; }
+        edges.push({ p: [a[0] + nx * d, a[1] + ny * d], v: [dx, dy] });
+    }
+    for (var j = 0; j < n; j++) {
+        var e1 = edges[(j + n - 1) % n], e2 = edges[j];
+        var den = e1.v[0] * e2.v[1] - e1.v[1] * e2.v[0];
+        if (Math.abs(den) < 1e-12) { out.push(e2.p); continue; }
+        var t = ((e2.p[0] - e1.p[0]) * e2.v[1] - (e2.p[1] - e1.p[1]) * e2.v[0]) / den;
+        out.push([e1.p[0] + e1.v[0] * t, e1.p[1] + e1.v[1] * t]);
+    }
+    return out;
+}
+// The stamp's outline moved outward by d: { kind: "rect", x, y, w, h } |
+// { kind: "ellipse", cx, cy, rx, ry } | { kind: "polygon", points: [[x, y], ...] }.
+function shapeOutline(shape, x, y, w, h, d) {
+    d = d || 0;
+    if (shape === "oval") return { kind: "ellipse", cx: x + w / 2, cy: y + h / 2, rx: w / 2 + d, ry: h / 2 + d };
+    var poly = SHAPE_POLYGONS[shape];
+    if (poly) {
+        var pts = poly.map(function(p) { return [x + p[0] / 100 * w, y + p[1] / 100 * h]; });
+        return { kind: "polygon", points: _offsetPolygon(pts, d) };
+    }
+    return { kind: "rect", x: x - d, y: y - d, w: w + 2 * d, h: h + 2 * d };
+}
+
 // Older albums could colour, fill or dash a stamp's frame: open them with the nearest black frame, no fill.
 function normalizeStamp(el) {
     if (el.t !== "stamp") return el;
@@ -473,7 +546,7 @@ function fitToPage(pages, width, height, margin, opts) {
 // One caption layout for every view. Keep in step with stamp_album/engines/caption_layout.py.
 // Heading above the box (bold, 9 pt); below it the description (8 pt), the details line
 // (8 pt italic) and the catalogue number (8 pt italic). The nearest line box is GAP_MM from
-// the frame; lines are centred and wrapped to the box width; captions are black.
+// the frame's outer edge; lines are centred and wrapped to the frame's width; captions are black.
 // Positions are mm from the page's top-left corner. measure(text, fontId, sizePt) -> mm.
 var CAPTION = { GAP_MM: 2, HEADING_PT: 9, CAPTION_PT: 8, LINE_HEIGHT: 1.3, FIRST_BASELINE: 1,
                 MM_PER_PT: 25.4 / 72, COLOR: "#000000" };
@@ -522,7 +595,10 @@ function captionParts(el) {
 // Which elements carry captions: stamps (any shape) and free shapes.
 function hasCaptions(el) { return !!el && (el.t === "stamp" || el.t === "freehand"); }
 
+// (x, y, w, h) is the stamp's own size; captions are placed around its frame.
 function captionLayout(el, x, y, w, h, measure) {
+    var fb = frameBox(el, x, y, w, h);
+    x = fb.x; y = fb.y; w = fb.w; h = fb.h;
     var parts = captionParts(el), lh = function(r) { return r.sizePt * CAPTION.LINE_HEIGHT * CAPTION.MM_PER_PT; };
     function wrapped(list) {
         var rows = [];
@@ -557,24 +633,34 @@ function captionBounds(lines) {
     return b;
 }
 
-// Captions that need attention. items: [{ id, box: {x, y, w, h}, lines }] in mm, where
-// lines is the item's caption layout (empty for items without captions). area: {l, t, r, b},
-// the inside of the page border (or the page). Returns { id: "border" | "overlap" }.
+// Captions and frames that need attention. items: [{ id, box: {x, y, w, h}, lines, framed }] in mm,
+// where box is the item's outer edge (a stamp's frame), lines its caption layout (empty for items
+// without captions) and framed is true for items whose frame grows past their own size.
+// area: {l, t, r, b}, the inside of the page border (or the page).
+// Returns { id: "border" | "overlap" } for captions, or "frame-border" | "frame-overlap" when
+// only the frame itself runs past the border or into another item.
 function captionWarnings(items, area) {
     var res = {};
     var hit = function(a, b) { return a.l < b.r - 1e-6 && b.l < a.r - 1e-6 && a.t < b.b - 1e-6 && b.t < a.b - 1e-6; };
     var rect = function(bx) { return { l: bx.x, t: bx.y, r: bx.x + bx.w, b: bx.y + bx.h }; };
+    var outside = function(b) {
+        return area && (b.l < area.l - 1e-6 || b.t < area.t - 1e-6 || b.r > area.r + 1e-6 || b.b > area.b + 1e-6);
+    };
     var caps = items.map(function(it) { return captionBounds(it.lines); });
     items.forEach(function(it, i) {
-        var cb = caps[i];
-        if (!cb) return;
-        if (area && (cb.l < area.l - 1e-6 || cb.t < area.t - 1e-6 || cb.r > area.r + 1e-6 || cb.b > area.b + 1e-6)) {
-            res[it.id] = "border";
-            return;
+        var cb = caps[i], j;
+        if (cb) {
+            if (outside(cb)) { res[it.id] = "border"; return; }
+            for (j = 0; j < items.length; j++) {
+                if (j === i) continue;
+                if (hit(cb, rect(items[j].box)) || (caps[j] && hit(cb, caps[j]))) { res[it.id] = "overlap"; return; }
+            }
         }
-        for (var j = 0; j < items.length; j++) {
-            if (j === i) continue;
-            if (hit(cb, rect(items[j].box)) || (caps[j] && hit(cb, caps[j]))) { res[it.id] = "overlap"; return; }
+        if (!it.framed) return;
+        var fb = rect(it.box);
+        if (outside(fb)) { res[it.id] = "frame-border"; return; }
+        for (j = 0; j < items.length; j++) {
+            if (j !== i && hit(fb, rect(items[j].box))) { res[it.id] = "frame-overlap"; return; }
         }
     });
     return res;
@@ -582,6 +668,8 @@ function captionWarnings(items, area) {
 
 // ── Exports ──
 var EXPORTS = { THEMES: THEMES, themeColor: themeColor, FRAMES: FRAMES, frameOf: frameOf, applyFrame: applyFrame,
+                FRAME_CLEARANCE_MM: FRAME_CLEARANCE_MM, frameLines: frameLines, frameOutset: frameOutset,
+                frameBox: frameBox, SHAPE_POLYGONS: SHAPE_POLYGONS, shapeOutline: shapeOutline,
                 normalizeStamp: normalizeStamp, PLAIN_BORDERS: PLAIN_BORDERS, escapeDSL: escapeDSL, serializeEl: serializeEl, buildDSL: buildDSL, parseDSL: parseDSL, normalizePageSize: normalizePageSize, countOutside: countOutside,
                 describePageSize: describePageSize, fitToPage: fitToPage, PAPER_MM: PAPER_MM,
                 CAPTION: CAPTION, wrapLines: wrapLines, captionParts: captionParts, hasCaptions: hasCaptions,

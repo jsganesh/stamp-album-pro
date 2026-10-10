@@ -6,6 +6,7 @@ import pytest
 from test_ui_smoke import base_url, page  # noqa: F401  (fixtures)
 
 SC = 2.5  # canvas px per mm
+OUT = 1.0 + 0.5 * 25.4 / 72  # a thin frame's outer edge: 1 mm clear, then a 0.5 pt line
 FULL = {
     "hdg": "Penny Black",
     "lbl": "Plate 1a",
@@ -73,7 +74,7 @@ def test_captions_are_drawn_where_they_print(page, shape):
     _show(page, [_stamp(1, 40, 60, shape=shape, **FULL)])
     caps = {c["kind"]: c for c in _captions(page, "s1")}
     assert list(caps) == ["heading", "description", "details", "catalogue"]
-    gap = 2 * SC
+    gap = (2 + OUT) * SC  # 2 mm from the frame, which is outside the stamp
     assert caps["heading"]["bottom"] == pytest.approx(-gap, abs=1)
     box_h = caps["heading"]["boxH"]
     assert caps["description"]["top"] == pytest.approx(box_h + gap, abs=1)
