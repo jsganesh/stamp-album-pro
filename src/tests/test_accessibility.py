@@ -62,6 +62,9 @@ def _fake_library(page, images=("stamp1.png",), files=("my album.slbum",)):
 
 
 def _axe(page, context=None):
+    # Let fades and transitions finish first: mid-fade text is part-transparent, which axe
+    # reports as low contrast (the palette hint fading in failed this on fast CI runners).
+    page.evaluate("Promise.all(document.getAnimations().map(a => a.finished.catch(() => null)))")
     res = Axe().run(page, context=context, options={"resultTypes": ["violations"]})
     return ["%s (%s): %s" % (v["id"], v["impact"], [n["target"] for n in v["nodes"]][:6])
             for v in res.response["violations"]]
