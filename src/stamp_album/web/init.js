@@ -122,7 +122,8 @@ function init() {
         $(id).addEventListener("change", function() {
             var el = S.E.find(function(x) { return x.id === S.sel; });
             if (!el) return;
-            el[key] = transform ? transform(this.value) : S.mm(parseFloat(this.value) || 0);
+            // The field is in mm; elements are stored in canvas px
+            el[key] = transform ? transform(this.value) : S.px(parseFloat(this.value) || 0);
             pushUndo();
             render();
         });
