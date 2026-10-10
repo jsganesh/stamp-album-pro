@@ -10,7 +10,9 @@ Design and print stamp album pages. StampAlbum Pro pairs a drag-and-drop page ca
 
 - **Visual canvas:** place, drag, resize and align stamps and text elements on a page
 - **Stamp shapes:** rectangle, triangle, diamond, oval, hexagon, octagon, pentagon
-- **Borders:** ornamental page and stamp borders, including edge patterns (greek key, rope) and corner ornaments
+- **Stamp frames:** None, Thin, Medium or Double, always black. You enter the stamp's own size from the catalogue; the frame is drawn 1 mm clear all round it
+- **Captions:** a heading above each stamp; description, details and catalogue number below
+- **Themes and page borders:** plain borders for exhibition pages and decorative ones (corner ornaments, Greek key, Rope) for personal albums, in the theme's colour
 - **Pages:** add and delete pages; page sizes include A5 and Legal
 - **Layout tools:** grid fill and undo/redo
 - **Images:** upload and place images on a page
@@ -20,6 +22,8 @@ Design and print stamp album pages. StampAlbum Pro pairs a drag-and-drop page ca
 - **Album files:** create, open, save and delete `.slbum` albums from the sidebar
 
 ![DSL editor](docs/screenshots/04-dsl-editor.png)
+
+The tutorial pictures and these screenshots are made from the running app with `make screenshots` (`tools/screenshots.py`); run it after changing how the editor looks.
 
 ## What it does not do yet
 

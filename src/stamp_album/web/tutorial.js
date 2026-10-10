@@ -25,7 +25,8 @@ function showTutorial() {
 }
 
 // Auto-load a sample album so the canvas isn't empty: an exhibition-style page with three
-// stamps at their catalogue size (19 x 23 mm), so their frames show the 1 mm clearance.
+// stamps at their size (3/4 x 7/8 inch, 19 x 22 mm), so their frames show the 1 mm clearance.
+// Numbers and dates are StampWorld's (Great Britain 1 to 3).
 // The screenshot script (tools/screenshots.py) uses the same page.
 var SAMPLE_DSL = [
     'ALBUM_PAGES_BORDER(0.5 0 0 1)',
@@ -39,13 +40,13 @@ var SAMPLE_DSL = [
     'PAGE_TEXT_AT(20.0 18.0 170.0 12.0 "HB" 16 "Great Britain: The First Stamps" "center")',
     'PAGE_TEXT_ROLE("heading")',
     'PAGE_TEXT_AT(20.0 31.0 170.0 8.0 "HN" 10 "Line-engraved issues, 1840 to 1841" "center")',
-    'STAMP_ADD_AT(51.5 55.0 19.0 23.0 "Penny Black" "SG 2" "" "" rectangle "solid" "#000000" 0.5 "#ffffff" 100)',
+    'STAMP_ADD_AT(51.5 55.0 19.0 22.0 "Penny Black" "StampWorld 1" "" "" rectangle "solid" "#000000" 0.5 "#ffffff" 100)',
     'STAMP_HEADING("HN" 9 "1840")',
     'STAMP_DETAILS("1d" "Used" "Imperforate")',
-    'STAMP_ADD_AT(95.5 55.0 19.0 23.0 "Twopence Blue" "SG 5" "" "" rectangle "solid" "#000000" 0.5 "#ffffff" 100)',
+    'STAMP_ADD_AT(95.5 55.0 19.0 22.0 "Twopence Blue" "StampWorld 2" "" "" rectangle "solid" "#000000" 0.5 "#ffffff" 100)',
     'STAMP_HEADING("HN" 9 "1840")',
     'STAMP_DETAILS("2d" "Used" "Imperforate")',
-    'STAMP_ADD_AT(139.5 55.0 19.0 23.0 "Penny Red" "SG 8" "" "" rectangle "solid" "#000000" 0.5 "#ffffff" 100)',
+    'STAMP_ADD_AT(139.5 55.0 19.0 22.0 "Penny Red" "StampWorld 3" "" "" rectangle "solid" "#000000" 0.5 "#ffffff" 100)',
     'STAMP_HEADING("HN" 9 "1841")',
     'STAMP_DETAILS("1d" "Used" "Imperforate")'
 ].join("\n");
