@@ -30,7 +30,7 @@ def test_stamp_details_survive_save_and_open(page):
     page.evaluate("StampAlbum.newAlbum()")
     assert page.evaluate("StampAlbum.E.length") == 0
     page.evaluate("dsl => StampAlbum.parseDSL(dsl)", dsl)
-    page.evaluate("StampAlbum.select(StampAlbum.E.find(e => e.lbl === 'Penny Black — 1840').id)")
+    page.evaluate("StampAlbum.select(StampAlbum.E.find(e => e.lbl === 'Penny Black').id)")
     assert _properties(page) == dict(DETAILS, pcond="Used", pbs="double")
 
 

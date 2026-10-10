@@ -240,6 +240,9 @@ function init() {
             theme: "default",
             lineNumbers: true,
             lineWrapping: true,
+            // Type into the text itself, inside the scrolling area, rather than a hidden textarea
+            // outside it: keyboard users can reach the scrolling area, and screen readers read it.
+            inputStyle: "contenteditable",
             indentUnit: 2,
             tabSize: 2,
             autofocus: false,
