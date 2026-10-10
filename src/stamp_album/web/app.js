@@ -114,7 +114,9 @@ function withAlpha(color, alpha) {
     return "rgba(" + parseInt(h.slice(0, 2), 16) + "," + parseInt(h.slice(2, 4), 16) + "," + parseInt(h.slice(4, 6), 16) + "," + alpha + ")";
 }
 function mm(px) { return Math.round(px / _sc * 10) / 10; }
-function px(mm) { return Math.round(mm * _sc); }
+// Millimetres to canvas px. Kept to 1/100 px (0.004 mm), not whole pixels: whole pixels are
+// 0.4 mm steps, which turned a 19 mm stamp into 19.2 mm.
+function px(mm) { return Math.round(mm * _sc * 100) / 100; }
 function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
 
 // ── System Fonts ──
