@@ -36,6 +36,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - Dead `canvas.js` (not loaded) and `events.js` (loaded but never run), both superseded by `render.js` and `init.js`
 
 ### Fixed
+- Typing a size or position into W, H, X or Y in Properties stored the wrong value: 19 mm became 3.04 mm (the field's millimetres were converted as if they were canvas pixels). Sizes and positions read from a file were also rounded to 0.4 mm steps, so a 19 mm stamp opened as 19.2 mm; they are now kept to 0.004 mm
 - Page borders differed from view to view because each drew the shared patterns at its own scale. PNG drew Greek key, Rope and the corner ornaments about a third of their size with 1-pixel lines; the preview and PDF drew them at two thirds; SVG drew Greek key and Rope about two and a half times too big. The PDF Classic corner came out as a loop because the Python copy of the ornaments had been transcribed wrongly. Dashed and Dotted printed as solid lines everywhere except the editor
 - Exports ignored the stamp's frame: the PDF, PNG and preview drew every frame as one thin line and the SVG as a 0.3 mm line, whatever was chosen. The album file's frame style and width were dropped on loading, and the Python serializer wrote every frame as solid 1 pt without the shape name, so the fields shifted when read back
 - The preview clipped the right and bottom edges of stamp frames
