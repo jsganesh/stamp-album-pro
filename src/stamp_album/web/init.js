@@ -228,7 +228,7 @@ function init() {
     $("btn-cls-wiz").addEventListener("click", function() {
         $("wizard-panel").classList.remove("open");
     });
-    // ── DSL Editor (CodeMirror 6) ──
+    // ── DSL Editor (CodeMirror 5, bundled as codemirror.min.js) ──
     var _cmEditor = null;
     function initCodeMirror() {
         if (_cmEditor) return _cmEditor;

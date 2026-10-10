@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StampAlbum Pro</title>
     <link rel="stylesheet" href="style.css?v={{{VERSION}}}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css">
+    <link rel="stylesheet" href="codemirror.min.css"><!-- CodeMirror 5.65 (npm "codemirror" 6.65.7), MIT: codemirror-LICENSE.txt -->
     <style>
         .cm-editor { height: 300px; font-size: 13px; border: 1px solid var(--border); border-radius: 4px; }
         .cm-editor .cm-gutters { background: var(--bg2); border-right: 1px solid var(--border); }
@@ -312,7 +312,7 @@
 <!-- Hidden inputs -->
 <input type="file" id="file-inp" accept=".slbum,.txt" hidden aria-label="Album file">
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+<script src="codemirror.min.js"></script>
 <script src="app.js?v={{{VERSION}}}"></script>
 <script src="render.js?v={{{VERSION}}}"></script>
 <script src="undo.js?v={{{VERSION}}}"></script>

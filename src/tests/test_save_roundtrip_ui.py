@@ -1,7 +1,7 @@
 """What you enter in the editor survives Save and Open, and a browser reload (browser tests)."""
 
 # ruff: noqa: F811  (pytest fixtures are imported, then named as test arguments)
-from test_ui_smoke import base_url, page  # noqa: F401  (fixtures)
+from test_ui_smoke import base_url, page, wait_for_app  # noqa: F401  (fixtures)
 
 DETAILS = {"phdg": "Penny Black", "pcat": "SG#1", "pdenom": "1/2D", "pperf": "Imperforate"}
 
@@ -39,7 +39,7 @@ def test_page_border_survives_a_reload(page):
     page.select_option("#def-bdr", "double")
     page.wait_for_timeout(800)  # the draft is saved 500 ms after a change
     page.reload()
-    page.wait_for_function("window.StampAlbum && document.getElementById('page')")
+    wait_for_app(page)
     assert page.evaluate("StampAlbum._pageBorder") == "double"
     assert page.input_value("#def-bdr") == "double"
     assert page.evaluate("!!document.getElementById('page-border')")

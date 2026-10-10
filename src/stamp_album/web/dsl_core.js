@@ -7,6 +7,16 @@
 function escapeDSL(s) {
     return String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
 }
+// The reverse of escapeDSL, in one pass so "\\n" stays a backslash and an n.
+function unescapeDSL(s) {
+    return String(s).replace(/\\(.)/g, function(_, c) { return c === "n" ? "\n" : c; });
+}
+// t.match(re) with every quoted field unescaped (the patterns accept \" and \\ inside quotes).
+function matchDSL(t, re) {
+    var m = t.match(re);
+    if (m) for (var i = 1; i < m.length; i++) if (typeof m[i] === "string" && m[i].indexOf("\\") !== -1) m[i] = unescapeDSL(m[i]);
+    return m;
+}
 
 // ── Album themes ──
 // A theme colours the page border and headings marked as headings; everything else is black.
@@ -133,24 +143,25 @@ function normalizeStamp(el) {
 var PLAIN_BORDERS = ["none", "solid", "double"];
 
 function serializeEl(el) {
+    var E = escapeDSL;  // every text field is escaped, so quotes and backslashes survive a save
     if (el.t === "image") {
-        return 'STAMP_ADD_IMG(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + (el.img || "") + '" "' + (el.lbl || "") + '" "" "")';
+        return 'STAMP_ADD_IMG(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + E(el.img || "") + '" "' + E(el.lbl || "") + '" "" "")';
     } else if (el.t === "freehand") {
-        return 'STAMP_ADD_AT(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + (el.lbl || "") + '" "freehand" "" "" ' + (el.s || "freehand") + ' "' + (el.bdr || "solid") + '" "' + (el.bdrC || "#000") + '" ' + (el.bdrW || 0.5) + ' "' + (el.fill || "#FEFEFE") + '" ' + (el.fillA != null ? el.fillA : 100) + ')';
+        return 'STAMP_ADD_AT(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + E(el.lbl || "") + '" "freehand" "" "" ' + (el.s || "freehand") + ' "' + E(el.bdr || "solid") + '" "' + E(el.bdrC || "#000") + '" ' + (el.bdrW || 0.5) + ' "' + E(el.fill || "#FEFEFE") + '" ' + (el.fillA != null ? el.fillA : 100) + ')';
     } else if (el.t === "text") {
-        var text = 'PAGE_TEXT_AT(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + (el.font || "HN") + '" ' + (el.fs || 12) + ' "' + (el.lbl || "Text") + '" "' + (el.align || "left") + '")';
+        var text = 'PAGE_TEXT_AT(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + E(el.font || "HN") + '" ' + (el.fs || 12) + ' "' + E(el.lbl || "Text") + '" "' + E(el.align || "left") + '")';
         // A heading mark is its own line, which older versions skip.
         return el.role === "heading" ? text + '\nPAGE_TEXT_ROLE("heading")' : text;
     } else {
         // Every stamp, rectangles included, is written in the extended format so its border
         // and fill are kept. The first catalogue field holds the catalogue number.
         var shape = el.s === "rect" ? "rectangle" : (el.s || "rectangle");
-        var lines = ['STAMP_ADD_AT(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + (el.lbl || "") + '" "' + (el.cat || "") + '" "" "" ' + shape + ' "' + (el.bdr || "solid") + '" "' + (el.bdrC || "#000") + '" ' + (el.bdrW != null ? el.bdrW : 0.5) + ' "' + (el.fill || "#FEFEFE") + '" ' + (el.fillA != null ? el.fillA : 100) + ')'];
+        var lines = ['STAMP_ADD_AT(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + E(el.lbl || "") + '" "' + E(el.cat || "") + '" "" "" ' + shape + ' "' + E(el.bdr || "solid") + '" "' + E(el.bdrC || "#000") + '" ' + (el.bdrW != null ? el.bdrW : 0.5) + ' "' + E(el.fill || "#FEFEFE") + '" ' + (el.fillA != null ? el.fillA : 100) + ')'];
         // Heading above the stamp (a command the Python parser and exports already read)
-        if (el.hdg) lines.push('STAMP_HEADING("HN" 9 "' + el.hdg + '")');
+        if (el.hdg) lines.push('STAMP_HEADING("HN" 9 "' + E(el.hdg) + '")');
         // Denomination, condition, perforation. Older versions skip this line.
         if (el.denom || el.cond || el.perf) {
-            lines.push('STAMP_DETAILS("' + (el.denom || "") + '" "' + (el.cond || "") + '" "' + (el.perf || "") + '")');
+            lines.push('STAMP_DETAILS("' + E(el.denom || "") + '" "' + E(el.cond || "") + '" "' + E(el.perf || "") + '")');
         }
         return lines.join("\n");
     }
@@ -184,7 +195,7 @@ function buildDSL(state) {
     // The header is written even for an empty album, so a new landscape or
     // non-A4 album keeps its page size before anything is placed on it.
     var title = state.currentFile ? state.currentFile.replace(/\.(slbum|txt)$/, "") : "";
-    lines.push('ALBUM_TITLE("' + title + '")');
+    lines.push('ALBUM_TITLE("' + escapeDSL(title) + '")');
     lines.push("ALBUM_PAGES_SIZE(" + (state.pw || 210) + " " + (state.ph || 297) + ")");
     lines.push("ALBUM_PAGES_MARGINS(15 15 15 15)");
 
@@ -228,44 +239,44 @@ function parseDSL(dsl) {
         var t = lines[i].trim();
         if (!t || t.charAt(0) === "#") continue;
 
-        var mSize = t.match(/^ALBUM_PAGES_SIZE\(\s*([\d.]+)\s+([\d.]+)\)/);
+        var mSize = matchDSL(t, /^ALBUM_PAGES_SIZE\(\s*([\d.]+)\s+([\d.]+)\)/);
         if (mSize) {
             state.pw = parseFloat(mSize[1]);
             state.ph = parseFloat(mSize[2]);
             continue;
         }
 
-        var mMargin = t.match(/^ALBUM_PAGES_MARGINS\(\s*([\d.]+)\s/);
+        var mMargin = matchDSL(t, /^ALBUM_PAGES_MARGINS\(\s*([\d.]+)\s/);
         if (mMargin) {
             _pageMargin = parseFloat(mMargin[1]);
             continue;
         }
 
-        var mBorder = t.match(/^ALBUM_PAGES_BORDER\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\)/);
+        var mBorder = matchDSL(t, /^ALBUM_PAGES_BORDER\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\)/);
         if (mBorder) {
             state.pageBorder = parseFloat(mBorder[2]) > 0 ? "double" : "solid";
             continue;
         }
 
-        var mBorderStyle = t.match(/^ALBUM_PAGES_BORDER_STYLE\(\s*"([\w-]+)"\s*\)/);
+        var mBorderStyle = matchDSL(t, /^ALBUM_PAGES_BORDER_STYLE\(\s*"([\w-]+)"\s*\)/);
         if (mBorderStyle) {
             state.pageBorder = mBorderStyle[1];
             continue;
         }
 
-        var mTheme = t.match(/^ALBUM_THEME\(\s*"(\w+)"\s*\)/);
+        var mTheme = matchDSL(t, /^ALBUM_THEME\(\s*"(\w+)"\s*\)/);
         if (mTheme) {
             if (THEMES[mTheme[1]]) state.theme = mTheme[1];
             continue;
         }
 
-        var mBorderColor = t.match(/^COLOUR_ALBUM_BORDER\(\s*"#?([^"]+)"\s*\)|^COLOR_ALBUM_BORDER\(\s*"#?([^"]+)"\s*\)/);
+        var mBorderColor = matchDSL(t, /^COLOUR_ALBUM_BORDER\(\s*"#?([^"]+)"\s*\)|^COLOR_ALBUM_BORDER\(\s*"#?([^"]+)"\s*\)/);
         if (mBorderColor) {
             state.pageBorderC = "#" + (mBorderColor[1] || mBorderColor[2]);
             continue;
         }
 
-        if (t.match(/^PAGE_START/)) {
+        if (matchDSL(t, /^PAGE_START/)) {
             if (currentElements.length > 0) {
                 state.pages[state.currentPage] = currentElements;
                 currentElements = [];
@@ -283,42 +294,42 @@ function parseDSL(dsl) {
             continue;
         }
 
-        var mColStart = t.match(/^PAGE_COLUMN_START\(\s*(\d+)(?:\s+([\d.]+))?\)/);
+        var mColStart = matchDSL(t, /^PAGE_COLUMN_START\(\s*(\d+)(?:\s+([\d.]+))?\)/);
         if (mColStart) {
             state.colMode = parseInt(mColStart[1]) || 1;
             state.colGap = mColStart[2] ? parseFloat(mColStart[2]) : 10.0;
             continue;
         }
 
-        if (t.match(/^PAGE_COLUMN_NEXT/)) { continue; }
+        if (matchDSL(t, /^PAGE_COLUMN_NEXT/)) { continue; }
         // The editor keeps one column setting for the album, which buildDSL writes
         // around each page; STOP ends that block but must not clear the setting,
         // or every album with columns loses them on its next save.
-        if (t.match(/^PAGE_COLUMN_STOP/)) { continue; }
+        if (matchDSL(t, /^PAGE_COLUMN_STOP/)) { continue; }
 
-        var mVspace = t.match(/^PAGE_VSPACE\(\s*([\d.]+)\)/);
+        var mVspace = matchDSL(t, /^PAGE_VSPACE\(\s*([\d.]+)\)/);
         if (mVspace) {
             _rowY += parseFloat(mVspace[1]);
             continue;
         }
 
-        var mRow = t.match(/^ROW_START_FS\(\s*"([^"]*)"\s+(\d+)\s+([\d.]+)\s+([\d.]+)\)/);
+        var mRow = matchDSL(t, /^ROW_START_FS\(\s*"((?:[^"\\]|\\.)*)"\s+(\d+)\s+([\d.]+)\s+([\d.]+)\)/);
         if (mRow) {
             _rowX = _pageMargin;
             _rowSpacing = parseFloat(mRow[4]);
             continue;
         }
 
-        var mImg = t.match(/^STAMP_ADD_IMG\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"([^"]*)"\s+"([^"]*)"\s+"([^"]*)"\s+"([^"]*)"\)/);
+        var mImg = matchDSL(t, /^STAMP_ADD_IMG\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\)/);
         if (mImg) {
             currentElements.push({ id: "el" + (nid++), t: "image", s: "rectangle", x: parseFloat(mImg[1]), y: parseFloat(mImg[2]), w: parseFloat(mImg[3]), h: parseFloat(mImg[4]), lbl: mImg[6] || "", bdr: "none", bdrC: "transparent", bdrW: 0, fill: "transparent", fillA: 0, img: mImg[5] || "", font: "HN", fs: 12 });
             continue;
         }
 
-        var mAt = t.match(/^STAMP_ADD_AT\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"([^"]*)"\s+"([^"]*)"\s+"([^"]*)"\s+"([^"]*)"(.*)\)/);
+        var mAt = matchDSL(t, /^STAMP_ADD_AT\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"(.*)\)/);
         if (mAt) {
             var suffix = mAt[9].trim();
-            var ext = suffix.match(/^(\w+)\s+"([^"]*)"\s+"([^"]*)"\s+([\d.]+)\s+"([^"]*)"\s+([\d.]+)$/);
+            var ext = matchDSL(suffix, /^(\w+)\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\s+([\d.]+)\s+"((?:[^"\\]|\\.)*)"\s+([\d.]+)$/);
             var shape, bdr, bdrC, bdrW, fill, fillA;
             if (ext) {
                 shape = ext[1];
@@ -351,12 +362,12 @@ function parseDSL(dsl) {
         }
 
         // Heading and details lines belong to the stamp just before them.
-        var mHdg = t.match(/^STAMP_HEADING\(\s*"([^"]*)"\s+([\d.]+)\s+(?:"?\w+"?\s+)?"([^"]*)"\s*\)/);
+        var mHdg = matchDSL(t, /^STAMP_HEADING\(\s*"((?:[^"\\]|\\.)*)"\s+([\d.]+)\s+(?:"?\w+"?\s+)?"((?:[^"\\]|\\.)*)"\s*\)/);
         if (mHdg) {
             if (lastStamp) lastStamp.hdg = mHdg[3];
             continue;
         }
-        var mDet = t.match(/^STAMP_DETAILS\(\s*"([^"]*)"\s+"([^"]*)"\s+"([^"]*)"\s*\)/);
+        var mDet = matchDSL(t, /^STAMP_DETAILS\(\s*"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\s*\)/);
         if (mDet) {
             if (lastStamp) {
                 if (mDet[1]) lastStamp.denom = mDet[1];
@@ -366,14 +377,14 @@ function parseDSL(dsl) {
             continue;
         }
 
-        var mRowStamp = t.match(/^STAMP_ADD\(\s*([\d.]+)\s+([\d.]+)\s+"([^"]*)"(?:\s+"([^"]*)")?(?:\s+"([^"]*)")?\)/);
+        var mRowStamp = matchDSL(t, /^STAMP_ADD\(\s*([\d.]+)\s+([\d.]+)\s+"((?:[^"\\]|\\.)*)"(?:\s+"((?:[^"\\]|\\.)*)")?(?:\s+"((?:[^"\\]|\\.)*)")?\)/);
         if (mRowStamp) {
             currentElements.push({ id: "el" + (nid++), t: "stamp", s: "rectangle", x: _rowX, y: _rowY, w: parseFloat(mRowStamp[1]), h: parseFloat(mRowStamp[2]), lbl: mRowStamp[3] || "", bdr: "solid", bdrC: "#666", bdrW: 1, fill: "#fff", fillA: 100, img: "", font: "HN", fs: 12 });
             _rowX += parseFloat(mRowStamp[1]) + _rowSpacing;
             continue;
         }
 
-        var m2a = t.match(/^PAGE_TEXT_AT\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"([^"]*)"\s+([\d.]+)\s+"([^"]*)"\s+"([^"]*)"\)/);
+        var m2a = matchDSL(t, /^PAGE_TEXT_AT\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"((?:[^"\\]|\\.)*)"\s+([\d.]+)\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\)/);
         if (m2a) {
             lastText = { id: "el" + (nid++), t: "text", s: "text", x: parseFloat(m2a[1]), y: parseFloat(m2a[2]), w: parseFloat(m2a[3]), h: parseFloat(m2a[4]), lbl: m2a[7] || "Text", font: m2a[5] || "HN", fs: parseFloat(m2a[6]) || 12, align: m2a[8] === "center" ? "center" : m2a[8] === "right" ? "right" : "left", bdr: "none", fill: "transparent", fillA: 0 };
             currentElements.push(lastText);
@@ -381,12 +392,12 @@ function parseDSL(dsl) {
         }
 
         // A heading mark belongs to the text just before it.
-        if (t.match(/^PAGE_TEXT_ROLE\(\s*"heading"\s*\)/)) {
+        if (matchDSL(t, /^PAGE_TEXT_ROLE\(\s*"heading"\s*\)/)) {
             if (lastText) lastText.role = "heading";
             continue;
         }
 
-        var m2 = t.match(/^(PAGE_TEXT|PAGE_TEXT_CENTRE|PAGE_TEXT_CENTER|PAGE_TEXT_RIGHT)\(\s*"([^"]*)"\s+([\d.]+)\s+"([^"]*)"\)/);
+        var m2 = matchDSL(t, /^(PAGE_TEXT|PAGE_TEXT_CENTRE|PAGE_TEXT_CENTER|PAGE_TEXT_RIGHT)\(\s*"((?:[^"\\]|\\.)*)"\s+([\d.]+)\s+"((?:[^"\\]|\\.)*)"\)/);
         if (m2) {
             var align = m2[1] === "PAGE_TEXT_CENTRE" || m2[1] === "PAGE_TEXT_CENTER" ? "center" : m2[1] === "PAGE_TEXT_RIGHT" ? "right" : "left";
             lastText = { id: "el" + (nid++), t: "text", s: "text", x: 10, y: _rowY > 12 ? _rowY + 2 : 10, w: 100, h: 20, lbl: m2[4] || "Text", font: m2[2] || "HN", fs: parseFloat(m2[3]) || 12, align: align, bdr: "none", fill: "transparent", fillA: 0 };
@@ -670,7 +681,7 @@ function captionWarnings(items, area) {
 var EXPORTS = { THEMES: THEMES, themeColor: themeColor, FRAMES: FRAMES, frameOf: frameOf, applyFrame: applyFrame,
                 FRAME_CLEARANCE_MM: FRAME_CLEARANCE_MM, frameLines: frameLines, frameOutset: frameOutset,
                 frameBox: frameBox, SHAPE_POLYGONS: SHAPE_POLYGONS, shapeOutline: shapeOutline,
-                normalizeStamp: normalizeStamp, PLAIN_BORDERS: PLAIN_BORDERS, escapeDSL: escapeDSL, serializeEl: serializeEl, buildDSL: buildDSL, parseDSL: parseDSL, normalizePageSize: normalizePageSize, countOutside: countOutside,
+                normalizeStamp: normalizeStamp, PLAIN_BORDERS: PLAIN_BORDERS, escapeDSL: escapeDSL, unescapeDSL: unescapeDSL, serializeEl: serializeEl, buildDSL: buildDSL, parseDSL: parseDSL, normalizePageSize: normalizePageSize, countOutside: countOutside,
                 describePageSize: describePageSize, fitToPage: fitToPage, PAPER_MM: PAPER_MM,
                 CAPTION: CAPTION, wrapLines: wrapLines, captionParts: captionParts, hasCaptions: hasCaptions,
                 captionLayout: captionLayout, captionBounds: captionBounds, captionWarnings: captionWarnings };
