@@ -12,13 +12,7 @@ import tempfile
 from typing import Optional
 
 from stamp_album.core.models import Album, Color, Stamp
-from stamp_album.engines.borders import (
-    EDGE_STYLES,
-    ORNAMENTAL_STYLES,
-    corner_ornament_svg,
-    edge_pattern_svg,
-)
-from stamp_album.engines import caption_layout, frames
+from stamp_album.engines import caption_layout, frames, page_border
 from stamp_album.engines.layout import layout_rows
 
 
@@ -150,8 +144,12 @@ class SVGExporter:
                 f'fill="#fff" stroke="#ccc" stroke-width="0.1"/>'
             )
 
-            # Page border
-            if ps.has_border:
+            # Page border: the editor's styles share one drawing (see page_border.py)
+            border = page_border.page_primitives(album)
+            if border:
+                lines = page_border.svg_elements(border, color_border_hex)
+                parts.append(f'<g class="page-border">{lines}</g>')
+            elif ps.has_border:
                 bl = ps.margin_left
                 bt = ps.margin_top
                 bw = w_mm - ps.margin_left - ps.margin_right
@@ -169,25 +167,6 @@ class SVGExporter:
                         f'fill="none" stroke="{color_border_hex}" stroke-width="{ps.border_inner1}"/>'
                     )
 
-                if ps.border_style in ORNAMENTAL_STYLES:
-                    orn = corner_ornament_svg(ps.border_style, color_border_hex)
-                    parts.append(
-                        f'<g transform="translate({bl},{bt})">{orn}</g>'
-                        f'<g transform="translate({bl + bw},{bt}) scale(-1,1)">{orn}</g>'
-                        f'<g transform="translate({bl + bw},{bt + bh}) scale(-1,-1)">{orn}</g>'
-                        f'<g transform="translate({bl},{bt + bh}) scale(1,-1)">{orn}</g>'
-                    )
-                elif ps.border_style in EDGE_STYLES:
-                    top_svg = edge_pattern_svg(ps.border_style, "top", bw, bh, color_border_hex)
-                    bottom_svg = edge_pattern_svg(ps.border_style, "bottom", bw, bh, color_border_hex)
-                    left_svg = edge_pattern_svg(ps.border_style, "left", bh, bw, color_border_hex)
-                    right_svg = edge_pattern_svg(ps.border_style, "right", bh, bw, color_border_hex)
-                    parts.append(
-                        f'<g transform="translate({bl},{bt})">{top_svg}</g>'
-                        f'<g transform="translate({bl},{bt + bh}) scale(1,-1)">{bottom_svg}</g>'
-                        f'<g transform="translate({bl},{bt})">{left_svg}</g>'
-                        f'<g transform="translate({bl + bw},{bt}) scale(-1,1)">{right_svg}</g>'
-                    )
 
             # Row stamps (position from shared layout)
             for rx, ry, stamp in row_layout[pi]:

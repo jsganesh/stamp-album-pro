@@ -15,13 +15,7 @@ from typing import Optional
 from PIL import Image, ImageDraw, ImageFont
 
 from stamp_album.core.models import Album, Color, Stamp
-from stamp_album.engines.borders import (
-    EDGE_STYLES,
-    ORNAMENTAL_STYLES,
-    get_ornament_segments,
-    edge_pattern_segments,
-)
-from stamp_album.engines import caption_layout, frames, text_layout
+from stamp_album.engines import caption_layout, frames, page_border, text_layout
 from stamp_album.engines.layout import layout_rows
 
 
@@ -272,6 +266,19 @@ def _draw_page_border(draw: ImageDraw.ImageDraw, album: Album, page_w_mm: float,
 
     color_rgb = _color_to_rgb(album.color_album_border) if album.color_album_border else (51, 51, 51)
 
+    # The editor's border styles: one drawing for every view (see page_border.py)
+    prims = page_border.page_primitives(album)
+    if prims:
+        for p in prims:
+            pts = [(x * scale, y * scale) for x, y in p.points]
+            if isinstance(p, page_border.Fill):
+                draw.polygon(pts, fill=color_rgb)
+            else:
+                width = max(1, round(p.width * scale))
+                path = pts + (pts[:2] if p.closed else [])
+                draw.line(path, fill=color_rgb, width=width, joint="curve")
+        return
+
     bl = ps.margin_left * scale
     bt = ps.margin_top * scale
     bw = (ps.width - ps.margin_left - ps.margin_right) * scale
@@ -291,130 +298,6 @@ def _draw_page_border(draw: ImageDraw.ImageDraw, album: Album, page_w_mm: float,
         off = (ps.border_outer + ps.border_spacing + ps.border_inner1 + ps.border_spacing) * scale
         draw.rectangle([bl + off, bt + off, bl + bw - off, bt + bh - off],
                        outline=color_rgb, width=max(1, int(ps.border_inner2 * scale)))
-
-    if ps.border_style in ORNAMENTAL_STYLES:
-        _draw_corner_ornaments(draw, ps.border_style, color_rgb, bl, bt, bw, bh)
-    elif ps.border_style in EDGE_STYLES:
-        _draw_edge_patterns(draw, ps.border_style, color_rgb, bl, bt, bw, bh)
-
-
-def _draw_corner_ornaments(draw, style, color_rgb, bl, bt, bw, bh):
-    """Draw corner ornaments on Pillow (top-left origin)."""
-    corners = [
-        (bl, bt, False, False),          # TL
-        (bl + bw, bt, True, False),      # TR: flip x
-        (bl + bw, bt + bh, True, True),  # BR: flip x,y
-        (bl, bt + bh, False, True),      # BL: flip y
-    ]
-    for cx, cy, fx, fy in corners:
-        segments = get_ornament_segments(style)
-        for seg in segments:
-            cmd = seg[0]
-            if cmd == "L":
-                x1, y1, x2, y2 = seg[1:5]
-                sx1 = cx + (-x1 if fx else x1)
-                sy1 = cy + (-y1 if fy else y1)
-                sx2 = cx + (-x2 if fx else x2)
-                sy2 = cy + (-y2 if fy else y2)
-                draw.line([sx1, sy1, sx2, sy2], fill=color_rgb, width=1)
-            elif cmd == "Q":
-                x1, y1, cx0, cy0, x2, y2 = seg[1:7]
-                sx1 = cx + (-x1 if fx else x1)
-                sy1 = cy + (-y1 if fy else y1)
-                scx = cx + (-cx0 if fx else cx0)
-                scy = cy + (-cy0 if fy else cy0)
-                sx2 = cx + (-x2 if fx else x2)
-                sy2 = cy + (-y2 if fy else y2)
-                # Approximate quadratic bezier with line segments
-                pts = []
-                for t_int in range(21):
-                    t = t_int / 20.0
-                    px = (1 - t) ** 2 * sx1 + 2 * (1 - t) * t * scx + t ** 2 * sx2
-                    py = (1 - t) ** 2 * sy1 + 2 * (1 - t) * t * scy + t ** 2 * sy2
-                    pts.append((px, py))
-                draw.line(pts, fill=color_rgb, width=1)
-            elif cmd == "C":
-                x1, y1, cp1x, cp1y, cp2x, cp2y, x2, y2 = seg[1:9]
-                sx1 = cx + (-x1 if fx else x1)
-                sy1 = cy + (-y1 if fy else y1)
-                scp1x = cx + (-cp1x if fx else cp1x)
-                scp1y = cy + (-cp1y if fy else cp1y)
-                scp2x = cx + (-cp2x if fx else cp2x)
-                scp2y = cy + (-cp2y if fy else cp2y)
-                sx2 = cx + (-x2 if fx else x2)
-                sy2 = cy + (-y2 if fy else y2)
-                pts = []
-                for t_int in range(21):
-                    t = t_int / 20.0
-                    px = (1 - t) ** 3 * sx1 + 3 * (1 - t) ** 2 * t * scp1x + 3 * (1 - t) * t ** 2 * scp2x + t ** 3 * sx2
-                    py = (1 - t) ** 3 * sy1 + 3 * (1 - t) ** 2 * t * scp1y + 3 * (1 - t) * t ** 2 * scp2y + t ** 3 * sy2
-                    pts.append((px, py))
-                draw.line(pts, fill=color_rgb, width=1)
-            elif cmd == "circle":
-                cx0, cy0, r, fill = seg[1], seg[2], seg[3], seg[4]
-                scx = cx + (-cx0 if fx else cx0)
-                scy = cy + (-cy0 if fy else cy0)
-                if fill:
-                    draw.ellipse([scx - r, scy - r, scx + r, scy + r], fill=color_rgb, outline=color_rgb)
-                else:
-                    draw.ellipse([scx - r, scy - r, scx + r, scy + r], outline=color_rgb, width=1)
-            elif cmd == "ellipse":
-                cx0, cy0, rx, ry, fill = seg[1], seg[2], seg[3], seg[4], seg[5]
-                scx = cx + (-cx0 if fx else cx0)
-                scy = cy + (-cy0 if fy else cy0)
-                if fill:
-                    draw.ellipse([scx - rx, scy - ry, scx + rx, scy + ry], fill=color_rgb, outline=color_rgb)
-                else:
-                    draw.ellipse([scx - rx, scy - ry, scx + rx, scy + ry], outline=color_rgb, width=1)
-            elif cmd == "rect":
-                rx, ry, rw, rh, fill = seg[1], seg[2], seg[3], seg[4], seg[5]
-                sx = cx + (-rx if fx else rx)
-                sy = cy + (-ry if fy else ry)
-                sw = -rw if fx else rw
-                sh = -rh if fy else rh
-                rr = [min(sx, sx + sw), min(sy, sy + sh), max(sx, sx + sw), max(sy, sy + sh)]
-                if fill:
-                    draw.rectangle(rr, fill=color_rgb, outline=color_rgb)
-                else:
-                    draw.rectangle(rr, outline=color_rgb, width=1)
-
-
-def _draw_edge_patterns(draw, style, color_rgb, bl, bt, bw, bh):
-    """Draw edge patterns (greek_key, rope) on Pillow (top-left origin)."""
-    # Top
-    for seg in edge_pattern_segments(style, "top", bw):
-        if seg[0] == "L":
-            draw.line([bl + seg[1], bt + seg[2], bl + seg[3], bt + seg[4]], fill=color_rgb, width=1)
-        elif seg[0] == "circle":
-            draw.ellipse([bl + seg[1] - seg[3], bt + seg[2] - seg[3],
-                          bl + seg[1] + seg[3], bt + seg[2] + seg[3]],
-                         outline=color_rgb, width=1)
-    # Bottom (mirrored)
-    for seg in edge_pattern_segments(style, "bottom", bw):
-        if seg[0] == "L":
-            draw.line([bl + seg[1], bt + bh - seg[2], bl + seg[3], bt + bh - seg[4]],
-                      fill=color_rgb, width=1)
-        elif seg[0] == "circle":
-            draw.ellipse([bl + seg[1] - seg[3], bt + bh - seg[2] - seg[3],
-                          bl + seg[1] + seg[3], bt + bh - seg[2] + seg[3]],
-                         outline=color_rgb, width=1)
-    # Left
-    for seg in edge_pattern_segments(style, "left", bh):
-        if seg[0] == "L":
-            draw.line([bl + seg[2], bt + seg[1], bl + seg[4], bt + seg[3]], fill=color_rgb, width=1)
-        elif seg[0] == "circle":
-            draw.ellipse([bl + seg[2] - seg[3], bt + seg[1] - seg[3],
-                          bl + seg[2] + seg[3], bt + seg[1] + seg[3]],
-                         outline=color_rgb, width=1)
-    # Right (mirrored)
-    for seg in edge_pattern_segments(style, "right", bh):
-        if seg[0] == "L":
-            draw.line([bl + bw - seg[2], bt + seg[1], bl + bw - seg[4], bt + seg[3]],
-                      fill=color_rgb, width=1)
-        elif seg[0] == "circle":
-            draw.ellipse([bl + bw - seg[2] - seg[3], bt + seg[1] - seg[3],
-                          bl + bw - seg[2] + seg[3], bt + seg[1] + seg[3]],
-                         outline=color_rgb, width=1)
 
 
 # ── PNGGenerator ──

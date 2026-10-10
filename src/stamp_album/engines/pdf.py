@@ -19,13 +19,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
 from stamp_album.core.models import Album, Color, Stamp
-from stamp_album.engines.borders import (
-    EDGE_STYLES,
-    ORNAMENTAL_STYLES,
-    get_ornament_segments,
-    edge_pattern_segments,
-)
-from stamp_album.engines import caption_layout, frames, text_layout
+from stamp_album.engines import caption_layout, frames, page_border, text_layout
 from stamp_album.engines.layout import layout_rows
 
 
@@ -227,6 +221,29 @@ def _draw_text_element(c: canvas.Canvas, stamp: Stamp, page_h_pt: float):
             c.drawString(lx, base - i * lh, line)
 
 
+def _draw_border_primitives(c: canvas.Canvas, prims: list, color_rgb, page_h: float):
+    """Draw page_border primitives (page mm, y down) on the PDF (points, y up)."""
+    c.saveState()
+    c.setStrokeColorRGB(*color_rgb)
+    c.setFillColorRGB(*color_rgb)
+    c.setLineJoin(0)
+    c.setLineCap(0)
+    for p in prims:
+        path = c.beginPath()
+        path.moveTo(_mm_to_pt(p.points[0][0]), page_h - _mm_to_pt(p.points[0][1]))
+        for x, y in p.points[1:]:
+            path.lineTo(_mm_to_pt(x), page_h - _mm_to_pt(y))
+        if isinstance(p, page_border.Fill):
+            path.close()
+            c.drawPath(path, fill=1, stroke=0)
+        else:
+            if p.closed:
+                path.close()
+            c.setLineWidth(_mm_to_pt(p.width))
+            c.drawPath(path, fill=0, stroke=1)
+    c.restoreState()
+
+
 def _draw_page_border(c: canvas.Canvas, album: Album):
     """Draw decorative page border."""
     ps = album.page_setup
@@ -235,6 +252,12 @@ def _draw_page_border(c: canvas.Canvas, album: Album):
 
     color_rgb = _color_to_rgb(album.color_album_border) if album.color_album_border else (0.2, 0.2, 0.2)
     page_h = _mm_to_pt(ps.height)
+
+    # The editor's border styles: one drawing for every view (see page_border.py)
+    prims = page_border.page_primitives(album)
+    if prims:
+        _draw_border_primitives(c, prims, color_rgb, page_h)
+        return
 
     bl = _mm_to_pt(ps.margin_left)
     bt = _mm_to_pt(ps.margin_top)
@@ -262,153 +285,6 @@ def _draw_page_border(c: canvas.Canvas, album: Album):
         c.rect(bl + off, bt_rl + off, bw - off * 2, bh - off * 2, fill=0, stroke=1)
 
     # Ornaments / edge patterns
-    border_rect_rl = (bl, bt_rl, bw, bh)
-    if ps.border_style in ORNAMENTAL_STYLES:
-        _draw_corner_ornaments(c, ps.border_style, color_rgb, border_rect_rl, page_h)
-    elif ps.border_style in EDGE_STYLES:
-        _draw_edge_patterns(c, ps.border_style, color_rgb, border_rect_rl, page_h)
-
-
-def _draw_corner_ornaments(c, style, color_rgb, border_rect, page_h):
-    """Draw corner ornaments using ReportLab path operations."""
-    bl, bt_rl, bw, bh = border_rect
-    # PDF is y-up.  Ornament +dy is inward (down in CSS, up in PDF).
-    # TL: +dy inward = -y in PDF → flip_y=True
-    # TR: +dy inward = -y, +dx inward = -x → flip_x=True, flip_y=True
-    # BR: +dy inward = +y, +dx inward = -x → flip_x=True, flip_y=False
-    # BL: +dy inward = +y → flip_y=False
-    corners_pdf = [
-        (bl, bt_rl + bh, False, True),   # TL
-        (bl + bw, bt_rl + bh, True, True),  # TR
-        (bl + bw, bt_rl, True, False),    # BR
-        (bl, bt_rl, False, False),        # BL
-    ]
-    c.setStrokeColorRGB(*color_rgb)
-    c.setFillColorRGB(*color_rgb)
-    c.setLineWidth(0.8)
-
-    for cx, cy, fx, fy in corners_pdf:
-        segments = get_ornament_segments(style)
-        # We draw segments using ReportLab path operations
-        p = c.beginPath()
-        first = True
-        for seg in segments:
-            cmd = seg[0]
-            if cmd == "L":
-                x1, y1, x2, y2 = seg[1], seg[2], seg[3], seg[4]
-                sx1 = cx + (-x1 if fx else x1)
-                sy1 = cy + (-y1 if fy else y1)
-                sx2 = cx + (-x2 if fx else x2)
-                sy2 = cy + (-y2 if fy else y2)
-                if first:
-                    p.moveTo(sx1, sy1)
-                    first = False
-                p.lineTo(sx2, sy2)
-            elif cmd == "Q":
-                x1, y1, cx0, cy0, x2, y2 = seg[1], seg[2], seg[3], seg[4], seg[5], seg[6]
-                sx1 = cx + (-x1 if fx else x1)
-                sy1 = cy + (-y1 if fy else y1)
-                scx = cx + (-cx0 if fx else cx0)
-                scy = cy + (-cy0 if fy else cy0)
-                sx2 = cx + (-x2 if fx else x2)
-                sy2 = cy + (-y2 if fy else y2)
-                if first:
-                    p.moveTo(sx1, sy1)
-                    first = False
-                # ReportLab doesn't have quadratic curves natively;
-                # convert to cubic: CP1 = P0 + 2/3*(C-P0), CP2 = P1 + 2/3*(C-P1)
-                cp1x = sx1 + 2/3 * (scx - sx1)
-                cp1y = sy1 + 2/3 * (scy - sy1)
-                cp2x = sx2 + 2/3 * (scx - sx2)
-                cp2y = sy2 + 2/3 * (scy - sy2)
-                p.curveTo(cp1x, cp1y, cp2x, cp2y, sx2, sy2)
-            elif cmd == "C":
-                x1, y1, c1x, c1y, c2x, c2y, x2, y2 = seg[1:]
-                sx1 = cx + (-x1 if fx else x1)
-                sy1 = cy + (-y1 if fy else y1)
-                sc1x = cx + (-c1x if fx else c1x)
-                sc1y = cy + (-c1y if fy else c1y)
-                sc2x = cx + (-c2x if fx else c2x)
-                sc2y = cy + (-c2y if fy else c2y)
-                sx2 = cx + (-x2 if fx else x2)
-                sy2 = cy + (-y2 if fy else y2)
-                if first:
-                    p.moveTo(sx1, sy1)
-                    first = False
-                p.curveTo(sc1x, sc1y, sc2x, sc2y, sx2, sy2)
-            elif cmd == "circle":
-                cx0, cy0, r, fill = seg[1], seg[2], seg[3], seg[4]
-                scx = cx + (-cx0 if fx else cx0)
-                scy = cy + (-cy0 if fy else cy0)
-                if fill:
-                    c.circle(scx, scy, r, fill=1, stroke=0)
-                else:
-                    c.circle(scx, scy, r, fill=0, stroke=1)
-            elif cmd == "rect":
-                rx, ry, rw, rh, fill = seg[1], seg[2], seg[3], seg[4], seg[5]
-                sx = cx + (-rx if fx else rx)
-                sy = cy + (-ry if fy else ry)
-                sw = -rw if fx else rw
-                sh = -rh if fy else rh
-                if fill:
-                    c.rect(min(sx, sx + sw if sw < 0 else sx), min(sy, sy + sh if sh < 0 else sy), abs(sw), abs(sh), fill=1, stroke=0)
-                else:
-                    c.rect(min(sx, sx + sw if sw < 0 else sx), min(sy, sy + sh if sh < 0 else sy), abs(sw), abs(sh), fill=0, stroke=1)
-        if not first:
-            c.drawPath(p, fill=0, stroke=1)
-
-
-def _draw_edge_patterns(c, style, color_rgb, border_rect, page_h):
-    """Draw edge patterns (greek_key, rope) on all 4 sides."""
-    bl, bt_rl, bw, bh = border_rect
-    pw = 0.75  # scale: CSS pixel → pt
-
-    c.setStrokeColorRGB(*color_rgb)
-    c.setFillColorRGB(*color_rgb)
-    c.setLineWidth(0.6)
-
-    # Top edge (y = bt_rl + bh in PDF coords)
-    top_y = bt_rl + bh
-    segments_top = edge_pattern_segments(style, "top", bw / pw)
-    for seg in segments_top:
-        if seg[0] == "L":
-            x1, y1, x2, y2 = seg[1], seg[2], seg[3], seg[4]
-            c.line(bl + x1 * pw, top_y - y1 * pw, bl + x2 * pw, top_y - y2 * pw)
-        elif seg[0] == "circle":
-            cx0, cy0, r, _ = seg[1], seg[2], seg[3], seg[4]
-            c.circle(bl + cx0 * pw, top_y - cy0 * pw, r * pw, fill=0, stroke=1)
-
-    # Bottom edge (y = bt_rl in PDF coords, mirrored)
-    bot_y = bt_rl
-    segments_bot = edge_pattern_segments(style, "bottom", bw / pw)
-    for seg in segments_bot:
-        if seg[0] == "L":
-            x1, y1, x2, y2 = seg[1], seg[2], seg[3], seg[4]
-            c.line(bl + x1 * pw, bot_y + y1 * pw, bl + x2 * pw, bot_y + y2 * pw)
-        elif seg[0] == "circle":
-            cx0, cy0, r, _ = seg[1], seg[2], seg[3], seg[4]
-            c.circle(bl + cx0 * pw, bot_y + cy0 * pw, r * pw, fill=0, stroke=1)
-
-    # Left edge (y increases downward in segments)
-    segments_left = edge_pattern_segments(style, "left", bh / pw)
-    for seg in segments_left:
-        if seg[0] == "L":
-            x1, y1, x2, y2 = seg[1], seg[2], seg[3], seg[4]
-            c.line(bl + x1 * pw, bt_rl + bh - y1 * pw, bl + x2 * pw, bt_rl + bh - y2 * pw)
-        elif seg[0] == "circle":
-            cx0, cy0, r, _ = seg[1], seg[2], seg[3], seg[4]
-            c.circle(bl + cx0 * pw, bt_rl + bh - cy0 * pw, r * pw, fill=0, stroke=1)
-
-    # Right edge (mirrored horizontally)
-    right_x = bl + bw
-    segments_right = edge_pattern_segments(style, "right", bh / pw)
-    for seg in segments_right:
-        if seg[0] == "L":
-            x1, y1, x2, y2 = seg[1], seg[2], seg[3], seg[4]
-            c.line(right_x - x1 * pw, bt_rl + bh - y1 * pw, right_x - x2 * pw, bt_rl + bh - y2 * pw)
-        elif seg[0] == "circle":
-            cx0, cy0, r, _ = seg[1], seg[2], seg[3], seg[4]
-            c.circle(right_x - cx0 * pw, bt_rl + bh - cy0 * pw, r * pw, fill=0, stroke=1)
 
 
 # ── PDFGenerator ──
