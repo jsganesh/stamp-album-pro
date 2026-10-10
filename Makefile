@@ -1,4 +1,4 @@
-.PHONY: test run install dev clean
+.PHONY: test run install dev clean screenshots
 
 # Run the full test suite
 test:
@@ -15,6 +15,10 @@ install:
 # Development mode with auto-reload
 dev:
 	STAMP_ALBUM_RELOAD=1 .venv/bin/python -m stamp_album --browser
+
+# Regenerate the tutorial pictures and README screenshots from the running app
+screenshots:
+	.venv/bin/python tools/screenshots.py
 
 # Clean build artifacts
 clean:

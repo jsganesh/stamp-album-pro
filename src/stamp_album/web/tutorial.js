@@ -24,23 +24,34 @@ function showTutorial() {
     }
 }
 
-// Auto-load a sample album so the canvas isn't empty
+// Auto-load a sample album so the canvas isn't empty: an exhibition-style page with three
+// stamps at their catalogue size (19 x 23 mm), so their frames show the 1 mm clearance.
+// The screenshot script (tools/screenshots.py) uses the same page.
+var SAMPLE_DSL = [
+    'ALBUM_PAGES_BORDER(0.5 0 0 1)',
+    'ALBUM_PAGES_BORDER_STYLE("solid")',
+    'COLOUR_ALBUM_BORDER("#000000")',
+    'ALBUM_THEME("exhibition")',
+    'ALBUM_TITLE("My First Album")',
+    'ALBUM_PAGES_SIZE(210 297)',
+    'ALBUM_PAGES_MARGINS(15 15 15 15)',
+    'PAGE_START',
+    'PAGE_TEXT_AT(20.0 18.0 170.0 12.0 "HB" 16 "Great Britain: The First Stamps" "center")',
+    'PAGE_TEXT_ROLE("heading")',
+    'PAGE_TEXT_AT(20.0 31.0 170.0 8.0 "HN" 10 "Line-engraved issues, 1840 to 1841" "center")',
+    'STAMP_ADD_AT(51.5 55.0 19.0 23.0 "Penny Black" "SG 2" "" "" rectangle "solid" "#000000" 0.5 "#ffffff" 100)',
+    'STAMP_HEADING("HN" 9 "1840")',
+    'STAMP_DETAILS("1d" "Used" "Imperforate")',
+    'STAMP_ADD_AT(95.5 55.0 19.0 23.0 "Twopence Blue" "SG 5" "" "" rectangle "solid" "#000000" 0.5 "#ffffff" 100)',
+    'STAMP_HEADING("HN" 9 "1840")',
+    'STAMP_DETAILS("2d" "Used" "Imperforate")',
+    'STAMP_ADD_AT(139.5 55.0 19.0 23.0 "Penny Red" "SG 8" "" "" rectangle "solid" "#000000" 0.5 "#ffffff" 100)',
+    'STAMP_HEADING("HN" 9 "1841")',
+    'STAMP_DETAILS("1d" "Used" "Imperforate")'
+].join("\n");
+
 function loadSampleAlbum() {
-    var sampleDSL = [
-        'ALBUM_TITLE("My First Album")',
-        'ALBUM_PAGES_SIZE(210.0 297.0)',
-        'ALBUM_PAGES_MARGINS(15 15 15 15)',
-        'PAGE_START',
-        'PAGE_TEXT_CENTRE("HB" 16 "Great Britain — Victorian Era")',
-        'PAGE_TEXT_ROLE("heading")',
-        'PAGE_TEXT_CENTRE("HN" 10 "A sample album page to get you started")',
-        'PAGE_VSPACE(8)',
-        'ROW_START_FS("HN" 8 6.0 6.0)',
-        'STAMP_ADD_AT(20.0 40.0 55.0 45.0 "Penny Black — 1840" "rectangle" "solid" "#fff")',
-        'STAMP_ADD_AT(77.5 40.0 55.0 45.0 "Penny Red — 1841" "rectangle" "solid" "#fff")',
-        'STAMP_ADD_AT(135.0 40.0 55.0 45.0 "Twopence Blue — 1840" "rectangle" "solid" "#fff")',
-    ].join("\n");
-    parseDSL(sampleDSL);
+    parseDSL(SAMPLE_DSL);
     S._dirty = false;
     updateTitle();
 }
@@ -76,6 +87,7 @@ function _wireTutorialEvents() {
 
 // ── Exports ──
 S.initTutorial = initTutorial;
+S.loadSampleAlbum = loadSampleAlbum;
 S.showTutorial = showTutorial;
 S._wireTutorialEvents = _wireTutorialEvents;
 
