@@ -35,8 +35,9 @@ async def security_headers(request: Request, call_next):
     # load a URL, so CSP frame-src and X-Frame-Options cover it.
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
-        "script-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; "
-        "style-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; "
+        # CodeMirror is bundled (web/codemirror.min.*), so nothing loads from outside the app
+        "script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline'; "
         "img-src 'self' data: blob:; "
         "font-src 'self' data:; "
         "connect-src 'self'; "
@@ -488,6 +489,8 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
             # The frame is drawn outside the stamp's own size (engines/frames.py)
             stamp.frame = "none" if is_text else frame_of(el.bdr, el.bdrW)
             stamp.is_freehand = el.t == "freehand"
+            stamp.is_picture = el.t == "image"
+            stamp.details = (el.denom or "", el.cond or "", el.perf or "")
             stamp.heading = heading
             stamp.footer_text = footer
             if is_text and el.role == "heading":

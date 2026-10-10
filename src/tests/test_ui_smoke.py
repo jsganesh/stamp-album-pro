@@ -21,6 +21,19 @@ except ImportError as exc:  # Playwright not installed
     pytest.skip(f"playwright not installed: {exc}", allow_module_level=True)
 
 
+
+def wait_for_app(pg, timeout_ms=30000):
+    """Wait until the editor has started.
+
+    Polls with evaluate(): wait_for_function() with a string is run through eval, which the
+    app's Content Security Policy blocks, so it failed whenever the app wasn't ready at once.
+    """
+    deadline = time.monotonic() + timeout_ms / 1000
+    while not pg.evaluate("!!(window.StampAlbum && document.getElementById('page'))"):
+        if time.monotonic() > deadline:
+            raise TimeoutError("the editor did not start")
+        pg.wait_for_timeout(50)
+
 @pytest.fixture(scope="module")
 def base_url():
     import uvicorn
@@ -55,7 +68,7 @@ def page(base_url):
         pg.js_errors = []
         pg.on("pageerror", lambda e: pg.js_errors.append(str(e)))
         pg.goto(base_url + "/")
-        pg.wait_for_function("window.StampAlbum && document.getElementById('page')")
+        wait_for_app(pg)
         pg.evaluate("document.getElementById('tutorial-overlay').classList.remove('open')")
         yield pg
         browser.close()
@@ -355,7 +368,7 @@ def test_landscape_survives_a_reload_from_draft(page):
     _page_setup(page, orient="landscape")
     page.evaluate("StampAlbum.saveDraft()")
     page.reload()
-    page.wait_for_function("window.StampAlbum && document.getElementById('page')")
+    wait_for_app(page)
     w, h = _size(page)
     assert w > h, f"draft should restore the landscape page, got {w}x{h}"
     assert page.inner_text("#btn-page-setup").strip() == "A4 · Landscape"

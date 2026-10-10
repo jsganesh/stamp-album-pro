@@ -11,7 +11,7 @@ import pytest
 from fastapi.testclient import TestClient
 from PIL import Image, ImageFilter
 from reportlab.pdfgen import canvas as rl_canvas
-from test_ui_smoke import base_url, page  # noqa: F401  (fixtures)
+from test_ui_smoke import base_url, page, wait_for_app  # noqa: F401  (fixtures)
 
 from stamp_album.api import app
 from stamp_album.engines import page_border as pb
@@ -137,7 +137,7 @@ def _editor_img(base_url, page, style):
     )
     try:
         pg.goto(base_url + "/")
-        pg.wait_for_function("window.StampAlbum && document.getElementById('page')")
+        wait_for_app(pg)
         _editor_markup(pg, style)
         pg.evaluate(
             "(() => { const p = document.getElementById('page'); p.style.background = '#fff';"

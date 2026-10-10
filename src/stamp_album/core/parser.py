@@ -108,23 +108,30 @@ def parse_params(token_list: list[str]) -> list[str]:
 
 
 def unquote(s: str) -> str:
-    """Remove quotes and process escape sequences.
+    """Remove quotes and process escape sequences (\\" \\\\ \\n, as escapeDSL writes them).
 
     Handles multiple adjacent quoted strings (from line continuation).
     """
     import re
 
     # Find all quoted strings and concatenate their contents
-    parts = re.findall(r'"([^"]*(?:\\.[^"]*)*)"', s)
+    parts = re.findall(r'"([^"\\]*(?:\\.[^"\\]*)*)"', s)
     if parts:
         result = "".join(parts)
     else:
         # Fallback: just strip outer quotes
         result = s.strip('"')
 
-    result = result.replace("\\n", "\n")
-    result = result.replace("\\\\", "\\")
-    return result
+    # One pass, so an escaped backslash followed by "n" stays a backslash and an n
+    return re.sub(r"\\(.)", lambda m: "\n" if m.group(1) == "n" else m.group(1), result)
+
+
+def _is_number(token: str) -> bool:
+    try:
+        float(token)
+        return True
+    except ValueError:
+        return False
 
 
 def _apply_theme(album: Album, theme: Optional[str]) -> None:
@@ -133,6 +140,7 @@ def _apply_theme(album: Album, theme: Optional[str]) -> None:
     Without a theme, an album's own border colour (older albums) colours its headings too.
     """
     if theme:
+        album.theme = theme
         album.color_album_border = Color.from_hex(THEMES[theme])
     colour = album.color_album_border or Color.from_hex(THEMES["exhibition"])
     for page in album.pages:
@@ -664,6 +672,7 @@ class AlbumParser:
                     font_size=float(params[5]),
                     description=unquote(params[6]),
                     is_text_element=True,
+                    text_align=(unquote(params[7]) if len(params) > 7 else "") or "left",
                 )
                 last_text = stamp
                 if not hasattr(current_page, "absolute_stamps"):
@@ -679,10 +688,12 @@ class AlbumParser:
                     catalog_refs.append(unquote(params[j]))
                 shape = StampShape.RECTANGLE
                 if len(params) > 8 and params[8]:
-                    try:
-                        shape = StampShape[params[8].upper()]
-                    except KeyError:
-                        pass
+                    # The editor writes the value ("triangle_inverted"); older files the name
+                    name = params[8].strip('"')
+                    by_value = {s.value: s for s in StampShape}
+                    shape = by_value.get(name.lower()) or StampShape.__members__.get(
+                        name.upper(), shape
+                    )
                 border_color = None
                 if len(params) > 10 and params[10]:
                     try:
@@ -735,6 +746,25 @@ class AlbumParser:
                         shape=StampShape.RECTANGLE,
                     )
                 )
+            elif (cmd == "STAMP_ADD_IMG" and current_row is None
+                  and len(params) >= 6 and _is_number(params[3])):
+                # The editor's placed picture: STAMP_ADD_IMG (x y w h "image" "label" "" "")
+                if current_page is None:
+                    raise ParseError(
+                        "STAMP_ADD_IMG command outside of PAGE_START block", line_number, line
+                    )
+                stamp = Stamp(
+                    abs_x=float(params[0]),
+                    abs_y=float(params[1]),
+                    width=float(params[2]),
+                    height=float(params[3]),
+                    image_path=unquote(params[4]) or None,
+                    description=unquote(params[5]),
+                )
+                stamp.frame = "none"  # pictures have no frame or captions
+                stamp.is_picture = True
+                current_page.absolute_stamps.append(stamp)
+                current_stamp = stamp
             elif cmd == "STAMP_ADD_IMG":
                 if current_row is None:
                     raise ParseError("STAMP_ADD_IMG command outside of ROW_START block", line_number, line)
@@ -824,7 +854,8 @@ class AlbumParser:
             elif cmd == "STAMP_DETAILS":
                 # STAMP_DETAILS ("denomination" "condition" "perforation"), written after a stamp
                 if current_stamp:
-                    parts = [unquote(p) for p in params[:3]]
+                    parts = ([unquote(p) for p in params[:3]] + ["", "", ""])[:3]
+                    current_stamp.details = tuple(parts)
                     current_stamp.footer_text = " · ".join(p for p in parts if p)
             elif cmd == "STAMP_HEADING_PADDING":
                 album.page_setup.heading_padding = float(params[0])

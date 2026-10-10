@@ -465,6 +465,9 @@ class Stamp:
     # width/height are the stamp's own size; the frame adds clearance and its lines around it.
     frame: str = "thin"
     is_freehand: bool = False  # a free shape: its outline is the frame, with no clearance
+    # STAMP_DETAILS as entered: (denomination, condition, perforation); footer_text joins them
+    details: tuple = ("", "", "")
+    is_picture: bool = False  # a placed picture (coat of arms, map): no frame, no captions
     role: str = ""  # "heading" for text marked as a heading
     text_color: Optional[Color] = None  # Text items: drawn in this colour (theme's, for headings)
 
@@ -535,6 +538,7 @@ class Page:
     header: Optional[FormattedText] = None
     footer: Optional[FormattedText] = None
     margin_texts: list[MarginTextItem] = field(default_factory=list)
+    theme: str = ""  # ALBUM_THEME, e.g. "exhibition"; empty for older albums
     text_elements: list[FormattedText] = field(default_factory=list)
     paragraphs: list[Paragraph] = field(default_factory=list)
     rows: list[Row] = field(default_factory=list)

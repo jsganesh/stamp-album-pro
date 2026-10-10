@@ -131,7 +131,9 @@ def main():
             "try { localStorage.setItem('stampalbum-tutorial-done', '1'); } catch (e) {}"
         )
         page.goto(f"http://127.0.0.1:{port}/")
-        page.wait_for_function("window.StampAlbum && document.getElementById('page')")
+        # Poll with evaluate: a string wait_for_function is blocked by the app's CSP
+        while not page.evaluate("!!(window.StampAlbum && document.getElementById('page'))"):
+            page.wait_for_timeout(50)
         page.evaluate("""() => {
             StampAlbum.newAlbum();
             StampAlbum.loadSampleAlbum();
