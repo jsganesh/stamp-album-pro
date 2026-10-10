@@ -156,7 +156,7 @@ function cornerOrnament(style, corner) {
 // ── Edge Pattern SVG ──
 function edgePattern(style, edge, w, h) {
     // edge: top, bottom, left, right
-    var color = BORDER_STYLES[style] ? BORDER_STYLES[style].color : "#333";
+    var color = "COLOR";  // the caller puts in the theme colour
     var svg = "";
 
     if (style === "greek_key") {
@@ -193,6 +193,8 @@ function edgePattern(style, edge, w, h) {
 }
 
 // ── Render Page Border ──
+// The exports draw the same picture: engines/page_border.py ports this function, cornerOrnament
+// and edgePattern, and a browser test compares the two.
 function renderPageBorder(style) {
     var existing = $("page-border");
     if (existing) existing.remove();
@@ -243,8 +245,8 @@ function renderPageBorder(style) {
         });
     }
     else if (style === "greek_key" || style === "rope") {
-        // Edge pattern borders
-        var pColor = BORDER_STYLES[style].color;
+        // Edge pattern borders (keep in step with engines/page_border.py), in the theme colour like every other border
+        var pColor = color;
         var epw = w - margin * 2;
         var eph = h - margin * 2;
         // Top
