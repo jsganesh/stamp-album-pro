@@ -12,13 +12,7 @@ from stamp_album.core.models import (
     Page,
     Stamp,
 )
-from stamp_album.engines.borders import (
-    EDGE_STYLES,
-    ORNAMENTAL_STYLES,
-    corner_ornament_svg,
-    edge_pattern_svg,
-)
-from stamp_album.engines import caption_layout, frames
+from stamp_album.engines import caption_layout, frames, page_border
 from stamp_album.engines.layout import layout_rows
 
 
@@ -112,8 +106,16 @@ class HTMLRenderer:
         ps = self.album.page_setup
         parts = [f'<div class="page">']
 
-        # Page border
-        if ps.has_border:
+        # Page border: the editor's styles share one drawing (see page_border.py)
+        border = page_border.page_primitives(self.album)
+        if border:
+            parts.append(
+                f'<svg class="page-border" style="position:absolute;top:0;left:0;width:{ps.width}mm;'
+                f'height:{ps.height}mm;pointer-events:none;overflow:visible;" '
+                f'viewBox="0 0 {ps.width} {ps.height}" xmlns="http://www.w3.org/2000/svg">'
+                f'{page_border.svg_elements(border, self._border_color_css())}</svg>'
+            )
+        elif ps.has_border:
             color = self._border_color_css()
             bl = ps.margin_left
             bt = ps.margin_top
@@ -138,41 +140,6 @@ class HTMLRenderer:
                     f'<div style="position:absolute;top:{bt + off}mm;left:{bl + off}mm;'
                     f'width:{bw - off*2}mm;height:{bh - off*2}mm;'
                     f'border:{ps.border_inner2}mm solid {color};"></div>'
-                )
-
-            # Corner ornaments for ornamental border styles
-            px = 96.0 / 25.4  # CSS pixels per mm
-            bl_px = round(bl * px, 1)
-            bt_px = round(bt * px, 1)
-            bw_px = round(bw * px, 1)
-            bh_px = round(bh * px, 1)
-            if ps.border_style in ORNAMENTAL_STYLES:
-                ornament_svg = corner_ornament_svg(ps.border_style, color)
-                parts.append(
-                    f'<svg style="position:absolute;top:0;left:0;width:100%;height:100%;'
-                    f'pointer-events:none;overflow:visible;">'
-                    f'<g transform="translate({bl_px},{bt_px})">{ornament_svg}</g>'
-                    f'<g transform="translate({bl_px + bw_px},{bt_px}) scale(-1,1)">{ornament_svg}</g>'
-                    f'<g transform="translate({bl_px + bw_px},{bt_px + bh_px}) scale(-1,-1)">{ornament_svg}</g>'
-                    f'<g transform="translate({bl_px},{bt_px + bh_px}) scale(1,-1)">{ornament_svg}</g>'
-                    f'</svg>'
-                )
-            # Edge patterns for greek_key / rope
-            elif ps.border_style in EDGE_STYLES:
-                epw = round(bw * px, 1)
-                eph = round(bh * px, 1)
-                top_svg = edge_pattern_svg(ps.border_style, "top", epw, eph, color)
-                bottom_svg = edge_pattern_svg(ps.border_style, "bottom", epw, eph, color)
-                left_svg = edge_pattern_svg(ps.border_style, "left", eph, epw, color)
-                right_svg = edge_pattern_svg(ps.border_style, "right", eph, epw, color)
-                parts.append(
-                    f'<svg style="position:absolute;top:0;left:0;width:100%;height:100%;'
-                    f'pointer-events:none;overflow:visible;">'
-                    f'<g transform="translate({bl_px},{bt_px})">{top_svg}</g>'
-                    f'<g transform="translate({bl_px},{bt_px + bh_px}) scale(1,-1)">{bottom_svg}</g>'
-                    f'<g transform="translate({bl_px},{bt_px})">{left_svg}</g>'
-                    f'<g transform="translate({bl_px + bw_px},{bt_px}) scale(-1,1)">{right_svg}</g>'
-                    f'</svg>'
                 )
 
         parts.append(f'<div class="page-content">')
