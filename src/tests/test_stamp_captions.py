@@ -1,8 +1,9 @@
 """Stamp captions: one layout in every export (PDF, PNG, SVG, HTML preview).
 
 Heading above the box (bold 9 pt); below it the description (8 pt), the details line
-and the catalogue number (8 pt italic). The nearest line box is 2 mm from the frame,
-lines are centred and wrapped to the box width, and captions are black.
+and the catalogue number (8 pt italic). The frame is drawn outside the stamp (1 mm clear,
+then the line); the nearest line box is 2 mm from the frame's outer edge, lines are centred
+and wrapped to the frame's width, and captions are black.
 """
 
 import json
@@ -24,8 +25,9 @@ from stamp_album.engines import caption_layout as cl
 SC = 2.5  # canvas px per mm in the request
 X, Y, W, H = 40.0, 60.0, 40.0, 30.0
 LINE = 8 * 1.3 * 25.4 / 72  # 8 pt line box in mm
-HEADING_BOTTOM = Y - 2  # bottom of the heading's line box
-BELOW_TOP = Y + H + 2  # top of the first line box below the stamp
+OUT = 1.0 + 0.5 * 25.4 / 72  # a thin frame's outer edge: 1 mm clear, then a 0.5 pt line
+HEADING_BOTTOM = Y - OUT - 2  # bottom of the heading's line box
+BELOW_TOP = Y + H + OUT + 2  # top of the first line box below the stamp
 
 
 def _el(**kw):
@@ -115,7 +117,7 @@ def test_layout_wraps_to_the_box_and_stacks_headings_upwards():
     assert len(heads) >= 2 and len(descs) >= 2
     assert heads[-1].bottom == pytest.approx(HEADING_BOTTOM)
     assert heads[0].bottom == pytest.approx(heads[1].top)
-    assert all(ln.width <= W + 1e-6 for ln in lines)
+    assert all(ln.width <= W + 2 * OUT + 1e-6 for ln in lines)  # wrapped to the frame
 
 
 def test_layout_drops_empty_parts():
@@ -137,6 +139,9 @@ def test_description_follows_the_stamp_font_family():
 def test_editor_layout_matches_the_exports():
     """web/dsl_core.js captionLayout gives the same lines as caption_layout.py."""
     el = {
+        "t": "stamp",
+        "bdr": "solid",
+        "bdrW": 0.5,  # a thin frame, the Python default
         "hdg": "A heading long enough to wrap over two lines",
         "lbl": "The first adhesive postage stamp",
         "denom": "1d",
@@ -225,10 +230,10 @@ def test_png_captions_keep_the_gap_and_are_black():
         box = (int((X + 1) * ppm), int(top_mm * ppm), int((X + W - 1) * ppm), int(bottom_mm * ppm))
         return img.crop(box).getextrema()[0]  # darkest pixel
 
-    assert band(Y + H + 0.6, BELOW_TOP - 0.1) == 255, (
+    assert band(Y + H + OUT + 0.3, BELOW_TOP - 0.1) == 255, (
         "caption text runs into the 2 mm gap below the frame"
     )
-    assert band(HEADING_BOTTOM + 0.3, Y - 0.6) == 255, (
+    assert band(HEADING_BOTTOM + 0.3, Y - OUT - 0.3) == 255, (
         "the heading runs into the 2 mm gap above the frame"
     )
     assert band(BELOW_TOP, BELOW_TOP + 4 * LINE) < 40, (

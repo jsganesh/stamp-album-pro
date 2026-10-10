@@ -11,15 +11,14 @@ import os
 import tempfile
 from typing import Optional
 
-from stamp_album.core.models import Album, Color, Stamp, StampShape
+from stamp_album.core.models import Album, Color, Stamp
 from stamp_album.engines.borders import (
     EDGE_STYLES,
     ORNAMENTAL_STYLES,
-    SHAPE_POLYGON_VIEWBOX,
     corner_ornament_svg,
     edge_pattern_svg,
 )
-from stamp_album.engines import caption_layout
+from stamp_album.engines import caption_layout, frames
 from stamp_album.engines.layout import layout_rows
 
 
@@ -36,33 +35,10 @@ def _resolve_image_path(image_path: Optional[str]) -> Optional[str]:
     return fname
 
 
-def _build_shape_svg(x: float, y: float, w: float, h: float,
-                     shape: StampShape, border_hex: str, fill_hex: str) -> str:
-    """Build SVG element for a stamp shape (in mm units)."""
-    if shape == StampShape.OVAL:
-        cx, cy = x + w / 2, y + h / 2
-        return (
-            f'<ellipse cx="{cx}" cy="{cy}" rx="{w / 2}" ry="{h / 2}" '
-            f'fill="{fill_hex}" stroke="{border_hex}" stroke-width="0.3"/>'
-        )
-    elif shape in (StampShape.TRIANGLE, StampShape.TRIANGLE_INV,
-                   StampShape.DIAMOND, StampShape.HEXAGON,
-                   StampShape.OCTAGON, StampShape.PENTAGON):
-        shape_name = shape.name
-        if shape_name in SHAPE_POLYGON_VIEWBOX:
-            pts = SHAPE_POLYGON_VIEWBOX[shape_name]
-            # SVG polygon with viewBox scaling
-            return (
-                f'<svg x="{x}mm" y="{y}mm" width="{w}mm" height="{h}mm" '
-                f'viewBox="0 0 100 100" style="overflow:visible">'
-                f'<polygon points="{pts}" fill="{fill_hex}" stroke="{border_hex}" stroke-width="0.3"/>'
-                f'</svg>'
-            )
-    # Rectangle (default)
-    return (
-        f'<rect x="{x}" y="{y}" width="{w}" height="{h}" '
-        f'fill="{fill_hex}" stroke="{border_hex}" stroke-width="0.3"/>'
-    )
+def _build_shape_svg(stamp: Stamp, x: float, y: float, w: float, h: float,
+                     border_hex: str, fill_hex: str) -> str:
+    """The stamp's fill and its frame, drawn outside it (mm units; see frames.py)."""
+    return frames.svg_fragment(stamp, x, y, w, h, border_hex, fill_hex)
 
 
 def _draw_text_element_svg(stamp: Stamp) -> str:
@@ -226,7 +202,7 @@ class SVGExporter:
                     getattr(album, "color_stamp_background", None),
                     "#fff"
                 )
-                parts.append(_build_shape_svg(x, y, w, h, stamp.shape, border_hex, fill_hex))
+                parts.append(_build_shape_svg(stamp, x, y, w, h, border_hex, fill_hex))
 
                 if stamp.image_path:
                     fname = _resolve_image_path(stamp.image_path)
@@ -255,7 +231,7 @@ class SVGExporter:
                         getattr(album, "color_stamp_background", None),
                         "#fff"
                     )
-                    parts.append(_build_shape_svg(x, y, w, h, stamp.shape, border_hex, fill_hex))
+                    parts.append(_build_shape_svg(stamp, x, y, w, h, border_hex, fill_hex))
 
                     if stamp.image_path:
                         fname = _resolve_image_path(stamp.image_path)

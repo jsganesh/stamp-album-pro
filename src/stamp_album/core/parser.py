@@ -10,6 +10,7 @@ from __future__ import annotations
 import re
 from typing import Optional
 
+from stamp_album.engines.frames import frame_of
 from stamp_album.core.models import (
     Album,
     Color,
@@ -713,6 +714,13 @@ class AlbumParser:
                 # the exports print every entry, so keep only real ones.
                 is_freehand = len(params) > 8 and params[8].lower() == "freehand"
                 stamp.catalog_refs = [] if is_freehand else [r for r in catalog_refs if r]
+                stamp.is_freehand = is_freehand
+                if len(params) > 11:  # extended format: "bdr" "bdrC" bdrW
+                    try:
+                        bdr_w = float(params[11])
+                    except ValueError:
+                        bdr_w = 0.5
+                    stamp.frame = frame_of(unquote(params[9]), bdr_w)
                 if not hasattr(current_page, "absolute_stamps"):
                     current_page.absolute_stamps = []
                 current_page.absolute_stamps.append(stamp)

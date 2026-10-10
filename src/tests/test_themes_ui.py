@@ -53,9 +53,13 @@ def test_text_properties_show_heading_mark_not_frame(page):
     assert _visible(page, "#pbs")
 
 
-def _frame_css(page):
-    return page.evaluate("""(() => { const c = getComputedStyle(document.querySelector('.cel.selected'));
-        return {w: parseFloat(c.borderTopWidth), style: c.borderTopStyle, colour: c.borderTopColor}; })()""")
+def _frame_lines(page):
+    """The selected stamp's frame lines: stroke widths (canvas px) and colours."""
+    return page.evaluate("""(() => {
+        const ls = [...document.querySelectorAll('.cel.selected .stamp-frame .frame-line')];
+        return {w: ls.map(l => parseFloat(l.getAttribute('stroke-width'))),
+                colours: ls.map(l => l.getAttribute('stroke'))};
+    })()""")
 
 
 def test_frame_choice_is_drawn_on_the_page(page):
@@ -64,11 +68,12 @@ def test_frame_choice_is_drawn_on_the_page(page):
     seen = {}
     for frame in ("none", "thin", "medium", "double"):
         page.select_option("#pbs", frame)
-        seen[frame] = _frame_css(page)
-    assert seen["none"]["w"] == 0 or seen["none"]["style"] == "none"
-    assert 0 < seen["thin"]["w"] < seen["medium"]["w"]
-    assert seen["double"]["style"] == "double"
-    assert all(s["colour"] == "rgb(0, 0, 0)" for f, s in seen.items() if f != "none")
+        seen[frame] = _frame_lines(page)
+    assert seen["none"]["w"] == []
+    assert len(seen["thin"]["w"]) == 1 and len(seen["medium"]["w"]) == 1
+    assert seen["thin"]["w"][0] < seen["medium"]["w"][0]
+    assert len(seen["double"]["w"]) == 2
+    assert all(c == "#000000" for f, s in seen.items() for c in s["colours"])
 
 
 def test_frame_change_is_one_undo_step(page):
@@ -124,9 +129,9 @@ def test_theme_colours_the_page_border_and_marked_headings_only(page):
     stroke = page.evaluate("document.querySelector('#page-border rect').getAttribute('stroke')")
     assert stroke.upper() == "#2E5E3A"
     stamp_border = page.evaluate(
-        "getComputedStyle(document.querySelector('.cel.stamp-mount')).borderTopColor"
+        "document.querySelector('.cel.stamp-el .stamp-frame .frame-line').getAttribute('stroke')"
     )
-    assert stamp_border == "rgb(0, 0, 0)", "stamp frames stay black"
+    assert stamp_border == "#000000", "stamp frames stay black"
 
 
 def test_theme_change_is_saved_undoable_and_survives_a_reload(page):

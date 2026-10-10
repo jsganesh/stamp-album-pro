@@ -14,15 +14,14 @@ from typing import Optional
 
 from PIL import Image, ImageDraw, ImageFont
 
-from stamp_album.core.models import Album, Color, Stamp, StampShape
+from stamp_album.core.models import Album, Color, Stamp
 from stamp_album.engines.borders import (
     EDGE_STYLES,
     ORNAMENTAL_STYLES,
     get_ornament_segments,
     edge_pattern_segments,
-    polygon_points,
 )
-from stamp_album.engines import caption_layout, text_layout
+from stamp_album.engines import caption_layout, frames, text_layout
 from stamp_album.engines.layout import layout_rows
 
 
@@ -136,15 +135,43 @@ def _color_to_rgb(color: Optional[Color]) -> tuple[int, int, int]:
 
 # ── Drawing ──
 
-def _draw_shape(draw: ImageDraw.ImageDraw, x: float, y: float, w: float, h: float,
-                shape: StampShape, border_rgb: tuple, fill_rgb: tuple):
-    """Draw a stamp shape on a Pillow ImageDraw (top-left origin)."""
-    if shape == StampShape.OVAL:
-        draw.ellipse([x, y, x + w, y + h], fill=fill_rgb, outline=border_rgb, width=1)
-    elif polygon_points(shape.name, x, y, w, h):
-        draw.polygon(polygon_points(shape.name, x, y, w, h), fill=fill_rgb, outline=border_rgb)
-    else:  # RECTANGLE
-        draw.rectangle([x, y, x + w, y + h], fill=fill_rgb, outline=border_rgb, width=1)
+def _px_outline(draw: ImageDraw.ImageDraw, kind: str, geom, s: float,
+                fill=None, outline=None, width: int = 0):
+    """Draw a frames.outline() shape (mm) at *s* px per mm. A line is centred on the outline."""
+    half = width / 2 if outline else 0
+    if kind == "polygon":
+        pts = [(vx * s, vy * s) for vx, vy in geom]
+        if fill is not None:
+            draw.polygon(pts, fill=fill)
+        if outline is not None:
+            draw.line(pts + pts[:2], fill=outline, width=width, joint="curve")
+        return
+    if kind == "ellipse":
+        cx, cy, rx, ry = geom
+        box = [(cx - rx) * s - half, (cy - ry) * s - half, (cx + rx) * s + half, (cy + ry) * s + half]
+        draw.ellipse(box, fill=fill, outline=outline, width=width if outline else 0)
+        return
+    rx, ry, rw, rh = geom
+    box = [rx * s - half, ry * s - half, (rx + rw) * s + half, (ry + rh) * s + half]
+    # Pillow's box is inclusive: pull the far edges in a pixel so the line is centred
+    box = [round(box[0]), round(box[1]), round(box[2]) - 1, round(box[3]) - 1]
+    draw.rectangle(box, fill=fill, outline=outline, width=width if outline else 0)
+
+
+def _draw_shape(draw: ImageDraw.ImageDraw, stamp: Stamp, px_per_mm: float,
+                border_rgb: tuple, fill_rgb: tuple):
+    """Fill the stamp's own outline, then draw its frame outside it (see frames.py).
+
+    Stamp geometry is already in pixels (see PNGGenerator.generate).
+    """
+    s = px_per_mm
+    x, y, w, h = stamp.abs_x / s, stamp.abs_y / s, stamp.width / s, stamp.height / s
+    shape = stamp.shape.name if stamp.shape else "RECTANGLE"
+    _px_outline(draw, *frames.outline(shape, x, y, w, h), s, fill=fill_rgb)
+    for ln in frames.lines(stamp):
+        width = max(1, round(ln.width * s))
+        outline = frames.outline(shape, x, y, w, h, ln.offset)
+        _px_outline(draw, *outline, s, outline=border_rgb, width=width)
 
 
 def _draw_stamp(draw: ImageDraw.ImageDraw, stamp: Stamp, album: Album, px_per_mm: float):
@@ -168,7 +195,7 @@ def _draw_stamp(draw: ImageDraw.ImageDraw, stamp: Stamp, album: Album, px_per_mm
         Color(r=1, g=1, b=1)
     )
 
-    _draw_shape(draw, x, y, w, h, stamp.shape, border_rgb, fill_rgb)
+    _draw_shape(draw, stamp, px_per_mm, border_rgb, fill_rgb)
 
     if stamp.image_path:
         img_fp = _resolve_image_path(stamp.image_path)

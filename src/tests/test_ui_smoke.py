@@ -183,7 +183,7 @@ def test_preview_oval_fills_non_square_box(base_url, page):
     html = _preview_html(base_url, [_stamp("oval", 100, 100, 200, 100, "x")])
     page.set_content(html)
     w, h = page.evaluate("""() => {
-        const e = document.querySelector('.stamp svg ellipse').getBoundingClientRect();
+        const e = document.querySelector('.stamp-frame ellipse.stamp-fill').getBoundingClientRect();
         return [e.width, e.height];
     }""")
     assert w > h * 1.5, f"oval rendered {w:.0f}x{h:.0f}, should follow the 2:1 box"

@@ -11,16 +11,14 @@ from stamp_album.core.models import (
     FormattedText,
     Page,
     Stamp,
-    StampShape,
 )
 from stamp_album.engines.borders import (
     EDGE_STYLES,
     ORNAMENTAL_STYLES,
-    SHAPE_POLYGON_VIEWBOX,
     corner_ornament_svg,
     edge_pattern_svg,
 )
-from stamp_album.engines import caption_layout
+from stamp_album.engines import caption_layout, frames
 from stamp_album.engines.layout import layout_rows
 
 
@@ -44,6 +42,21 @@ def _captions_html(stamp: Stamp, x: float, y: float, w: float, h: float) -> str:
             f'{_xml_escape(line.text)}</div>'
         )
     return "".join(out)
+
+def _frame_svg_html(stamp: Stamp, x: float, y: float, w: float, h: float,
+                    color: str, fill: str) -> str:
+    """An SVG layer (user units = page mm) holding the stamp's fill and frame."""
+    pad = 0.5  # room for anti-aliasing past the frame's outer edge
+    fx, fy, fw, fh = frames.outer_box(stamp, x, y, w, h)
+    fx, fy, fw, fh = fx - pad, fy - pad, fw + 2 * pad, fh + 2 * pad
+    return (
+        f'<svg class="stamp-frame" style="position:absolute;z-index:0;'
+        f'left:{fx:.3f}mm;top:{fy:.3f}mm;'
+        f'width:{fw:.3f}mm;height:{fh:.3f}mm;overflow:visible;pointer-events:none;" '
+        f'viewBox="{fx:.3f} {fy:.3f} {fw:.3f} {fh:.3f}" xmlns="http://www.w3.org/2000/svg">'
+        f'{frames.svg_fragment(stamp, x, y, w, h, color, fill)}</svg>'
+    )
+
 
 class HTMLRenderer:
     """Renders an Album model to HTML/CSS for live preview."""
@@ -185,39 +198,14 @@ class HTMLRenderer:
                 f'style="display:flex;gap: {col_gap}mm;flex-wrap:wrap;">'
             )
 
-        shape_polygons = {
-            StampShape.TRIANGLE: SHAPE_POLYGON_VIEWBOX["TRIANGLE"],
-            StampShape.TRIANGLE_INV: SHAPE_POLYGON_VIEWBOX["TRIANGLE_INV"],
-            StampShape.DIAMOND: SHAPE_POLYGON_VIEWBOX["DIAMOND"],
-            StampShape.HEXAGON: SHAPE_POLYGON_VIEWBOX["HEXAGON"],
-            StampShape.OCTAGON: SHAPE_POLYGON_VIEWBOX["OCTAGON"],
-            StampShape.PENTAGON: SHAPE_POLYGON_VIEWBOX["PENTAGON"],
-        }
         row_layout = layout_rows(self.album)
         page_idx = self._page_counter - 1
         if page_idx < len(row_layout):
             for x, y, stamp in row_layout[page_idx]:
                 w, h = stamp.width, stamp.height
-                if stamp.shape == StampShape.OVAL:
-                    shape_html = (
-                        f'<svg width="{w}mm" height="{h}mm" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;top:0;left:0;">'
-                        f'<ellipse cx="50" cy="50" rx="50" ry="50" fill="#fff" stroke="#666" stroke-width="0.67" vector-effect="non-scaling-stroke"/>'
-                        f'</svg>'
-                    )
-                elif stamp.shape in shape_polygons:
-                    pts = shape_polygons[stamp.shape]
-                    shape_html = (
-                        f'<svg width="{w}mm" height="{h}mm" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;top:0;left:0;">'
-                        f'<polygon points="{pts}" fill="#fff" stroke="#666" stroke-width="0.67" vector-effect="non-scaling-stroke"/>'
-                        f'</svg>'
-                    )
-                else:
-                    shape_html = ""
-                parts.append(
-                    f'<div class="stamp" style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;">'
-                    f'{shape_html}'
-                    f'</div>'
-                )
+                # The fill and the frame, outside the stamp's own size, as in every other view
+                parts.append(_frame_svg_html(stamp, x, y, w, h, "#000000", "#ffffff"))
+                parts.append(f'<div class="stamp" style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;"></div>')
                 parts.append(_captions_html(stamp, x, y, w, h))
 
         if has_columns:
@@ -248,30 +236,14 @@ class HTMLRenderer:
                 bg_color = _color_to_rgb(stamp_fc) if stamp_fc else (1, 1, 1)
                 bc = f"rgb({int(border_color[0]*255)},{int(border_color[1]*255)},{int(border_color[2]*255)})"
                 bg = f"rgb({int(bg_color[0]*255)},{int(bg_color[1]*255)},{int(bg_color[2]*255)})"
-                if stamp.shape == StampShape.OVAL:
-                    shape_html = (
-                        f'<svg width="{w}mm" height="{h}mm" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;top:0;left:0;">'
-                        f'<ellipse cx="50" cy="50" rx="50" ry="50" fill="{bg}" stroke="{bc}" stroke-width="0.67" vector-effect="non-scaling-stroke"/>'
-                        f'</svg>'
-                    )
-                elif stamp.shape in shape_polygons:
-                    pts = shape_polygons[stamp.shape]
-                    shape_html = (
-                        f'<svg width="{w}mm" height="{h}mm" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;top:0;left:0;">'
-                        f'<polygon points="{pts}" fill="{bg}" stroke="{bc}" stroke-width="0.67" vector-effect="non-scaling-stroke"/>'
-                        f'</svg>'
-                    )
-                else:
-                    shape_html = (
-                        f'<div style="position:absolute;top:0;left:0;width:{w}mm;height:{h}mm;'
-                        f'border:0.5pt solid {bc};background-color:{bg};"></div>'
-                    )
+                # The fill and the frame, drawn outside the stamp's own size (see frames.py),
+                # in their own layer: the stamp box clips its contents.
+                parts.append(_frame_svg_html(stamp, x, y, w, h, bc, bg))
                 img_html = ""
                 if stamp.image_path:
                     img_html = f'<img src="{stamp.image_path}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;pointer-events:none;z-index:1;">'
                 parts.append(
                     f'<div class="stamp" style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;">'
-                    f'{shape_html}'
                     f'{img_html}'
                     f'</div>'
                 )

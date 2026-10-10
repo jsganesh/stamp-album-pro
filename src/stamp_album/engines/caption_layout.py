@@ -7,8 +7,9 @@ same way:
 * below the box, in order: the description (8 pt), the details line
   ("1/2D · Used · Imperforate", 8 pt italic) and the catalogue number
   (8 pt italic);
-* the nearest line box is ``GAP_MM`` from the frame on each side;
-* lines are centred on the box and wrapped to its width;
+* the nearest line box is ``GAP_MM`` from the frame's outer edge on each side
+  (the frame is drawn outside the stamp: see ``frames.py``);
+* lines are centred on the frame and wrapped to its width;
 * captions are black.
 
 Keep in step with ``captionLayout`` in ``web/dsl_core.js``.
@@ -89,7 +90,13 @@ def caption_parts(stamp) -> tuple[list, list]:
 
 
 def layout(stamp, x: float, y: float, w: float, h: float, measure: Measure) -> list[CaptionLine]:
-    """Caption lines for a stamp box at (x, y, w, h) mm, top to bottom."""
+    """Caption lines for a stamp at (x, y, w, h) mm, top to bottom.
+
+    (x, y, w, h) is the stamp's own size; the captions are placed around its frame.
+    """
+    from stamp_album.engines import frames
+
+    x, y, w, h = frames.outer_box(stamp, x, y, w, h)
     above, below = caption_parts(stamp)
 
     def wrapped(parts):
