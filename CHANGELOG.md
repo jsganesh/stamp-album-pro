@@ -5,6 +5,7 @@ All notable changes to this project are documented here. The format follows [Kee
 ## [Unreleased]
 
 ### Added
+- **Test failures as CI annotations**: on GitHub Actions, each failed test, setup or teardown error and collection error is reported as an annotation on the job, with the test's name, where it failed and pytest's `E` lines (at most 10 per job, as GitHub allows; a 10th lists any others). Annotations can be read through the GitHub API, which job logs can't from a cloud session, and they also appear next to the code in a pull request. A pytest plugin in the test folder (`src/tests/gh_annotations.py`); local runs are unchanged
 - **Frame size in Properties**: a selected stamp shows its frame and stamp sizes, for example "Frame 32.4 × 42.4 mm, 1 mm clear all round the stamp (30 × 40 mm, dashed)". On the canvas a faint dashed line marks the stamp's own size inside the frame; it is never printed
 - **Frame warnings**: a stamp whose frame runs past the page border (the page edge when there is no border) or into another item gets the amber "!" badge, as captions do
 - **Caption warnings** in the editor: a stamp whose captions run into another item, or past the page border (the page edge when there is no border), gets an amber "!" badge and tinted captions, with the reason in its tooltip and for screen readers. It updates as stamps are moved or edited
