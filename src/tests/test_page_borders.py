@@ -9,6 +9,7 @@ from io import BytesIO
 
 import pytest
 from fastapi.testclient import TestClient
+from image_helpers import pixels
 from PIL import Image, ImageFilter
 from reportlab.pdfgen import canvas as rl_canvas
 from test_ui_smoke import base_url, page, wait_for_app  # noqa: F401  (fixtures)
@@ -155,8 +156,8 @@ def _agreement(a, b, within_mm=0.4):
     a, b = _ink(a.resize(size)), _ink(b.resize(size))
     reach = round(within_mm * PNG_PPM)
     near_b = b.filter(ImageFilter.MaxFilter(2 * reach + 1))
-    a_px = sum(1 for v in a.getdata() if v)
-    both = sum(1 for va, vb in zip(a.getdata(), near_b.getdata()) if va and vb)
+    a_px = sum(1 for v in pixels(a) if v)
+    both = sum(1 for va, vb in zip(pixels(a), pixels(near_b)) if va and vb)
     return both / max(1, a_px)
 
 

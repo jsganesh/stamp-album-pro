@@ -1086,6 +1086,18 @@ async def get_template(template_id: str):
     raise HTTPException(status_code=404, detail="Template not found")
 
 
+STATIC_MEDIA_TYPES = {
+    ".css": "text/css",
+    ".js": "application/javascript",
+    ".html": "text/html",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".svg": "image/svg+xml",
+}
+
+
 # Catch-all: serve static JS/CSS/image files from the web directory.
 # Must be LAST so that /files, /images, /render, /export, /api, etc. match first.
 @app.get("/{static_file:path}")
@@ -1094,15 +1106,9 @@ async def serve_static(static_file: str):
         raise HTTPException(status_code=404)
     fp = WEB_DIR / static_file
     if fp.exists() and fp.is_file():
-        mt = None
-        if static_file.endswith(".css"):
-            mt = "text/css"
-        elif static_file.endswith(".js"):
-            mt = "application/javascript"
-        elif static_file.endswith(".html"):
-            mt = "text/html"
-        elif static_file.endswith((".png", ".jpg", ".jpeg", ".gif", ".svg")):
-            mt = "image/png"
+        # Explicit types, not the mimetypes module: on Windows it reads the
+        # registry, which can map .js to text/plain and break module loading.
+        mt = STATIC_MEDIA_TYPES.get(fp.suffix.lower())
         return FileResponse(fp, media_type=mt)
     raise HTTPException(status_code=404)
 

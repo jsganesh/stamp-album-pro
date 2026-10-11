@@ -5,6 +5,7 @@ import re
 import zlib
 
 import pytest
+from image_helpers import pixels
 from PIL import Image
 
 from stamp_album.api import CanvasElementState, CanvasStateRequest, _canvas_state_to_album
@@ -132,11 +133,7 @@ def test_png_heading_in_theme_colour():
 
     def colours(x0, y0, x1, y1):
         box = im.crop((int(x0 * px_mm), int(y0 * px_mm), int(x1 * px_mm), int(y1 * px_mm)))
-        return (
-            [p for p in box.get_flattened_data() if sum(p) < 600]
-            if hasattr(box, "get_flattened_data")
-            else [p for p in box.getdata() if sum(p) < 600]
-        )  # ink, not paper
+        return [p for p in pixels(box) if sum(p) < 600]  # ink, not paper
 
     heading_ink = colours(20, 15, 120, 29)
     plain_ink = colours(20, 40, 80, 50)

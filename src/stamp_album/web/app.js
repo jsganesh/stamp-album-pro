@@ -433,7 +433,45 @@ function applyPageSize(wmm, hmm) {
     if (btn && core && core.describePageSize) btn.textContent = core.describePageSize(wmm, hmm).label;
     if (S.updateGrid) S.updateGrid();
     if (S.renderPageBorder) S.renderPageBorder(_pageBorder);
+    snapPageToPixels();
 }
+
+// ── Keep the page on whole device pixels ──
+// #page-wrap centres the page, and pages are a fractional number of pixels
+// wide (A4 is 525 px, Letter 539.75 px), so its left edge often fell between
+// pixels and every line on it looked soft. Nudge it by the leftover fraction
+// with a relative offset, which moves the drawing but not the layout. Device
+// pixels, so a Retina screen (2 per CSS pixel) isn't moved needlessly.
+// Exports don't use the screen, so they are unaffected.
+function snapPageToPixels() {
+    var pg = document.getElementById("page");
+    if (!pg) return;
+    pg.style.left = "0px";
+    pg.style.top = "0px";
+    var r = pg.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    function nudge(v) { return Math.round(v * dpr) / dpr - v; }
+    var dx = nudge(r.left), dy = nudge(r.top);
+    pg.style.left = dx ? dx + "px" : "";
+    pg.style.top = dy ? dy + "px" : "";
+}
+
+function watchPagePosition() {
+    var wrap = document.getElementById("page-wrap");
+    var pg = document.getElementById("page");
+    if (!wrap || !pg) return;
+    // The window, a side panel or a scrollbar can change the space the page is
+    // centred in; a new paper size changes the page.
+    if (window.ResizeObserver) {
+        var ro = new ResizeObserver(function() { snapPageToPixels(); });
+        ro.observe(wrap);
+        ro.observe(pg);
+    }
+    window.addEventListener("resize", snapPageToPixels); // also browser zoom and a new screen
+    snapPageToPixels();
+}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", watchPagePosition);
+else watchPagePosition();
 
 // ── Template list ──
 function loadTemplateList() {
