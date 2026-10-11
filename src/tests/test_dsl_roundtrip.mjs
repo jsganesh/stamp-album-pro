@@ -111,3 +111,21 @@ console.log("PASS: test_absolute_stamps_preserved (" + (n1.pages[0] ? n1.pages[0
 console.log("PASS: test_shapes_preserved");
 console.log("PASS: test_catalog_refs_preserved");
 console.log("PASS: test_border_fill_preserved");
+
+// Elements past the left or top edge (old albums) keep their place: the reader used
+// to accept only unsigned positions and dropped them, so a save lost them.
+{
+  const neg = { pages: [[
+    { t: "stamp", x: -5, y: 10, w: 19, h: 22, lbl: "stamp" },
+    { t: "image", x: 12, y: -4.5, w: 30, h: 20, lbl: "pic", img: "a.png" },
+    { t: "text", x: -3, y: -2, w: 50, h: 10, lbl: "text", font: "HN", fs: 12 },
+  ]], pw: 210, ph: 297 };
+  const back = parseDSL(buildDSL(neg)).pages[0] || [];
+  const pos = back.map((e) => [e.t, e.x, e.y]);
+  const want = [["stamp", -5, 10], ["image", 12, -4.5], ["text", -3, -2]];
+  if (JSON.stringify(pos) !== JSON.stringify(want)) {
+    console.log("FAIL: test_negative_positions_preserved " + JSON.stringify(pos));
+    process.exit(1);
+  }
+  console.log("PASS: test_negative_positions_preserved");
+}

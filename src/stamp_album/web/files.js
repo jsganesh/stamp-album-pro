@@ -5,6 +5,19 @@ var $ = S.$, showToast = S.showToast, parseDSL = S.parseDSL, updateTitle = S.upd
 var pushUndo = S.pushUndo, render = S.render;
 
 // ── File management ──
+// Open an album read from a file (the Saved files list or File > Open). Starts a
+// fresh undo history, then offers to move any elements past the page edge inside it.
+function openAlbum(name, content) {
+    S._currentFile = name;
+    parseDSL(content);
+    S._dirty = false;
+    S.resetUndo();
+    updateTitle();
+    loadFileList();
+    showToast("Opened " + name, "success");
+    if (S.checkFitOnOpen) S.checkFitOnOpen();
+}
+
 function loadFileList() {
     var c = $("file-list");
     if (!c) return;
@@ -49,12 +62,7 @@ function loadFileList() {
                     fetch("/files/" + encodeURIComponent(f))
                         .then(function(r) { return r.text(); })
                         .then(function(content) {
-                            S._currentFile = f;
-                            parseDSL(content);
-                            S._dirty = false;
-                            updateTitle();
-                            loadFileList();
-                            showToast("Opened " + f, "success");
+                            openAlbum(f, content);
                         });
                 });
                 c.appendChild(item);
@@ -156,6 +164,7 @@ function loadImageList() {
 
 // ── Exports ──
 S.loadFileList = loadFileList;
+S.openAlbum = openAlbum;
 S.saveFile = saveFile;
 S.uploadImageFile = uploadImageFile;
 S.loadImageList = loadImageList;

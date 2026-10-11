@@ -215,6 +215,18 @@
     </div>
 </div>
 
+<!-- Fit prompt: an opened album has elements past the page edge -->
+<div id="fit-prompt-overlay" role="alertdialog" aria-modal="true" aria-labelledby="fp-title" aria-describedby="fp-note">
+    <div class="ps-box">
+        <div class="ps-hdr"><h2 id="fp-title">Elements past the page edge</h2></div>
+        <div class="ps-body"><p id="fp-note"></p></div>
+        <div class="ps-actions">
+            <button id="fp-leave">Leave as they are</button>
+            <button class="primary" id="fp-move">Move inside</button>
+        </div>
+    </div>
+</div>
+
 <!-- Help Overlay -->
 <div id="help-overlay" role="dialog" aria-labelledby="help-title">
     <div class="help-box">
@@ -324,6 +336,7 @@
 <script src="borders.js?v={{{VERSION}}}"></script>
 <script src="wizard.js?v={{{VERSION}}}"></script>
 <script src="page_setup.js?v={{{VERSION}}}"></script>
+<script src="fit_prompt.js?v={{{VERSION}}}"></script>
 <script src="toolbar.js?v={{{VERSION}}}"></script>
 <script src="palette.js?v={{{VERSION}}}"></script>
 <script src="page_keys.js?v={{{VERSION}}}"></script>

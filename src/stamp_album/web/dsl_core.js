@@ -320,13 +320,13 @@ function parseDSL(dsl) {
             continue;
         }
 
-        var mImg = matchDSL(t, /^STAMP_ADD_IMG\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\)/);
+        var mImg = matchDSL(t, /^STAMP_ADD_IMG\(\s*(-?[\d.]+)\s+(-?[\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\)/);
         if (mImg) {
             currentElements.push({ id: "el" + (nid++), t: "image", s: "rectangle", x: parseFloat(mImg[1]), y: parseFloat(mImg[2]), w: parseFloat(mImg[3]), h: parseFloat(mImg[4]), lbl: mImg[6] || "", bdr: "none", bdrC: "transparent", bdrW: 0, fill: "transparent", fillA: 0, img: mImg[5] || "", font: "HN", fs: 12 });
             continue;
         }
 
-        var mAt = matchDSL(t, /^STAMP_ADD_AT\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"(.*)\)/);
+        var mAt = matchDSL(t, /^STAMP_ADD_AT\(\s*(-?[\d.]+)\s+(-?[\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"(.*)\)/);
         if (mAt) {
             var suffix = mAt[9].trim();
             var ext = matchDSL(suffix, /^(\w+)\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\s+([\d.]+)\s+"((?:[^"\\]|\\.)*)"\s+([\d.]+)$/);
@@ -384,7 +384,7 @@ function parseDSL(dsl) {
             continue;
         }
 
-        var m2a = matchDSL(t, /^PAGE_TEXT_AT\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"((?:[^"\\]|\\.)*)"\s+([\d.]+)\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\)/);
+        var m2a = matchDSL(t, /^PAGE_TEXT_AT\(\s*(-?[\d.]+)\s+(-?[\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"((?:[^"\\]|\\.)*)"\s+([\d.]+)\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\)/);
         if (m2a) {
             lastText = { id: "el" + (nid++), t: "text", s: "text", x: parseFloat(m2a[1]), y: parseFloat(m2a[2]), w: parseFloat(m2a[3]), h: parseFloat(m2a[4]), lbl: m2a[7] || "Text", font: m2a[5] || "HN", fs: parseFloat(m2a[6]) || 12, align: m2a[8] === "center" ? "center" : m2a[8] === "right" ? "right" : "left", bdr: "none", fill: "transparent", fillA: 0 };
             currentElements.push(lastText);
@@ -454,15 +454,21 @@ function normalizePageSize(pw, ph) {
 }
 
 // Count elements (in mm) that extend past a width x height page.
-function countOutside(pages, width, height) {
-    var n = 0;
+// Elements whose box sits past any edge of a width x height page (stamp boxes,
+// not frames or captions, which have their own warnings). Half a unit of slack
+// absorbs rounding. Returns { count, pages }.
+function findOutside(pages, width, height) {
+    var res = { count: 0, pages: 0 };
     for (var pi = 0; pi < pages.length; pi++) {
-        for (var ei = 0; ei < pages[pi].length; ei++) {
-            var el = pages[pi][ei];
-            if (el.x + el.w > width + 0.5 || el.y + el.h > height + 0.5) n++;
+        var els = pages[pi] || [], here = 0;
+        for (var ei = 0; ei < els.length; ei++) {
+            var el = els[ei];
+            if (el.x < -0.5 || el.y < -0.5 || el.x + el.w > width + 0.5 || el.y + el.h > height + 0.5) here++;
         }
+        res.count += here;
+        if (here) res.pages++;
     }
-    return n;
+    return res;
 }
 
 // Name a page size for people: "A4 · Landscape", or "200 × 150 mm" for a custom size.
@@ -681,7 +687,7 @@ function captionWarnings(items, area) {
 var EXPORTS = { THEMES: THEMES, themeColor: themeColor, FRAMES: FRAMES, frameOf: frameOf, applyFrame: applyFrame,
                 FRAME_CLEARANCE_MM: FRAME_CLEARANCE_MM, frameLines: frameLines, frameOutset: frameOutset,
                 frameBox: frameBox, SHAPE_POLYGONS: SHAPE_POLYGONS, shapeOutline: shapeOutline,
-                normalizeStamp: normalizeStamp, PLAIN_BORDERS: PLAIN_BORDERS, escapeDSL: escapeDSL, unescapeDSL: unescapeDSL, serializeEl: serializeEl, buildDSL: buildDSL, parseDSL: parseDSL, normalizePageSize: normalizePageSize, countOutside: countOutside,
+                normalizeStamp: normalizeStamp, PLAIN_BORDERS: PLAIN_BORDERS, escapeDSL: escapeDSL, unescapeDSL: unescapeDSL, serializeEl: serializeEl, buildDSL: buildDSL, parseDSL: parseDSL, normalizePageSize: normalizePageSize, findOutside: findOutside,
                 describePageSize: describePageSize, fitToPage: fitToPage, PAPER_MM: PAPER_MM,
                 CAPTION: CAPTION, wrapLines: wrapLines, captionParts: captionParts, hasCaptions: hasCaptions,
                 captionLayout: captionLayout, captionBounds: captionBounds, captionWarnings: captionWarnings };

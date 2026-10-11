@@ -58,7 +58,6 @@ function parseDSL(dsl) {
     function applyState() {
         // Map the file's page size onto a real paper size (also repairs albums saved by v0.2.0 and earlier)
         var size = CORE.normalizePageSize(state.pw, state.ph);
-        var outside = size.migrated ? CORE.countOutside(state.pages, size.pw, size.ph) : 0;
         state.pw = size.pw; state.ph = size.ph;
         for (var pi = 0; pi < state.pages.length; pi++) {
             for (var ei = 0; ei < state.pages[pi].length; ei++) {
@@ -87,8 +86,8 @@ function parseDSL(dsl) {
         S.updateGrid();
         S.updateTitle();
         if (size.migrated) {
-            showToast("Page size corrected to " + size.pw + " x " + size.ph + " mm (older versions saved it oversized)." +
-                (outside ? " " + outside + " element" + (outside === 1 ? "" : "s") + " now extend past the page edge." : ""), "info");
+            // Elements now past the edge are offered a move by the fit prompt (fit_prompt.js) when a file is opened.
+            showToast("Page size corrected to " + size.pw + " x " + size.ph + " mm (older versions saved it oversized).", "info");
         }
     }
     applyState();
