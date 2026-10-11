@@ -3,7 +3,8 @@
 Every template must be a page someone could print as it is: placed items only (no
 legacy rows), everything inside the page margins, nothing running into anything
 else, and clean exports. The geometry is the export engines' own (``frames`` and
-``caption_layout`` with PDF metrics); the browser test checks the editor's "!" badges.
+``caption_layout`` with the caption font's own widths); the browser test checks
+the editor's "!" badges.
 """
 
 import itertools
@@ -27,7 +28,12 @@ def _parse(t):
 
 def _text_fits(s) -> bool:
     """Whether a text item's wrapped lines fit inside its own box."""
-    measure = lambda line: caption_layout.metrics_measure(line, s.font_id, s.font_size)  # noqa: E731
+    from reportlab.pdfbase import pdfmetrics
+
+    from stamp_album.engines.pdf import _BUILTIN_FONT_MAP
+
+    font = _BUILTIN_FONT_MAP.get(s.font_id or "HN", "Helvetica")
+    measure = lambda line: pdfmetrics.stringWidth(line, font, s.font_size) * 25.4 / 72  # noqa: E731
     width = s.width - 2 * text_layout.PAD_MM
     lines = []
     for para in (s.description or "").split("\n"):
@@ -56,7 +62,7 @@ def layout_problems(t) -> list[str]:
                 continue
             fx, fy, fw, fh = frames.outer_box(s, x, y, w, h)
             boxes.append((f"frame of '{name}'", (fx, fy, fx + fw, fy + fh)))
-            caption = caption_layout.layout(s, x, y, w, h, caption_layout.metrics_measure)
+            caption = caption_layout.layout(s, x, y, w, h)
             cb = caption_layout.bounds(caption)
             if cb:
                 boxes.append((f"captions of '{name}'", cb))

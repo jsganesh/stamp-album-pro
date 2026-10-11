@@ -120,6 +120,8 @@ class AlbumSerializer:
                 lines.append(f'ALBUM_PAGES_BORDER_STYLE("{self._escape_string(ps.border_style)}")')
         if getattr(album, "theme", ""):
             lines.append(f'ALBUM_THEME("{self._escape_string(album.theme)}")')
+        if getattr(album, "caption_heading", "bold") == "semibold":  # bold is the default
+            lines.append('CAPTION_HEADING("semibold")')
 
         for font in album.fonts:
             lines.append(

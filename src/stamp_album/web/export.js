@@ -29,7 +29,8 @@ function buildCanvasState(format) {
         author: "",
         border_style: S._pageBorder || "",
         border_color: S.themeColor(),
-        theme_color: S.themeColor()  // marked headings
+        theme_color: S.themeColor(),  // marked headings
+        caption_heading: S._captionHeading
     };
 }
 

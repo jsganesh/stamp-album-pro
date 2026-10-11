@@ -869,6 +869,11 @@ class AlbumParser:
                 name = unquote(params[0]) if params else ""
                 if name in THEMES:
                     theme = name
+            elif cmd == "CAPTION_HEADING":
+                # CAPTION_HEADING ("semibold"): the weight of stamp caption headings
+                weight = (unquote(params[0]) if params else "").lower()
+                if weight in ("bold", "semibold"):
+                    album.caption_heading = weight
             elif cmd == "ALBUM_PAGES_BORDER_STYLE":
                 if params:
                     album.page_setup.border_style = unquote(params[0])

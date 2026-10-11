@@ -12,7 +12,7 @@ import tempfile
 from typing import Optional
 
 from stamp_album.core.models import Album, Color, Stamp
-from stamp_album.engines import caption_layout, frames, page_border
+from stamp_album.engines import caption_fonts, caption_layout, frames, page_border
 from stamp_album.engines.layout import layout_rows
 
 
@@ -70,24 +70,26 @@ def _draw_text_element_svg(stamp: Stamp) -> str:
     return "\n".join(parts)
 
 
-_SVG_FAMILY = {"H": "Arial,Helvetica,sans-serif", "T": "'Times New Roman',Times,serif",
-               "C": "'Courier New',Courier,monospace"}
-def _captions_svg(stamp: Stamp, x: float, y: float, w: float, h: float) -> str:
-    """Heading above the box; description, details and catalogue below (see caption_layout)."""
+def _captions_svg(stamp: Stamp, x: float, y: float, w: float, h: float,
+                  heading_weight: str = "bold", used: Optional[dict] = None) -> str:
+    """Heading above the box; description, details and catalogue below (see caption_layout).
+
+    The characters set in each caption font are added to *used*, for the embedded subsets.
+    """
     out = []
-    for line in caption_layout.layout(stamp, x, y, w, h, caption_layout.metrics_measure):
-        style = (' font-weight="bold"' if line.bold else "")
+    for line in caption_layout.layout(stamp, x, y, w, h, heading_weight=heading_weight):
+        if used is not None:
+            used.setdefault(line.font_id, set()).update(line.text)
+        style = f' font-weight="{line.weight}"' if line.weight != 400 else ""
         style += ' font-style="italic"' if line.italic else ""
         size = line.size_pt * caption_layout.MM_PER_PT
         out.append(
             f'<text class="caption caption-{line.kind}" x="{x + w / 2:.2f}" '
             f'y="{line.baseline:.2f}" font-size="{size:.2f}" text-anchor="middle"{style} '
-            f'fill="{caption_layout.COLOR_HEX}" '
-            f'font-family="{_SVG_FAMILY[line.font_id[0]]}">'
+            f'fill="{caption_layout.COLOR_HEX}">'
             f'{_xml_escape(line.text)}</text>'
         )
     return "\n".join(out)
-
 
 
 def _xml_escape(s: str) -> str:
@@ -95,6 +97,9 @@ def _xml_escape(s: str) -> str:
 
 
 # ── SVGExporter ──
+
+_CAPTION_STYLE = "<!-- caption font -->"
+
 
 class SVGExporter:
     """Generate standalone SVG documents from an Album model."""
@@ -130,8 +135,10 @@ class SVGExporter:
             f' viewBox="0 0 {w_mm} {total_h}">',
             '<defs>',
             '<style>text{font-family:Arial,Helvetica,sans-serif}</style>',
+            _CAPTION_STYLE,  # replaced at the end by the embedded caption font subsets
             '</defs>',
         ]
+        used: dict = {}
 
         row_layout = layout_rows(album)
         y_offset = 0
@@ -191,7 +198,7 @@ class SVGExporter:
                             f'href="{fname}" preserveAspectRatio="xMidYMid meet"/>'
                         )
 
-                parts.append(_captions_svg(stamp, x, y, w, h))
+                parts.append(_captions_svg(stamp, x, y, w, h, album.caption_heading, used))
 
             # Absolute stamps (canvas drag-and-drop)
             for stamp in page_data.absolute_stamps:
@@ -220,10 +227,16 @@ class SVGExporter:
                                 f'href="{fname}" preserveAspectRatio="xMidYMid meet"/>'
                             )
 
-                    parts.append(_captions_svg(stamp, x, y, w, h))
+                    parts.append(_captions_svg(stamp, x, y, w, h, album.caption_heading, used))
 
             parts.append('</g>')  # close page group
             y_offset += h_mm + gap
 
         parts.append("</svg>")
+        faces = caption_fonts.subset_font_faces(used)
+        caption_style = (
+            f"<style>{faces}text.caption{{font-family:{caption_fonts.css_family()};"
+            f"{caption_fonts.CSS_TEXT_RULES}}}</style>"
+        )
+        parts[parts.index(_CAPTION_STYLE)] = caption_style
         return "\n".join(parts)

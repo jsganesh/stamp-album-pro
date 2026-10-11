@@ -1,5 +1,6 @@
 """Stamp captions: one layout in every export (PDF, PNG, SVG, HTML preview).
 
+Every caption is set in the bundled Source Serif 4 Caption.
 Heading above the box (bold 9 pt); below it the description (8 pt), the details line
 and the catalogue number (8 pt italic). The frame is drawn outside the stamp (1 mm clear,
 then the line); the nearest line box is 2 mm from the frame's outer edge, lines are centred
@@ -98,9 +99,10 @@ def test_layout_order_gaps_and_styles():
     assert head.bottom == pytest.approx(HEADING_BOTTOM)
     assert desc.top == pytest.approx(BELOW_TOP)
     assert det.top == pytest.approx(desc.bottom) and cat.top == pytest.approx(det.bottom)
-    assert (head.font_id, head.size_pt) == ("HB", 9)
-    assert (desc.font_id, desc.size_pt) == ("HN", 8)
-    assert (det.font_id, det.size_pt) == ("HI", 8) and (cat.font_id, cat.size_pt) == ("HI", 8)
+    assert (head.font_id, head.size_pt) == ("CapB", 9) and head.bold and not head.italic
+    assert (desc.font_id, desc.size_pt) == ("CapR", 8) and not desc.bold and not desc.italic
+    assert (det.font_id, det.size_pt) == ("CapI", 8) and (cat.font_id, cat.size_pt) == ("CapI", 8)
+    assert det.italic and cat.italic
     assert cat.text == "SG 2"  # empty catalogue fields are dropped
     for ln in lines:
         assert ln.x + ln.width / 2 == pytest.approx(X + W / 2)  # centred
@@ -128,11 +130,20 @@ def test_layout_drops_empty_parts():
     assert [ln.kind for ln in lines] == ["details"] and lines[0].top == pytest.approx(BELOW_TOP)
 
 
-def test_description_follows_the_stamp_font_family():
+@pytest.mark.parametrize("font_id", ["HN", "TN", "CN", "MyFont"])
+def test_captions_use_the_caption_font_whatever_the_stamp_font(font_id):
     kinds = {
-        ln.kind: ln.font_id for ln in cl.layout(_stamp(font_id="TN"), X, Y, W, H, _fake_measure)
+        ln.kind: ln.font_id for ln in cl.layout(_stamp(font_id=font_id), X, Y, W, H, _fake_measure)
     }
-    assert kinds == {"heading": "HB", "description": "TN", "details": "TI", "catalogue": "TI"}
+    want = {"heading": "CapB", "description": "CapR", "details": "CapI", "catalogue": "CapI"}
+    assert kinds == want
+
+
+def test_semibold_headings():
+    lines = cl.layout(_stamp(), X, Y, W, H, _fake_measure, heading_weight="semibold")
+    head = lines[0]
+    assert head.font_id == "CapSB" and head.weight == 600 and head.bold
+    assert [ln.font_id for ln in lines[1:]] == ["CapR", "CapI", "CapI"]  # only the heading changes
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node is not installed")
@@ -210,12 +221,12 @@ def test_pdf_captions(monkeypatch):
     }  # baseline mm from the top
     head, desc = got["Penny Black"], got["Plate 1a"]
     det, cat = got["1d · Used · Imperforate"], got["SG 2"]
-    assert head[0] < HEADING_BOTTOM and head[1] == ("Helvetica-Bold", 9)
+    assert head[0] < HEADING_BOTTOM and head[1] == ("SourceSerif4Caption-CapB", 9)
     assert desc[0] == pytest.approx(BELOW_TOP + 8 / pt, abs=0.01)  # below the box, not inside it
-    assert desc[1] == ("Helvetica", 8)
+    assert desc[1] == ("SourceSerif4Caption-CapR", 8)
     assert det[0] - desc[0] == pytest.approx(LINE, abs=0.01)  # no overlap
     assert cat[0] - det[0] == pytest.approx(LINE, abs=0.01)
-    assert det[1] == ("Helvetica-Oblique", 8) and cat[1] == ("Helvetica-Oblique", 8)
+    assert det[1] == ("SourceSerif4Caption-CapI", 8) and cat[1] == ("SourceSerif4Caption-CapI", 8)
     assert {v[2] for v in (head, desc, det, cat)} == {(0.0, 0.0, 0.0)}
 
 
@@ -255,7 +266,7 @@ def test_svg_captions():
         assert "pt" not in t.get("font-size")  # user units are mm
     assert float(head.get("font-size")) == pytest.approx(9 * 25.4 / 72, abs=0.01)
     assert float(desc.get("font-size")) == pytest.approx(8 * 25.4 / 72, abs=0.01)
-    assert head.get("font-weight") == "bold"
+    assert head.get("font-weight") == "700"
     assert det.get("font-style") == "italic" and cat.get("font-style") == "italic"
     assert desc.get("font-style") is None
     assert float(head.get("y")) < HEADING_BOTTOM
@@ -286,7 +297,7 @@ def test_preview_captions():
     assert top("description") == pytest.approx(BELOW_TOP, abs=0.01)
     assert top("details") == pytest.approx(BELOW_TOP + LINE, abs=0.01)
     assert top("catalogue") == pytest.approx(BELOW_TOP + 2 * LINE, abs=0.01)
-    assert "font-weight:bold" in caps["heading"]
+    assert "font-weight:700" in caps["heading"]
     assert "font-style:italic" in caps["details"] and "font-style:italic" in caps["catalogue"]
     assert all("color:#000000" in c for c in caps.values())
 

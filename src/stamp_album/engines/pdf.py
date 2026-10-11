@@ -19,7 +19,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
 from stamp_album.core.models import Album, Color, Stamp
-from stamp_album.engines import caption_layout, frames, page_border, text_layout
+from stamp_album.engines import caption_fonts, caption_layout, frames, page_border, text_layout
 from stamp_album.engines.layout import layout_rows
 
 
@@ -181,17 +181,20 @@ def _draw_stamp(c: canvas.Canvas, stamp: Stamp, album: Album,
             except Exception:
                 pass
 
-    _draw_captions(c, stamp, sx, sy, page_h_pt)
+    _draw_captions(c, stamp, sx, sy, page_h_pt, album.caption_heading)
 
 
-def _draw_captions(c: canvas.Canvas, stamp: Stamp, sx: float, sy: float, page_h_pt: float):
-    """Heading above the box; description, details and catalogue below (see caption_layout)."""
-    def measure(text: str, font_id: str, size: float) -> float:
-        return c.stringWidth(text, _resolve_reportlab_font(font_id, c), size) / _mm_to_pt(1)
+def _draw_captions(c: canvas.Canvas, stamp: Stamp, sx: float, sy: float, page_h_pt: float,
+                   heading_weight: str = "bold"):
+    """Heading above the box; description, details and catalogue below (see caption_layout).
 
+    Set in the bundled caption font, embedded in the PDF; ReportLab draws the plain
+    advance widths the layout measured.
+    """
     c.setFillColorRGB(*caption_layout.COLOR_RGB)
-    for line in caption_layout.layout(stamp, sx, sy, stamp.width, stamp.height, measure):
-        c.setFont(_resolve_reportlab_font(line.font_id, c), line.size_pt)
+    for line in caption_layout.layout(stamp, sx, sy, stamp.width, stamp.height,
+                                      heading_weight=heading_weight):
+        c.setFont(caption_fonts.reportlab_name(line.font_id), line.size_pt)
         c.drawString(_mm_to_pt(line.x), page_h_pt - _mm_to_pt(line.baseline), line.text)
 
 

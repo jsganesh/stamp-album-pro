@@ -639,6 +639,8 @@ class Album:
     defines: set[str] = field(default_factory=set)
     source_path: Optional[str] = None
     margin_texts: list[MarginTextItem] = field(default_factory=list)
+    # Stamp caption headings: "bold" (the default) or "semibold" (CAPTION_HEADING in the DSL)
+    caption_heading: str = "bold"
 
     # Color settings
     color_album_border: Optional[Color] = None

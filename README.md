@@ -11,7 +11,7 @@ Design and print stamp album pages. StampAlbum Pro pairs a drag-and-drop page ca
 - **Visual canvas:** place, drag, resize and align stamps and text elements on a page
 - **Stamp shapes:** rectangle, triangle, diamond, oval, hexagon, octagon, pentagon
 - **Stamp frames:** None, Thin, Medium or Double, always black. You enter the stamp's own size from the catalogue; the frame is drawn 1 mm clear all round it
-- **Captions:** a heading above each stamp; description, details and catalogue number below
+- **Captions:** a heading above each stamp; description, details and catalogue number below, set in the bundled Source Serif 4 Caption so they wrap the same way in the editor and every export
 - **Themes and page borders:** plain borders for exhibition pages and decorative ones (corner ornaments, Greek key, Rope) for personal albums, in the theme's colour
 - **Pages:** add and delete pages; page sizes include A5 and Legal
 - **Layout tools:** grid fill and undo/redo
@@ -90,5 +90,7 @@ docs/           architecture and build notes
 ## Licence
 
 MIT, see [LICENSE](LICENSE).
+
+The caption font, Source Serif 4 Caption by Adobe, is bundled under the SIL Open Font License 1.1 ([src/stamp_album/web/fonts/OFL.txt](src/stamp_album/web/fonts/OFL.txt)).
 
 Licensing note: dependency licences have not been audited yet, so review them before distributing binaries. (v0.2.0 included PyMuPDF, which is AGPL-3.0 or commercial; it has since been removed.)
