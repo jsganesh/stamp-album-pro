@@ -22,6 +22,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - Browser smoke test (`test_ui_smoke.py`; skipped locally without Playwright, required in CI)
 
 ### Changed
+- **Starter templates** replaced: the Template Gallery now has four exhibition-style pages, Single stamp, Set row, Title page and Exhibition page, in place of 33 templates that used the old row layout. Those opened as an empty page in the editor and exported with stamps and captions overlapping. The new ones are placed items at their own sizes, with headings, captions and details, inside the 15 mm margins and with nothing running into anything else. A test checks every template with the export engines' frame and caption geometry, exports each to PDF, PNG and SVG, and opens each in the editor to check for "!" badges
 - **Tutorial** rewritten for the current editor, with a picture for each step: adding stamps at their catalogue size, frames and captions, theme, page border and Page setup, and preview and export. The first-run sample album is now an exhibition-style page with three 1840–41 stamps at 19 × 22 mm (StampWorld 1 to 3). The pictures and the README screenshots are made by `tools/screenshots.py` (`make screenshots`)
 - **Page borders look the same in every view.** The editor's drawing is the reference: `engines/page_border.py` ports `renderPageBorder`, its corner ornaments and edge patterns from `web/borders.js`, and the preview, PDF, PNG and SVG all draw its lines from it. Plain borders print at the editor's weights (Single 0.4 mm, was 0.5 mm). Greek key and Rope no longer have a plain rectangle under them in exports (the editor never drew one), and in the editor they take the theme colour like every other border (Rope was brown)
 - **Stamp frames are drawn outside the stamp** in the editor, preview, PDF, PNG and SVG, from one geometry (`engines/frames.py` and `frameLines` / `shapeOutline` in `web/dsl_core.js`). A stamp's W and H are its size from the catalogue; the frame leaves 1 mm clear all round, then draws its line or lines: Thin 0.5 pt, Medium 1 pt, Double two 0.5 pt lines 1 pt apart. Shaped stamps keep the 1 mm on every side. Captions, and their warnings, are measured from the frame's outer edge. Albums made before this keep their stored sizes, so their frames grow by the clearance
@@ -34,6 +35,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - Undo now covers the whole album (all pages and the page size), so adding or deleting a page and Page setup can be undone
 
 ### Removed
+- The four `.slbum` starter albums in `templates/`, which the app never loaded; the starter templates are now in the Template Gallery
 - Columns and Gap controls (albums that use columns keep them when opened and saved), and Distribute and Match size, which always failed because only one stamp can be selected
 - Dead `canvas.js` (not loaded) and `events.js` (loaded but never run), both superseded by `render.js` and `init.js`
 

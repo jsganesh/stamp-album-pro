@@ -16,7 +16,7 @@ Design and print stamp album pages. StampAlbum Pro pairs a drag-and-drop page ca
 - **Pages:** add and delete pages; page sizes include A5 and Legal
 - **Layout tools:** grid fill and undo/redo
 - **Images:** upload and place images on a page
-- **Starter templates:** four `.slbum` albums in `templates/` (one-column quadrille, compact two-column, Europe two-column, worldwide three-column). These use the legacy row-based layout and currently export with layout problems (see the changelog)
+- **Starter templates:** four exhibition-style pages in the wizard's Template Gallery: Single stamp, Set row, Title page and Exhibition page
 - **DSL mode:** an advanced text view of the same page, for precise or bulk editing
 - **Export:** PDF, PNG and SVG
 - **Album files:** create, open, save and delete `.slbum` albums from the sidebar
@@ -70,11 +70,11 @@ CI runs the tests on macOS, Windows and Ubuntu from the locked dependencies in `
 ```
 src/stamp_album/
   api.py        FastAPI backend (albums, templates, export)
+  templates.py  starter templates for the Template Gallery
   core/         models, DSL parser, serializer
   engines/      layout and rendering (HTML preview, PDF, PNG, SVG)
   web/          browser UI (HTML, JS, CSS)
   ui/           legacy PyQt6 editor (optional, not maintained)
-templates/      starter albums (.slbum)
 assets/         sample album files
 launcher/       launch scripts for macOS, Windows and Linux
 packaging/      PyInstaller specs (known stale)
