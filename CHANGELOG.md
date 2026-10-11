@@ -38,6 +38,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 - A quote typed in a label, description, heading, catalogue number or details line lost the whole stamp when the album was reopened. Every text field is now escaped when saved (quotes, backslashes and new lines) and read back exactly, by both the editor and the Python reader
+- The Python reader's quoted-string handling took about 20 seconds on one long hostile line (a regex that was quadratic in the number of `\"`, flagged by CodeQL); it is now a single linear pass
 - The Python album writer, used by the server's file routes, now writes items as the editor does: shape names the editor reads (`oval`, `triangle_inverted`), the theme, the page border by name, each stamp's details, text alignment and the heading mark. The Python reader now reads the editor's placed pictures (it stopped with an error) and text alignment, and the inverted triangle no longer reopens as a rectangle
 - The DSL editor's CodeMirror is bundled with the app instead of loaded from a CDN, so it works offline and the app's security policy no longer allows any outside source
 - The browser tests no longer wait with `wait_for_function("…")`, which the app's security policy blocks; it failed whenever the editor was not ready at once (Windows CI on `main`)

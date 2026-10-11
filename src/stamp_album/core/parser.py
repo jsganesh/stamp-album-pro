@@ -112,18 +112,39 @@ def unquote(s: str) -> str:
 
     Handles multiple adjacent quoted strings (from line continuation).
     """
-    import re
+    # Collect the contents of every complete quoted string in one left-to-right pass.
+    # (A regex here was quadratic on lines with many \" and no closing quote: CodeQL.)
+    parts: list[str] = []
+    i, n = 0, len(s)
+    while i < n:
+        if s[i] != '"':
+            i += 1
+            continue
+        j = i + 1
+        while j < n and s[j] != '"':
+            j += 2 if s[j] == "\\" else 1
+        if j >= n:
+            break  # no closing quote: the rest is not a quoted string
+        parts.append(s[i + 1:j])
+        i = j + 1
+    raw = "".join(parts) if parts else s.strip('"')  # no quoted string: strip outer quotes
+    return _unescape(raw)
 
-    # Find all quoted strings and concatenate their contents
-    parts = re.findall(r'"([^"\\]*(?:\\.[^"\\]*)*)"', s)
-    if parts:
-        result = "".join(parts)
-    else:
-        # Fallback: just strip outer quotes
-        result = s.strip('"')
 
-    # One pass, so an escaped backslash followed by "n" stays a backslash and an n
-    return re.sub(r"\\(.)", lambda m: "\n" if m.group(1) == "n" else m.group(1), result)
+def _unescape(raw: str) -> str:
+    """Decode \\" \\\\ \\n (any other \\x as x) in one pass: "\\\\n" stays a backslash and n."""
+    out: list[str] = []
+    i, n = 0, len(raw)
+    while i < n:
+        c = raw[i]
+        if c == "\\" and i + 1 < n:
+            nxt = raw[i + 1]
+            out.append("\n" if nxt == "n" else nxt)
+            i += 2
+        else:
+            out.append(c)
+            i += 1
+    return "".join(out)
 
 
 def _is_number(token: str) -> bool:

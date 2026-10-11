@@ -232,3 +232,14 @@ def test_no_test_waits_with_a_string_function():
         if 'wait_for_function("' in p.read_text(encoding="utf-8") and p.name != Path(__file__).name
     ]
     assert offenders == [], "poll with evaluate() instead (test_ui_smoke.wait_for_app)"
+
+
+def test_python_reader_is_fast_on_a_hostile_line():
+    """unquote's old regex took ~20 s on this 80 000-character line (CodeQL: polynomial regex)."""
+    import time
+
+    hostile = '"' + '\\"\\a' * 20000
+    start = time.perf_counter()
+    unquote(hostile)
+    AlbumParser().parse(f"ALBUM_PAGES_SIZE(210 297)\nPAGE_START\nALBUM_TITLE({hostile})\n")
+    assert time.perf_counter() - start < 1.0
