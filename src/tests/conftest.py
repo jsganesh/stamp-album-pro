@@ -28,3 +28,11 @@ if sys.platform == "darwin":
         if current:
             new_path = new_path + ":" + current
         os.environ["DYLD_FALLBACK_LIBRARY_PATH"] = new_path
+
+# On GitHub Actions, report failures as annotations, which a cloud session can
+# read through the API (it can't download job logs). Does nothing elsewhere.
+from gh_annotations import (  # noqa: E402,F401
+    pytest_collectreport,
+    pytest_runtest_logreport,
+    pytest_terminal_summary,
+)
