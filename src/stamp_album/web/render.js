@@ -455,34 +455,26 @@ function getShapePath(shape, w, h) {
 
 // ── Stamp captions ──
 // Drawn where they print, from the same layout as the preview and exports
-// (S.CORE.captionLayout, mirrored by engines/caption_layout.py).
-var _measureCtx = null;
-function captionMeasure(text, fontId, sizePt) {
-    if (!_measureCtx) _measureCtx = document.createElement("canvas").getContext("2d");
-    var fc = S.fontCSS(fontId);
-    // Measure at 10 px per mm of font size, then convert back to mm
-    _measureCtx.font = fc.style + " " + fc.weight + " " + (sizePt * S.CORE.CAPTION.MM_PER_PT * 10) + "px " + fc.family;
-    return _measureCtx.measureText(text).width / 10;
-}
-
+// (S.CORE.captionLayout, mirrored by engines/caption_layout.py). Measured with the bundled
+// caption font's advance widths (caption_metrics.js), so the lines break as in the exports.
 function stampCaptionLines(el) {
     if (!S.CORE.hasCaptions(el)) return [];
     var sc = S._sc;
-    return S.CORE.captionLayout(el, el.x / sc, el.y / sc, el.w / sc, el.h / sc, captionMeasure);
+    return S.CORE.captionLayout(el, el.x / sc, el.y / sc, el.w / sc, el.h / sc, null,
+                                { headingWeight: S._captionHeading });
 }
 
 function captionNode(el, lines, d) {
     var sc = S._sc, first = lines[0];
     var lh = (first.bottom - first.top) * sc;
-    var fc = S.fontCSS(first.fontId);
     var n = document.createElement("div");
     n.className = "caption caption-" + first.kind;
     n.textContent = lines.map(function(l) { return l.text; }).join("\n");
     // Children sit inside the frame, so offset by its width to line up with the box edge.
     n.style.cssText = "position:absolute;left:" + (-d.clientLeft) + "px;width:" + el.w + "px;" +
         "top:" + ((first.top - el.y / sc) * sc - d.clientTop) + "px;height:" + (lh * lines.length) + "px;" +
-        "line-height:" + lh + "px;font-size:" + S.ptPx(first.sizePt) + "px;font-family:" + fc.family + ";" +
-        "font-weight:" + (first.bold ? "bold" : "normal") + ";font-style:" + (first.italic ? "italic" : "normal") + ";" +
+        "line-height:" + lh + "px;font-size:" + S.ptPx(first.sizePt) + "px;" +
+        "font-weight:" + first.weight + ";font-style:" + (first.italic ? "italic" : "normal") + ";" +
         "color:" + S.CORE.CAPTION.COLOR + ";text-align:center;white-space:pre;pointer-events:none;";
     return n;
 }

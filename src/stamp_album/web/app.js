@@ -9,6 +9,8 @@ var _colMode = 1, _colGap = 10.0, _pageBorder = "", _pageBorderC = "";  // Colum
 // Album theme: colours the page border and marked headings. "custom" keeps an older album's
 // own border colour (_pageBorderC) until a theme is chosen.
 var _theme = "exhibition";
+// Weight of stamp caption headings: "bold" (the default) or "semibold" (CAPTION_HEADING).
+var _captionHeading = "bold";
 
 // ── Forward references (set by render.js after load) ──
 var render = function() { S.render(); };
@@ -28,7 +30,8 @@ function saveDraft() {
         var pages = _pages.slice();
         pages[_currentPage] = E;
         var state = { v: 1, pages: pages, currentPage: _currentPage, elements: E, pw: _pw / _sc, ph: _ph / _sc,
-                      pageBorder: _pageBorder || "", pageBorderC: _pageBorderC || "", theme: _theme };
+                      pageBorder: _pageBorder || "", pageBorderC: _pageBorderC || "", theme: _theme,
+                      captionHeading: _captionHeading };
         localStorage.setItem(_draftKey, JSON.stringify(state));
         if (_currentFile) localStorage.setItem(_draftFileKey, _currentFile);
         else localStorage.removeItem(_draftFileKey);
@@ -55,6 +58,7 @@ function loadDraft() {
         _pageBorderC = state.pageBorderC || "";
         // Drafts from before themes: an own border colour is "custom", otherwise Exhibition.
         _theme = state.theme || (_pageBorderC ? "custom" : "exhibition");
+        _captionHeading = state.captionHeading === "semibold" ? "semibold" : "bold";
         // ...and their stamps get black frames and no fill, as an opened file's do.
         _pages.forEach(function(p) { (p || []).forEach(S.CORE.normalizeStamp); });
         var savedFile = localStorage.getItem(_draftFileKey);
@@ -286,7 +290,8 @@ function buildCanvasState(format) {
         author: "",
         border_style: _pageBorder || "",
         border_color: themeColor(),
-        theme_color: themeColor()  // marked headings
+        theme_color: themeColor(),  // marked headings
+        caption_heading: _captionHeading
     };
 }
 
@@ -306,6 +311,8 @@ function syncPageBar() {
         }
         th.value = _theme;
     }
+    var hw = $("def-heading");
+    if (hw) hw.value = _captionHeading;
     var bdr = $("def-bdr");
     if (bdr) bdr.value = _pageBorder || "none";
     var note = $("bdr-note");
@@ -517,6 +524,7 @@ Object.defineProperties(S, {
     _pageBorder: { get: function(){ return _pageBorder; }, set: function(v){ _pageBorder = v; } },
     _pageBorderC: { get: function(){ return _pageBorderC; }, set: function(v){ _pageBorderC = v; } },
     _theme: { get: function(){ return _theme; }, set: function(v){ _theme = v; } },
+    _captionHeading: { get: function(){ return _captionHeading; }, set: function(v){ _captionHeading = v === "semibold" ? "semibold" : "bold"; } },
     themeColor: { value: themeColor }, syncPageBar: { value: syncPageBar },
     frameOf: { get: function(){ return window.StampAlbumDSL.frameOf; } },
     CORE: { get: function(){ return window.StampAlbumDSL; } },

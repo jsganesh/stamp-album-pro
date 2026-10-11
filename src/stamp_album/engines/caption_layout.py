@@ -3,10 +3,12 @@
 Every view (editor, HTML preview, PDF, PNG, SVG) places a stamp's captions the
 same way:
 
-* the heading sits above the box, bold, 9 pt;
+* the heading sits above the box, bold (or semibold, as the album chooses), 9 pt;
 * below the box, in order: the description (8 pt), the details line
   ("1/2D · Used · Imperforate", 8 pt italic) and the catalogue number
   (8 pt italic);
+* every caption is set in the bundled Source Serif 4 Caption (``caption_fonts``),
+  whatever the stamp's own font;
 * the nearest line box is ``GAP_MM`` from the frame's outer edge on each side
   (the frame is drawn outside the stamp: see ``frames.py``);
 * lines are centred on the frame and wrapped to its width;
@@ -14,8 +16,9 @@ same way:
 
 Keep in step with ``captionLayout`` in ``web/dsl_core.js``.
 
-Engines supply ``measure(text, font_id, size_pt) -> width_mm``. All positions
-are returned in millimetres from the page's top-left corner.
+Every view measures with ``caption_fonts.measure`` (the default here), so the
+lines break in the same places everywhere. All positions are returned in
+millimetres from the page's top-left corner.
 """
 
 from __future__ import annotations
@@ -23,7 +26,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable, Optional
 
-from stamp_album.engines import text_layout
+from stamp_album.engines import caption_fonts, text_layout
 
 GAP_MM = 2.0  # space between the frame and the nearest caption line box
 HEADING_PT = 9.0  # heading size: the only caption that stands out
@@ -43,7 +46,7 @@ class CaptionLine:
 
     text: str
     kind: str  # "heading" | "description" | "details" | "catalogue"
-    font_id: str  # built-in font id, e.g. "HB", "HN", "HI"
+    font_id: str  # caption font id: "CapR", "CapI", "CapB" or "CapSB" (caption_fonts)
     size_pt: float
     top: float  # top of the line box
     bottom: float  # bottom of the line box
@@ -52,54 +55,55 @@ class CaptionLine:
     x: float  # left edge of the centred text
 
     @property
+    def weight(self) -> int:
+        return caption_fonts.weight(self.font_id)
+
+    @property
     def bold(self) -> bool:
-        return self.font_id[1:] in ("B", "S")
+        return self.weight >= 600
 
     @property
     def italic(self) -> bool:
-        return self.font_id[1:] in ("I", "S")
-
-
-def _family(font_id: Optional[str]) -> str:
-    """The family letter (H, T or C) of a built-in font id; Helvetica otherwise."""
-    f = (font_id or "H")[:1].upper()
-    return f if f in ("H", "T", "C") and len(font_id or "H") <= 2 else "H"
+        return caption_fonts.style(self.font_id) == "italic"
 
 
 def catalogue_text(refs) -> str:
     return " · ".join(r.strip() for r in (refs or []) if r and r.strip())
 
 
-def caption_parts(stamp) -> tuple[list, list]:
+def caption_parts(stamp, heading_weight: Optional[str] = None) -> tuple[list, list]:
     """(above, below) as lists of (kind, text, font_id, size_pt), empty parts dropped."""
     above, below = [], []
     if getattr(stamp, "is_picture", False):  # pictures have no captions
         return above, below
     heading = getattr(stamp, "heading", None)
     if heading is not None and (heading.text or "").strip():
-        above.append(("heading", heading.text, _family(heading.font_id) + "B", HEADING_PT))
-    fam = _family(getattr(stamp, "font_id", None))
+        font = caption_fonts.heading_font(heading_weight)
+        above.append(("heading", heading.text, font, HEADING_PT))
     desc = (getattr(stamp, "description", "") or "").strip()
     if desc:
-        below.append(("description", desc, fam + "N", CAPTION_PT))
+        below.append(("description", desc, "CapR", CAPTION_PT))
     details = (getattr(stamp, "footer_text", "") or "").strip()
     if details:
-        below.append(("details", details, fam + "I", CAPTION_PT))
+        below.append(("details", details, "CapI", CAPTION_PT))
     cat = catalogue_text(getattr(stamp, "catalog_refs", None))
     if cat:
-        below.append(("catalogue", cat, fam + "I", CAPTION_PT))
+        below.append(("catalogue", cat, "CapI", CAPTION_PT))
     return above, below
 
 
-def layout(stamp, x: float, y: float, w: float, h: float, measure: Measure) -> list[CaptionLine]:
+def layout(stamp, x: float, y: float, w: float, h: float,
+           measure: Measure = caption_fonts.measure,
+           heading_weight: Optional[str] = None) -> list[CaptionLine]:
     """Caption lines for a stamp at (x, y, w, h) mm, top to bottom.
 
     (x, y, w, h) is the stamp's own size; the captions are placed around its frame.
+    *heading_weight* is the album's choice, "bold" (the default) or "semibold".
     """
     from stamp_album.engines import frames
 
     x, y, w, h = frames.outer_box(stamp, x, y, w, h)
-    above, below = caption_parts(stamp)
+    above, below = caption_parts(stamp, heading_weight)
 
     def wrapped(parts):
         rows = []
@@ -137,29 +141,6 @@ def layout(stamp, x: float, y: float, w: float, h: float, measure: Measure) -> l
         out.append(line)
         top = line.bottom
     return out
-
-
-_PDF_FONT = {
-    "HN": "Helvetica",
-    "HB": "Helvetica-Bold",
-    "HI": "Helvetica-Oblique",
-    "TN": "Times-Roman",
-    "TB": "Times-Bold",
-    "TI": "Times-Italic",
-    "CN": "Courier",
-    "CB": "Courier-Bold",
-    "CI": "Courier-Oblique",
-}
-
-
-def metrics_measure(text: str, font_id: str, size_pt: float) -> float:
-    """Width in mm from the standard PDF font metrics (close to Arial/Times/Courier).
-
-    Used by the SVG export and the HTML preview, which have no font engine of their own.
-    """
-    from reportlab.pdfbase import pdfmetrics
-
-    return pdfmetrics.stringWidth(text, _PDF_FONT.get(font_id, "Helvetica"), size_pt) * MM_PER_PT
 
 
 def bounds(lines: list[CaptionLine]) -> Optional[tuple[float, float, float, float]]:

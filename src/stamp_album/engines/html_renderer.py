@@ -6,13 +6,15 @@ PDF, PNG and SVG export live in pdf.py, raster.py and svg_export.py.
 
 from __future__ import annotations
 
+from typing import Optional
+
 from stamp_album.core.models import (
     Album,
     FormattedText,
     Page,
     Stamp,
 )
-from stamp_album.engines import caption_layout, frames, page_border
+from stamp_album.engines import caption_fonts, caption_layout, frames, page_border
 from stamp_album.engines.layout import layout_rows
 
 
@@ -22,16 +24,21 @@ def _xml_escape(s: str) -> str:
 
 
 
-def _captions_html(stamp: Stamp, x: float, y: float, w: float, h: float) -> str:
-    """Heading above the box; description, details and catalogue below (see caption_layout)."""
+def _captions_html(stamp: Stamp, x: float, y: float, w: float, h: float,
+                   heading_weight: str = "bold", used: Optional[dict] = None) -> str:
+    """Heading above the box; description, details and catalogue below (see caption_layout).
+
+    The characters set in each caption font are added to *used*, for the embedded subsets.
+    """
     out = []
-    for line in caption_layout.layout(stamp, x, y, w, h, caption_layout.metrics_measure):
+    for line in caption_layout.layout(stamp, x, y, w, h, heading_weight=heading_weight):
+        if used is not None:
+            used.setdefault(line.font_id, set()).update(line.text)
         out.append(
             f'<div class="caption caption-{line.kind}" style="position:absolute;z-index:2;left:{x}mm;'
             f'top:{line.top:.2f}mm;width:{w}mm;height:{line.bottom - line.top:.2f}mm;'
             f'line-height:{line.bottom - line.top:.2f}mm;text-align:center;white-space:nowrap;'
-            f'font-family:{_font_id_to_css(line.font_id)};font-size:{line.size_pt}pt;'
-            f'font-weight:{"bold" if line.bold else "normal"};'
+            f'font-size:{line.size_pt}pt;font-weight:{line.weight};'
             f'font-style:{"italic" if line.italic else "normal"};color:{caption_layout.COLOR_HEX};">'
             f'{_xml_escape(line.text)}</div>'
         )
@@ -59,19 +66,33 @@ class HTMLRenderer:
         self.album = album
         self.font_manager = font_manager
         self._page_counter = 0
+        self._caption_chars: dict = {}  # caption font id -> characters set in it
 
     def render(self) -> str:
-        """Render the entire album to HTML."""
+        """Render the entire album to HTML.
+
+        The caption font is embedded (only the glyphs used), so an exported HTML
+        file shows the same captions as the preview.
+        """
+        self._caption_chars = {}
+        pages = []
+        for page in self.album.pages:
+            self._page_counter += 1
+            pages.append(self._render_page(page))
+        caption_style = (
+            f"<style>{caption_fonts.subset_font_faces(self._caption_chars)}"
+            f".caption{{font-family:{caption_fonts.css_family()};{caption_fonts.CSS_TEXT_RULES}}}</style>"
+        )
         parts = [
             "<!DOCTYPE html>",
             "<html><head><meta charset='utf-8'>",
             self._render_styles(),
+            caption_style,
             "</head><body>",
+            *pages,
+            "</body>",
+            "</html>",
         ]
-        for page in self.album.pages:
-            self._page_counter += 1
-            parts.append(self._render_page(page))
-        parts.extend(["</body>", "</html>"])
         return "\n".join(parts)
 
     def _border_color_css(self) -> str:
@@ -173,7 +194,8 @@ class HTMLRenderer:
                 # The fill and the frame, outside the stamp's own size, as in every other view
                 parts.append(_frame_svg_html(stamp, x, y, w, h, "#000000", "#ffffff"))
                 parts.append(f'<div class="stamp" style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;"></div>')
-                parts.append(_captions_html(stamp, x, y, w, h))
+                parts.append(_captions_html(stamp, x, y, w, h, self.album.caption_heading,
+                                            self._caption_chars))
 
         if has_columns:
             parts.append('</div>')  # close column-container
@@ -215,7 +237,8 @@ class HTMLRenderer:
                     f'</div>'
                 )
 
-                parts.append(_captions_html(stamp, x, y, w, h))
+                parts.append(_captions_html(stamp, x, y, w, h, self.album.caption_heading,
+                                            self._caption_chars))
 
         parts.append("</div>")  # close page
         return "\n".join(parts)

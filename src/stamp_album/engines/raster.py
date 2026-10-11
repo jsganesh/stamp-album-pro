@@ -15,7 +15,7 @@ from typing import Optional
 from PIL import Image, ImageDraw, ImageFont
 
 from stamp_album.core.models import Album, Color, Stamp
-from stamp_album.engines import caption_layout, frames, page_border, text_layout
+from stamp_album.engines import caption_fonts, caption_layout, frames, page_border, text_layout
 from stamp_album.engines.layout import layout_rows
 
 
@@ -205,32 +205,25 @@ def _draw_stamp(draw: ImageDraw.ImageDraw, stamp: Stamp, album: Album, px_per_mm
             except Exception:
                 pass
 
-    _draw_captions(draw, stamp, px_per_mm)
+    _draw_captions(draw, stamp, px_per_mm, album.caption_heading)
 
 
-def _draw_captions(draw: ImageDraw.ImageDraw, stamp: Stamp, px_per_mm: float):
+def _draw_captions(draw: ImageDraw.ImageDraw, stamp: Stamp, px_per_mm: float,
+                   heading_weight: str = "bold"):
     """Heading above the box; description, details and catalogue below (see caption_layout).
 
-    The stamp geometry is in pixels here; the layout works in mm.
+    The stamp geometry is in pixels here; the layout works in mm. The captions are
+    measured with the caption font's advance widths and drawn from its bundled file,
+    so the system's fonts make no difference.
     """
     pt_px = px_per_mm * 25.4 / 72.0
-    fonts: dict = {}
-
-    def font(font_id: str, size: float):
-        key = (font_id, size)
-        if key not in fonts:
-            fonts[key] = _resolve_pillow_font(font_id, size * pt_px)
-        return fonts[key]
-
-    def measure(text: str, font_id: str, size: float) -> float:
-        return draw.textlength(text, font=font(font_id, size)) / px_per_mm
-
     s = px_per_mm
     rgb = tuple(int(round(v * 255)) for v in caption_layout.COLOR_RGB)
     for line in caption_layout.layout(stamp, stamp.abs_x / s, stamp.abs_y / s,
-                                      stamp.width / s, stamp.height / s, measure):
+                                      stamp.width / s, stamp.height / s,
+                                      heading_weight=heading_weight):
         draw.text((line.x * s, line.baseline * s), line.text, fill=rgb,
-                  font=font(line.font_id, line.size_pt), anchor="ls")
+                  font=caption_fonts.pillow_font(line.font_id, line.size_pt * pt_px), anchor="ls")
 
 
 def _draw_text_element(draw: ImageDraw.ImageDraw, stamp: Stamp, px_per_mm: float):

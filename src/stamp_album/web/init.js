@@ -374,6 +374,13 @@ function init() {
         S.schedulePreviewRefresh();
     });
 
+    $("def-heading").addEventListener("change", function() {
+        S._captionHeading = this.value;
+        render();  // caption headings take the new weight
+        pushUndo();
+        S.schedulePreviewRefresh();
+    });
+
     // ── Collapsible Panels ──
     // The toggle inside each panel and the handle beside it both report the panel's state.
     function setPanelState(toggle, handle, open, what) {

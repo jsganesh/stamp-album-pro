@@ -45,6 +45,7 @@ function buildDSL() {
         pageBorder: S._pageBorder,
         pageBorderC: S._pageBorderC,
         theme: S._theme,
+        captionHeading: S._captionHeading,
         colMode: S._colMode || 1,
         colGap: S._colGap || 10,
         currentFile: S._currentFile || ""
@@ -70,6 +71,7 @@ function parseDSL(dsl) {
         S._pageBorder = state.pageBorder;
         S._pageBorderC = state.pageBorderC;
         S._theme = state.theme;
+        S._captionHeading = state.captionHeading;
         S._colMode = state.colMode;
         S._colGap = state.colGap;
         S._pages = JSON.parse(JSON.stringify(state.pages));

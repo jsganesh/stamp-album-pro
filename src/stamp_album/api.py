@@ -421,6 +421,7 @@ class CanvasStateRequest(BaseModel):
     border_style: str = ""
     border_color: str = ""
     theme_color: str = ""  # the album theme's colour, for marked headings
+    caption_heading: str = "bold"  # stamp caption headings: "bold" or "semibold"
 
 
 def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
@@ -509,6 +510,7 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
         source_path=req.source_path or "album.slbum",
         page_setup=PageSetup(width=w_mm, height=h_mm),
         pages=pages,
+        caption_heading="semibold" if req.caption_heading == "semibold" else "bold",
     )
     album.color_stamp_border = Color(r=0.5, g=0.5, b=0.5)
     album.color_stamp_background = Color(r=1.0, g=1.0, b=1.0)
@@ -1096,6 +1098,15 @@ STATIC_MEDIA_TYPES = {
     ".gif": "image/gif",
     ".svg": "image/svg+xml",
 }
+
+
+# The bundled caption font (web/fonts): only its .ttf files, by plain name.
+@app.get("/fonts/{name}")
+async def serve_font(name: str):
+    fp = WEB_DIR / "fonts" / name
+    if "/" in name or "\\" in name or fp.suffix.lower() != ".ttf" or not fp.is_file():
+        raise HTTPException(status_code=404)
+    return FileResponse(fp, media_type="font/ttf")
 
 
 # Catch-all: serve static JS/CSS/image files from the web directory.

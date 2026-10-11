@@ -192,6 +192,7 @@ function buildDSL(state) {
         lines.push('COLOUR_ALBUM_BORDER("' + themeColor(state) + '")');
     }
     if (state.theme && state.theme !== "custom") lines.push('ALBUM_THEME("' + state.theme + '")');
+    if (state.captionHeading === "semibold") lines.push('CAPTION_HEADING("semibold")');  // bold is the default
     // The header is written even for an empty album, so a new landscape or
     // non-A4 album keeps its page size before anything is placed on it.
     var title = state.currentFile ? state.currentFile.replace(/\.(slbum|txt)$/, "") : "";
@@ -223,6 +224,7 @@ function parseDSL(dsl) {
         pw: 210, ph: 297,
         pageBorder: null,
         pageBorderC: null,
+        captionHeading: "bold",  // stamp caption headings: "bold" or "semibold"
         colMode: 1,
         colGap: 10.0,
         currentFile: ""
@@ -264,6 +266,12 @@ function parseDSL(dsl) {
             continue;
         }
 
+        var mHeading = matchDSL(t, /^CAPTION_HEADING\(\s*"(\w+)"\s*\)/);
+        if (mHeading) {
+            var hw = mHeading[1].toLowerCase();
+            if (HEADING_WEIGHTS[hw]) state.captionHeading = hw;
+            continue;
+        }
         var mTheme = matchDSL(t, /^ALBUM_THEME\(\s*"(\w+)"\s*\)/);
         if (mTheme) {
             if (THEMES[mTheme[1]]) state.theme = mTheme[1];
@@ -561,17 +569,50 @@ function fitToPage(pages, width, height, margin, opts) {
 
 // ── Stamp captions ──
 // One caption layout for every view. Keep in step with stamp_album/engines/caption_layout.py.
-// Heading above the box (bold, 9 pt); below it the description (8 pt), the details line
-// (8 pt italic) and the catalogue number (8 pt italic). The nearest line box is GAP_MM from
-// the frame's outer edge; lines are centred and wrapped to the frame's width; captions are black.
-// Positions are mm from the page's top-left corner. measure(text, fontId, sizePt) -> mm.
+// Heading above the box (bold or semibold, as the album chooses, 9 pt); below it the description
+// (8 pt), the details line (8 pt italic) and the catalogue number (8 pt italic). The nearest line box
+// is GAP_MM from the frame's outer edge; lines are centred and wrapped to the frame's width;
+// captions are black. Positions are mm from the page's top-left corner.
 var CAPTION = { GAP_MM: 2, HEADING_PT: 9, CAPTION_PT: 8, LINE_HEIGHT: 1.3, FIRST_BASELINE: 1,
                 MM_PER_PT: 25.4 / 72, COLOR: "#000000" };
 
-function _captionFamily(fid) {
-    fid = fid || "H";
-    var f = fid.charAt(0).toUpperCase();
-    return fid.length <= 2 && "HTC".indexOf(f) !== -1 ? f : "H";
+// Every caption is set in the bundled Source Serif 4 Caption (web/fonts, SIL OFL), whatever the
+// stamp's own font. Keep in step with stamp_album/engines/caption_fonts.py.
+var CAPTION_FONTS = {
+    FAMILY: "Source Serif 4 Caption",
+    CapR:  { file: "SourceSerif4Caption-Regular.ttf",  weight: 400, style: "normal" },
+    CapI:  { file: "SourceSerif4Caption-It.ttf",       weight: 400, style: "italic" },
+    CapB:  { file: "SourceSerif4Caption-Bold.ttf",     weight: 700, style: "normal" },
+    CapSB: { file: "SourceSerif4Caption-Semibold.ttf", weight: 600, style: "normal" }
+};
+var HEADING_WEIGHTS = { bold: "CapB", semibold: "CapSB" };  // the album's CAPTION_HEADING
+function headingFont(weight) { return HEADING_WEIGHTS[String(weight || "").toLowerCase()] || HEADING_WEIGHTS.bold; }
+
+// Advance widths from web/caption_metrics.js (generated from the TTFs by tools/caption_metrics.py).
+var _captionAdv = null;
+function _captionMetrics() {
+    if (_captionAdv) return _captionAdv;
+    var raw = (typeof window !== "undefined" && window.StampAlbumCaptionMetrics) ||
+              (typeof require === "function" ? require("./caption_metrics.js") : null);
+    if (!raw) throw new Error("caption_metrics.js is not loaded");
+    _captionAdv = {};
+    Object.keys(raw).forEach(function(fid) {
+        var m = raw[fid], adv = {};
+        m.runs.forEach(function(run) { for (var i = 1; i < run.length; i++) adv[run[0] + i - 1] = run[i]; });
+        _captionAdv[fid] = { upm: m.upm, notdef: m.notdef, adv: adv };
+    });
+    return _captionAdv;
+}
+
+// Width in mm: the sum of the glyphs' advance widths, no kerning or ligatures (as the exports).
+// A character the font lacks counts as its .notdef glyph.
+function captionMeasure(text, fontId, sizePt) {
+    var m = _captionMetrics()[fontId], units = 0;
+    for (var ch of String(text)) {
+        var a = m.adv[ch.codePointAt(0)];
+        units += a === undefined ? m.notdef : a;
+    }
+    return units * sizePt / m.upm * CAPTION.MM_PER_PT;
 }
 
 // Greedy word wrap; honours newlines and breaks over-long words (as text_layout.wrap_lines).
@@ -597,15 +638,15 @@ function wrapLines(text, maxWidth, measure) {
 }
 
 // The caption texts of an editor element, empty ones dropped.
-function captionParts(el) {
+// opts.headingWeight is the album's choice: "bold" (the default) or "semibold".
+function captionParts(el, opts) {
     var above = [], below = [];
     var trim = function(v) { return String(v || "").trim(); };
-    if (trim(el.hdg)) above.push({ kind: "heading", text: trim(el.hdg), fontId: "HB", sizePt: CAPTION.HEADING_PT });
-    var fam = _captionFamily(el.font);
-    if (trim(el.lbl)) below.push({ kind: "description", text: trim(el.lbl), fontId: fam + "N", sizePt: CAPTION.CAPTION_PT });
+    if (trim(el.hdg)) above.push({ kind: "heading", text: trim(el.hdg), fontId: headingFont(opts && opts.headingWeight), sizePt: CAPTION.HEADING_PT });
+    if (trim(el.lbl)) below.push({ kind: "description", text: trim(el.lbl), fontId: "CapR", sizePt: CAPTION.CAPTION_PT });
     var details = [el.denom, el.cond, el.perf].map(trim).filter(Boolean).join(" · ");
-    if (details) below.push({ kind: "details", text: details, fontId: fam + "I", sizePt: CAPTION.CAPTION_PT });
-    if (trim(el.cat)) below.push({ kind: "catalogue", text: trim(el.cat), fontId: fam + "I", sizePt: CAPTION.CAPTION_PT });
+    if (details) below.push({ kind: "details", text: details, fontId: "CapI", sizePt: CAPTION.CAPTION_PT });
+    if (trim(el.cat)) below.push({ kind: "catalogue", text: trim(el.cat), fontId: "CapI", sizePt: CAPTION.CAPTION_PT });
     return { above: above, below: below };
 }
 
@@ -613,10 +654,12 @@ function captionParts(el) {
 function hasCaptions(el) { return !!el && (el.t === "stamp" || el.t === "freehand"); }
 
 // (x, y, w, h) is the stamp's own size; captions are placed around its frame.
-function captionLayout(el, x, y, w, h, measure) {
+// measure(text, fontId, sizePt) -> mm defaults to captionMeasure; opts as captionParts.
+function captionLayout(el, x, y, w, h, measure, opts) {
+    measure = measure || captionMeasure;
     var fb = frameBox(el, x, y, w, h);
     x = fb.x; y = fb.y; w = fb.w; h = fb.h;
-    var parts = captionParts(el), lh = function(r) { return r.sizePt * CAPTION.LINE_HEIGHT * CAPTION.MM_PER_PT; };
+    var parts = captionParts(el, opts), lh = function(r) { return r.sizePt * CAPTION.LINE_HEIGHT * CAPTION.MM_PER_PT; };
     function wrapped(list) {
         var rows = [];
         list.forEach(function(p) {
@@ -630,7 +673,8 @@ function captionLayout(el, x, y, w, h, measure) {
         var tw = measure(r.text, r.fontId, r.sizePt);
         return { text: r.text, kind: r.kind, fontId: r.fontId, sizePt: r.sizePt, top: top, bottom: top + lh(r),
                  baseline: top + r.sizePt * CAPTION.FIRST_BASELINE * CAPTION.MM_PER_PT, width: tw, x: x + (w - tw) / 2,
-                 bold: /[BS]$/.test(r.fontId), italic: /[IS]$/.test(r.fontId) };
+                 weight: CAPTION_FONTS[r.fontId].weight, bold: CAPTION_FONTS[r.fontId].weight >= 600,
+                 italic: CAPTION_FONTS[r.fontId].style === "italic" };
     }
     var out = [], rows = wrapped(parts.above);
     var top = y - CAPTION.GAP_MM - rows.reduce(function(a, r) { return a + lh(r); }, 0);
@@ -689,7 +733,8 @@ var EXPORTS = { THEMES: THEMES, themeColor: themeColor, FRAMES: FRAMES, frameOf:
                 frameBox: frameBox, SHAPE_POLYGONS: SHAPE_POLYGONS, shapeOutline: shapeOutline,
                 normalizeStamp: normalizeStamp, PLAIN_BORDERS: PLAIN_BORDERS, escapeDSL: escapeDSL, unescapeDSL: unescapeDSL, serializeEl: serializeEl, buildDSL: buildDSL, parseDSL: parseDSL, normalizePageSize: normalizePageSize, findOutside: findOutside,
                 describePageSize: describePageSize, fitToPage: fitToPage, PAPER_MM: PAPER_MM,
-                CAPTION: CAPTION, wrapLines: wrapLines, captionParts: captionParts, hasCaptions: hasCaptions,
+                CAPTION: CAPTION, CAPTION_FONTS: CAPTION_FONTS, HEADING_WEIGHTS: HEADING_WEIGHTS, headingFont: headingFont,
+                captionMeasure: captionMeasure, wrapLines: wrapLines, captionParts: captionParts, hasCaptions: hasCaptions,
                 captionLayout: captionLayout, captionBounds: captionBounds, captionWarnings: captionWarnings };
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = EXPORTS;
