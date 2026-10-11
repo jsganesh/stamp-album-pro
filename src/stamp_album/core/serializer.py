@@ -52,7 +52,48 @@ class AlbumSerializer:
         return shape_map.get(stamp.shape, "STAMP_ADD")
 
     def _escape_string(self, s: str) -> str:
-        return s.replace("\\", "\\\\").replace('"', '\\"')
+        """As escapeDSL in web/dsl_core.js: backslashes, quotes and newlines."""
+        return (s or "").replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+
+    def _absolute_item_lines(self, stamp) -> list[str]:
+        """One placed item in the editor's own format (serializeEl in web/dsl_core.js)."""
+        e = self._escape_string
+        x, y, w, h = stamp.abs_x, stamp.abs_y, stamp.width, stamp.height
+        if stamp.is_text_element:
+            out = [f'PAGE_TEXT_AT({x} {y} {w} {h} "{e(stamp.font_id or "HN")}" {stamp.font_size} '
+                   f'"{e(stamp.description)}" "{e(stamp.text_align or "left")}")']
+            if getattr(stamp, "role", "") == "heading":
+                out.append('PAGE_TEXT_ROLE("heading")')
+            return out
+        if getattr(stamp, "is_picture", False):
+            img, label = e(stamp.image_path or ""), e(stamp.description)
+            return [f'STAMP_ADD_IMG({x} {y} {w} {h} "{img}" "{label}" "" "")']
+        # The frame as the editor writes it (FRAMES in web/dsl_core.js)
+        frame = getattr(stamp, "frame", "thin") or "thin"
+        frames = {"none": ("none", 0), "medium": ("solid", 1), "double": ("double", 1)}
+        bdr, bdr_w = frames.get(frame, ("solid", 0.5))
+        # Unset colours stay empty: both readers then use the default (a black frame, white fill)
+        bdr_c = self._format_color(stamp.border_color) if stamp.border_color else ""
+        fill = self._format_color(stamp.fill_color) if stamp.fill_color else ""
+        # Three catalogue fields; the editor uses the first, older albums all three.
+        # A free shape marks itself in the first.
+        refs = ([r for r in (stamp.catalog_refs or []) if r] + ["", "", ""])[:3]
+        if getattr(stamp, "is_freehand", False):
+            refs = ["freehand", "", ""]
+        shape = (stamp.shape or StampShape.RECTANGLE).value
+        if getattr(stamp, "is_freehand", False):
+            shape = "freehand"
+        cats = " ".join(f'"{e(r)}"' for r in refs)
+        out = [f'STAMP_ADD_AT({x} {y} {w} {h} "{e(stamp.description)}" {cats} {shape} '
+               f'"{bdr}" "{e(bdr_c)}" {bdr_w} "{e(fill)}" 100)']
+        if stamp.heading and (stamp.heading.text or "").strip():
+            hd = stamp.heading
+            out.append(f'STAMP_HEADING("{e(hd.font_id)}" {hd.size} "{e(hd.text)}")')
+        details = tuple(getattr(stamp, "details", ()) or ())
+        if any(details):
+            denom, cond, perf = (list(details) + ["", "", ""])[:3]
+            out.append(f'STAMP_DETAILS("{e(denom)}" "{e(cond)}" "{e(perf)}")')
+        return out
 
     def to_dsl(self, album: Album) -> str:
         lines = []
@@ -75,7 +116,10 @@ class AlbumSerializer:
                 f"{ps.border_inner2} {ps.border_spacing})"
             )
             if ps.border_style:
-                lines.append(f"ALBUM_BORDER_STYLE({ps.border_style})")
+                # The style by name, as the editor writes and reads it
+                lines.append(f'ALBUM_PAGES_BORDER_STYLE("{self._escape_string(ps.border_style)}")')
+        if getattr(album, "theme", ""):
+            lines.append(f'ALBUM_THEME("{self._escape_string(album.theme)}")')
 
         for font in album.fonts:
             lines.append(
@@ -147,6 +191,7 @@ class AlbumSerializer:
                     catalog = list(stamp.catalog_refs) if stamp.catalog_refs else []
                     while len(catalog) < 3:
                         catalog.append("")
+                    catalog = [self._escape_string(c) for c in catalog]
 
                     if stamp.image_path:
                         desc = self._escape_string(stamp.description)
@@ -183,50 +228,9 @@ class AlbumSerializer:
                             f'"{self._escape_string(stamp.heading.text)}")'
                         )
 
-            # ── Absolute-position stamps (canvas drag-and-drop) ──
+            # ── Placed items (canvas drag-and-drop), written as the editor writes them ──
             for stamp in page.absolute_stamps:
-                if stamp.is_text_element:
-                    lines.append(
-                        f'PAGE_TEXT_AT({stamp.abs_x} {stamp.abs_y} '
-                        f'{stamp.width} {stamp.height} '
-                        f'"{stamp.font_id}" {stamp.font_size} '
-                        f'"{self._escape_string(stamp.description)}" "")'
-                    )
-                else:
-                    catalog = list(stamp.catalog_refs) if stamp.catalog_refs else []
-                    while len(catalog) < 3:
-                        catalog.append("")
-                    shape_code = ""
-                    if stamp.shape and stamp.shape != StampShape.RECTANGLE:
-                        shape_code = " " + stamp.shape.name
-                    # Only emit extended border/fill fields when they differ from defaults
-                    bdr_ext = ""
-                    frame = getattr(stamp, "frame", "thin") or "thin"
-                    if (stamp.shape != StampShape.RECTANGLE or stamp.border_color is not None
-                            or stamp.fill_color is not None or frame != "thin"):
-                        # The frame as the editor writes it (FRAMES in web/dsl_core.js)
-                        bdr, bdrW = {"none": ("none", 0), "medium": ("solid", 1),
-                                     "double": ("double", 1)}.get(frame, ("solid", 0.5))
-                        bdrC = self._format_color(stamp.border_color) if stamp.border_color else ""
-                        fill = self._format_color(stamp.fill_color) if stamp.fill_color else ""
-                        fillA = 100
-                        bdr_ext = f' "{bdr}" "{bdrC}" {bdrW} "{fill}" {fillA}'
-                        # The extended fields are positional: always write the shape with them
-                        shape_code = " " + (stamp.shape or StampShape.RECTANGLE).name
-                    lines.append(
-                        f'STAMP_ADD_AT({stamp.abs_x} {stamp.abs_y} '
-                        f'{stamp.width} {stamp.height} '
-                        f'"{self._escape_string(stamp.description)}" '
-                        f'"{catalog[0]}" "{catalog[1]}" "{catalog[2]}"'
-                        f'{shape_code}{bdr_ext})'
-                    )
-
-                if stamp.heading:
-                    lines.append(
-                        f'STAMP_HEADING("{stamp.heading.font_id}" '
-                        f'{stamp.heading.size} '
-                        f'"{self._escape_string(stamp.heading.text)}")'
-                    )
+                lines.extend(self._absolute_item_lines(stamp))
 
             lines.append("")
 

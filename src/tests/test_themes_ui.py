@@ -2,7 +2,7 @@
 
 # ruff: noqa: F811  (pytest fixtures are imported, then named as test arguments)
 import pytest
-from test_ui_smoke import base_url, page  # noqa: F401  (fixtures)
+from test_ui_smoke import base_url, page, wait_for_app  # noqa: F401  (fixtures)
 
 GREEN = "rgb(46, 94, 58)"  # THEMES.green, #2E5E3A
 
@@ -144,7 +144,7 @@ def test_theme_change_is_saved_undoable_and_survives_a_reload(page):
     assert page.input_value("#def-theme") == "navy"
     page.wait_for_timeout(800)
     page.reload()
-    page.wait_for_function("window.StampAlbum && document.getElementById('page')")
+    wait_for_app(page)
     assert page.input_value("#def-theme") == "navy"
 
 

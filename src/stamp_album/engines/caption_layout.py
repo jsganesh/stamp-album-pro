@@ -73,6 +73,8 @@ def catalogue_text(refs) -> str:
 def caption_parts(stamp) -> tuple[list, list]:
     """(above, below) as lists of (kind, text, font_id, size_pt), empty parts dropped."""
     above, below = [], []
+    if getattr(stamp, "is_picture", False):  # pictures have no captions
+        return above, below
     heading = getattr(stamp, "heading", None)
     if heading is not None and (heading.text or "").strip():
         above.append(("heading", heading.text, _family(heading.font_id) + "B", HEADING_PT))
