@@ -5,6 +5,7 @@ All notable changes to this project are documented here. The format follows [Kee
 ## [Unreleased]
 
 ### Added
+- **Fit prompt for old albums**: opening an album (File › Open or the Saved files list) whose stamps, text or pictures sit past any edge of the page asks "Move inside" or "Leave as they are". Nothing moves unless you choose to; moving uses Page setup's fit (same 15 mm margin, the arrangement kept, sizes never changed) and is one undo step, back to the album as opened. Leaving it asks again the next time the album is opened. Templates, the wizard, the tutorial sample and DSL Apply don't ask. Only the stamp box counts; frames and captions over the border keep their amber "!" badge
 - **Test failures as CI annotations**: on GitHub Actions, each failed test, setup or teardown error and collection error is reported as an annotation on the job, with the test's name, where it failed and pytest's `E` lines (at most 10 per job, as GitHub allows; a 10th lists any others). Annotations can be read through the GitHub API, which job logs can't from a cloud session, and they also appear next to the code in a pull request. A pytest plugin in the test folder (`src/tests/gh_annotations.py`); local runs are unchanged
 - **Frame size in Properties**: a selected stamp shows its frame and stamp sizes, for example "Frame 32.4 × 42.4 mm, 1 mm clear all round the stamp (30 × 40 mm, dashed)". On the canvas a faint dashed line marks the stamp's own size inside the frame; it is never printed
 - **Frame warnings**: a stamp whose frame runs past the page border (the page edge when there is no border) or into another item gets the amber "!" badge, as captions do
@@ -40,6 +41,9 @@ All notable changes to this project are documented here. The format follows [Kee
 - Dead `canvas.js` (not loaded) and `events.js` (loaded but never run), both superseded by `render.js` and `init.js`
 
 ### Fixed
+- Elements past the left or top edge of the page (a negative X or Y) were dropped when an album was opened in the editor, so saving it again lost them. The editor's reader now keeps them, as the Python reader already did
+- Opening a file now starts a fresh undo history, so Undo can't step back into the album that was open before
+- The "page size corrected" message for albums saved by v0.2.0 no longer counts elements past the edge; the fit prompt offers to move them instead
 - Lines on the editor's page looked slightly soft: the page is centred and is a fractional number of pixels wide (A4 525 px, Letter 539.75 px), so its left edge often fell between screen pixels (457.5, 450.125 …). The page is now nudged onto whole device pixels whenever the window, a panel or the paper size changes. Its size and the exports are unchanged
 - Images other than PNG were served by the app as `image/png`; SVG, JPEG and GIF files now have their own types
 - The page-border and theme tests read pixels through a small helper that uses `get_flattened_data` where Pillow has it, since Pillow 14 (October 2027) removes `Image.getdata`. A `getdata` deprecation warning now fails the tests

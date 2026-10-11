@@ -1,7 +1,7 @@
 // Page-size normalisation (Node, no browser). Run: node src/tests/test_page_size_migration.mjs
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-const { normalizePageSize, countOutside } = require("../stamp_album/web/dsl_core.js");
+const { normalizePageSize, findOutside } = require("../stamp_album/web/dsl_core.js");
 
 let failures = 0;
 function check(name, cond, detail) {
@@ -34,6 +34,16 @@ r = normalizePageSize(200, 200);
 check("custom size is left alone", r.name === null && !r.migrated && close(r.pw, 200) && close(r.ph, 200), show(r));
 
 const pages = [[{ x: 10, y: 10, w: 50, h: 50 }, { x: 180, y: 10, w: 50, h: 20 }, { x: 0, y: 290, w: 20, h: 20 }, { x: 160, y: 10, w: 50, h: 10 }]];
-check("countOutside counts only elements past the edge", countOutside(pages, 210, 297) === 2, String(countOutside(pages, 210, 297)));
+let f = findOutside(pages, 210, 297);
+check("findOutside counts only elements past the edge", f.count === 2 && f.pages === 1, show(f));
+
+// All four edges count, not only the right and bottom.
+const edges = [[{ x: -5, y: 50, w: 20, h: 20 }], [{ x: 50, y: -3, w: 20, h: 20 }], [{ x: 50, y: 50, w: 20, h: 20 }], [{ x: 200, y: 50, w: 20, h: 20 }]];
+f = findOutside(edges, 210, 297);
+check("findOutside sees the left, top and right edges", f.count === 3 && f.pages === 3, show(f));
+f = findOutside([[{ x: -0.3, y: 0, w: 210.3, h: 297.4 }]], 210, 297);
+check("findOutside ignores rounding under half a unit", f.count === 0 && f.pages === 0, show(f));
+f = findOutside([[], [{ x: 0, y: 0, w: 10, h: 10 }]], 210, 297);
+check("findOutside on a fitting album is zero", f.count === 0 && f.pages === 0, show(f));
 
 process.exit(failures ? 1 : 0);

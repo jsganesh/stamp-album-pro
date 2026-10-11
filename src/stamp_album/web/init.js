@@ -351,6 +351,7 @@ function init() {
 
     // ── Page setup / Grid ──
     S.wirePageSetup();
+    S.wireFitPrompt();
     $("grid").addEventListener("change", function() {
         S._sn = parseInt(this.value) || 0;
         S.updateGrid();
@@ -416,13 +417,7 @@ function init() {
         var f = e.target.files[0];
         var reader = new FileReader();
         reader.onload = function(ev) {
-            var dsl = ev.target.result;
-            S._currentFile = f.name;
-            parseDSL(dsl);
-            S._dirty = false;
-            S.updateTitle();
-            loadFileList();
-            showToast("Opened " + f.name, "success");
+            S.openAlbum(f.name, ev.target.result);
         };
         reader.readAsText(f);
         e.target.value = "";
@@ -432,7 +427,7 @@ function init() {
     document.addEventListener("keydown", function(e) {
         if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
         if (e.target.isContentEditable) return;  // typing in a label on the page
-        if ($("page-setup-overlay").classList.contains("open")) return;  // the dialog handles its own keys
+        if ($("page-setup-overlay").classList.contains("open") || S.fitPromptOpen()) return;  // dialogs handle their own keys
         if (e.target.closest && e.target.closest(".tb-menu")) return;  // menus handle their own keys
         if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); return; }
         if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.key === "z" && e.shiftKey))) { e.preventDefault(); redo(); return; }

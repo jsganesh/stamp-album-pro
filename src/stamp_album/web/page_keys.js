@@ -54,7 +54,7 @@ function wirePageKeys() {
 
     document.addEventListener("keydown", function(e) {
         if (e.ctrlKey || e.metaKey || e.altKey) return;
-        if ($("page-setup-overlay").classList.contains("open")) return;
+        if ($("page-setup-overlay").classList.contains("open") || S.fitPromptOpen()) return;
         var onItem = e.target.classList && e.target.classList.contains("cel") ? e.target : null;
 
         if (e.key === "Enter" && onItem) {
