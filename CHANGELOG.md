@@ -37,6 +37,9 @@ All notable changes to this project are documented here. The format follows [Kee
 - Dead `canvas.js` (not loaded) and `events.js` (loaded but never run), both superseded by `render.js` and `init.js`
 
 ### Fixed
+- Lines on the editor's page looked slightly soft: the page is centred and is a fractional number of pixels wide (A4 525 px, Letter 539.75 px), so its left edge often fell between screen pixels (457.5, 450.125 …). The page is now nudged onto whole device pixels whenever the window, a panel or the paper size changes. Its size and the exports are unchanged
+- Images other than PNG were served by the app as `image/png`; SVG, JPEG and GIF files now have their own types
+- The page-border and theme tests read pixels through a small helper that uses `get_flattened_data` where Pillow has it, since Pillow 14 (October 2027) removes `Image.getdata`. A `getdata` deprecation warning now fails the tests
 - A quote typed in a label, description, heading, catalogue number or details line lost the whole stamp when the album was reopened. Every text field is now escaped when saved (quotes, backslashes and new lines) and read back exactly, by both the editor and the Python reader
 - The Python reader's quoted-string handling took about 20 seconds on one long hostile line (a regex that was quadratic in the number of `\"`, flagged by CodeQL); it is now a single linear pass
 - The Python album writer, used by the server's file routes, now writes items as the editor does: shape names the editor reads (`oval`, `triangle_inverted`), the theme, the page border by name, each stamp's details, text alignment and the heading mark. The Python reader now reads the editor's placed pictures (it stopped with an error) and text alignment, and the inverted triangle no longer reopens as a rectangle

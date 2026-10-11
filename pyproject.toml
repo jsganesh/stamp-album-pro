@@ -87,4 +87,6 @@ disallow_untyped_defs = false
 [tool.pytest.ini_options]
 testpaths = ["src/tests"]
 addopts = "-q"
+# Pillow 14 removes Image.getdata; use image_helpers.pixels in tests.
+filterwarnings = ["error:Image.Image.getdata is deprecated:DeprecationWarning"]
 # qt_api removed — legacy PyQt6 UI is optional and triggers a warning
