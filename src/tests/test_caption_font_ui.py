@@ -57,7 +57,8 @@ def _drawn(page):
                 r.setStart(node, start); r.setEnd(node, start + line.length);
                 out.push({kind, text: line, width: r.getBoundingClientRect().width,
                           family: cs.fontFamily, weight: cs.fontWeight, style: cs.fontStyle,
-                          kerning: cs.fontKerning, ligatures: cs.fontVariantLigatures});
+                          kerning: cs.fontKerning, ligatures: cs.fontVariantLigatures,
+                          rendering: cs.textRendering});
                 start += line.length + 1;
             });
             return out;
@@ -96,6 +97,7 @@ def test_captions_are_drawn_as_wide_as_measured(page):
     for d, ln in zip(drawn, laid):
         assert FAMILY in d["family"]
         assert d["kerning"] == "none" and d["ligatures"] == "none"
+        assert d["rendering"] == "geometricprecision"
         assert d["width"] == pytest.approx(ln["width"] * SC, abs=0.15), d["text"]
     weights = {d["kind"]: (d["weight"], d["style"]) for d in drawn}
     assert weights == {"heading": ("700", "normal"), "description": ("400", "normal"),

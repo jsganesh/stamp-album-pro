@@ -48,6 +48,10 @@ def heading_font(weight: str | None) -> str:
     return HEADING_WEIGHTS.get((weight or "").lower(), HEADING_WEIGHTS[DEFAULT_HEADING_WEIGHT])
 
 
+# The files the app serves at /fonts/<name>, by name (nothing else under web/ is reachable there).
+SERVED: dict[str, Path] = {f: FONT_DIR / f for f, _, _ in FONTS.values()}
+
+
 def path(font_id: str) -> Path:
     return FONT_DIR / FONTS[font_id][0]
 
@@ -120,9 +124,11 @@ def css_font_faces(url_prefix: str = "/fonts/") -> str:
     )
 
 
-# Kerning and ligatures off, so drawn text is as wide as measured.
+# Kerning and ligatures off, so drawn text is as wide as measured; geometricPrecision stops
+# Chrome on Linux rounding each glyph's advance to whole pixels at small sizes.
 CSS_TEXT_RULES = (
     "font-kerning:none;font-variant-ligatures:none;font-feature-settings:'kern' 0,'liga' 0;"
+    "text-rendering:geometricPrecision;"
 )
 
 

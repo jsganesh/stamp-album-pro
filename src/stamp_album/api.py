@@ -1100,11 +1100,13 @@ STATIC_MEDIA_TYPES = {
 }
 
 
-# The bundled caption font (web/fonts): only its .ttf files, by plain name.
+# The bundled caption font (web/fonts): only its four .ttf files, looked up by name.
 @app.get("/fonts/{name}")
 async def serve_font(name: str):
-    fp = WEB_DIR / "fonts" / name
-    if "/" in name or "\\" in name or fp.suffix.lower() != ".ttf" or not fp.is_file():
+    from stamp_album.engines.caption_fonts import SERVED
+
+    fp = SERVED.get(name)
+    if fp is None:
         raise HTTPException(status_code=404)
     return FileResponse(fp, media_type="font/ttf")
 

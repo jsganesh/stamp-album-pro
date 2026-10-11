@@ -263,6 +263,7 @@ def test_svg_embeds_only_the_glyphs_it_uses():
             assert t.get("font-family") is None  # the style rule sets the caption font
     rule = "text.caption{font-family:'Source Serif 4 Caption',Georgia,serif;font-kerning:none"
     assert rule in svg
+    assert "text-rendering:geometricPrecision" in svg
     assert len(svg) < 60_000  # subsets, not the whole fonts
 
 
@@ -276,6 +277,7 @@ def test_preview_and_html_export_embed_the_caption_font():
     html = _export("html").decode("utf-8")
     assert set(_embedded_faces(html)) == {(700, "normal"), (400, "normal"), (400, "italic")}
     assert ".caption{font-family:'Source Serif 4 Caption',Georgia,serif;font-kerning:none" in html
+    assert "text-rendering:geometricPrecision" in html
     assert re.search(r'class="caption caption-heading"[^>]*font-weight:700', html)
     html = _export("html", caption_heading="semibold").decode("utf-8")
     assert re.search(r'class="caption caption-heading"[^>]*font-weight:600', html)
