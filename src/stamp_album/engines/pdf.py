@@ -250,7 +250,9 @@ def _draw_page_border(c: canvas.Canvas, album: Album):
     if not ps.has_border:
         return
 
-    color_rgb = _color_to_rgb(album.color_album_border) if album.color_album_border else (0.2, 0.2, 0.2)
+    color_rgb = (
+        _color_to_rgb(album.color_album_border) if album.color_album_border else (0.2, 0.2, 0.2)
+    )
     page_h = _mm_to_pt(ps.height)
 
     # The editor's border styles: one drawing for every view (see page_border.py)

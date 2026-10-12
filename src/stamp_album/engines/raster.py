@@ -52,22 +52,68 @@ def _get_system_font_dirs():
 # truetype() searches the OS font directories, so bare file names work.
 _FONT_FILE_CANDIDATES = {
     "H": {
-        "N": ["Helvetica.ttc", "Arial.ttf", "arial.ttf", "LiberationSans-Regular.ttf", "DejaVuSans.ttf"],
+        "N": [
+            "Helvetica.ttc",
+            "Arial.ttf",
+            "arial.ttf",
+            "LiberationSans-Regular.ttf",
+            "DejaVuSans.ttf",
+        ],
         "B": ["Arial Bold.ttf", "arialbd.ttf", "LiberationSans-Bold.ttf", "DejaVuSans-Bold.ttf"],
-        "I": ["Arial Italic.ttf", "ariali.ttf", "LiberationSans-Italic.ttf", "DejaVuSans-Oblique.ttf"],
-        "S": ["Arial Bold Italic.ttf", "arialbi.ttf", "LiberationSans-BoldItalic.ttf", "DejaVuSans-BoldOblique.ttf"],
+        "I": [
+            "Arial Italic.ttf",
+            "ariali.ttf",
+            "LiberationSans-Italic.ttf",
+            "DejaVuSans-Oblique.ttf",
+        ],
+        "S": [
+            "Arial Bold Italic.ttf",
+            "arialbi.ttf",
+            "LiberationSans-BoldItalic.ttf",
+            "DejaVuSans-BoldOblique.ttf",
+        ],
     },
     "T": {
         "N": ["Times New Roman.ttf", "times.ttf", "LiberationSerif-Regular.ttf", "DejaVuSerif.ttf"],
-        "B": ["Times New Roman Bold.ttf", "timesbd.ttf", "LiberationSerif-Bold.ttf", "DejaVuSerif-Bold.ttf"],
-        "I": ["Times New Roman Italic.ttf", "timesi.ttf", "LiberationSerif-Italic.ttf", "DejaVuSerif.ttf"],
-        "S": ["Times New Roman Bold Italic.ttf", "timesbi.ttf", "LiberationSerif-BoldItalic.ttf", "DejaVuSerif-Bold.ttf"],
+        "B": [
+            "Times New Roman Bold.ttf",
+            "timesbd.ttf",
+            "LiberationSerif-Bold.ttf",
+            "DejaVuSerif-Bold.ttf",
+        ],
+        "I": [
+            "Times New Roman Italic.ttf",
+            "timesi.ttf",
+            "LiberationSerif-Italic.ttf",
+            "DejaVuSerif.ttf",
+        ],
+        "S": [
+            "Times New Roman Bold Italic.ttf",
+            "timesbi.ttf",
+            "LiberationSerif-BoldItalic.ttf",
+            "DejaVuSerif-Bold.ttf",
+        ],
     },
     "C": {
         "N": ["Courier New.ttf", "cour.ttf", "LiberationMono-Regular.ttf", "DejaVuSansMono.ttf"],
-        "B": ["Courier New Bold.ttf", "courbd.ttf", "LiberationMono-Bold.ttf", "DejaVuSansMono-Bold.ttf"],
-        "I": ["Courier New Italic.ttf", "couri.ttf", "LiberationMono-Italic.ttf", "DejaVuSansMono.ttf"],
-        "S": ["Courier New Bold Italic.ttf", "courbi.ttf", "LiberationMono-BoldItalic.ttf", "DejaVuSansMono-Bold.ttf"],
+        "B": [
+            "Courier New Bold.ttf",
+            "courbd.ttf",
+            "LiberationMono-Bold.ttf",
+            "DejaVuSansMono-Bold.ttf",
+        ],
+        "I": [
+            "Courier New Italic.ttf",
+            "couri.ttf",
+            "LiberationMono-Italic.ttf",
+            "DejaVuSansMono.ttf",
+        ],
+        "S": [
+            "Courier New Bold Italic.ttf",
+            "courbi.ttf",
+            "LiberationMono-BoldItalic.ttf",
+            "DejaVuSansMono-Bold.ttf",
+        ],
     },
 }
 
@@ -141,7 +187,12 @@ def _px_outline(draw: ImageDraw.ImageDraw, kind: str, geom, s: float,
         return
     if kind == "ellipse":
         cx, cy, rx, ry = geom
-        box = [(cx - rx) * s - half, (cy - ry) * s - half, (cx + rx) * s + half, (cy + ry) * s + half]
+        box = [
+            (cx - rx) * s - half,
+            (cy - ry) * s - half,
+            (cx + rx) * s + half,
+            (cy + ry) * s + half,
+        ]
         draw.ellipse(box, fill=fill, outline=outline, width=width if outline else 0)
         return
     rx, ry, rw, rh = geom
@@ -250,13 +301,17 @@ def _draw_text_element(draw: ImageDraw.ImageDraw, stamp: Stamp, px_per_mm: float
             draw.text((lx, top + i * lh), line, fill=colour, font=font)
 
 
-def _draw_page_border(draw: ImageDraw.ImageDraw, album: Album, page_w_mm: float, page_h_mm: float, scale: float):
+def _draw_page_border(
+    draw: ImageDraw.ImageDraw, album: Album, page_w_mm: float, page_h_mm: float, scale: float
+):
     """Draw decorative page border."""
     ps = album.page_setup
     if not ps.has_border:
         return
 
-    color_rgb = _color_to_rgb(album.color_album_border) if album.color_album_border else (51, 51, 51)
+    color_rgb = (
+        _color_to_rgb(album.color_album_border) if album.color_album_border else (51, 51, 51)
+    )
 
     # The editor's border styles: one drawing for every view (see page_border.py)
     prims = page_border.page_primitives(album)
@@ -328,7 +383,12 @@ class PNGGenerator:
 
             # Row stamps (same temp-set trick as absolute stamps)
             for rx, ry, stamp in row_layout[pi]:
-                orig_ax, orig_ay, orig_w, orig_h = stamp.abs_x, stamp.abs_y, stamp.width, stamp.height
+                orig_ax, orig_ay, orig_w, orig_h = (
+                    stamp.abs_x,
+                    stamp.abs_y,
+                    stamp.width,
+                    stamp.height,
+                )
                 stamp.abs_x = rx * scale
                 stamp.abs_y = ry * scale
                 stamp.width = stamp.width * scale
@@ -336,7 +396,12 @@ class PNGGenerator:
                 try:
                     _draw_stamp(draw, stamp, album, scale)
                 finally:
-                    stamp.abs_x, stamp.abs_y, stamp.width, stamp.height = orig_ax, orig_ay, orig_w, orig_h
+                    stamp.abs_x, stamp.abs_y, stamp.width, stamp.height = (
+                        orig_ax,
+                        orig_ay,
+                        orig_w,
+                        orig_h,
+                    )
 
             # Absolute stamps
             for stamp in page_data.absolute_stamps:
@@ -353,7 +418,12 @@ class PNGGenerator:
                     else:
                         _draw_stamp(draw, stamp, album, scale)
                 finally:
-                    stamp.abs_x, stamp.abs_y, stamp.width, stamp.height = orig_x, orig_y, orig_w, orig_h
+                    stamp.abs_x, stamp.abs_y, stamp.width, stamp.height = (
+                        orig_x,
+                        orig_y,
+                        orig_w,
+                        orig_h,
+                    )
 
             canvas_img.paste(page_img, (0, y_offset))
             y_offset += ph_px + gap_px

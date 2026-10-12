@@ -441,7 +441,9 @@ class AlbumParser:
                     )
                 )
             elif cmd == "ALBUM_DEFINE_FONT":
-                album.fonts.append(FontDefinition(font_id=unquote(params[0]), font_name=unquote(params[1])))
+                album.fonts.append(
+                    FontDefinition(font_id=unquote(params[0]), font_name=unquote(params[1]))
+                )
             elif cmd == "ALBUM_DEFINE_VARIABLE_FONT":
                 # ALBUM_DEFINE_VARIABLE_FONT (ID "FontName" axis_tag min max default)
                 # e.g., ALBUM_DEFINE_VARIABLE_FONT (VF "My Font" wght 100 900 400)
@@ -506,7 +508,9 @@ class AlbumParser:
                 current_row = None
             elif cmd in ("PAGE_TEXT", "PAGE_TEXT_CENTRE", "PAGE_TEXT_CENTER", "PAGE_TEXT_RIGHT"):
                 if current_page is None:
-                    raise ParseError("PAGE_TEXT command outside of PAGE_START block", line_number, line)
+                    raise ParseError(
+                        "PAGE_TEXT command outside of PAGE_START block", line_number, line
+                    )
                 alignment = TextAlignment.LEFT
                 if cmd in ("PAGE_TEXT_CENTRE", "PAGE_TEXT_CENTER"):
                     alignment = TextAlignment.CENTER
@@ -614,7 +618,8 @@ class AlbumParser:
                         current_page.column_mode = ColumnMode.NONE
                     current_page.column_gap = float(params[1]) if len(params) > 1 else 10.0
             elif cmd == "PAGE_COLUMN_NEXT":
-                # Column break marker - no-op, content flows to next column automatically in CSS grid
+                # Column break marker - no-op, content flows to next column automatically
+                # in CSS grid
                 pass
             elif cmd == "PAGE_COLUMN_STOP":
                 if current_page:
@@ -625,7 +630,9 @@ class AlbumParser:
             # -- Row commands --
             elif cmd in ("ROW_START_ES", "ROW_START_FS", "ROW_START_JS", "ROW_START_ROTATE"):
                 if current_page is None:
-                    raise ParseError("ROW_START command outside of PAGE_START block", line_number, line)
+                    raise ParseError(
+                        "ROW_START command outside of PAGE_START block", line_number, line
+                    )
                 style_map = {
                     "ROW_START_ES": RowStyle.EQUAL_SPACE,
                     "ROW_START_FS": RowStyle.FIXED_SPACE,
@@ -659,7 +666,9 @@ class AlbumParser:
             # -- Stamp commands --
             elif cmd == "STAMP_ADD":
                 if current_page is None:
-                    raise ParseError("STAMP_ADD command outside of PAGE_START block", line_number, line)
+                    raise ParseError(
+                        "STAMP_ADD command outside of PAGE_START block", line_number, line
+                    )
                 if current_row is None:
                     # Auto-create row if none exists
                     current_row = Row(style=RowStyle.FIXED_SPACE, spacing=album.page_setup.hspace)
@@ -682,7 +691,9 @@ class AlbumParser:
             elif cmd == "PAGE_TEXT_AT":
                 # PAGE_TEXT_AT (x y w h "font" size "text" "align")
                 if current_page is None:
-                    raise ParseError("PAGE_TEXT_AT command outside of PAGE_START block", line_number, line)
+                    raise ParseError(
+                        "PAGE_TEXT_AT command outside of PAGE_START block", line_number, line
+                    )
                 stamp = Stamp(
                     abs_x=float(params[0]),
                     abs_y=float(params[1]),
@@ -699,9 +710,12 @@ class AlbumParser:
                     current_page.absolute_stamps = []
                 current_page.absolute_stamps.append(stamp)
             elif cmd == "STAMP_ADD_AT":
-                # STAMP_ADD_AT (x y width height "description" "catalog1" "catalog2" "catalog3" SHAPE "bdr" "bdrC" bdrW "fill" fillA)
+                # STAMP_ADD_AT (x y width height "description" "catalog1" "catalog2" "catalog3"
+                #               SHAPE "bdr" "bdrC" bdrW "fill" fillA)
                 if current_page is None:
-                    raise ParseError("STAMP_ADD_AT command outside of PAGE_START block", line_number, line)
+                    raise ParseError(
+                        "STAMP_ADD_AT command outside of PAGE_START block", line_number, line
+                    )
                 description = unquote(params[4]) if len(params) > 4 else ""
                 catalog_refs = []
                 for j in range(5, min(len(params), 8)):
@@ -758,7 +772,9 @@ class AlbumParser:
                 current_stamp = stamp
             elif cmd == "STAMP_ADD_BLANK":
                 if current_row is None:
-                    raise ParseError("STAMP_ADD_BLANK command outside of ROW_START block", line_number, line)
+                    raise ParseError(
+                        "STAMP_ADD_BLANK command outside of ROW_START block", line_number, line
+                    )
                 current_row.stamps.append(
                     Stamp(
                         width=float(params[0]),
@@ -787,7 +803,9 @@ class AlbumParser:
                 current_stamp = stamp
             elif cmd == "STAMP_ADD_IMG":
                 if current_row is None:
-                    raise ParseError("STAMP_ADD_IMG command outside of ROW_START block", line_number, line)
+                    raise ParseError(
+                        "STAMP_ADD_IMG command outside of ROW_START block", line_number, line
+                    )
                 catalog_refs = []
                 for i in range(4, min(len(params), 7)):
                     catalog_refs.append(unquote(params[i]))
@@ -812,7 +830,9 @@ class AlbumParser:
                 "STAMP_ADD_PENTAGON",
             ):
                 if current_row is None:
-                    raise ParseError("STAMP_ADD shape command outside of ROW_START block", line_number, line)
+                    raise ParseError(
+                        "STAMP_ADD shape command outside of ROW_START block", line_number, line
+                    )
                 shape_map = {
                     "STAMP_ADD_TRIANGLE": StampShape.TRIANGLE,
                     "STAMP_ADD_DIAMOND": StampShape.DIAMOND,
@@ -1040,7 +1060,9 @@ class AlbumParser:
                 # PAGE_TEXT_DROP_CAP (font_id size lines "text")
                 # lines = number of lines the drop cap spans (default 2)
                 if current_page is None:
-                    raise ParseError("PAGE_TEXT_DROP_CAP command outside of PAGE_START block", line_number, line)
+                    raise ParseError(
+                        "PAGE_TEXT_DROP_CAP command outside of PAGE_START block", line_number, line
+                    )
                 drop_lines = int(float(params[2])) if len(params) > 2 else 2
                 text_content = unquote(params[3]) if len(params) > 3 else unquote(params[2])
                 ft = FormattedText(

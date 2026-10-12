@@ -457,10 +457,13 @@ class Stamp:
     footer_text: str = ""
     is_text_element: bool = False  # True for canvas text elements (render without stamp box)
     text_align: str = "left"  # left, center, right (text elements)
-    font_id: str = "HN"  # Font identifier (e.g. HN=Helvetica, HB=Helvetica Bold, HR=Helvetica Roman)
+    # Font identifier (e.g. HN=Helvetica, HB=Helvetica Bold, HR=Helvetica Roman)
+    font_id: str = "HN"
     font_size: float = 10.0  # Font size in points
-    border_color: Optional[Color] = None  # Per-stamp border color (falls back to album.color_stamp_border)
-    fill_color: Optional[Color] = None  # Per-stamp fill color (falls back to album.color_stamp_background)
+    # Per-stamp border color (falls back to album.color_stamp_border)
+    border_color: Optional[Color] = None
+    # Per-stamp fill color (falls back to album.color_stamp_background)
+    fill_color: Optional[Color] = None
     # Frame drawn outside the stamp (see engines/frames.py): "none", "thin", "medium" or "double".
     # width/height are the stamp's own size; the frame adds clearance and its lines around it.
     frame: str = "thin"

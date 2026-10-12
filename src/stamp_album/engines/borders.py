@@ -33,7 +33,10 @@ SHAPE_POLYGON_VIEWBOX: dict[str, str] = {
     "PENTAGON": "50,0 100,38 82,100 18,100 0,38",
 }
 
-def polygon_points(shape_name: str, x: float, y: float, w: float, h: float) -> list[tuple[float, float]]:
+
+def polygon_points(
+    shape_name: str, x: float, y: float, w: float, h: float
+) -> list[tuple[float, float]]:
     """Vertices of a stamp shape fitted to the box (x, y, w, h), top-left origin, y down.
 
     Single source of truth: the canvas, the HTML preview and every export use
@@ -58,4 +61,3 @@ SHAPE_POLYGON_NAMES: dict[str, str] = {
     "OCTAGON": "OCTAGON",
     "PENTAGON": "PENTAGON",
 }
-
