@@ -285,11 +285,6 @@ class FontManager:
         return None
 
     @property
-    def fonts(self) -> list[FontInfo]:
-        """Get list of all valid fonts."""
-        return self._fonts
-
-    @property
     def bad_fonts(self) -> list[str]:
         """Get list of invalid font file paths."""
         return self._bad_fonts

@@ -8,14 +8,14 @@ canonical function.
 
 from __future__ import annotations
 
-from stamp_album.core.models import Album
+from stamp_album.core.models import Album, Stamp
 
 
 def layout_rows(
     album: Album,
     start_y: float = 20.0,
     row_padding: float = 3.0,
-) -> list[list[tuple[float, float, "Stamp"]]]:
+) -> list[list[tuple[float, float, Stamp]]]:
     """Compute (x_mm, y_mm, stamp) for every row-based stamp.
 
     Returns a list aligned with *album.pages*, where each element is a
@@ -30,9 +30,9 @@ def layout_rows(
         plus *row_padding* mm — this fixes the previous hard-coded
         30 mm increment that caused collisions with tall stamps.
     """
-    result: list[list[tuple[float, float, "Stamp"]]] = []
+    result: list[list[tuple[float, float, Stamp]]] = []
     for page in album.pages:
-        items: list[tuple[float, float, "Stamp"]] = []
+        items: list[tuple[float, float, Stamp]] = []
         y = start_y
         for row in page.rows:
             x = 0.0
