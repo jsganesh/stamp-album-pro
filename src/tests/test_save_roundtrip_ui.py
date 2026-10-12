@@ -19,7 +19,8 @@ def _fill_details(page):
 def _properties(page):
     return page.evaluate("""(() => {
         const v = id => document.getElementById(id).value;
-        return {phdg: v('phdg'), pcat: v('pcat'), pdenom: v('pdenom'), pperf: v('pperf'), pcond: v('pcond'), pbs: v('pbs')};
+        return {phdg: v('phdg'), pcat: v('pcat'), pdenom: v('pdenom'),
+                pperf: v('pperf'), pcond: v('pcond'), pbs: v('pbs')};
     })()""")
 
 

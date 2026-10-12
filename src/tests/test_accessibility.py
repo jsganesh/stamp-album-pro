@@ -22,7 +22,9 @@ try:
     from axe_playwright_python.sync_playwright import Axe
 except ImportError as exc:
     if os.environ.get("STAMP_ALBUM_REQUIRE_BROWSER"):
-        raise ImportError(f"STAMP_ALBUM_REQUIRE_BROWSER is set but axe-playwright-python is not installed: {exc}") from exc
+        raise ImportError(
+            f"STAMP_ALBUM_REQUIRE_BROWSER is set but axe-playwright-python is not installed: {exc}"
+        ) from exc
     pytest.skip(f"axe-playwright-python not installed: {exc}", allow_module_level=True)
 
 # 1x1 transparent PNG, served for fake library images
@@ -37,24 +39,37 @@ PNG = bytes.fromhex(
 def _stamp_album(page, n=2):
     """A fresh album with n stamps in a row, the first selected, grid 5 mm."""
     pushes = "".join(
-        "StampAlbum.E.push({id: 's%d', t: 'stamp', s: 'rectangle', x: %d, y: 100, w: 100, h: 75, lbl: 'stamp %d'});"
-        % (i + 1, 100 + i * 150, i + 1) for i in range(n))
-    page.evaluate("StampAlbum.newAlbum(); StampAlbum._snapEnabled = false;" + pushes + "StampAlbum.render()")
+        "StampAlbum.E.push({id: 's%d', t: 'stamp', s: 'rectangle', x: %d, y: 100, w: 100, h: 75, "
+        "lbl: 'stamp %d'});"
+        % (i + 1, 100 + i * 150, i + 1)
+        for i in range(n)
+    )
+    page.evaluate(
+        "StampAlbum.newAlbum(); StampAlbum._snapEnabled = false;" + pushes + "StampAlbum.render()"
+    )
     page.select_option("#grid", "5")
 
 
 def _el(page, el_id):
-    return page.evaluate(f"(() => {{ const e = StampAlbum.E.find(e => e.id === '{el_id}'); return {{x: e.x, y: e.y}}; }})()")
+    return page.evaluate(
+        f"(() => {{ const e = StampAlbum.E.find(e => e.id === '{el_id}'); "
+        "return {x: e.x, y: e.y}; })()"
+    )
 
 
 def _focused(page):
-    return page.evaluate("(() => { const a = document.activeElement; return {id: a.id, cel: a.dataset ? a.dataset.id || null : null,"
-                         " cls: a.className, name: a.getAttribute('aria-label') || a.textContent.trim()}; })()")
+    return page.evaluate(
+        "(() => { const a = document.activeElement; return {id: a.id, cel: a.dataset ? "
+        "a.dataset.id || null : null,"
+        " cls: a.className, name: a.getAttribute('aria-label') || a.textContent.trim()}; })()"
+    )
 
 
 def _fake_library(page, images=("stamp1.png",), files=("my album.slbum",)):
     page.route("**/images", lambda r: r.fulfill(json=list(images)))
-    page.route(re.compile(r".*/images/[^/]+$"), lambda r: r.fulfill(body=PNG, content_type="image/png"))
+    page.route(
+        re.compile(r".*/images/[^/]+$"), lambda r: r.fulfill(body=PNG, content_type="image/png")
+    )
     page.route("**/files", lambda r: r.fulfill(json=list(files)))
     page.evaluate("StampAlbum.loadImageList(); StampAlbum.loadFileList()")
     page.wait_for_selector(".img-item")
@@ -90,7 +105,12 @@ OPENERS = {
 
 @pytest.mark.parametrize("dialog", list(OPENERS))
 def test_axe_dialogs(page, dialog):
-    page.route("**/api/templates", lambda r: r.fulfill(json=[{"id": "t1", "name": "Plain", "description": "One page", "category": "Basic"}]))
+    page.route(
+        "**/api/templates",
+        lambda r: r.fulfill(
+            json=[{"id": "t1", "name": "Plain", "description": "One page", "category": "Basic"}]
+        ),
+    )
     page.evaluate(OPENERS[dialog])
     page.wait_for_timeout(200)
     assert _axe(page) == []
@@ -116,8 +136,13 @@ def test_properties_inputs_are_found_by_their_label(page, field, label):
 
 
 def test_wizard_fields_are_found_by_their_label(page):
-    for label, field in [("Album title", "wiz-title"), ("Author", "wiz-author"), ("Page size", "wiz-pg-size"),
-                         ("Orientation", "wiz-orient"), ("Template", "wiz-template")]:
+    for label, field in [
+        ("Album title", "wiz-title"),
+        ("Author", "wiz-author"),
+        ("Page size", "wiz-pg-size"),
+        ("Orientation", "wiz-orient"),
+        ("Template", "wiz-template"),
+    ]:
         assert page.get_by_label(label, exact=True).get_attribute("id") == field, label
 
 
@@ -175,7 +200,10 @@ def test_upload_image_is_a_button(page):
     assert page.locator("#img-upl-btn").evaluate("e => e.tagName") == "BUTTON"
 
 
-@pytest.mark.parametrize("toggle,body", [("img-toggle", "img-body"), ("file-toggle", "file-body"), ("imp-toggle", "imp-body")])
+@pytest.mark.parametrize(
+    "toggle,body",
+    [("img-toggle", "img-body"), ("file-toggle", "file-body"), ("imp-toggle", "imp-body")],
+)
 def test_section_toggles_are_buttons_that_report_their_state(page, toggle, body):
     t = page.locator("#" + toggle)
     assert t.evaluate("e => e.tagName") == "BUTTON"
@@ -209,7 +237,10 @@ def test_page_dots_are_named_buttons(page):
     page.get_by_role("button", name="Add page", exact=True).focus()
     page.keyboard.press("Enter")
     assert page.evaluate("StampAlbum._pages.length") == 2
-    assert page.get_by_role("button", name="Page 2", exact=True).get_attribute("aria-current") == "page"
+    assert (
+        page.get_by_role("button", name="Page 2", exact=True).get_attribute("aria-current")
+        == "page"
+    )
     page.get_by_role("button", name="Page 1", exact=True).focus()
     page.keyboard.press("Enter")
     assert page.evaluate("StampAlbum._currentPage") == 0
@@ -217,8 +248,21 @@ def test_page_dots_are_named_buttons(page):
 
 
 def test_template_cards_open_by_keyboard(page):
-    page.route("**/api/templates", lambda r: r.fulfill(json=[{"id": "t1", "name": "Plain", "description": "One page", "category": "Basic"}]))
-    page.route("**/api/templates/t1", lambda r: r.fulfill(json={"name": "Plain", "dsl": 'PAGE_SIZE(210 297)\nSTAMP_ADD_AT(20 20 40 30 "x" "" "" "")'}))
+    page.route(
+        "**/api/templates",
+        lambda r: r.fulfill(
+            json=[{"id": "t1", "name": "Plain", "description": "One page", "category": "Basic"}]
+        ),
+    )
+    page.route(
+        "**/api/templates/t1",
+        lambda r: r.fulfill(
+            json={
+                "name": "Plain",
+                "dsl": 'PAGE_SIZE(210 297)\nSTAMP_ADD_AT(20 20 40 30 "x" "" "" "")',
+            }
+        ),
+    )
     page.evaluate("document.getElementById('btn-wiz-template').click()")
     card = page.get_by_role("button", name=re.compile("^Plain"))
     card.wait_for()
@@ -246,7 +290,12 @@ def test_elements_on_the_page_are_named_tab_stops(page):
     cel = page.locator(".cel[data-id='s1']")
     assert cel.get_attribute("tabindex") == "0"
     name = cel.get_attribute("aria-label") or ""
-    assert "Rectangle stamp" in name and "stamp 1" in name and "40 × 30 mm" in name and "40, 40 mm" in name, name
+    assert (
+        "Rectangle stamp" in name
+        and "stamp 1" in name
+        and "40 × 30 mm" in name
+        and "40, 40 mm" in name
+    ), name
 
 
 def test_focusing_an_element_selects_it(page):
@@ -375,11 +424,23 @@ def test_delete_key_removes_the_focused_element_and_focus_moves_on(page):
 def test_focus_is_visible_on_keyboard_targets(page):
     _stamp_album(page)
     _fake_library(page)
-    for sel in [".p-item", ".cel[data-id='s1']", ".img-add", "#pg-dots button", "#img-toggle", "#img-upl-btn"]:
-        page.keyboard.press("Tab")  # keyboard in use (modifier keys alone do not count), as when tabbing
+    for sel in [
+        ".p-item",
+        ".cel[data-id='s1']",
+        ".img-add",
+        "#pg-dots button",
+        "#img-toggle",
+        "#img-upl-btn",
+    ]:
+        page.keyboard.press(
+            "Tab"
+        )  # keyboard in use (modifier keys alone do not count), as when tabbing
         page.focus(sel)
         page.wait_for_timeout(250)  # palette items animate their outline in (transition: all 0.15s)
-        style = page.evaluate("(() => { const s = getComputedStyle(document.activeElement); return [s.outlineStyle, s.outlineWidth]; })()")
+        style = page.evaluate(
+            "(() => { const s = getComputedStyle(document.activeElement); return [s.outlineStyle, "
+            "s.outlineWidth]; })()"
+        )
         assert style[0] != "none" and style[1] != "0px", (sel, style)
 
 

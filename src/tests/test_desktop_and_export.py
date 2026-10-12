@@ -21,7 +21,9 @@ def client():
 class TestCrossPlatformExport:
     """PNG and SVG export now go through PyMuPDF, not the removed WeasyPrint API."""
 
-    DSL = 'ALBUM_TITLE("Test")\nALBUM_PAGES_SIZE(210 297)\nPAGE_START\nPAGE_TEXT_CENTER("HN" 14 "Hi")'
+    DSL = (
+        'ALBUM_TITLE("Test")\nALBUM_PAGES_SIZE(210 297)\nPAGE_START\nPAGE_TEXT_CENTER("HN" 14 "Hi")'
+    )
 
     def test_png_export_works(self, client):
         r = client.post("/export", json={"dsl": self.DSL, "format": "png"})

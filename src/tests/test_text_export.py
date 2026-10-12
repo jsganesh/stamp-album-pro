@@ -12,7 +12,10 @@ from stamp_album.engines import text_layout
 
 PAGE_W_MM, PAGE_H_MM = 210.0, 297.0
 PT = 72.0 / 25.4
-LONG = "This is a long descriptive paragraph that must wrap inside its box and not run off the page edge at all."
+LONG = (
+    "This is a long descriptive paragraph that must wrap inside its box "
+    "and not run off the page edge at all."
+)
 
 
 def _el(**kw):
@@ -79,7 +82,10 @@ def _pdf(client, elements):
 
 
 def test_pdf_heading_is_centered_and_inside_page(client, drawn):
-    _pdf(client, [_el(x=_px(10), y=_px(8), w=_px(190), h=_px(18), fs=40, align="center", lbl="Bahrain")])
+    _pdf(
+        client,
+        [_el(x=_px(10), y=_px(8), w=_px(190), h=_px(18), fs=40, align="center", lbl="Bahrain")],
+    )
     x, y, text, size = next(c for c in drawn if c[2] == "Bahrain")
     from reportlab.pdfbase.pdfmetrics import stringWidth
     tw = stringWidth("Bahrain", "Helvetica", size)
@@ -102,7 +108,10 @@ def test_pdf_paragraph_wraps_inside_box(client, drawn):
 
 
 def test_pdf_right_align(client, drawn):
-    _pdf(client, [_el(x=_px(100), y=_px(30), w=_px(100), h=_px(10), fs=14, align="right", lbl="Right")])
+    _pdf(
+        client,
+        [_el(x=_px(100), y=_px(30), w=_px(100), h=_px(10), fs=14, align="right", lbl="Right")],
+    )
     x, y, text, size = next(c for c in drawn if c[2] == "Right")
     from reportlab.pdfbase.pdfmetrics import stringWidth
     right_edge = x + stringWidth("Right", "Helvetica", size)
@@ -130,8 +139,13 @@ def _ink_bbox(png_bytes):
 
 
 def test_png_text_scales_with_resolution(client):
-    r = client.post("/export-from-state", json=_state(
-        [_el(x=_px(10), y=_px(10), w=_px(190), h=_px(30), fs=40, align="left", lbl="Bahrain")], "png"))
+    r = client.post(
+        "/export-from-state",
+        json=_state(
+            [_el(x=_px(10), y=_px(10), w=_px(190), h=_px(30), fs=40, align="left", lbl="Bahrain")],
+            "png",
+        ),
+    )
     bbox, (w, h) = _ink_bbox(r.content)
     assert bbox is not None
     ink_h_mm = (bbox[3] - bbox[1]) / (w / PAGE_W_MM)
@@ -140,8 +154,23 @@ def test_png_text_scales_with_resolution(client):
 
 
 def test_png_text_centered(client):
-    r = client.post("/export-from-state", json=_state(
-        [_el(x=_px(10), y=_px(10), w=_px(190), h=_px(30), fs=40, align="center", lbl="Bahrain")], "png"))
+    r = client.post(
+        "/export-from-state",
+        json=_state(
+            [
+                _el(
+                    x=_px(10),
+                    y=_px(10),
+                    w=_px(190),
+                    h=_px(30),
+                    fs=40,
+                    align="center",
+                    lbl="Bahrain",
+                )
+            ],
+            "png",
+        ),
+    )
     bbox, (w, h) = _ink_bbox(r.content)
     center_mm = ((bbox[0] + bbox[2]) / 2) / (w / PAGE_W_MM)
     assert abs(center_mm - 105) < 6
@@ -150,6 +179,21 @@ def test_png_text_centered(client):
 # ── HTML preview ──
 
 def test_preview_honours_alignment(client):
-    r = client.post("/render-from-state", json=_state(
-        [_el(x=_px(10), y=_px(10), w=_px(190), h=_px(20), fs=20, align="center", lbl="Bahrain")], "html"))
+    r = client.post(
+        "/render-from-state",
+        json=_state(
+            [
+                _el(
+                    x=_px(10),
+                    y=_px(10),
+                    w=_px(190),
+                    h=_px(20),
+                    fs=20,
+                    align="center",
+                    lbl="Bahrain",
+                )
+            ],
+            "html",
+        ),
+    )
     assert "text-align:center" in r.text.replace(" ", "")

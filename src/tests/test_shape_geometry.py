@@ -50,7 +50,9 @@ def test_pdf_polygon_matches_canonical(client, monkeypatch, shape, name):
     monkeypatch.setattr(rl_canvas.Canvas, "drawPath", spy)
     assert client.post("/export-from-state", json=_state(shape, "pdf")).status_code == 200
     code = next(p for p in paths if p)
-    nums = [tuple(float(v) for v in line.split()[:2]) for line in code if line.split()[-1] in ("m", "l")]
+    nums = [
+        tuple(float(v) for v in line.split()[:2]) for line in code if line.split()[-1] in ("m", "l")
+    ]
     x, y, w, h = _box_mm()
     expected = [(px * PT, (PAGE_H - py) * PT) for px, py in polygon_points(name, x, y, w, h)]
     assert len(nums) == len(expected)
@@ -61,20 +63,32 @@ def test_pdf_polygon_matches_canonical(client, monkeypatch, shape, name):
 def test_pdf_triangle_apex_points_up(client, monkeypatch):
     paths = []
     orig = rl_canvas.Canvas.drawPath
-    monkeypatch.setattr(rl_canvas.Canvas, "drawPath",
-                        lambda self, path, *a, **k: (paths.append(list(path._code)), orig(self, path, *a, **k))[1])
+    monkeypatch.setattr(
+        rl_canvas.Canvas,
+        "drawPath",
+        lambda self, path, *a, **k: (paths.append(list(path._code)), orig(self, path, *a, **k))[1],
+    )
     client.post("/export-from-state", json=_state("triangle", "pdf"))
-    pts = [tuple(float(v) for v in line.split()[:2]) for line in paths[0] if line.split()[-1] in ("m", "l")]
+    pts = [
+        tuple(float(v) for v in line.split()[:2])
+        for line in paths[0]
+        if line.split()[-1] in ("m", "l")
+    ]
     apex = pts[0]
-    assert apex[1] > max(p[1] for p in pts[1:]), "apex must be the highest point on the page (PDF is y-up)"
+    assert apex[1] > max(p[1] for p in pts[1:]), (
+        "apex must be the highest point on the page (PDF is y-up)"
+    )
 
 
 @pytest.mark.parametrize("shape,name", POLY_SHAPES.items())
 def test_png_polygon_matches_canonical(client, monkeypatch, shape, name):
     polys = []
     orig = ImageDraw.ImageDraw.polygon
-    monkeypatch.setattr(ImageDraw.ImageDraw, "polygon",
-                        lambda self, xy, *a, **k: (polys.append(list(xy)), orig(self, xy, *a, **k))[1])
+    monkeypatch.setattr(
+        ImageDraw.ImageDraw,
+        "polygon",
+        lambda self, xy, *a, **k: (polys.append(list(xy)), orig(self, xy, *a, **k))[1],
+    )
     r = client.post("/export-from-state", json=_state(shape, "png"))
     assert r.status_code == 200
     px_per_mm = 200 / 25.4
@@ -113,14 +127,26 @@ def test_png_image_keeps_aspect_ratio(client, tmp_path, monkeypatch):
     Image.new("RGB", (60, 80), (200, 30, 30)).save(images / "tall.png")  # 3:4
     monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
     state = _state("rectangle", "png", lbl="")
-    state["elements"][0].update({"t": "image", "img": "tall.png", "bdr": "none", "fill": "transparent",
-                                 "x": 50, "y": 50, "w": 200, "h": 200})  # square box
+    state["elements"][0].update(
+        {
+            "t": "image",
+            "img": "tall.png",
+            "bdr": "none",
+            "fill": "transparent",
+            "x": 50,
+            "y": 50,
+            "w": 200,
+            "h": 200,
+        }
+    )  # square box
     r = client.post("/export-from-state", json=state)
     im = Image.open(io.BytesIO(r.content)).convert("RGB")
     r_, g_, b_ = im.split()
     # the image is (200, 30, 30); the stamp outline is black, so match on a strong red channel
     mask = Image.merge("L", [r_]).point(lambda v: 255 if v > 150 else 0)
-    mask = Image.composite(mask, Image.new("L", im.size, 0), g_.point(lambda v: 255 if v < 100 else 0))
+    mask = Image.composite(
+        mask, Image.new("L", im.size, 0), g_.point(lambda v: 255 if v < 100 else 0)
+    )
     bbox = mask.getbbox()
     w, h = bbox[2] - bbox[0], bbox[3] - bbox[1]
     assert w / h == pytest.approx(0.75, abs=0.03), f"image drawn {w}x{h}, should keep 3:4"

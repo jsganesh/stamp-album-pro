@@ -129,7 +129,12 @@ class TestCSVImport:
     """Tests for CSV import functionality."""
 
     def test_import_csv(self, client):
-        csv_content = "country,year,description,catalog_number,catalog_type,denomination,condition,purchase_price,notes\nGreat Britain,1840,Penny Black,SG 1,SG,1d,Used,250.0,First stamp\nFrance,1849,Ceres Issue,SG 1,SG,20c,Mint,150.0,Ceres design"
+        csv_content = (
+            "country,year,description,catalog_number,catalog_type,denomination,condition,"
+            "purchase_price,notes\n"
+            "Great Britain,1840,Penny Black,SG 1,SG,1d,Used,250.0,First stamp\n"
+            "France,1849,Ceres Issue,SG 1,SG,20c,Mint,150.0,Ceres design"
+        )
         files = {"file": ("test.csv", io.BytesIO(csv_content.encode()), "text/csv")}
         response = client.post("/api/stamps/import", files=files)
         assert response.status_code == 200
@@ -142,7 +147,9 @@ class TestCSVImport:
         assert response.status_code == 400
 
     def test_import_with_errors(self, client):
-        csv_content = "country,year,description,catalog_number,catalog_type\nGB,bad_year,Test,SG 1,SG"
+        csv_content = (
+            "country,year,description,catalog_number,catalog_type\nGB,bad_year,Test,SG 1,SG"
+        )
         files = {"file": ("test.csv", io.BytesIO(csv_content.encode()), "text/csv")}
         response = client.post("/api/stamps/import", files=files)
         assert response.status_code == 200

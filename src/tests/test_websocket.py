@@ -24,7 +24,12 @@ class TestWebSocketPreview:
     def test_websocket_render(self, client):
         with client.websocket_connect("/ws/preview") as ws:
             ws.receive_json() # connected message
-            ws.send_json({"type": "render", "dsl": 'ALBUM_TITLE("Test")\nPAGE_START\nPAGE_TEXT("HN" 12 "Hello")'})
+            ws.send_json(
+                {
+                    "type": "render",
+                    "dsl": 'ALBUM_TITLE("Test")\nPAGE_START\nPAGE_TEXT("HN" 12 "Hello")',
+                }
+            )
             data = ws.receive_json()
             assert data["type"] == "preview"
             assert data["status"] == "ok"

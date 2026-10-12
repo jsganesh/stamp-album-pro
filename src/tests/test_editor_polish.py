@@ -1,4 +1,5 @@
-"""Small editor fixes from the UI audit: fresh start, toasts, Properties panel width, shortcuts dialog.
+"""Small editor fixes from the UI audit: fresh start, toasts, Properties panel width,
+shortcuts dialog.
 
 Browser tests; they skip like the other browser tests when Playwright is missing locally.
 """
@@ -89,7 +90,8 @@ def test_properties_panel_fits_at_1440(page, kind, large_text):
     page.wait_for_timeout(250)  # panel width transition
     over = page.evaluate("""(() => {
         const rp = document.getElementById('rp'), edge = rp.getBoundingClientRect().right + 0.5;
-        return [...rp.querySelectorAll('*')].filter(k => k.getClientRects().length && k.getBoundingClientRect().right > edge)
+        return [...rp.querySelectorAll('*')]
+            .filter(k => k.getClientRects().length && k.getBoundingClientRect().right > edge)
             .map(k => k.id || k.tagName + '.' + k.className);
     })()""")
     assert over == [], f"past the Properties panel's right edge: {over}"
@@ -104,7 +106,8 @@ def test_properties_panel_fits_at_1440(page, kind, large_text):
 def _listed(page):
     return page.evaluate(
         "[...document.querySelectorAll('#help-overlay .help-row')]"
-        ".map(r => [r.querySelector('kbd').textContent.trim(), r.querySelector('span').textContent.trim()])"
+        ".map(r => [r.querySelector('kbd').textContent.trim(), "
+        "r.querySelector('span').textContent.trim()])"
     )
 
 
@@ -133,6 +136,9 @@ def test_listed_shortcuts_do_what_the_dialog_says(page):
 
 def test_sample_album_fits_inside_the_page_border(page):
     # The first-run sample's third stamp used to run past the page edge.
-    inside = page.evaluate("""(() => { const m = 12;  // page border inset, canvas px
-        return StampAlbum.E.every(e => e.x >= m && e.y >= m && e.x + e.w <= StampAlbum._pw - m && e.y + e.h <= StampAlbum._ph - m); })()""")
+    inside = page.evaluate(
+        """(() => { const m = 12;  // page border inset, canvas px
+        return StampAlbum.E.every(e => e.x >= m && e.y >= m
+            && e.x + e.w <= StampAlbum._pw - m && e.y + e.h <= StampAlbum._ph - m); })()"""
+    )
     assert inside
