@@ -77,6 +77,7 @@ function parseDSL(dsl) {
         S._pages = JSON.parse(JSON.stringify(state.pages));
         S.E = S._pages[state.currentPage] || [];
         S._currentPage = state.currentPage;
+        S.syncNid();  // new items must not reuse the loaded ids
         S.sel = null;
         // DOM updates (applyPageSize above sized the page and its label)
         $("page").className = "page";

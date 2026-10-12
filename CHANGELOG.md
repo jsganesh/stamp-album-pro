@@ -45,6 +45,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - Dead `canvas.js` (not loaded) and `events.js` (loaded but never run), both superseded by `render.js` and `init.js`
 
 ### Fixed
+- An item added after opening an album, a template, the wizard's album, the tutorial sample or a restored draft could take the id of an item already on the page (on first run, the new stamp shared `el1` with the sample's title), so selecting, dragging or deleting it acted on the other item. Loading now moves the id counter past every `el<n>` id on every page (`S.syncNid()`), so new and duplicated items always get an id of their own
 - The left side of a page wider than the canvas area could not be scrolled to (about 30 mm of an A4 page on an iPhone): the page was centred with `justify-content: center`, which pushes the overflow off the left edge. It is now centred with auto margins, which leave all of it reachable
 - Dragging a stamp with a finger did nothing unless it was already selected: selecting it redraws the page, which removed the element the finger was on, and the rest of the touch then never reached the drag code. The drag now listens on that element for the whole touch. Page items also stop the browser treating a drag on them as a scroll of the canvas (`touch-action: none`); a finger on empty paper still scrolls
 - A finger drag snapped to 5 px steps and ignored Snap Off; it now snaps to the grid in mm, as the mouse does
