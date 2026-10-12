@@ -4,10 +4,13 @@
         <style>
         @page { size: 210.0mm 297.0mm; margin: 0; }
         body { margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
-        .page { position: relative; width: 210.0mm; min-height: 297.0mm; page-break-after: always; box-sizing: border-box; }
+        .page { position: relative; width: 210.0mm; min-height: 297.0mm;
+                 page-break-after: always; box-sizing: border-box; }
         .page:last-child { page-break-after: auto; }
-        .page-content { position: relative; z-index: 1; width: 100%; box-sizing: border-box; padding: 15.0mm 15.0mm 15.0mm 15.0mm; min-height: 267.0mm; }
-        .stamp { position: absolute; display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden; box-sizing: border-box; }
+        .page-content { position: relative; z-index: 1; width: 100%; box-sizing: border-box;
+                         padding: 15.0mm 15.0mm 15.0mm 15.0mm; min-height: 267.0mm; }
+        .stamp { position: absolute; display: flex; align-items: center; justify-content: center;
+                  text-align: center; overflow: hidden; box-sizing: border-box; }
         .text-el { position: absolute; overflow: hidden; box-sizing: border-box; }
         .stamp-box { box-sizing: border-box; }
 

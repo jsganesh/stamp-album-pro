@@ -23,7 +23,6 @@ def _xml_escape(s: str) -> str:
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
 
 
-
 def _captions_html(stamp: Stamp, x: float, y: float, w: float, h: float,
                    heading_weight: str = "bold", used: Optional[dict] = None) -> str:
     """Heading above the box; description, details and catalogue below (see caption_layout).
@@ -35,11 +34,13 @@ def _captions_html(stamp: Stamp, x: float, y: float, w: float, h: float,
         if used is not None:
             used.setdefault(line.font_id, set()).update(line.text)
         out.append(
-            f'<div class="caption caption-{line.kind}" style="position:absolute;z-index:2;left:{x}mm;'
+            f'<div class="caption caption-{line.kind}" '
+            f'style="position:absolute;z-index:2;left:{x}mm;'
             f'top:{line.top:.2f}mm;width:{w}mm;height:{line.bottom - line.top:.2f}mm;'
             f'line-height:{line.bottom - line.top:.2f}mm;text-align:center;white-space:nowrap;'
             f'font-size:{line.size_pt}pt;font-weight:{line.weight};'
-            f'font-style:{"italic" if line.italic else "normal"};color:{caption_layout.COLOR_HEX};">'
+            f'font-style:{"italic" if line.italic else "normal"};'
+            f'color:{caption_layout.COLOR_HEX};">'
             f'{_xml_escape(line.text)}</div>'
         )
     return "".join(out)
@@ -114,10 +115,13 @@ class HTMLRenderer:
         <style>
         @page {{ size: {w_mm}mm {h_mm}mm; margin: 0; }}
         body {{ margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }}
-        .page {{ position: relative; width: {w_mm}mm; min-height: {h_mm}mm; page-break-after: always; box-sizing: border-box; }}
+        .page {{ position: relative; width: {w_mm}mm; min-height: {h_mm}mm;
+                 page-break-after: always; box-sizing: border-box; }}
         .page:last-child {{ page-break-after: auto; }}
-        .page-content {{ position: relative; z-index: 1; width: 100%; box-sizing: border-box; padding: {mt}mm {mr}mm {mb}mm {ml}mm; min-height: {content_height}mm; }}
-        .stamp {{ position: absolute; display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden; box-sizing: border-box; }}
+        .page-content {{ position: relative; z-index: 1; width: 100%; box-sizing: border-box;
+                         padding: {mt}mm {mr}mm {mb}mm {ml}mm; min-height: {content_height}mm; }}
+        .stamp {{ position: absolute; display: flex; align-items: center; justify-content: center;
+                  text-align: center; overflow: hidden; box-sizing: border-box; }}
         .text-el {{ position: absolute; overflow: hidden; box-sizing: border-box; }}
         .stamp-box {{ box-sizing: border-box; }}
 
@@ -131,7 +135,8 @@ class HTMLRenderer:
         border = page_border.page_primitives(self.album)
         if border:
             parts.append(
-                f'<svg class="page-border" style="position:absolute;top:0;left:0;width:{ps.width}mm;'
+                f'<svg class="page-border" '
+                f'style="position:absolute;top:0;left:0;width:{ps.width}mm;'
                 f'height:{ps.height}mm;pointer-events:none;overflow:visible;" '
                 f'viewBox="0 0 {ps.width} {ps.height}" xmlns="http://www.w3.org/2000/svg">'
                 f'{page_border.svg_elements(border, self._border_color_css())}</svg>'
@@ -193,7 +198,10 @@ class HTMLRenderer:
                 w, h = stamp.width, stamp.height
                 # The fill and the frame, outside the stamp's own size, as in every other view
                 parts.append(_frame_svg_html(stamp, x, y, w, h, "#000000", "#ffffff"))
-                parts.append(f'<div class="stamp" style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;"></div>')
+                parts.append(
+                    f'<div class="stamp" '
+                    f'style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;"></div>'
+                )
                 parts.append(_captions_html(stamp, x, y, w, h, self.album.caption_heading,
                                             self._caption_chars))
 
@@ -206,7 +214,13 @@ class HTMLRenderer:
         # so their coordinates are page-absolute (not offset by padding)
         for stamp in page.absolute_stamps:
             x, y, w, h = stamp.abs_x, stamp.abs_y, stamp.width, stamp.height
-            desc = (stamp.description or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>")
+            desc = (
+                (stamp.description or "")
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\n", "<br>")
+            )
             font_size = stamp.font_size or 12
 
             if stamp.is_text_element:
@@ -216,22 +230,35 @@ class HTMLRenderer:
                 rgb = (round(tc.r * 255), round(tc.g * 255), round(tc.b * 255)) if tc else None
                 colour = ("color:#%02X%02X%02X;" % rgb) if rgb else ""
                 parts.append(
-                    f'<div class="text-el" style="{colour}left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;'
-                    f'font-size:{font_size}pt;line-height:1.3;{font_css}padding:1mm;word-wrap:break-word;text-align:{_css_align(stamp.text_align)};">{desc}</div>'
+                    f'<div class="text-el" '
+                    f'style="{colour}left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;'
+                    f'font-size:{font_size}pt;line-height:1.3;{font_css}padding:1mm;'
+                    f'word-wrap:break-word;text-align:{_css_align(stamp.text_align)};">{desc}</div>'
                 )
             else:
-                stamp_bc = getattr(stamp, 'border_color', None) or getattr(self.album, 'color_stamp_border', None)
-                stamp_fc = getattr(stamp, 'fill_color', None) or getattr(self.album, 'color_stamp_background', None)
+                stamp_bc = getattr(stamp, 'border_color', None) or getattr(
+                    self.album, 'color_stamp_border', None
+                )
+                stamp_fc = getattr(stamp, 'fill_color', None) or getattr(
+                    self.album, 'color_stamp_background', None
+                )
                 border_color = _color_to_rgb(stamp_bc) if stamp_bc else (0, 0, 0)
                 bg_color = _color_to_rgb(stamp_fc) if stamp_fc else (1, 1, 1)
-                bc = f"rgb({int(border_color[0]*255)},{int(border_color[1]*255)},{int(border_color[2]*255)})"
+                bc = (
+                    f"rgb({int(border_color[0]*255)},{int(border_color[1]*255)},"
+                    f"{int(border_color[2]*255)})"
+                )
                 bg = f"rgb({int(bg_color[0]*255)},{int(bg_color[1]*255)},{int(bg_color[2]*255)})"
                 # The fill and the frame, drawn outside the stamp's own size (see frames.py),
                 # in their own layer: the stamp box clips its contents.
                 parts.append(_frame_svg_html(stamp, x, y, w, h, bc, bg))
                 img_html = ""
                 if stamp.image_path:
-                    img_html = f'<img src="{stamp.image_path}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;pointer-events:none;z-index:1;">'
+                    img_html = (
+                        f'<img src="{stamp.image_path}" '
+                        'style="position:absolute;top:0;left:0;width:100%;height:100%;'
+                        'object-fit:contain;pointer-events:none;z-index:1;">'
+                    )
                 parts.append(
                     f'<div class="stamp" style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;">'
                     f'{img_html}'
@@ -328,14 +355,21 @@ class HTMLRenderer:
         # Strikethrough: ~~text~~
         text = re.sub(r'~~(.+?)~~', r'<s>\1</s>', text)
         # Code: `text`
-        text = re.sub(r'`(.+?)`', r'<code style="font-family:monospace;background:rgba(0,0,0,0.05);padding:1px 3px;border-radius:2px">\1</code>', text)
+        text = re.sub(
+            r'`(.+?)`',
+            r'<code style="font-family:monospace;background:rgba(0,0,0,0.05);padding:1px '
+            r'3px;border-radius:2px">\1</code>',
+            text,
+        )
         # Superscript: ^text^
         text = re.sub(r'\^(.+?)\^', r'<sup>\1</sup>', text)
         # Subscript: ~text~
         text = re.sub(r'(?<!<)~(.+?)~(?!>)', r'<sub>\1</sub>', text)
 
         # Restore escaped markers
-        text = text.replace('\x00AST\x00', '*').replace('\x00US\x00', '_').replace('\x00TIL\x00', '~')
+        text = (
+            text.replace('\x00AST\x00', '*').replace('\x00US\x00', '_').replace('\x00TIL\x00', '~')
+        )
 
         return text
 

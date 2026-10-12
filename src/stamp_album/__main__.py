@@ -90,7 +90,12 @@ def _run_cli(args: list[str]):
     parser = argparse.ArgumentParser(
         prog="stamp-album",
         description="StampAlbum Pro — Modern stamp album typesetter",
-        epilog="Examples:\n  stamp-album -c album.txt -o output.pdf\n  stamp-album -c album.txt -p\n  stamp-album --cli --help\n",
+        epilog=(
+            "Examples:\n"
+            "  stamp-album -c album.txt -o output.pdf\n"
+            "  stamp-album -c album.txt -p\n"
+            "  stamp-album --cli --help\n"
+        ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(

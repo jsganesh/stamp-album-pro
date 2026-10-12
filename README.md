@@ -60,7 +60,7 @@ The `launcher/` folder contains launch scripts (a `.command` file for macOS, a `
 
 ```bash
 make test                    # pytest on src/tests
-uv run ruff check src        # lint (advisory: there is a known backlog)
+uv run ruff check src        # lint (CI fails on any finding)
 ```
 
 CI runs the tests on macOS, Windows and Ubuntu from the locked dependencies in `uv.lock`. It also builds the wheel and checks that it contains the web UI, contains no test code, and imports in a clean environment.

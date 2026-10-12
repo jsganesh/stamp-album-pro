@@ -175,15 +175,17 @@ class SVGExporter:
                 if ps.border_outer > 0:
                     parts.append(
                         f'<rect x="{bl}" y="{bt}" width="{bw}" height="{bh}" '
-                        f'fill="none" stroke="{color_border_hex}" stroke-width="{ps.border_outer}"/>'
+                        f'fill="none" stroke="{color_border_hex}" '
+                        f'stroke-width="{ps.border_outer}"/>'
                     )
                 if ps.border_inner1 > 0:
                     off = ps.border_outer + ps.border_spacing
                     parts.append(
-                        f'<rect x="{bl + off}" y="{bt + off}" width="{bw - off * 2}" height="{bh - off * 2}" '
-                        f'fill="none" stroke="{color_border_hex}" stroke-width="{ps.border_inner1}"/>'
+                        f'<rect x="{bl + off}" y="{bt + off}" '
+                        f'width="{bw - off * 2}" height="{bh - off * 2}" '
+                        f'fill="none" stroke="{color_border_hex}" '
+                        f'stroke-width="{ps.border_inner1}"/>'
                     )
-
 
             # Row stamps (position from shared layout)
             for rx, ry, stamp in row_layout[pi]:

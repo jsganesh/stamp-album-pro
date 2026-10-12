@@ -92,7 +92,10 @@ def get_user(username: str) -> Optional[dict]:
 def list_users() -> list:
     """List all users."""
     users = _load_json(USERS_FILE)
-    return [{"username": u["username"], "display_name": u.get("display_name", u["username"])} for u in users.values()]
+    return [
+        {"username": u["username"], "display_name": u.get("display_name", u["username"])}
+        for u in users.values()
+    ]
 
 
 # -- Session Management --
@@ -180,6 +183,10 @@ def can_access_file(username: str, filename: str, owner: str) -> str:
         return "owner"
     shares = _load_json(SHARES_FILE)
     for share in shares.values():
-        if share["owner"] == owner and share["filename"] == filename and share["shared_with"] == username:
+        if (
+            share["owner"] == owner
+            and share["filename"] == filename
+            and share["shared_with"] == username
+        ):
             return share["permission"]
     return None
