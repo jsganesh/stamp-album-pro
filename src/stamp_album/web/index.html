@@ -140,8 +140,9 @@
             <p class="rp-note" id="pframe-size"></p>
             <h2 class="rp-sec">Text</h2>
             <div class="rp-row"><label for="plbl">Label</label><input type="text" id="plbl" placeholder="Description"></div>
-            <div class="rp-row"><label for="pfnt">Font</label><select id="pfnt"></select></div>
-            <div class="rp-row"><label for="pfs">Size</label><input aria-label="Font size" type="number" id="pfs" value="12" min="6" max="72" step="1"><span class="unit">pt</span></div>
+            <p class="rp-note" id="pcapfont-note" style="display:none">Captions use the caption font at fixed sizes. Heading weight is set with Headings above the page.</p>
+            <div class="rp-row" id="font-row"><label for="pfnt">Font</label><select id="pfnt"></select></div>
+            <div class="rp-row" id="fsize-row"><label for="pfs">Size</label><input aria-label="Font size" type="number" id="pfs" value="12" min="6" max="72" step="1"><span class="unit">pt</span></div>
             <div class="rp-row" id="phead-row"><span class="rp-gap" aria-hidden="true"></span><input type="checkbox" id="phead" aria-describedby="phead-hint"><label for="phead" class="rp-check">Mark as heading</label><span class="unit" id="phead-hint">theme colour</span></div>
             <h2 class="rp-sec" id="phil-sec" style="display:none">Philatelic data</h2>
             <div class="rp-row" id="phil-hdg-row" style="display:none"><label for="phdg">Heading</label><input type="text" id="phdg" placeholder="e.g. M.V. Kista Dan"></div>

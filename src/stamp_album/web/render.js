@@ -351,6 +351,12 @@ function select(id) {
     $("phead").checked = el.role === "heading";
     $("pfnt").value = el.font || "HN";
     $("pfs").value = el.fs || 12;
+    // Stamp captions always use the bundled caption font at fixed sizes, so Font and
+    // Size would do nothing for a stamp. Any values stored on it are left as they are.
+    var capFont = el.t === "stamp";
+    $("font-row").style.display = capFont ? "none" : "flex";
+    $("fsize-row").style.display = capFont ? "none" : "flex";
+    $("pcapfont-note").style.display = capFont ? "block" : "none";
     var isImg = el.t === "image";
     $("img-sec").style.display = isImg ? "block" : "none";
     $("img-row").style.display = isImg ? "flex" : "none";
