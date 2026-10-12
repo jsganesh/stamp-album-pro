@@ -151,6 +151,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 /* #page-zoom takes up the page's size on screen (zoom.js); auto side margins centre it
    and, unlike justify-content: center, leave all of a wider page reachable by scrolling. */
 #page-wrap { flex: 1; overflow: auto; display: flex; padding: 20px; background: #E0DCD4; position: relative; scrollbar-gutter: stable; }
+/* Two fingers on the canvas zoom the page (zoom.js), not the whole app; one finger scrolls. */
+#page-wrap { touch-action: pan-x pan-y; }
 #page-zoom { flex-shrink: 0; margin: 0 auto; position: relative; }
 #page-zoom > .page { transform-origin: 0 0; }
 .page { background: #fff; box-shadow: 0 4px 24px var(--page-shadow); position: relative; flex-shrink: 0; }
