@@ -11,7 +11,7 @@ import pathlib
 
 import pytest
 
-from stamp_album.core.parser import AlbumParser, ParseError
+from stamp_album.core.parser import AlbumParser
 from stamp_album.engines.html_renderer import HTMLRenderer
 from stamp_album.engines.pdf import PDFGenerator
 from stamp_album.engines.raster import PNGGenerator

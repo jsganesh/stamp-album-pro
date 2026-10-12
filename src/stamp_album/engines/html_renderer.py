@@ -125,7 +125,7 @@ class HTMLRenderer:
 
     def _render_page(self, page: Page) -> str:
         ps = self.album.page_setup
-        parts = [f'<div class="page">']
+        parts = ['<div class="page">']
 
         # Page border: the editor's styles share one drawing (see page_border.py)
         border = page_border.page_primitives(self.album)
@@ -163,7 +163,7 @@ class HTMLRenderer:
                     f'border:{ps.border_inner2}mm solid {color};"></div>'
                 )
 
-        parts.append(f'<div class="page-content">')
+        parts.append('<div class="page-content">')
 
         # Boxes
         for x, y, w, h in page.boxes:

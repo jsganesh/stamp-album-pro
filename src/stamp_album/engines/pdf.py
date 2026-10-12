@@ -7,13 +7,11 @@ Uses borders.py for shared geometry data.
 
 from __future__ import annotations
 
-import math
 import os
 import tempfile
 from pathlib import Path
 from typing import Optional
 
-from reportlab.lib.pagesizes import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
@@ -21,7 +19,6 @@ from reportlab.pdfgen import canvas
 from stamp_album.core.models import Album, Color, Stamp
 from stamp_album.engines import caption_fonts, caption_layout, frames, page_border, text_layout
 from stamp_album.engines.layout import layout_rows
-
 
 # ── Font resolution ──
 

@@ -6,6 +6,7 @@ DSL strings that MUST parse cleanly. This test pins the exact DSL shapes the
 JS emits so a regression (e.g. raw JSON leaking into the editor) is caught.
 """
 import pytest
+
 from stamp_album.core.parser import AlbumParser
 
 

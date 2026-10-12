@@ -3,7 +3,6 @@ Tests for WebSocket real-time preview (P2-13).
 """
 import pytest
 from fastapi.testclient import TestClient
-from starlette.websockets import WebSocketDisconnect
 
 from stamp_album.api import app
 

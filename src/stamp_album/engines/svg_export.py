@@ -7,8 +7,6 @@ Uses mm units natively (SVG supports mm without px conversion).
 
 from __future__ import annotations
 
-import os
-import tempfile
 from typing import Optional
 
 from stamp_album.core.models import Album, Color, Stamp
@@ -38,6 +36,7 @@ def _build_shape_svg(stamp: Stamp, x: float, y: float, w: float, h: float,
 def _draw_text_element_svg(stamp: Stamp) -> str:
     """SVG for a free-form text element (user units are mm, font size is pt)."""
     from reportlab.pdfbase import pdfmetrics
+
     from stamp_album.engines import text_layout
 
     text = stamp.description or ""

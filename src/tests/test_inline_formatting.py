@@ -2,8 +2,9 @@
 Tests for inline text formatting (P2-1).
 """
 import pytest
+
+from stamp_album.core.models import Album
 from stamp_album.engines.html_renderer import HTMLRenderer
-from stamp_album.core.models import Album, FormattedText, TextAlignment
 
 
 @pytest.fixture

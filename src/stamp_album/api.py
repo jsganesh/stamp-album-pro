@@ -1,17 +1,46 @@
 import json
 import os
-import tempfile
-import shutil
 import secrets
+import shutil
+import tempfile
 from pathlib import Path
 from typing import Dict, Optional
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, UploadFile, File, Request, Response
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import (
+    FastAPI,
+    File,
+    HTTPException,
+    Request,
+    UploadFile,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 from pydantic import BaseModel
 
+from stamp_album.cloud_sync import (
+    authenticate_user,
+    create_session,
+    create_user,
+    destroy_session,
+    get_my_shares,
+    get_shared_files,
+    get_user,
+    list_users,
+    revoke_share,
+    share_file,
+    validate_session,
+)
+from stamp_album.collection import (
+    add_stamp,
+    delete_stamp,
+    get_collection_stats,
+    import_csv,
+    load_collection,
+    search_stamps,
+    update_stamp,
+)
 from stamp_album.core.models import Album
 from stamp_album.core.parser import AlbumParser, ParseError
 from stamp_album.core.serializer import AlbumSerializer
@@ -20,18 +49,11 @@ from stamp_album.engines.pdf import PDFGenerator
 from stamp_album.engines.raster import PNGGenerator
 from stamp_album.engines.svg_export import SVGExporter
 from stamp_album.templates import TEMPLATES
-from stamp_album.collection import (
-    load_collection, save_collection, add_stamp, update_stamp,
-    delete_stamp, search_stamps, import_csv, get_collection_stats,
-    COLLECTION_FILE,
-)
-from stamp_album.cloud_sync import (
-    create_user, authenticate_user, get_user, list_users,
-    create_session, validate_session, destroy_session,
-    share_file, get_shared_files, get_my_shares, revoke_share,
-)
 from stamp_album.version_history import (
-    save_version, get_versions, get_version, delete_version,
+    delete_version,
+    get_version,
+    get_versions,
+    save_version,
 )
 
 app = FastAPI(title="StampAlbum Pro")
@@ -95,6 +117,7 @@ async def root():
 @app.get("/version")
 async def version():
     import time
+
     from stamp_album import __version__
     return {"version": __version__ if hasattr(__import__('stamp_album'), '__version__') else "dev", "ts": int(time.time())}
 
@@ -440,7 +463,13 @@ class CanvasStateRequest(BaseModel):
 def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
     """Convert canvas state directly to Album model, bypassing DSL text."""
     from stamp_album.core.models import (
-        Album, Page, PageSetup, Stamp, StampShape, StampHeading, Color,
+        Album,
+        Color,
+        Page,
+        PageSetup,
+        Stamp,
+        StampHeading,
+        StampShape,
     )
     from stamp_album.engines.frames import frame_of
 

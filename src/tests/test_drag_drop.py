@@ -2,8 +2,8 @@
 Tests for drag-and-drop stamp placement (P2-12).
 """
 import pytest
+
 from stamp_album.core.parser import AlbumParser, ParseError
-from stamp_album.core.models import StampShape
 
 
 @pytest.fixture

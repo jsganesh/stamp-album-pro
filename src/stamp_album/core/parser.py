@@ -10,7 +10,6 @@ from __future__ import annotations
 import re
 from typing import Optional
 
-from stamp_album.engines.frames import frame_of
 from stamp_album.core.models import (
     Album,
     Color,
@@ -31,7 +30,7 @@ from stamp_album.core.models import (
     TextAlignment,
 )
 from stamp_album.core.themes import THEMES
-
+from stamp_album.engines.frames import frame_of
 
 # ---------------------------------------------------------------------------
 # Parse Error

@@ -2,11 +2,17 @@
 Tests for drop caps (P2-2), text shadows/outlines (P2-3), and gradient fills (P2-4).
 """
 import pytest
-from stamp_album.engines.html_renderer import HTMLRenderer
+
 from stamp_album.core.models import (
-    Album, FormattedText, TextAlignment, Color, TextShadow, TextOutline,
-    GradientFill, GradientStop,
+    Album,
+    Color,
+    FormattedText,
+    GradientFill,
+    GradientStop,
+    TextOutline,
+    TextShadow,
 )
+from stamp_album.engines.html_renderer import HTMLRenderer
 
 
 @pytest.fixture

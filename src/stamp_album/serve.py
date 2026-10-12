@@ -100,12 +100,12 @@ def main() -> int:
     port = _pick_port(host, preferred)
     url = f"http://{host}:{port}"
 
-    print(f"")
-    print(f"  ╔══════════════════════════════════╗")
-    print(f"  ║  StampAlbum Pro                  ║")
+    print("")
+    print("  ╔══════════════════════════════════╗")
+    print("  ║  StampAlbum Pro                  ║")
     print(f"  ║  {url}  ║")
-    print(f"  ╚══════════════════════════════════╝")
-    print(f"")
+    print("  ╚══════════════════════════════════╝")
+    print("")
 
     # Open the browser once the server is ready (background thread)
     opener = threading.Thread(target=_wait_and_open, args=(url + "/",), daemon=True)

@@ -5,8 +5,8 @@ Stores snapshots of DSL files as JSON in ~/StampAlbum/.versions/
 Each file gets a directory with timestamped snapshots.
 """
 
-import json
 import hashlib
+import json
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
