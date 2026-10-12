@@ -3,6 +3,7 @@ Test column layout HTML rendering with correct gap styling.
 """
 
 import pytest
+
 from stamp_album.core.parser import AlbumParser
 from stamp_album.engines.html_renderer import HTMLRenderer
 

@@ -2,6 +2,7 @@
 Tests for the stamp collection API and CSV import.
 """
 import io
+
 import pytest
 from fastapi.testclient import TestClient
 

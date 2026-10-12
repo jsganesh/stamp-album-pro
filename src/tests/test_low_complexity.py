@@ -2,6 +2,7 @@
 Tests for low-complexity P2 items: Excel import.
 """
 import io
+
 import pytest
 from fastapi.testclient import TestClient
 

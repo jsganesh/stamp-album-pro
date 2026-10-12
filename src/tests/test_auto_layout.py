@@ -1,7 +1,6 @@
 """
 Tests for auto-layout API endpoint (P2-6).
 """
-import io
 import pytest
 from fastapi.testclient import TestClient
 

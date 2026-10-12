@@ -3,7 +3,7 @@ Tests for parser validation and error reporting.
 """
 import pytest
 
-from stamp_album.core.models import Album, Color, Page, Row, Stamp
+from stamp_album.core.models import Album, Page, Row, Stamp
 from stamp_album.core.parser import AlbumParser, ParseError
 
 

@@ -18,7 +18,6 @@ from stamp_album.core.models import Album, Color, Stamp
 from stamp_album.engines import caption_fonts, caption_layout, frames, page_border, text_layout
 from stamp_album.engines.layout import layout_rows
 
-
 # ── Font resolution ──
 
 _BUILTIN_FONT_MAP_NAMES = {

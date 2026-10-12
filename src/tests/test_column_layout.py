@@ -3,8 +3,9 @@ Tests for column layout parsing and rendering fixes.
 """
 
 import pytest
-from stamp_album.core.parser import AlbumParser, ParseError
+
 from stamp_album.core.models import ColumnMode
+from stamp_album.core.parser import AlbumParser
 
 
 class TestColumnLayoutFixes:

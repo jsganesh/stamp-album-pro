@@ -8,8 +8,6 @@ import pytest
 
 from stamp_album.core.parser import AlbumParser
 from stamp_album.core.serializer import AlbumSerializer
-from stamp_album.core.models import StampShape
-
 
 # A fixture album exercising all content types
 FIXTURE_DSL = r"""
