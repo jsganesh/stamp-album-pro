@@ -24,8 +24,8 @@ wrapping the FastAPI web application in a native window via
 └─────────────────────────────────────────┘
 ```
 
-The PyQt6 desktop UI (`ui/`) is **legacy** and no longer the primary product.
-The web app + pywebview wrapper is the cross-platform path.
+The web app + pywebview wrapper is the cross-platform path. (The old PyQt6
+editor was removed.)
 
 ## Running from source (any OS)
 

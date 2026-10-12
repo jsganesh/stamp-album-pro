@@ -43,7 +43,7 @@ uv run stamp-album             # starts the app at http://127.0.0.1:8080 and ope
 uv run stamp-album --desktop   # the same app in a native window (pywebview)
 ```
 
-Other modes: `--web` (browser mode, explicit), `--dev` (auto-reload while developing) and `--legacy-qt` (the old PyQt6 editor, needs the `legacy` extra).
+Other modes: `--web` (browser mode, explicit) and `--dev` (auto-reload while developing).
 
 Headless PDF generation from a DSL file: `uv run stamp-album -c album.slbum -o album.pdf`. Add `-p` to also write an HTML preview; `stamp-album --cli --help` lists every option.
 
@@ -74,7 +74,6 @@ src/stamp_album/
   core/         models, DSL parser, serializer
   engines/      layout and rendering (HTML preview, PDF, PNG, SVG)
   web/          browser UI (HTML, JS, CSS)
-  ui/           legacy PyQt6 editor (optional, not maintained)
 assets/         sample album files
 launcher/       launch scripts for macOS, Windows and Linux
 packaging/      PyInstaller specs (known stale)
