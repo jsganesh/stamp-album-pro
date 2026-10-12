@@ -124,7 +124,8 @@ def test_windowed_app_gets_stdout_and_stderr(monkeypatch):
     monkeypatch.setattr(sys, "argv", ["StampAlbumPro"])
     entry._frozen_setup()
     try:
-        assert sys.stdout is not None and sys.stdout.isatty() is False
+        assert sys.stdout is not None
+        sys.stdout.isatty()  # uvicorn's formatter calls this (True for Windows' nul)
         assert sys.stderr is not None
         print("goes nowhere")
     finally:
