@@ -434,11 +434,7 @@ function updateStatusBar() {
             dirtyEl.classList.add("sb-dirty-hidden");
         }
     }
-    // Zoom
-    var zoomEl = $("sb-zoom");
-    if (zoomEl) {
-        zoomEl.textContent = Math.round(S._sc / 2.5 * 100) + "%";
-    }
+    // Zoom: zoom.js keeps #sb-zoom up to date
 }
 
 // ── Shape paths ──
@@ -710,7 +706,7 @@ function render() {
             S._drg = true;
             S._dragEl = el;
             S._dragH = "move";
-            S._ds = { x: e.clientX, y: e.clientY, ox: el.x, oy: el.y, ow: el.w, oh: el.h };
+            S._ds = { x: e.clientX, y: e.clientY, ox: el.x, oy: el.y, ow: el.w, oh: el.h, z: S.zoom || 1 };
         });
 
         pg.appendChild(d);

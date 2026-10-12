@@ -131,6 +131,9 @@ function wireToolbar() {
     onItem("menu-preview", function() { S.openPreview(); });
     onItem("btn-snap", function() { S.toggleSnap(); });
     onItem("btn-large-text", function() { S.toggleLargeText(); });
+    ["fit-width", "fit-page", "actual"].forEach(function(m) {
+        onItem("menu-zoom-" + m, function() { S.setZoomMode(m); });
+    });
     onItem("menu-tutorial", function() { if (S.showTutorial) S.showTutorial(); });
     onItem("btn-help", function() { $("help-overlay").classList.add("open"); });
     onItem("btn-reset", function() { S.resetApp(); });

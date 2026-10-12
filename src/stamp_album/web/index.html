@@ -21,7 +21,7 @@
     <nav class="tb-menus" aria-label="Main menu">
         <div class="tb-menu"><button class="tb-mbtn" id="menu-file-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-file">File <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="tb-menu-list" id="menu-file" role="menu" aria-label="File" hidden><button class="mi" role="menuitem" id="btn-new">New album</button><button class="mi" role="menuitem" id="btn-wizard">New from wizard…</button><button class="mi" role="menuitem" id="menu-template">New from template…</button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="btn-open" aria-keyshortcuts="Meta+O">Open…<span class="mk" aria-hidden="true">⌘O</span></button><button class="mi" role="menuitem" id="btn-save" aria-keyshortcuts="Meta+S">Save<span class="mk" aria-hidden="true">⌘S</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-page-setup">Page setup…</button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-export-pdf" data-fmt="pdf">Export as PDF</button><button class="mi" role="menuitem" id="menu-export-png" data-fmt="png">Export as PNG</button><button class="mi" role="menuitem" id="menu-export-svg" data-fmt="svg">Export as SVG</button><button class="mi" role="menuitem" id="menu-export-html" data-fmt="html">Export as HTML</button></div></div>
         <div class="tb-menu"><button class="tb-mbtn" id="menu-edit-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-edit">Edit <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="tb-menu-list" id="menu-edit" role="menu" aria-label="Edit" hidden><button class="mi" role="menuitem" id="menu-undo" aria-keyshortcuts="Meta+Z">Undo<span class="mk" aria-hidden="true">⌘Z</span></button><button class="mi" role="menuitem" id="menu-redo" aria-keyshortcuts="Shift+Meta+Z">Redo<span class="mk" aria-hidden="true">⇧⌘Z</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-dup" aria-keyshortcuts="Meta+D">Duplicate<span class="mk" aria-hidden="true">⌘D</span></button><button class="mi" role="menuitem" id="menu-grid">Grid fill…</button><button class="mi" role="menuitem" id="menu-del" aria-keyshortcuts="Delete">Delete<span class="mk" aria-hidden="true">Del</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-add-page">Add page</button><button class="mi" role="menuitem" id="menu-del-page">Delete page</button></div></div>
-        <div class="tb-menu"><button class="tb-mbtn" id="menu-view-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-view">View <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="tb-menu-list" id="menu-view" role="menu" aria-label="View" hidden><button class="mi" role="menuitem" id="menu-preview" aria-keyshortcuts="F5">Preview<span class="mk" aria-hidden="true">F5</span></button><button class="mi" role="menuitem" id="btn-dsl">DSL editor</button><div class="msep" role="separator"></div><button class="mi" id="btn-snap" role="menuitemcheckbox" aria-checked="false"><span class="mcheck" aria-hidden="true"></span>Snap to guides</button><button class="mi" id="btn-large-text" role="menuitemcheckbox" aria-checked="false"><span class="mcheck" aria-hidden="true"></span>Large text</button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-tutorial">Show tutorial again</button><button class="mi" role="menuitem" id="btn-help" aria-keyshortcuts="?">Keyboard shortcuts<span class="mk" aria-hidden="true">?</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="btn-reset" data-danger="1">Reset app…</button></div></div>
+        <div class="tb-menu"><button class="tb-mbtn" id="menu-view-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-view">View <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="tb-menu-list" id="menu-view" role="menu" aria-label="View" hidden><button class="mi" role="menuitem" id="menu-preview" aria-keyshortcuts="F5">Preview<span class="mk" aria-hidden="true">F5</span></button><button class="mi" role="menuitem" id="btn-dsl">DSL editor</button><div class="msep" role="separator"></div><button class="mi" id="btn-snap" role="menuitemcheckbox" aria-checked="false"><span class="mcheck" aria-hidden="true"></span>Snap to guides</button><button class="mi" id="btn-large-text" role="menuitemcheckbox" aria-checked="false"><span class="mcheck" aria-hidden="true"></span>Large text</button><div class="msep" role="separator"></div><div role="group" aria-label="Zoom"><button class="mi" id="menu-zoom-fit-width" role="menuitemradio" aria-checked="true"><span class="mcheck" aria-hidden="true"></span>Fit width</button><button class="mi" id="menu-zoom-fit-page" role="menuitemradio" aria-checked="false"><span class="mcheck" aria-hidden="true"></span>Fit whole page</button><button class="mi" id="menu-zoom-actual" role="menuitemradio" aria-checked="false"><span class="mcheck" aria-hidden="true"></span>Actual size (100%)</button></div><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-tutorial">Show tutorial again</button><button class="mi" role="menuitem" id="btn-help" aria-keyshortcuts="?">Keyboard shortcuts<span class="mk" aria-hidden="true">?</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="btn-reset" data-danger="1">Reset app…</button></div></div>
     </nav>
     <span class="tb-sep"></span>
     <span id="file-name" title="Current file name"></span>
@@ -118,9 +118,11 @@
             </span>
         </div>
         <div id="page-wrap">
+          <div id="page-zoom">
             <div class="page a4" id="page" tabindex="-1" role="group" aria-label="Album page" aria-describedby="page-keys">
                 <p id="page-keys" class="sr-only">Tab moves between items on the page. Arrow keys move the selected item one grid step, Shift with an arrow moves it 10 millimetres. Enter edits its properties, Delete removes it.</p><svg id="grid-overlay" aria-hidden="true"><defs><pattern id="grid-pattern" patternUnits="userSpaceOnUse"><path d="M 0 0 L 0 0" fill="none" stroke="#aaa" stroke-width="1" opacity="0.6"/></pattern></defs><rect width="100%" height="100%" fill="url(#grid-pattern)"/></svg>
             </div>
+          </div>
         </div>
     </main>
 
@@ -269,7 +271,7 @@
     <span id="sb-selection">No selection</span>
     <span id="sb-align"></span>
     <span class="sb-spacer"></span>
-    <span id="sb-zoom">100%</span>
+    <button type="button" id="sb-zoom">100%</button>
     <span class="sb-sep" aria-hidden="true">│</span>
     <span id="sb-dirty" class="sb-dirty-hidden">● Unsaved</span>
 </footer>
@@ -341,6 +343,7 @@
 <script src="wizard.js?v={{{VERSION}}}"></script>
 <script src="page_setup.js?v={{{VERSION}}}"></script>
 <script src="fit_prompt.js?v={{{VERSION}}}"></script>
+<script src="zoom.js?v={{{VERSION}}}"></script>
 <script src="toolbar.js?v={{{VERSION}}}"></script>
 <script src="palette.js?v={{{VERSION}}}"></script>
 <script src="page_keys.js?v={{{VERSION}}}"></script>

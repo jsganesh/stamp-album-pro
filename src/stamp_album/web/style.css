@@ -53,6 +53,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 #status-bar .sb-dirty-hidden { display: none; }
 #sb-dirty { color: var(--accent); font-weight: 600; }
 #sb-selection { font-style: italic; }
+#sb-zoom { background: none; border: 1px solid transparent; border-radius: 3px; color: inherit; font: inherit; padding: 1px 6px; cursor: pointer; min-width: 44px; }
+#sb-zoom:hover { border-color: var(--border); background: #fff; }
 .export-dd { position: relative; display: inline-block; }
 .export-dd-menu { display: none; position: absolute; top: 100%; right: 0; background: #fff; border: 1px solid var(--border); border-radius: 4px; min-width: 160px; z-index: 100; box-shadow: 0 4px 16px var(--page-shadow); }
 .export-dd:hover .export-dd-menu, .export-dd:focus-within .export-dd-menu { display: block; }
@@ -146,7 +148,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 #ca-toolbar .pg-indicator:hover { background: #fff; }
 
 /* Page wrap — canvas container */
-#page-wrap { flex: 1; overflow: auto; display: flex; justify-content: center; padding: 20px; background: #E0DCD4; position: relative; }
+/* #page-zoom takes up the page's size on screen (zoom.js); auto side margins centre it
+   and, unlike justify-content: center, leave all of a wider page reachable by scrolling. */
+#page-wrap { flex: 1; overflow: auto; display: flex; padding: 20px; background: #E0DCD4; position: relative; scrollbar-gutter: stable; }
+#page-zoom { flex-shrink: 0; margin: 0 auto; position: relative; }
+#page-zoom > .page { transform-origin: 0 0; }
 .page { background: #fff; box-shadow: 0 4px 24px var(--page-shadow); position: relative; flex-shrink: 0; }
 .page.a4 { width: 525px; height: 742.5px; }
 .page.a5 { width: 370px; height: 525px; }
@@ -186,7 +192,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .cel .eimg { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 .cel .dim { position: absolute; bottom: -22px; left: 0; font-size: 11px; color: #fff; background: rgba(0,0,0,0.75); padding: 2px 6px; border-radius: 2px; pointer-events: none; white-space: nowrap; display: none; }
 .cel.selected .dim, .cel:hover .dim { display: block; }
-.rh { position: absolute; width: 10px; height: 10px; background: var(--accent); border: 2px solid #fff; border-radius: 2px; z-index: 200; display: none; }
+/* A finger on an item drags it; on empty paper it scrolls the page (otherwise the
+   browser takes every touch as a scroll and the drag never starts). */
+.cel { touch-action: none; }
+.rh { position: absolute; width: 10px; height: 10px; background: var(--accent); border: 2px solid #fff; border-radius: 2px; z-index: 200; display: none; transform: scale(var(--inv-zoom, 1)); }
+/* A finger needs more than 10 px: a 24 px touch area round each handle */
+@media (pointer: coarse) { .rh::after { content: ""; position: absolute; inset: -7px; } }
 .cel.selected .rh { display: block; }
 .rh.nw { top:-5px; left:-5px; cursor:nw-resize; } .rh.ne { top:-5px; right:-5px; cursor:ne-resize; }
 .rh.sw { bottom:-5px; left:-5px; cursor:sw-resize; } .rh.se { bottom:-5px; right:-5px; cursor:se-resize; }
@@ -210,7 +221,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .cel .caption.elbl:focus { background: rgba(255,255,255,0.95); z-index: 4; }
 .cel.caption-warn .caption { background: rgba(217,119,6,0.22); }
 .cel.caption-warn.frame-warn .caption { background: none; }  /* the frame, not its captions, needs moving */
-.caption-warn-badge { position: absolute; top: -9px; right: -9px; width: 16px; height: 16px; border-radius: 50%; background: #b45309; color: #fff; font: bold 11px/16px sans-serif; text-align: center; z-index: 5; pointer-events: auto; cursor: help; }
+.caption-warn-badge { position: absolute; top: -9px; right: -9px; width: 16px; height: 16px; border-radius: 50%; background: #b45309; color: #fff; font: bold 11px/16px sans-serif; text-align: center; z-index: 5; pointer-events: auto; cursor: help; transform: scale(var(--inv-zoom, 1)); }
 .stamp-mount .stamp-inner { pointer-events: auto; }
 .stamp-mount .elbl { color: #222; line-height: 1.2; }
 .stamp-mount.selected { outline: 2px solid var(--accent); outline-offset: 3px; }
