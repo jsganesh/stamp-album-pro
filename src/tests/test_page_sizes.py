@@ -32,8 +32,6 @@ def _js_table(filename, var=None):
     return {m.group(1): (float(m.group(2)), float(m.group(3))) for m in re.finditer(pat, text)}
 
 
-
-
 def test_dsl_core_paper_table():
     # Page setup and file loading both use this table (millimetres)
     _check(_js_table("dsl_core.js", "PAPER_MM"), scale=1)
@@ -50,7 +48,9 @@ def test_css_page_sizes():
 
 
 def test_default_page_is_a4():
-    m = re.search(r"_pw\s*=\s*([\d.]+),\s*_ph\s*=\s*([\d.]+)", (WEB / "app.js").read_text(encoding="utf-8"))
+    m = re.search(
+        r"_pw\s*=\s*([\d.]+),\s*_ph\s*=\s*([\d.]+)", (WEB / "app.js").read_text(encoding="utf-8")
+    )
     assert m, "default page size not found in app.js"
     assert abs(float(m.group(1)) / _scale() - 210) < 0.2
     assert abs(float(m.group(2)) / _scale() - 297) < 0.2

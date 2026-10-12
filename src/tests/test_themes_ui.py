@@ -17,7 +17,8 @@ def _select_kind(page, kind):
 
 def _visible(page, sel):
     return page.evaluate(
-        f"(() => {{ const e = document.querySelector('{sel}'); return !!e && e.getClientRects().length > 0; }})()"
+        f"(() => {{ const e = document.querySelector('{sel}'); "
+        "return !!e && e.getClientRects().length > 0; })()"
     )
 
 
@@ -105,7 +106,8 @@ def test_page_borders_are_grouped_and_decorative_ones_carry_a_note(page):
     groups = page.evaluate("[...document.querySelectorAll('#def-bdr optgroup')].map(g => g.label)")
     assert groups == ["Plain", "Decorative (not for competition)"]
     plain = page.evaluate(
-        "[...document.querySelectorAll('#def-bdr optgroup')[0].querySelectorAll('option')].map(o => o.value)"
+        "[...document.querySelectorAll('#def-bdr optgroup')[0].querySelectorAll('option')].map(o "
+        "=> o.value)"
     )
     assert plain == ["none", "solid", "double"]
     page.select_option("#def-bdr", "classic")
@@ -117,8 +119,13 @@ def test_page_borders_are_grouped_and_decorative_ones_carry_a_note(page):
 
 def test_theme_colours_the_page_border_and_marked_headings_only(page):
     _ready(page)
-    page.evaluate("""StampAlbum.E.push({id: 'h1', t: 'text', s: 'text', x: 50, y: 40, w: 300, h: 40, lbl: 'Heading', font: 'HB', fs: 18, role: 'heading'},
-                                       {id: 'p1', t: 'text', s: 'text', x: 50, y: 90, w: 300, h: 30, lbl: 'Plain', font: 'HN', fs: 10}); StampAlbum.render()""")
+    page.evaluate(
+        """StampAlbum.E.push(
+            {id: 'h1', t: 'text', s: 'text', x: 50, y: 40, w: 300, h: 40, lbl: 'Heading',
+             font: 'HB', fs: 18, role: 'heading'},
+            {id: 'p1', t: 'text', s: 'text', x: 50, y: 90, w: 300, h: 30, lbl: 'Plain',
+             font: 'HN', fs: 10}); StampAlbum.render()"""
+    )
     page.select_option("#def-bdr", "solid")
     page.select_option("#def-theme", "green")
     colour = lambda el_id: page.evaluate(  # noqa: E731
@@ -150,7 +157,8 @@ def test_theme_change_is_saved_undoable_and_survives_a_reload(page):
 
 def test_older_album_with_its_own_colour_shows_custom(page):
     page.evaluate(
-        """StampAlbum.parseDSL('ALBUM_PAGES_BORDER(0.5 0 0 1)\\nCOLOUR_ALBUM_BORDER("#ff0000")\\nPAGE_START')"""
+        """StampAlbum.parseDSL('ALBUM_PAGES_BORDER(0.5 0 0 1)\\n'
+            + 'COLOUR_ALBUM_BORDER("#ff0000")\\nPAGE_START')"""
     )
     assert page.input_value("#def-theme") == "custom"
     assert ["custom", "Custom"] in _options(page, "#def-theme")

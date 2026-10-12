@@ -17,9 +17,10 @@ try:
 except ImportError as exc:  # Playwright not installed
     if os.environ.get("STAMP_ALBUM_REQUIRE_BROWSER"):
         # CI (and anyone who sets the flag) must run these tests, never silently skip them
-        raise ImportError(f"STAMP_ALBUM_REQUIRE_BROWSER is set but Playwright is not installed: {exc}") from exc
+        raise ImportError(
+            f"STAMP_ALBUM_REQUIRE_BROWSER is set but Playwright is not installed: {exc}"
+        ) from exc
     pytest.skip(f"playwright not installed: {exc}", allow_module_level=True)
-
 
 
 def wait_for_app(pg, timeout_ms=30000):
@@ -75,7 +76,9 @@ def page(base_url):
 
 
 def _size(pg):
-    return pg.evaluate("(()=>{const e=document.getElementById('page');return [e.offsetWidth,e.offsetHeight]})()")
+    return pg.evaluate(
+        "(()=>{const e=document.getElementById('page');return [e.offsetWidth,e.offsetHeight]})()"
+    )
 
 
 def test_no_js_errors_on_load(page):
@@ -111,21 +114,33 @@ def test_wizard_portrait_a4(page):
 
 
 def test_landscape_dsl_sizes_page(page):
-    page.evaluate("StampAlbum.parseDSL('ALBUM_PAGES_SIZE(297 210)\\nPAGE_START'); StampAlbum.render()")
+    page.evaluate(
+        "StampAlbum.parseDSL('ALBUM_PAGES_SIZE(297 210)\\nPAGE_START'); StampAlbum.render()"
+    )
     w, h = _size(page)
     assert w > h
 
 
 def test_page_setup_resets_inline_size(page):
-    page.evaluate("StampAlbum.parseDSL('ALBUM_PAGES_SIZE(297 210)\\nPAGE_START'); StampAlbum.render()")
+    page.evaluate(
+        "StampAlbum.parseDSL('ALBUM_PAGES_SIZE(297 210)\\nPAGE_START'); StampAlbum.render()"
+    )
     _page_setup(page, size="a5", orient="portrait")
     w, h = _size(page)
     assert abs(w - 370) < 1.5 and abs(h - 525) < 1.5
 
 
 # (menu to open first, or None; button id). Grid fill needs a selected stamp.
-MAIN_BUTTONS = [("file", "btn-new"), ("file", "btn-wizard"), (None, "btn-page-setup"), (None, "btn-preview"),
-                ("view", "btn-dsl"), (None, "btn-grid"), (None, "btn-undo"), (None, "btn-redo")]
+MAIN_BUTTONS = [
+    ("file", "btn-new"),
+    ("file", "btn-wizard"),
+    (None, "btn-page-setup"),
+    (None, "btn-preview"),
+    ("view", "btn-dsl"),
+    (None, "btn-grid"),
+    (None, "btn-undo"),
+    (None, "btn-redo"),
+]
 
 
 @pytest.mark.parametrize("menu,btn", MAIN_BUTTONS)
@@ -134,7 +149,10 @@ def test_main_buttons_do_not_throw(page, menu, btn):
     if btn == "btn-grid":
         page.evaluate("StampAlbum.select(StampAlbum.E[0].id)")
     if btn in ("btn-undo", "btn-redo"):  # enabled only when there is something to undo or redo
-        page.evaluate("StampAlbum.E.push({id: 'u1', t: 'stamp', s: 'rectangle', x: 50, y: 50, w: 100, h: 75}); StampAlbum.pushUndo()")
+        page.evaluate(
+            "StampAlbum.E.push({id: 'u1', t: 'stamp', s: 'rectangle', x: 50, y: 50, w: 100, h: "
+            "75}); StampAlbum.pushUndo()"
+        )
         if btn == "btn-redo":
             page.evaluate("StampAlbum.undo()")
     if menu:
@@ -145,7 +163,10 @@ def test_main_buttons_do_not_throw(page, menu, btn):
 
 
 def test_legacy_oversized_a4_is_migrated(page):
-    page.evaluate("StampAlbum.parseDSL('ALBUM_PAGES_SIZE(238 336.8)\\nPAGE_START\\nSTAMP_ADD_AT(20 20 40 30 \"x\" \"\" \"\" \"\")'); StampAlbum.render()")
+    page.evaluate(
+        "StampAlbum.parseDSL('ALBUM_PAGES_SIZE(238 336.8)\\nPAGE_START\\nSTAMP_ADD_AT(20 20 40 30 "
+        "\"x\" \"\" \"\" \"\")'); StampAlbum.render()"
+    )
     w, h = _size(page)
     assert abs(w - 525) < 1.5 and abs(h - 742.5) < 1.5
     assert "ALBUM_PAGES_SIZE(210 297)" in page.evaluate("StampAlbum.buildDSL()")
@@ -154,7 +175,9 @@ def test_legacy_oversized_a4_is_migrated(page):
 
 
 def test_legacy_oversized_landscape_a4_is_migrated(page):
-    page.evaluate("StampAlbum.parseDSL('ALBUM_PAGES_SIZE(336.8 238)\\nPAGE_START'); StampAlbum.render()")
+    page.evaluate(
+        "StampAlbum.parseDSL('ALBUM_PAGES_SIZE(336.8 238)\\nPAGE_START'); StampAlbum.render()"
+    )
     w, h = _size(page)
     assert abs(w - 742.5) < 1.5 and abs(h - 525) < 1.5
 
@@ -205,21 +228,31 @@ def test_preview_oval_fills_non_square_box(base_url, page):
 # ── Canvas text matches the printed page ──
 
 def test_canvas_font_size_is_points_at_page_scale(page):
-    page.evaluate("StampAlbum.parseDSL('ALBUM_PAGES_SIZE(210 297)\\nPAGE_START\\nPAGE_TEXT_AT(10 10 100 30 \"HB\" 40 \"Bahrain\" \"left\")'); StampAlbum.render()")
-    px = page.evaluate("parseFloat(getComputedStyle(document.querySelector('#page .cel .elbl')).fontSize)")
+    page.evaluate(
+        "StampAlbum.parseDSL('ALBUM_PAGES_SIZE(210 297)\\nPAGE_START\\nPAGE_TEXT_AT(10 10 100 30 "
+        "\"HB\" 40 \"Bahrain\" \"left\")'); StampAlbum.render()"
+    )
+    px = page.evaluate(
+        "parseFloat(getComputedStyle(document.querySelector('#page .cel .elbl')).fontSize)"
+    )
     # 40 pt = 14.11 mm; the canvas draws 2.5 px per mm
     assert px == pytest.approx(40 * 25.4 / 72 * 2.5, abs=0.1)
 
 
 @pytest.mark.parametrize("align", ["left", "center", "right"])
 def test_canvas_text_alignment_and_top_anchor(page, align):
-    page.evaluate("a => { StampAlbum.parseDSL('ALBUM_PAGES_SIZE(210 297)\\nPAGE_START\\nPAGE_TEXT_AT(10 10 100 60 \"HN\" 12 \"Hi\" \"' + a + '\")'); StampAlbum.render() }", align)
+    page.evaluate(
+        "a => { StampAlbum.parseDSL('ALBUM_PAGES_SIZE(210 297)\\nPAGE_START\\nPAGE_TEXT_AT(10 10 "
+        "100 60 \"HN\" 12 \"Hi\" \"' + a + '\")'); StampAlbum.render() }",
+        align,
+    )
     info = page.evaluate("""() => {
         const cel = document.querySelector('#page .cel');
         const s = cel.querySelector('.elbl');
         const range = document.createRange(); range.selectNodeContents(s);
         const t = range.getBoundingClientRect(), box = cel.getBoundingClientRect();
-        return {top: t.top - box.top, left: t.left - box.left, right: box.right - t.right, w: box.width};
+        return {top: t.top - box.top, left: t.left - box.left,
+                right: box.right - t.right, w: box.width};
     }""")
     assert info["top"] < 10, "text must sit at the top of its box, not vertically centred"
     if align == "left":
@@ -241,15 +274,23 @@ LOADED = (
 
 
 def test_loaded_text_and_image_elements_are_not_transparent(page):
-    page.evaluate("d => { StampAlbum.parseDSL(d.replace(/\\\\n/g, '\\n')); StampAlbum.render(); }", LOADED)
-    ops = page.evaluate("[...document.querySelectorAll('#page .cel')].map(c => parseFloat(getComputedStyle(c).opacity))")
+    page.evaluate(
+        "d => { StampAlbum.parseDSL(d.replace(/\\\\n/g, '\\n')); StampAlbum.render(); }", LOADED
+    )
+    ops = page.evaluate(
+        "[...document.querySelectorAll('#page .cel')].map(c => "
+        "parseFloat(getComputedStyle(c).opacity))"
+    )
     assert len(ops) == 2
     assert all(o == 1 for o in ops), f"loaded elements rendered with opacity {ops}"
 
 
 def test_fill_alpha_does_not_fade_the_whole_element(page):
-    page.evaluate("""() => { StampAlbum.parseDSL('ALBUM_PAGES_SIZE(210 297)\\nPAGE_START\\nPAGE_TEXT_AT(10 10 100 30 "HN" 12 "Hi" "left")');
-        StampAlbum.E[0].fill = '#ff0000'; StampAlbum.E[0].fillA = 50; StampAlbum.render(); }""")
+    page.evaluate(
+        """() => { StampAlbum.parseDSL('ALBUM_PAGES_SIZE(210 297)\\nPAGE_START\\n'
+            + 'PAGE_TEXT_AT(10 10 100 30 "HN" 12 "Hi" "left")');
+        StampAlbum.E[0].fill = '#ff0000'; StampAlbum.E[0].fillA = 50; StampAlbum.render(); }"""
+    )
     info = page.evaluate("""() => { const c = document.querySelector('#page .cel');
         return [getComputedStyle(c).opacity, getComputedStyle(c).backgroundColor]; }""")
     assert info[0] == "1"
@@ -257,8 +298,18 @@ def test_fill_alpha_does_not_fade_the_whole_element(page):
 
 
 def test_preview_shows_no_label_over_an_image(base_url, page):
-    el = {"t": "image", "s": "rectangle", "x": 100, "y": 100, "w": 150, "h": 150, "lbl": "SHOULDNOTSHOW",
-          "img": "arms.png", "bdr": "none", "fill": "transparent"}
+    el = {
+        "t": "image",
+        "s": "rectangle",
+        "x": 100,
+        "y": 100,
+        "w": 150,
+        "h": 150,
+        "lbl": "SHOULDNOTSHOW",
+        "img": "arms.png",
+        "bdr": "none",
+        "fill": "transparent",
+    }
     html = _preview_html(base_url, [el])
     assert "SHOULDNOTSHOW" not in html
 
@@ -278,7 +329,10 @@ def _stamps(page):
     import re
 
     dsl = page.evaluate("StampAlbum.buildDSL()")
-    return [tuple(float(v) for v in m.groups()) for m in re.finditer(r"STAMP_ADD_AT\(([\d.]+) ([\d.]+) ([\d.]+) ([\d.]+)", dsl)]
+    return [
+        tuple(float(v) for v in m.groups())
+        for m in re.finditer(r"STAMP_ADD_AT\(([\d.]+) ([\d.]+) ([\d.]+) ([\d.]+)", dsl)
+    ]
 
 
 def _page_setup(page, size=None, orient=None, apply=True):
@@ -311,7 +365,9 @@ def test_page_setup_warns_then_moves_elements_inside(page):
     (ax, ay, _, _), (bx, by, bw, bh) = _stamps(page)
     assert (ax, ay) == (20, 20), "elements that already fit stay put"
     assert bx == 20, "only the overflowing axis changes"
-    assert by + bh <= 210 - 15 + 0.1, f"stamp b should be inside the page margin, bottom at {by + bh}"
+    assert by + bh <= 210 - 15 + 0.1, (
+        f"stamp b should be inside the page margin, bottom at {by + bh}"
+    )
     assert (bw, bh) == (40, 30), "sizes are never changed"
 
 
@@ -348,7 +404,10 @@ def test_page_setup_is_one_undo_step(page):
 def test_undo_steps_back_one_state_at_a_time(page):
     page.evaluate("StampAlbum.newAlbum()")
     for i in range(3):
-        page.evaluate(f"StampAlbum.E.push({{id: 'u{i}', t: 'stamp', s: 'rectangle', x: 50, y: {50 + i * 100}, w: 100, h: 75}}); StampAlbum.pushUndo()")
+        page.evaluate(
+            f"StampAlbum.E.push({{id: 'u{i}', t: 'stamp', s: 'rectangle', x: 50, "
+            f"y: {50 + i * 100}, w: 100, h: 75}}); StampAlbum.pushUndo()"
+        )
     page.click("#btn-undo")
     page.click("#btn-undo")
     assert page.evaluate("StampAlbum.E.length") == 1
@@ -358,7 +417,10 @@ def test_undo_steps_back_one_state_at_a_time(page):
 
 def test_first_edit_after_load_can_be_undone(page):
     before = page.evaluate("StampAlbum.E.length")
-    page.evaluate("StampAlbum.E.push({id: 'z1', t: 'stamp', s: 'rectangle', x: 50, y: 50, w: 100, h: 75}); StampAlbum.pushUndo()")
+    page.evaluate(
+        "StampAlbum.E.push({id: 'z1', t: 'stamp', s: 'rectangle', x: 50, y: 50, w: 100, h: 75}); "
+        "StampAlbum.pushUndo()"
+    )
     page.click("#btn-undo")
     assert page.evaluate("StampAlbum.E.length") == before
 
@@ -396,11 +458,13 @@ def test_toolbar_fits_without_sideways_scroll(page, width):
     page.wait_for_timeout(100)
     r = page.evaluate("""(() => {
         const out = (el) => [...el.querySelectorAll('button, select, input, span, label')]
-            .filter(e => { const b = e.getBoundingClientRect(); return b.width > 0 && b.right > innerWidth + 1; })
+            .filter(e => { const b = e.getBoundingClientRect();
+                           return b.width > 0 && b.right > innerWidth + 1; })
             .map(e => e.id || e.className || e.tagName);
         const logo = document.querySelector('#tb .logo').getBoundingClientRect();
         return { doc: document.documentElement.scrollWidth - innerWidth,
-                 tb: out(document.getElementById('tb')), ca: out(document.getElementById('ca-toolbar')),
+                 tb: out(document.getElementById('tb')),
+                 ca: out(document.getElementById('ca-toolbar')),
                  logoLines: Math.round(logo.height / 20) };
     })()""")
     assert r["doc"] <= 0, f"page scrolls sideways by {r['doc']} px"
@@ -440,7 +504,9 @@ def test_menu_items_reach_their_actions(page):
     page.click("#menu-page-setup")
     assert page.is_visible("#page-setup-overlay")
     page.click("#ps-cancel")
-    assert page.locator("#menu-file [data-fmt]").count() == 4, "File menu lists PDF, PNG, SVG and HTML export"
+    assert page.locator("#menu-file [data-fmt]").count() == 4, (
+        "File menu lists PDF, PNG, SVG and HTML export"
+    )
     page.click("#menu-view-btn")
     page.click("#btn-help")
     assert "open" in page.get_attribute("#help-overlay", "class")
@@ -462,14 +528,26 @@ def test_selection_tools_show_only_with_a_selection(page):
     assert not page.is_visible("#sel-tools")
     assert page.is_visible("#def-bdr"), "page defaults show when nothing is selected"
     page.evaluate("StampAlbum.select(StampAlbum.E[0].id)")
-    assert page.is_visible("#sel-tools") and page.is_visible("#btn-align-l") and page.is_visible("#btn-del")
+    assert (
+        page.is_visible("#sel-tools")
+        and page.is_visible("#btn-align-l")
+        and page.is_visible("#btn-del")
+    )
     assert not page.is_visible("#def-bdr")
     page.evaluate("StampAlbum.select(null)")
     assert not page.is_visible("#sel-tools")
 
 
 def test_columns_distribute_and_match_controls_are_gone(page):
-    for gone in ("col-mode", "col-gap", "btn-dist-h", "btn-dist-v", "btn-match-w", "btn-match-h", "align-group"):
+    for gone in (
+        "col-mode",
+        "col-gap",
+        "btn-dist-h",
+        "btn-dist-v",
+        "btn-match-w",
+        "btn-match-h",
+        "align-group",
+    ):
         assert page.locator("#" + gone).count() == 0, gone
 
 
@@ -494,12 +572,19 @@ def test_snap_to_guides_state_matches_the_view_menu(page):
     assert page.evaluate("!!StampAlbum._snapEnabled") == shown
     page.click("#btn-snap")
     page.click("#menu-view-btn")
-    assert (page.get_attribute("#btn-snap", "aria-checked") == "true") == page.evaluate("!!StampAlbum._snapEnabled") != shown
+    assert (
+        (page.get_attribute("#btn-snap", "aria-checked") == "true")
+        == page.evaluate("!!StampAlbum._snapEnabled")
+        != shown
+    )
 
 
 def _one_stamp(page, x=100, y=100, extra=""):
-    page.evaluate("StampAlbum.newAlbum(); StampAlbum.E.push({id: 'd1', t: 'stamp', s: 'rectangle', x: %s, y: %s, w: 100, h: 75, lbl: 'd'});"
-                  "%s StampAlbum.render()" % (x, y, extra))
+    page.evaluate(
+        "StampAlbum.newAlbum(); StampAlbum.E.push({id: 'd1', t: 'stamp', s: 'rectangle', x: %s, y: "
+        "%s, w: 100, h: 75, lbl: 'd'});"
+        "%s StampAlbum.render()" % (x, y, extra)
+    )
 
 
 def _drag(page, el_id, dx, dy):
@@ -510,7 +595,9 @@ def _drag(page, el_id, dx, dy):
     page.mouse.move(sx + dx / 2, sy + dy / 2, steps=3)
     page.mouse.move(sx + dx, sy + dy, steps=3)
     page.mouse.up()
-    return page.evaluate(f"(() => {{ const e = StampAlbum.E.find(e => e.id === '{el_id}'); return [e.x, e.y]; }})()")
+    return page.evaluate(
+        f"(() => {{ const e = StampAlbum.E.find(e => e.id === '{el_id}'); return [e.x, e.y]; }})()"
+    )
 
 
 def test_drag_with_snap_off_keeps_a_real_position(page):
@@ -528,12 +615,20 @@ def test_grid_snap_steps_are_millimetres(page):
     page.select_option("#grid", "5")
     x, y = _drag(page, "d1", 37, 23)
     step = 5 * 2.5  # 5 mm at 2.5 px per mm
-    assert abs((x - 100) / step - round((x - 100) / step)) < 1e-6, f"x moved {x - 100} px, not whole 5 mm steps"
+    assert abs((x - 100) / step - round((x - 100) / step)) < 1e-6, (
+        f"x moved {x - 100} px, not whole 5 mm steps"
+    )
     assert abs(x - 137.5) < 0.01 and abs(y - 125) < 0.01, (x, y)
 
 
 def test_snap_to_guides_pulls_a_stamp_onto_a_guide(page):
-    _one_stamp(page, 300, 400, "StampAlbum.E.push({id: 'd2', t: 'stamp', s: 'rectangle', x: 100, y: 100, w: 100, h: 75, lbl: 'e'});")
+    _one_stamp(
+        page,
+        300,
+        400,
+        "StampAlbum.E.push({id: 'd2', t: 'stamp', s: 'rectangle', x: 100, y: 100, w: 100, h: 75, "
+        "lbl: 'e'});",
+    )
     page.evaluate("StampAlbum._snapEnabled = true")
     page.select_option("#grid", "0")
     x, _ = _drag(page, "d1", -197, 0)  # left edge lands 3 px from d2's left edge
@@ -545,7 +640,9 @@ def test_view_menu_can_show_the_tutorial_again(page):
     page.click("#menu-view-btn")
     page.click("#menu-tutorial")
     assert "open" in page.get_attribute("#tutorial-overlay", "class")
-    assert page.evaluate("StampAlbum.E.length") == before, "showing the tutorial must not load the sample album"
+    assert page.evaluate("StampAlbum.E.length") == before, (
+        "showing the tutorial must not load the sample album"
+    )
 
 
 # ── Palette: click, keyboard and tap add the item at the page centre ──

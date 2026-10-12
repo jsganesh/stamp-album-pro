@@ -52,7 +52,9 @@ class TestTextShadow:
     def test_shadow_rendered(self, renderer):
         ft = FormattedText(
             content="Shadow text",
-            shadow=TextShadow(offset_x=1, offset_y=-1, blur=0.5, color=Color(r=0, g=0, b=0), opacity=0.5),
+            shadow=TextShadow(
+                offset_x=1, offset_y=-1, blur=0.5, color=Color(r=0, g=0, b=0), opacity=0.5
+            ),
         )
         html = renderer._render_text_element(ft)
         assert "text-shadow" in html
