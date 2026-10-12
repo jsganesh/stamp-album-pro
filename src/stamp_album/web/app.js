@@ -440,6 +440,7 @@ function applyPageSize(wmm, hmm) {
     if (btn && core && core.describePageSize) btn.textContent = core.describePageSize(wmm, hmm).label;
     if (S.updateGrid) S.updateGrid();
     if (S.renderPageBorder) S.renderPageBorder(_pageBorder);
+    if (S.applyZoom) S.applyZoom(); // a new paper size can need a new fit
     snapPageToPixels();
 }
 
@@ -545,7 +546,7 @@ Object.defineProperties(S, {
     buildCanvasState: { value: buildCanvasState }, openPreview: { value: openPreview },
     schedulePreviewRefresh: { value: schedulePreviewRefresh }, refreshPreview: { value: refreshPreview },
     exportPDF: { value: exportPDF }, loadTemplateList: { value: loadTemplateList },
-    applyPageSize: { value: applyPageSize },
+    applyPageSize: { value: applyPageSize }, snapPageToPixels: { value: snapPageToPixels },
     // ── Alignment functions ──
     alignSelected: { value: alignSelected },
     toggleSnap: { value: toggleSnap },

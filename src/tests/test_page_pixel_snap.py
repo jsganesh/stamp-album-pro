@@ -41,8 +41,11 @@ def test_page_on_whole_pixels(page, name):
         _settle(page)
         left, top, w, h = _origin(page)
         assert _on_device_pixel(left, 1) and _on_device_pixel(top, 1), (name, width, left, top)
-        # The page itself keeps its size: 2.5 px per mm.
-        assert abs(w - w_mm * 2.5) < 1e-6 and abs(h - h_mm * 2.5) < 1e-6
+        # The page keeps 2.5 px per mm, shown at the zoom (Fit width shrinks it in narrow windows).
+        z = page.evaluate("StampAlbum.zoom")
+        assert abs(w - w_mm * 2.5 * z) < 1e-3 and abs(h - h_mm * 2.5 * z) < 1e-3, (name, width, z)
+        if width == 1500 and name != "A4 landscape":
+            assert z == 1, (name, width, z)
 
 
 def test_page_snaps_when_a_panel_changes_the_space(page):

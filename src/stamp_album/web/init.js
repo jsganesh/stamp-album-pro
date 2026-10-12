@@ -20,6 +20,13 @@ function snapStep(px) {
     return step > 0 ? Math.round(px / step) * step : px;
 }
 
+// How far a drag has gone, in canvas px: the distance on screen divided by
+// the zoom the drag started at, rounded to the snap grid.
+function dragDelta(clientX, clientY) {
+    var z = S._ds.z || 1;
+    return { x: snapStep((clientX - S._ds.x) / z), y: snapStep((clientY - S._ds.y) / z) };
+}
+
 function init() {
     if (S._init) return;
     S._init = true;
@@ -45,9 +52,9 @@ function init() {
                 var f = e.dataTransfer.files[i];
                 if (f.type.startsWith("image/")) {
                     uploadImageFile(f, function(imgName) {
-                        var r = pg.getBoundingClientRect();
-                        var x = Math.max(0, Math.min(snapStep(e.clientX - r.left), S._pw - 40));
-                        var y = Math.max(0, Math.min(snapStep(e.clientY - r.top), S._ph - 30));
+                        var p = S.toPagePx(e.clientX, e.clientY);
+                        var x = Math.max(0, Math.min(snapStep(p.x), S._pw - 40));
+                        var y = Math.max(0, Math.min(snapStep(p.y), S._ph - 30));
                         add({ t: "image", s: "rectangle", x: x, y: y, w: 80, h: 60,
                             lbl: f.name, img: "/images/" + imgName,
                             bdr: "solid", bdrC: "#999", bdrW: 0.5, fill: "#fff", fillA: 100, font: "HN", fs: 12 });
@@ -58,9 +65,9 @@ function init() {
         }
         var d;
         try { d = JSON.parse(e.dataTransfer.getData("text/plain")); } catch (_) { return; }
-        var r = pg.getBoundingClientRect();
-        var x = Math.max(0, Math.min(snapStep(e.clientX - r.left), S._pw - 40));
-        var y = Math.max(0, Math.min(snapStep(e.clientY - r.top), S._ph - 30));
+        var p = S.toPagePx(e.clientX, e.clientY);
+        var x = Math.max(0, Math.min(snapStep(p.x), S._pw - 40));
+        var y = Math.max(0, Math.min(snapStep(p.y), S._ph - 30));
         add(S.paletteElement(d, x, y));
     });
 
@@ -74,15 +81,15 @@ function init() {
         select(obj.id);
         S._drg = true;
         S._dragEl = obj;
-        S._ds = { x: e.clientX, y: e.clientY, ox: obj.x, oy: obj.y, ow: obj.w, oh: obj.h };
+        S._ds = { x: e.clientX, y: e.clientY, ox: obj.x, oy: obj.y, ow: obj.w, oh: obj.h, z: S.zoom || 1 };
         e.preventDefault();
         e.stopPropagation();
     });
 
     document.addEventListener("mousemove", function(e) {
         if (!S._drg || !S._dragEl) return;
-        var dx = snapStep(e.clientX - S._ds.x);
-        var dy = snapStep(e.clientY - S._ds.y);
+        var d = dragDelta(e.clientX, e.clientY);
+        var dx = d.x, dy = d.y;
         var h = S._dragH, x = S._ds.ox, y = S._ds.oy, w = S._ds.ow, oh = S._ds.oh;
         if (h === "move") { x += dx; y += dy; } else {
             if (h.indexOf("w") >= 0) { x += dx; w -= dx; }
@@ -609,8 +616,9 @@ function init() {
         var r = pg ? pg.getBoundingClientRect() : null;
         if (r && cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
             // Dropped on the page: place it where the finger lifted.
-            var x = Math.max(0, Math.min(snapStep(cx - r.left), S._pw - 40));
-            var y = Math.max(0, Math.min(snapStep(cy - r.top), S._ph - 30));
+            var p = S.toPagePx(cx, cy);
+            var x = Math.max(0, Math.min(snapStep(p.x), S._pw - 40));
+            var y = Math.max(0, Math.min(snapStep(p.y), S._ph - 30));
             add(S.paletteElement(S._ds, x, y));
         } else if (Math.abs(cx - S._ds.tx) < 10 && Math.abs(cy - S._ds.ty) < 10) {
             // A tap (no real movement): same as a click, add at the page centre.
@@ -618,23 +626,17 @@ function init() {
         }
         S._ds = {};
     });
-    document.addEventListener("touchstart", function(e) {
-        var el = e.target.closest(".cel");
-        if (!el) return;
-        var obj = S.E.find(function(x) { return x.id === el.dataset.id; });
-        if (!obj) return;
-        var touch = e.touches[0];
-        S._dragH = e.target.classList.contains("rh") ? e.target.dataset.h : "move";
-        select(obj.id);
-        S._drg = true;
-        S._dragEl = obj;
-        S._ds = { x: touch.clientX, y: touch.clientY, ox: obj.x, oy: obj.y, ow: obj.w, oh: obj.h };
-    }, { passive: true });
-    document.addEventListener("touchmove", function(e) {
+    // A finger drag on a page item. Selecting the item redraws the page, which
+    // replaces the element the finger is on, and a touch's touchmove and touchend
+    // always go to the element it started on, even once removed, where they no
+    // longer reach the document. So listen on that element for the rest of the touch.
+    var touchEl = null;
+    function onItemTouchMove(e) {
         if (!S._drg || !S._dragEl) return;
         var touch = e.touches[0];
-        var dx = Math.round((touch.clientX - S._ds.x) / S._sn) * S._sn;
-        var dy = Math.round((touch.clientY - S._ds.y) / S._sn) * S._sn;
+        // Same as the mouse: snap to the grid in mm (it used to snap to 5 px and ignore Snap Off).
+        var d = dragDelta(touch.clientX, touch.clientY);
+        var dx = d.x, dy = d.y;
         var h = S._dragH, x = S._ds.ox, y = S._ds.oy, w = S._ds.ow, oh = S._ds.oh;
         if (h === "move") { x += dx; y += dy; } else {
             if (h.indexOf("w") >= 0) { x += dx; w -= dx; }
@@ -651,13 +653,36 @@ function init() {
         render();
         updateProps();
         e.preventDefault();
-    }, { passive: false });
-    document.addEventListener("touchend", function() {
+    }
+    function onItemTouchEnd() {
+        if (touchEl) {
+            touchEl.removeEventListener("touchmove", onItemTouchMove);
+            touchEl.removeEventListener("touchend", onItemTouchEnd);
+            touchEl.removeEventListener("touchcancel", onItemTouchEnd);
+            touchEl = null;
+        }
         if (S._drg && S._dragEl) { pushUndo(); }
         S._drg = false;
         S._dragEl = null;
         S._dragH = null;
-    });
+    }
+    document.addEventListener("touchstart", function(e) {
+        var el = e.target.closest(".cel");
+        if (!el) return;
+        var obj = S.E.find(function(x) { return x.id === el.dataset.id; });
+        if (!obj) return;
+        var touch = e.touches[0];
+        if (touchEl) onItemTouchEnd();  // a touch that never ended
+        touchEl = e.target;
+        touchEl.addEventListener("touchmove", onItemTouchMove, { passive: false });
+        touchEl.addEventListener("touchend", onItemTouchEnd);
+        touchEl.addEventListener("touchcancel", onItemTouchEnd);
+        S._dragH = e.target.classList.contains("rh") ? e.target.dataset.h : "move";
+        select(obj.id);
+        S._drg = true;
+        S._dragEl = obj;
+        S._ds = { x: touch.clientX, y: touch.clientY, ox: obj.x, oy: obj.y, ow: obj.w, oh: obj.h, z: S.zoom || 1 };
+    }, { passive: true });
 
     // ── Before unload ──
     window.addEventListener("beforeunload", function(e) {
