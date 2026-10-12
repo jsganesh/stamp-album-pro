@@ -46,8 +46,19 @@ def _draw_text_element_svg(stamp: Stamp) -> str:
     size_mm = (stamp.font_size or 12) / text_layout.PT_PER_MM
     pad = text_layout.PAD_MM
 
-    def measure(s: str) -> float:  # Helvetica metrics approximate Arial
-        return pdfmetrics.stringWidth(s, "Helvetica", size_mm)
+    from stamp_album.engines.pdf import _BUILTIN_FONT_MAP
+
+    metrics = _BUILTIN_FONT_MAP.get(stamp.font_id or "HN", "Helvetica")  # the PDF's widths
+    family, weight, style = text_layout.css_font(stamp.font_id)
+    # The family goes in a style attribute: the stylesheet's text rule would beat an attribute.
+    face = f' style="font-family:{family}"'
+    if weight != "normal":
+        face += f' font-weight="{weight}"'
+    if style != "normal":
+        face += f' font-style="{style}"'
+
+    def measure(s: str) -> float:
+        return pdfmetrics.stringWidth(s, metrics, size_mm)
 
     lines = text_layout.wrap_lines(text, max(0.1, stamp.width - 2 * pad), measure)
     lh = size_mm * text_layout.LINE_HEIGHT
@@ -64,7 +75,7 @@ def _draw_text_element_svg(stamp: Stamp) -> str:
         if line:
             parts.append(
                 f'<text x="{x:.2f}" y="{base + i * lh:.2f}" font-size="{size_mm:.2f}" '
-                f'text-anchor="{anchor}" fill="{fill}" font-family="Arial,Helvetica,sans-serif">'
+                f'text-anchor="{anchor}" fill="{fill}"{face}>'
                 f'{_xml_escape(line)}</text>'
             )
     return "\n".join(parts)
