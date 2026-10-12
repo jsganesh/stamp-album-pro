@@ -14,7 +14,7 @@ from stamp_album.core.models import (
     Page,
     Stamp,
 )
-from stamp_album.engines import caption_fonts, caption_layout, frames, page_border
+from stamp_album.engines import caption_fonts, caption_layout, frames, page_border, text_layout
 from stamp_album.engines.layout import layout_rows
 
 
@@ -210,13 +210,14 @@ class HTMLRenderer:
             font_size = stamp.font_size or 12
 
             if stamp.is_text_element:
-                font_family = _font_id_to_css(stamp.font_id) if stamp.font_id else "Helvetica,Arial,sans-serif"
+                family, weight, style = text_layout.css_font(stamp.font_id)
+                font_css = f"font-family:{family};font-weight:{weight};font-style:{style};"
                 tc = stamp.text_color  # a marked heading takes the theme colour
                 rgb = (round(tc.r * 255), round(tc.g * 255), round(tc.b * 255)) if tc else None
                 colour = ("color:#%02X%02X%02X;" % rgb) if rgb else ""
                 parts.append(
                     f'<div class="text-el" style="{colour}left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;'
-                    f'font-size:{font_size}pt;line-height:1.3;font-family:{font_family};padding:1mm;word-wrap:break-word;text-align:{_css_align(stamp.text_align)};">{desc}</div>'
+                    f'font-size:{font_size}pt;line-height:1.3;{font_css}padding:1mm;word-wrap:break-word;text-align:{_css_align(stamp.text_align)};">{desc}</div>'
                 )
             else:
                 stamp_bc = getattr(stamp, 'border_color', None) or getattr(self.album, 'color_stamp_border', None)
@@ -347,29 +348,9 @@ class HTMLRenderer:
         return result
 
 
-_FONT_CSS_MAP = {
-    "CN": "Courier,monospace",
-    "CB": "Courier,monospace",
-    "CI": "Courier,monospace",
-    "CS": "Courier,monospace",
-    "TN": "'Times New Roman',Times,serif",
-    "TB": "'Times New Roman',Times,serif",
-    "TI": "'Times New Roman',Times,serif",
-    "TS": "'Times New Roman',Times,serif",
-    "HN": "Helvetica,Arial,sans-serif",
-    "HB": "Helvetica,Arial,sans-serif",
-    "HI": "Helvetica,Arial,sans-serif",
-    "HS": "Helvetica,Arial,sans-serif",
-}
-
-
 def _css_align(align) -> str:
     a = (align or 'left').lower()
     return a if a in ('left', 'center', 'right', 'justify') else 'left'
-
-
-def _font_id_to_css(font_id: str) -> str:
-    return _FONT_CSS_MAP.get(font_id, "Helvetica,Arial,sans-serif")
 
 
 def _color_to_rgb(color) -> tuple:

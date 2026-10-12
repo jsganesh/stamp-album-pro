@@ -15,6 +15,28 @@ PAD_MM = 1.0           # inner padding of a text box (matches the HTML preview)
 FIRST_BASELINE = 1.0   # first baseline below the padded top edge, in font sizes
 PT_PER_MM = 72.0 / 25.4
 
+# The built-in font ids: a family letter (H Helvetica, T Times, C Courier) and a face
+# (N regular, B bold, I italic, S bold italic). The editor's fontCSS() in app.js draws
+# the same families and faces; the PDF and PNG use the matching built-in fonts.
+_CSS_FAMILY = {
+    "H": "Helvetica,Arial,sans-serif",
+    "T": "'Times New Roman',Times,serif",
+    "C": "Courier,monospace",
+}
+_FACE = {"N": ("normal", "normal"), "B": ("bold", "normal"),
+         "I": ("normal", "italic"), "S": ("bold", "italic")}
+
+
+def css_font(font_id: str | None) -> tuple[str, str, str]:
+    """``(family, weight, style)`` for a text element's font id, for CSS and SVG.
+
+    An id that isn't built in draws as regular Helvetica, as in the PDF.
+    """
+    fid = font_id or "HN"
+    if len(fid) == 2 and fid[0] in _CSS_FAMILY and fid[1] in _FACE:
+        return (_CSS_FAMILY[fid[0]], *_FACE[fid[1]])
+    return (_CSS_FAMILY["H"], "normal", "normal")
+
 
 def normalize_align(align: str | None) -> str:
     a = (align or "left").lower()

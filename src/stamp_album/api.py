@@ -295,7 +295,6 @@ async def export_album(request: ExportRequest):
         album = parser.parse(request.dsl, request.source_path)
 
         if fmt == "pdf":
-            import tempfile
             with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
                 pdf_path = tmp.name
                 PDFGenerator().generate(album, pdf_path, base_url="http://localhost:8080")
@@ -305,7 +304,6 @@ async def export_album(request: ExportRequest):
             )
 
         elif fmt == "png":
-            import tempfile
             png_bytes = PNGGenerator().generate_to_bytes(album, dpi=request.dpi)
             with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
                 tmp.write(png_bytes)
@@ -316,7 +314,6 @@ async def export_album(request: ExportRequest):
             )
 
         elif fmt == "svg":
-            import tempfile
             svg_text = SVGExporter().generate_to_string(album)
             with tempfile.NamedTemporaryFile(suffix=".svg", delete=False, mode="w", encoding="utf-8") as tmp:
                 tmp.write(svg_text)
@@ -599,7 +596,6 @@ async def export_from_state(req: CanvasStateRequest):
         album = _canvas_state_to_album(req)
 
         if fmt == "pdf":
-            import tempfile
             with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
                 pdf_path = tmp.name
                 PDFGenerator().generate(album, pdf_path, base_url="http://localhost:8080")
@@ -609,7 +605,6 @@ async def export_from_state(req: CanvasStateRequest):
                 background=BackgroundTask(_cleanup, pdf_path),
             )
         elif fmt == "png":
-            import tempfile
             png_bytes = PNGGenerator().generate_to_bytes(album, dpi=200)
             with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
                 tmp.write(png_bytes)
@@ -620,7 +615,6 @@ async def export_from_state(req: CanvasStateRequest):
                 background=BackgroundTask(_cleanup, png_path),
             )
         elif fmt == "svg":
-            import tempfile
             svg_text = SVGExporter().generate_to_string(album)
             with tempfile.NamedTemporaryFile(suffix=".svg", delete=False, mode="w", encoding="utf-8") as tmp:
                 tmp.write(svg_text)
