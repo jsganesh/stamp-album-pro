@@ -6,7 +6,6 @@ removed instead of starting something else.
 """
 
 import ast
-import importlib.util
 import os
 import subprocess
 import sys
@@ -17,8 +16,9 @@ PKG = ROOT / "src" / "stamp_album"
 
 
 def test_no_ui_subpackage():
-    assert not (PKG / "ui").exists()
-    assert importlib.util.find_spec("stamp_album.ui") is None
+    # A clone that ran the old code keeps an untracked ui/__pycache__ folder,
+    # so look for source files, not the folder.
+    assert not list((PKG / "ui").glob("*.py"))
 
 
 def test_nothing_imports_pyqt():
