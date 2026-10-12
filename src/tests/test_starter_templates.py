@@ -105,6 +105,56 @@ def test_template_fits_the_page(tid):
     assert layout_problems(next(t for t in TEMPLATES if t["id"] == tid)) == []
 
 
+def _stamps(t):
+    return [s for p in _parse(t).pages for s in p.absolute_stamps if not s.is_text_element]
+
+
+def _bottom(s) -> float:
+    """The lowest edge of an item: its box, or for a stamp its frame and captions."""
+    x, y, w, h = s.abs_x, s.abs_y, s.width, s.height
+    if s.is_text_element:
+        return y + h
+    fx, fy, fw, fh = frames.outer_box(s, x, y, w, h)
+    cb = caption_layout.bounds(caption_layout.layout(s, x, y, w, h))
+    return max(fy + fh, cb[3] if cb else 0)
+
+
+@pytest.mark.parametrize("tid", IDS)
+def test_no_caption_wraps(tid):
+    """Placeholder captions are short enough for one line each, even on 19 mm stamps."""
+    for s in _stamps(next(t for t in TEMPLATES if t["id"] == tid)):
+        lines = caption_layout.layout(s, s.abs_x, s.abs_y, s.width, s.height)
+        kinds = [line.kind for line in lines]
+        assert len(kinds) == len(set(kinds)), f"'{s.description}' wraps: {kinds}"
+
+
+@pytest.mark.parametrize("tid", IDS)
+def test_text_shares_one_left_edge(tid):
+    """Every text item spans the same 20 to 190 mm, so paragraphs line up across templates."""
+    album = _parse(next(t for t in TEMPLATES if t["id"] == tid))
+    for s in (s for p in album.pages for s in p.absolute_stamps if s.is_text_element):
+        assert (s.abs_x, s.abs_x + s.width) == (20.0, 190.0), s.description[:30]
+
+
+@pytest.mark.parametrize("tid", [i for i in IDS if i != "title_page"])
+def test_stamp_pages_fill_the_page(tid):
+    """A page of stamps reaches the lower part of the page instead of stopping two-thirds down."""
+    t = next(t for t in TEMPLATES if t["id"] == tid)
+    album = _parse(t)
+    ps = album.page_setup
+    lowest = max(_bottom(s) for p in album.pages for s in p.absolute_stamps)
+    assert lowest >= ps.height - ps.margin_bottom - 20, f"content ends at {lowest:.1f} mm"
+
+
+def test_exhibition_page_captions():
+    """Every Exhibition page stamp has a heading; descriptions are placeholders, not sizes."""
+    import re
+
+    for s in _stamps(next(t for t in TEMPLATES if t["id"] == "exhibition_page")):
+        assert s.heading and s.heading.text.strip(), f"'{s.description}' has no heading"
+        assert not re.search(r"\d\s*×\s*\d", s.description), s.description
+
+
 def test_layout_check_catches_problems():
     """The check itself: a stamp past the margin and two stamps on top of each other."""
     bad = {
