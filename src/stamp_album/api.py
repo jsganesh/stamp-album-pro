@@ -1,15 +1,18 @@
+import json
 import os
 import tempfile
 import shutil
 import secrets
 from pathlib import Path
-from typing import Optional
+from typing import Dict, Optional
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, UploadFile, File, Request, Response
+from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 from pydantic import BaseModel
 
+from stamp_album.core.models import Album
 from stamp_album.core.parser import AlbumParser, ParseError
 from stamp_album.core.serializer import AlbumSerializer
 from stamp_album.engines.html_renderer import HTMLRenderer
@@ -17,6 +20,19 @@ from stamp_album.engines.pdf import PDFGenerator
 from stamp_album.engines.raster import PNGGenerator
 from stamp_album.engines.svg_export import SVGExporter
 from stamp_album.templates import TEMPLATES
+from stamp_album.collection import (
+    load_collection, save_collection, add_stamp, update_stamp,
+    delete_stamp, search_stamps, import_csv, get_collection_stats,
+    COLLECTION_FILE,
+)
+from stamp_album.cloud_sync import (
+    create_user, authenticate_user, get_user, list_users,
+    create_session, validate_session, destroy_session,
+    share_file, get_shared_files, get_my_shares, revoke_share,
+)
+from stamp_album.version_history import (
+    save_version, get_versions, get_version, delete_version,
+)
 
 app = FastAPI(title="StampAlbum Pro")
 parser = AlbumParser()
@@ -642,12 +658,6 @@ async def export_from_state(req: CanvasStateRequest):
 # Stamp Collection API
 # ============================================================
 
-from stamp_album.collection import (
-    load_collection, save_collection, add_stamp, update_stamp,
-    delete_stamp, search_stamps, import_csv, get_collection_stats,
-    COLLECTION_FILE,
-)
-
 
 class StampData(BaseModel):
     country: str = ""
@@ -746,7 +756,8 @@ async def import_stamps_csv(file: UploadFile = File(...)):
 
 @app.get("/api/stamps/export/csv")
 async def export_collection_csv():
-    import csv, io
+    import csv
+    import io
     stamps = load_collection()
     output = io.StringIO()
     writer = csv.DictWriter(output, fieldnames=[
@@ -821,7 +832,8 @@ async def import_stamps_excel(file: UploadFile = File(...)):
         rows = list(ws.iter_rows(values_only=True))
         if len(rows) < 2:
             raise HTTPException(status_code=400, detail="Excel file must have a header row and at least one data row")
-        import csv, io
+        import csv
+        import io
         output = io.StringIO()
         writer = csv.writer(output)
         for row in rows:
@@ -838,10 +850,6 @@ async def import_stamps_excel(file: UploadFile = File(...)):
 # ============================================================
 # WebSocket Real-Time Preview (P2-13)
 # ============================================================
-
-import json
-from fastapi import WebSocket, WebSocketDisconnect
-from typing import Dict
 
 active_connections: Dict[str, WebSocket] = {}
 
@@ -910,10 +918,6 @@ async def websocket_reload(websocket: WebSocket):
 # Version History API (P2-15)
 # ============================================================
 
-from stamp_album.version_history import (
-    save_version, get_versions, get_version, delete_version,
-)
-
 
 class VersionSaveRequest(BaseModel):
     filename: str
@@ -955,12 +959,6 @@ async def api_delete_version(filename: str, version_id: str):
 # ============================================================
 # Multi-User & Cloud Sync API (P2-14 + P2-16)
 # ============================================================
-
-from stamp_album.cloud_sync import (
-    create_user, authenticate_user, get_user, list_users,
-    create_session, validate_session, destroy_session,
-    share_file, get_shared_files, get_my_shares, revoke_share,
-)
 
 
 class RegisterRequest(BaseModel):
