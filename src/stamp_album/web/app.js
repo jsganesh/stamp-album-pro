@@ -61,10 +61,23 @@ function loadDraft() {
         _captionHeading = state.captionHeading === "semibold" ? "semibold" : "bold";
         // ...and their stamps get black frames and no fill, as an opened file's do.
         _pages.forEach(function(p) { (p || []).forEach(S.CORE.normalizeStamp); });
+        syncNid();
         var savedFile = localStorage.getItem(_draftFileKey);
         if (savedFile) _currentFile = savedFile;
         return true;
     } catch (_) { return false; }
+}
+// Move the id counter past every "el<n>" id in the album, on every page, so an item added
+// after loading never takes an id already in use. The counter only moves forward.
+function syncNid() {
+    var top = 0;
+    _pages.forEach(function(p, i) {
+        (i === _currentPage ? E : (p || [])).forEach(function(el) {
+            var m = /^el(\d+)$/.exec((el && el.id) || "");
+            if (m) top = Math.max(top, parseInt(m[1], 10));
+        });
+    });
+    nid = Math.max(nid, top + 1);
 }
 function clearDraft() {
     localStorage.removeItem(_draftKey);
@@ -538,7 +551,7 @@ Object.defineProperties(S, {
     fontCSS: { value: fontCSS }, showToast: { value: showToast },
     // pushUndo/undo/redo/loadElements defined in undo.js
     saveDraft: { value: saveDraft }, scheduleDraftSave: { value: scheduleDraftSave },
-    loadDraft: { value: loadDraft }, clearDraft: { value: clearDraft },
+    loadDraft: { value: loadDraft }, clearDraft: { value: clearDraft }, syncNid: { value: syncNid },
     updateTitle: { value: updateTitle }, switchPage: { value: switchPage },
     addPage: { value: addPage }, deletePage: { value: deletePage },
     renderPageDots: { value: renderPageDots }, updateGrid: { value: updateGrid },

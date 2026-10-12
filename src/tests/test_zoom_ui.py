@@ -66,10 +66,7 @@ def _geometry(pg):
 def _add_item(pg):
     """Add a palette item at the page centre and return its id (selected)."""
     eid = pg.evaluate(
-        # Opening an album doesn't move the id counter past its ids (a separate bug), so
-        # start past them: otherwise the new item can share an id with the sample's title.
         """(()=>{const before=new Set(StampAlbum.E.map(e=>e.id));
-        StampAlbum.nid = Math.max(StampAlbum.nid, 1000 + StampAlbum.E.length);
         const it=document.querySelector('.p-item[draggable]');
         StampAlbum.addAtCentre(StampAlbum.paletteElement(StampAlbum.paletteItemSpec(it),0,0));
         const el=StampAlbum.E.find(e=>!before.has(e.id));
