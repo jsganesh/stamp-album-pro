@@ -134,6 +134,8 @@ function wireToolbar() {
     ["fit-width", "fit-page", "actual"].forEach(function(m) {
         onItem("menu-zoom-" + m, function() { S.setZoomMode(m); });
     });
+    onItem("menu-zoom-in", function() { S.zoomStep(1); });
+    onItem("menu-zoom-out", function() { S.zoomStep(-1); });
     onItem("menu-tutorial", function() { if (S.showTutorial) S.showTutorial(); });
     onItem("btn-help", function() { $("help-overlay").classList.add("open"); });
     onItem("btn-reset", function() { S.resetApp(); });

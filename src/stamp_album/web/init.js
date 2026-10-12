@@ -632,6 +632,9 @@ function init() {
     // longer reach the document. So listen on that element for the rest of the touch.
     var touchEl = null;
     function onItemTouchMove(e) {
+        // A removed element's events don't reach the document, so the pinch gets them from here.
+        if (S.pinchEvent) S.pinchEvent(e);
+        if (e.touches.length > 1) { cancelTouchDrag(); return; }
         if (!S._drg || !S._dragEl) return;
         var touch = e.touches[0];
         // Same as the mouse: snap to the grid in mm (it used to snap to 5 px and ignore Snap Off).
@@ -654,7 +657,8 @@ function init() {
         updateProps();
         e.preventDefault();
     }
-    function onItemTouchEnd() {
+    function onItemTouchEnd(e) {
+        if (e && S.pinchEvent) S.pinchEvent(e);
         if (touchEl) {
             touchEl.removeEventListener("touchmove", onItemTouchMove);
             touchEl.removeEventListener("touchend", onItemTouchEnd);
@@ -666,7 +670,21 @@ function init() {
         S._dragEl = null;
         S._dragH = null;
     }
+    // A second finger turns the touch into a pinch (zoom.js): the drag stops and the
+    // item goes back where it was, with no undo step.
+    function cancelTouchDrag() {
+        if (!S._drg || !S._dragEl) return;
+        var el = S._dragEl;
+        el.x = S._ds.ox; el.y = S._ds.oy; el.w = S._ds.ow; el.h = S._ds.oh;
+        S._drg = false;
+        S._dragEl = null;
+        S._dragH = null;
+        render();
+        updateProps();
+    }
+    S.cancelTouchDrag = cancelTouchDrag;
     document.addEventListener("touchstart", function(e) {
+        if (e.touches.length > 1) { cancelTouchDrag(); return; }
         var el = e.target.closest(".cel");
         if (!el) return;
         var obj = S.E.find(function(x) { return x.id === el.dataset.id; });
