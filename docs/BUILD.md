@@ -1,124 +1,80 @@
-# Cross-Platform Build & Packaging Guide
+# Building the app
 
-> **Out of date.** This guide predates the ReportLab engines and the move of the PyInstaller specs to `packaging/` (the specs are stale and do not yet produce a working app). To run from source, use the README. The build and Docker sections below have not been checked against the current code.
-
-StampAlbum Pro ships as a **single desktop app** on Windows, macOS, and Linux by
-wrapping the FastAPI web application in a native window via
-[pywebview](https://pywebview.flowrl.com/). One codebase, three platforms.
-
-## Architecture
+StampAlbum Pro is a web app (FastAPI server + browser UI in `src/stamp_album/web`). The installed app is the same code, frozen with [PyInstaller](https://pyinstaller.org/), and opens the editor in its own window through [pywebview](https://pywebview.flowrl.com/):
 
 ```
-┌─────────────────────────────────────────┐
-│  Native window (pywebview)               │
-│  ┌─────────────────────────────────────┐ │
-│  │  Web UI (index.html + JS)           │ │  ← all features live here
-│  │  drag-drop, collections, accounts,  │ │
-│  │  version history, live preview      │ │
-│  └─────────────────────────────────────┘ │
-│                  ▲ HTTP                    │
-│  ┌───────────────┴─────────────────────┐ │
-│  │  FastAPI server (localhost, daemon) │ │  ← started by desktop.py
-│  │  PyMuPDF direct drawing → PDF/PNG/SVG │ │
-│  └─────────────────────────────────────┘ │
-└─────────────────────────────────────────┘
+StampAlbum Pro.app / StampAlbumPro.exe
+  └── __main__.py  (no arguments, frozen → desktop.py)
+        ├── uvicorn + FastAPI on 127.0.0.1, a free port, in a background thread
+        └── pywebview window → that address
+              macOS: WKWebView (built in)   Windows: WebView2 (built into Windows 10 and 11)
 ```
 
-The web app + pywebview wrapper is the cross-platform path. (The old PyQt6
-editor was removed.)
+Exports in the window use a native Save As dialog (`desktop.py`'s `save_export`). If pywebview cannot load, the app opens in the default browser instead.
 
-## Running from source (any OS)
+The built app also accepts the usual flags: `--cli` (headless PDF from a DSL file), `--web` (browser mode). The checks below use them.
+
+## Run from source
+
+See the README: `uv sync --extra dev`, then `uv run stamp-album` (browser) or `uv run stamp-album --desktop` (own window).
+
+## macOS
+
+On a Mac, from the project root:
 
 ```bash
-python -m venv venv
-# macOS/Linux:
-source venv/bin/activate
-# Windows:
-venv\Scripts\activate
-
-pip install -e .
-python -m stamp_album.desktop      # opens the native desktop window
+make app        # or ./build.sh
 ```
 
-Or just run the web app and use a browser (works everywhere):
+This builds with `packaging/stamp_album.spec`, runs the built app's checks (`packaging/smoke_test.py`), and zips it:
 
-```bash
-python -m stamp_album.api          # then open http://localhost:8080
-```
+- `dist/StampAlbum Pro.app`
+- `dist/StampAlbumPro-macos.zip` (made with `ditto`, which keeps the app's internal links; Finder's Compress does too)
 
-## Native dependencies
+The app is built for the Mac's own processor: Apple silicon on an Apple silicon Mac, Intel on an Intel Mac.
 
-**PDF/PNG/SVG generation (PyMuPDF)** ships as a self-contained wheel on every
-platform — no system libraries needed. The WeasyPrint-based pipeline (and its
-Pango/Cairo/GDK-Pixbuf requirement) has been fully replaced; nothing in this
-section applies to the export path anymore.
+The app is not signed. The first time, right-click it and choose **Open**, then **Open** again (on macOS 15 and later: open it once, then System Settings › Privacy & Security › **Open Anyway**).
 
-The only native dependency left is pywebview's window-rendering backend,
-which is either built into the OS or installed automatically:
+## Windows
 
-pywebview's native rendering backend per OS:
-- **macOS**: WKWebView (built in, via pyobjc — installed automatically)
-- **Windows**: EdgeChromium / WebView2 (ships with Windows 10/11)
-- **Linux**: GTK WebKit2 — `sudo apt install libwebkit2gtk-4.1-0 gir1.2-webkit2-4.1` (or `python3-gi`)
+Windows builds come from CI, since there's no Windows machine in the workflow. The **App build** workflow (`.github/workflows/app.yml`) builds on `macos-latest` and `windows-latest`, runs the built app's checks on each, and keeps both zips as workflow artifacts for 30 days:
 
-## Building distributable bundles
+- `StampAlbumPro-windows.zip`: the `StampAlbumPro` folder. Unzip it anywhere and run `StampAlbumPro.exe`. Keep the `_internal` folder next to it.
+- `StampAlbumPro-macos.zip`: as above (Apple silicon, since `macos-latest` is).
 
-### macOS (.app)
+The workflow runs when `packaging/`, `pyproject.toml`, `uv.lock`, the app's start-up code (`__main__.py`, `desktop.py`, `serve.py`) or the workflow itself changes, and on demand: Actions › App build › **Run workflow**. Download the zips from the run's **Artifacts** section. GitHub wraps each in a zip of its own, so unzip twice.
 
-```bash
-pyinstaller stamp_album.spec
-# Output: dist/StampAlbum Pro.app
-```
+The exe is not signed. Windows SmartScreen shows "Windows protected your PC" the first time: **More info › Run anyway**.
 
-The spec auto-detects Apple Silicon (`/opt/homebrew`) vs Intel (`/usr/local`)
-Homebrew prefixes and bundles the right dylibs.
-
-### Windows (.exe)
+On a Windows machine the same build works by hand:
 
 ```powershell
-pyinstaller --name "StampAlbumPro" --windowed --onedir ^
-  --add-data "src/stamp_album/web;stamp_album/web" ^
-  src/stamp_album/desktop.py
+uv sync --extra dev
+uv run pyinstaller packaging/stamp_album.spec --clean --noconfirm
+uv run python packaging/smoke_test.py dist/StampAlbumPro/StampAlbumPro.exe
 ```
 
-No extra runtime DLLs to bundle — PyMuPDF is self-contained, and WebView2
-ships with Windows 10/11.
+## What the spec bundles
 
-### Linux (AppImage / binary)
+- All of `src/stamp_album/web`: the editor page, scripts, styles, tutorial pictures, CodeMirror, and the Source Serif 4 Caption fonts with `OFL.txt`.
+- Every `stamp_album` module, uvicorn's run-time modules (it picks them by name), websockets and python-multipart.
+- The version comes from `stamp_album/__init__.py`.
+- Qt and Tk are excluded on macOS and Windows.
 
-```bash
-pyinstaller --name stamp-album-pro --onedir \
-  --add-data "src/stamp_album/web:stamp_album/web" \
-  src/stamp_album/desktop.py
-# Optionally wrap dist/ into an AppImage with appimagetool.
-```
+Files the app writes (saved albums, images, collection, version history) go to `~/StampAlbum`, as when run from source.
 
-## Docker (web deployment)
+## Checking a build
 
-For the hosted/SaaS version, run the FastAPI app in a container:
+`packaging/smoke_test.py <built binary>` runs the frozen app, not the source:
 
-```dockerfile
-FROM python:3.12-slim
-WORKDIR /app
-COPY . .
-RUN pip install --no-cache-dir -e .
-EXPOSE 8080
-CMD ["python", "-m", "stamp_album.api"]
-```
+1. `--cli`: a small album to PDF.
+2. `--web` on a free port with no browser: fetches the editor page, its scripts and styles, a tutorial picture and all four caption fonts, and exports a PDF and a PNG.
 
-No system packages needed — PyMuPDF ships as a self-contained wheel, which
-also keeps this image smaller than the old WeasyPrint-based build.
+`src/tests/test_packaging.py` keeps the spec, `build.sh`, the workflow and this checker in step with the code, and checks how a frozen app starts (own window by default, browser without pywebview).
 
-```bash
-docker build -t stampalbum-pro .
-docker run -p 8080:8080 stampalbum-pro
-```
+## Not done yet
 
-## Verifying a build
-
-```bash
-pytest src/tests/ -q                          # all logic tests
-python -m stamp_album.desktop                  # smoke-test the window
-curl -X POST localhost:8080/export -d '{"dsl":"PAGE_START","format":"pdf"}' \
-     -H 'Content-Type: application/json' -o test.pdf   # export path
-```
+- **Signing and notarisation.** These need an Apple Developer ID (for `codesign_identity` and notarisation) and a Windows code-signing certificate.
+- **An installer** for Windows (the zip is the stopgap), and a `.dmg` for macOS.
+- **An app icon.**
+- **Intel Macs** need a build on an Intel Mac (or a `macos-13` runner), or a universal2 Python for a universal app.

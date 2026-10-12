@@ -1,4 +1,4 @@
-.PHONY: test run install dev clean screenshots
+.PHONY: test run install dev clean screenshots app
 
 # Run the full test suite
 test:
@@ -19,6 +19,10 @@ dev:
 # Regenerate the tutorial pictures and README screenshots from the running app
 screenshots:
 	.venv/bin/python tools/screenshots.py
+
+# Build the app with PyInstaller, check it and zip it (see build.sh)
+app:
+	./build.sh
 
 # Clean build artifacts
 clean:

@@ -1,109 +1,112 @@
-# NOTE: known-stale. Does not bundle all current runtime deps/assets (see Phase 3 packaging work).
 # -*- mode: python ; coding: utf-8 -*-
 """
-PyInstaller spec file for StampAlbum Pro.
+PyInstaller spec for StampAlbum Pro: the web app in its own window (pywebview).
 
-Usage:
-    pyinstaller stamp_album.spec
+Build from the project root:
 
-This creates a macOS .app bundle in the dist/ directory.
+    pyinstaller packaging/stamp_album.spec --clean --noconfirm
+
+Output:
+    macOS    dist/StampAlbum Pro.app
+    Windows  dist/StampAlbumPro/StampAlbumPro.exe   (zip the folder to ship)
+    Linux    dist/StampAlbumPro/StampAlbumPro       (not shipped; used for checks)
+
+Opened with no arguments, the app opens its own window. The bundle also
+accepts the usual flags: --cli (headless PDF), --web (browser mode).
+`packaging/smoke_test.py` checks a built app.
 """
 
-import os
+import re
+import sys
 from pathlib import Path
 
-block_cipher = None
+from PyInstaller.utils.hooks import collect_submodules
 
-# Get the project root directory (spec file location)
-project_root = Path(os.getcwd())
+ROOT = Path(SPECPATH).parent  # noqa: F821 (SPECPATH is set by PyInstaller)
+SRC = ROOT / "src"
+PKG = SRC / "stamp_album"
+
+APP_NAME = "StampAlbumPro"
+DISPLAY_NAME = "StampAlbum Pro"
+BUNDLE_ID = "com.stampalbum.pro"
+VERSION = re.search(
+    r'__version__\s*=\s*"([^"]+)"', (PKG / "__init__.py").read_text(encoding="utf-8")
+).group(1)
+
+# Everything the browser UI loads: HTML, JS, CSS, tutorial pictures, the
+# caption fonts (and OFL.txt), CodeMirror. Served from stamp_album/web.
+datas = [(str(PKG / "web"), "stamp_album/web")]
+
+hiddenimports = (
+    collect_submodules("stamp_album")
+    # uvicorn picks its loop, protocol and lifespan modules by name at run time.
+    + collect_submodules("uvicorn")
+    + collect_submodules("websockets")
+    + ["multipart", "python_multipart"]
+)
+
+# GUI toolkits pywebview could use on Linux; macOS uses Cocoa, Windows WebView2.
+excludes = ["tkinter", "PyQt5", "PyQt6", "PySide2", "PySide6"]
+if sys.platform.startswith("linux"):
+    excludes = ["tkinter"]
 
 a = Analysis(
-    [str(project_root / "src" / "stamp_album" / "__main__.py")],
-    pathex=[str(project_root / "src")],
+    [str(PKG / "__main__.py")],
+    pathex=[str(SRC)],
     binaries=[],
-    datas=[
-        (str(project_root / "assets" / "templates"), "assets/templates"),
-    ],
-    hiddenimports=[
-        "stamp_album.ui.main_window",
-        "stamp_album.ui.editor",
-        "stamp_album.ui.preview_panel",
-        "stamp_album.ui.visual_builder",
-        "stamp_album.ui.config_dialog",
-        "stamp_album.ui.template_gallery",
-        "stamp_album.ui.syntax_highlighter",
-        "stamp_album.core.parser",
-        "stamp_album.core.models",
-        "stamp_album.engines.html_renderer",
-        "stamp_album.engines.layout_engine",
-        "stamp_album.engines.font_manager",
-        "PIL",
-        "lark",
-        "yaml",
-        "fontTools",
-        "fontTools.ttLib",
-        "fontTools.subset",
-    ],
+    datas=datas,
+    hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[
-        "tkinter",
-        "unittest",
-        "pydoc",
-    ],
-    win_no_prefer_redirects=False,
-    win_private_assemblies=False,
-    cipher=block_cipher,
+    excludes=excludes,
     noarchive=False,
 )
 
-pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+pyz = PYZ(a.pure)
 
 exe = EXE(
     pyz,
     a.scripts,
     [],
     exclude_binaries=True,
-    name="stamp-album",
+    name=APP_NAME,
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=False,
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
-    codesign_identity=None,
+    codesign_identity=None,  # signing: pending (needs a Developer ID)
     entitlements_file=None,
 )
 
 coll = COLLECT(
     exe,
     a.binaries,
-    a.zipfiles,
     a.datas,
     strip=False,
-    upx=True,
+    upx=False,
     upx_exclude=[],
-    name="stamp-album",
+    name=APP_NAME,
 )
 
-app = BUNDLE(
-    coll,
-    name="StampAlbum Pro.app",
-    icon=None,
-    bundle_identifier="com.stampalbum.pro",
-    version="0.1.0",
-    info_plist={
-        "NSPrincipalClass": "NSApplication",
-        "NSHighResolutionCapable": "True",
-        "CFBundleName": "StampAlbum Pro",
-        "CFBundleShortVersionString": "0.1.0",
-        "CFBundleVersion": "0.1.0",
-        "CFBundleExecutable": "stamp-album",
-        "CFBundleIdentifier": "com.stampalbum.pro",
-    },
-)
-
-# No post-build step needed — no native library bundling required
+if sys.platform == "darwin":
+    app = BUNDLE(
+        coll,
+        name=f"{DISPLAY_NAME}.app",
+        icon=None,
+        bundle_identifier=BUNDLE_ID,
+        version=VERSION,
+        info_plist={
+            "CFBundleName": DISPLAY_NAME,
+            "CFBundleDisplayName": DISPLAY_NAME,
+            "CFBundleShortVersionString": VERSION,
+            "CFBundleVersion": VERSION,
+            "LSMinimumSystemVersion": "11.0",
+            "NSHighResolutionCapable": True,
+            "NSRequiresAquaSystemAppearance": False,
+        },
+    )

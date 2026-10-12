@@ -85,8 +85,7 @@ def main() -> int:
     if not _wait_for_server(base_url + "/", timeout=20.0):
         print(
             "ERROR: StampAlbum Pro server did not start in time.\n"
-            "This usually means a native dependency (WeasyPrint / Pango / Cairo) "
-            "is missing. See the README for per-OS install instructions.",
+            "Try `stamp-album --web` to see the server's own error.",
             file=sys.stderr,
         )
         return 1
