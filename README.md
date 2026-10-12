@@ -28,7 +28,7 @@ The tutorial pictures and these screenshots are made from the running app with `
 ## What it does not do yet
 
 - **No exhibition-rule checking.** The goal is pages that meet international exhibition standards, but this release does not verify compliance with any federation's rules. Check your pages against the current regulations yourself.
-- **No installers.** There is no signed macOS app or Windows installer yet. The PyInstaller specs in `packaging/` are out of date.
+- **No signed installers.** `make app` builds a macOS app, and CI builds a zipped Windows folder (see [docs/BUILD.md](docs/BUILD.md)), but neither is signed, so macOS and Windows warn the first time it is opened.
 
 ## Run from source
 
@@ -76,14 +76,14 @@ src/stamp_album/
   web/          browser UI (HTML, JS, CSS)
 assets/         sample album files
 launcher/       launch scripts for macOS, Windows and Linux
-packaging/      PyInstaller specs (known stale)
+packaging/      PyInstaller spec and a check for the built app
 docs/           architecture and build notes
 ```
 
 ## Documentation
 
 - [ARCHITECTURE.md](ARCHITECTURE.md): how the rendering pipeline fits together. Some sections predate the ReportLab engines.
-- [docs/BUILD.md](docs/BUILD.md): packaging notes (out of date, being updated)
+- [docs/BUILD.md](docs/BUILD.md): building the macOS and Windows apps
 - [CHANGELOG.md](CHANGELOG.md): what changed in each release
 
 ## Licence

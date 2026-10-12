@@ -1,49 +1,46 @@
 #!/bin/bash
-set -e
+# Build the StampAlbum Pro app with PyInstaller, check it, and zip it.
+#
+#   ./build.sh            (or: make app)
+#
+# macOS:  dist/StampAlbum Pro.app   and  dist/StampAlbumPro-macos.zip
+# Linux:  dist/StampAlbumPro/       (for checking only; not shipped)
+# Windows builds come from CI (.github/workflows/app.yml).
+#
+# Uses uv when it is installed (the locked versions), otherwise the current
+# Python with the dev extra installed (`pip install -e ".[dev]"`).
+set -euo pipefail
+cd "$(dirname "$0")"
 
-echo "========================================="
-echo "  StampAlbum Pro - macOS Build Script"
-echo "========================================="
+if command -v uv >/dev/null 2>&1; then
+    uv sync --extra dev --frozen
+    PY=(uv run --no-sync python)
+else
+    PY=(python3)
+fi
+
+echo "Building with PyInstaller..."
+"${PY[@]}" -m PyInstaller packaging/stamp_album.spec --clean --noconfirm --log-level WARN
+
+if [ "$(uname)" = "Darwin" ]; then
+    BIN="dist/StampAlbum Pro.app/Contents/MacOS/StampAlbumPro"
+else
+    BIN="dist/StampAlbumPro/StampAlbumPro"
+fi
+
 echo ""
+echo "Checking the built app..."
+"${PY[@]}" packaging/smoke_test.py "$BIN"
 
-# Check Python version
-PYTHON_VERSION=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
-echo "Python version: $PYTHON_VERSION"
-
-# No native library dependencies needed
-
-# Install dev dependencies
-echo ""
-echo "Installing dependencies..."
-pip install -e ".[dev]" -q
-
-# Clean previous builds
-echo ""
-echo "Cleaning previous builds..."
-rm -rf build/ dist/ __pycache__/ src/stamp_album/__pycache__/ src/stamp_album/*/__pycache__/
-
-# Run PyInstaller
-echo ""
-echo "Building macOS app bundle..."
-pyinstaller packaging/stamp_album.spec --clean
-
-# Verify the build
-if [ -d "dist/StampAlbum Pro.app" ]; then
+if [ "$(uname)" = "Darwin" ]; then
+    rm -f dist/StampAlbumPro-macos.zip
+    ditto -c -k --keepParent "dist/StampAlbum Pro.app" dist/StampAlbumPro-macos.zip
     echo ""
-    echo "========================================="
-    echo "  Build successful!"
-    echo "========================================="
-    echo ""
-    echo "App bundle: dist/StampAlbum Pro.app"
-    echo ""
-    echo "To run: open \"dist/StampAlbum Pro.app\""
-    echo ""
-    
-    # Show app size
-    APP_SIZE=$(du -sh "dist/StampAlbum Pro.app" | cut -f1)
-    echo "App size: $APP_SIZE"
+    echo "App:  dist/StampAlbum Pro.app ($(du -sh "dist/StampAlbum Pro.app" | cut -f1))"
+    echo "Zip:  dist/StampAlbumPro-macos.zip"
+    echo "Run:  open \"dist/StampAlbum Pro.app\""
+    echo "The app is not signed: the first time, right-click it and choose Open."
 else
     echo ""
-    echo "ERROR: Build failed. Check the output above for details."
-    exit 1
+    echo "App:  dist/StampAlbumPro/ ($(du -sh dist/StampAlbumPro | cut -f1))"
 fi

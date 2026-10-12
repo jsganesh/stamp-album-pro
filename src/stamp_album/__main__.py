@@ -11,12 +11,29 @@ from pathlib import Path
 QT_REMOVED = "The PyQt6 editor was removed. Run `stamp-album` to open the editor."
 
 
+def _frozen_setup() -> None:
+    """Prepare a PyInstaller build before anything else runs.
+
+    A windowed build (no console) starts with sys.stdout and sys.stderr set to
+    None, and uvicorn's log formatter calls sys.stdout.isatty(). Older macOS
+    versions pass a ``-psn_...`` process serial number when Finder opens an app.
+    """
+    for name in ("stdout", "stderr"):
+        if getattr(sys, name) is None:
+            setattr(sys, name, open(os.devnull, "w", encoding="utf-8"))
+    sys.argv = [sys.argv[0]] + [a for a in sys.argv[1:] if not a.startswith("-psn_")]
+
+
 def main():
     """Main entry point for the application."""
-    # Add src to path for development
-    src_path = Path(__file__).parent.parent
-    if str(src_path) not in sys.path:
-        sys.path.insert(0, str(src_path))
+    frozen = getattr(sys, "frozen", False)
+    if frozen:
+        _frozen_setup()
+    else:
+        # Add src to path for development
+        src_path = Path(__file__).parent.parent
+        if str(src_path) not in sys.path:
+            sys.path.insert(0, str(src_path))
 
     # CLI mode (headless PDF generation)
     if len(sys.argv) > 1 and sys.argv[1] in ("-c", "--cli"):
@@ -49,6 +66,18 @@ def main():
         except ImportError:
             print("ERROR: pywebview is required for desktop mode.", file=sys.stderr)
             sys.exit(1)
+
+    # The installed app (a PyInstaller build) opens its own window by default.
+    if frozen and len(sys.argv) == 1:
+        # Without pywebview there would be no window, so use the browser.
+        try:
+            import webview  # noqa: F401
+
+            from stamp_album.desktop import main as desktop_main
+        except ImportError:
+            pass
+        else:
+            sys.exit(desktop_main())
 
     from stamp_album.serve import main as serve_main
     sys.exit(serve_main())
