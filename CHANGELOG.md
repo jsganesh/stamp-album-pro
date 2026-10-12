@@ -45,6 +45,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - Undo now covers the whole album (all pages and the page size), so adding or deleting a page and Page setup can be undone
 
 ### Removed
+- **The legacy PyQt6 editor** (pending item 11): the old desktop editor in `stamp_album/ui/` (about 2,500 lines, unmaintained since the web app replaced it) and the `legacy` extra that installed PyQt6 and pytest-qt. `stamp-album --qt` and `--legacy-qt` now print that the editor was removed and exit; `stamp-album` opens the editor as before, and `--desktop` still opens it in its own window
 - The four `.slbum` starter albums in `templates/`, which the app never loaded; the starter templates are now in the Template Gallery
 - Columns and Gap controls (albums that use columns keep them when opened and saved), and Distribute and Match size, which always failed because only one stamp can be selected
 - Dead `canvas.js` (not loaded) and `events.js` (loaded but never run), both superseded by `render.js` and `init.js`

@@ -11,7 +11,7 @@
 - **Frontend:** Vanilla JS (no framework), SVG + contentEditable, single HTML file
 - **PDF generation:** PyMuPDF direct drawing (replaced WeasyPrint in v2)
 - **Font system:** fonttools for discovery, PyMuPDF for embedding
-- **Desktop (optional):** pywebview or legacy PyQt6
+- **Desktop (optional):** pywebview
 - **Tests:** pytest (~209 tests)
 
 **Project stats (source):**
@@ -119,7 +119,6 @@ stamp-album
   ├── (no args)     → serve_main() → uvicorn on :8080 + open browser
   ├── --browser     → serve_main() (explicit browser mode)
   ├── --desktop     → pywebview window
-  ├── --legacy-qt   → PyQt6 MainWindow
   ├── -c file.txt   → CLI: parse → PDFGenerator → PDF file
   └── --dev         → STAMP_ALBUM_RELOAD=1 + serve_main()
 ```

@@ -8,6 +8,8 @@ import os
 import sys
 from pathlib import Path
 
+QT_REMOVED = "The PyQt6 editor was removed. Run `stamp-album` to open the editor."
+
 
 def main():
     """Main entry point for the application."""
@@ -21,10 +23,10 @@ def main():
         _run_cli(sys.argv[2:])
         return
 
-    # Legacy PyQt6 desktop editor
+    # The PyQt6 editor was removed; say so instead of starting something else.
     if len(sys.argv) > 1 and sys.argv[1] in ("--legacy-qt", "--qt"):
-        _run_gui()
-        return
+        print(QT_REMOVED, file=sys.stderr)
+        sys.exit(1)
 
     # Browser mode (explicit)
     if len(sys.argv) > 1 and sys.argv[1] in ("--web", "-w"):
@@ -50,32 +52,6 @@ def main():
 
     from stamp_album.serve import main as serve_main
     sys.exit(serve_main())
-
-
-def _run_gui():
-    """Run the graphical user interface (legacy PyQt6 editor)."""
-    try:
-        from PyQt6.QtWidgets import QApplication
-    except ImportError:
-        print(
-            "ERROR: PyQt6 is required for the legacy desktop editor.\n"
-            "Install it with: pip install stamp-album-pro[legacy]\n"
-            "Or use the web app instead: stamp-album",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    from stamp_album.ui.main_window import MainWindow
-
-    app = QApplication(sys.argv)
-    app.setApplicationName("StampAlbum Pro")
-    app.setApplicationVersion("0.2.1")
-    app.setOrganizationName("StampAlbum")
-
-    window = MainWindow()
-    window.show()
-
-    sys.exit(app.exec())
 
 
 def _run_cli(args: list[str]):

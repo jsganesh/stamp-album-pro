@@ -52,10 +52,6 @@ dev = [
     "mypy>=1.0",
     "pyinstaller>=6.0",
 ]
-legacy = [
-    "PyQt6>=6.4",
-    "pytest-qt>=4.0",
-]
 
 [project.scripts]
 stamp-album = "stamp_album.__main__:main"
@@ -89,4 +85,3 @@ testpaths = ["src/tests"]
 addopts = "-q"
 # Pillow 14 removes Image.getdata; use image_helpers.pixels in tests.
 filterwarnings = ["error:Image.Image.getdata is deprecated:DeprecationWarning"]
-# qt_api removed — legacy PyQt6 UI is optional and triggers a warning

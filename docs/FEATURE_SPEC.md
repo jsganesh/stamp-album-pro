@@ -105,11 +105,11 @@ A modern web application for creating professional stamp album pages for display
 
 ---
 
-## Phase 3: Desktop Application (Complete — now legacy)
+## Phase 3: Desktop Application (Complete — since removed)
 
 > This phase describes the original PyQt6 desktop editor, which used
-> WeasyPrint for rendering. Per BUILD.md, this UI is legacy and no longer
-> the primary product — it's optional (`pip install -e ".[legacy]"`). The
+> WeasyPrint for rendering. It has been removed from the app; this section
+> is kept as history. The
 > current primary desktop path is the web app wrapped in pywebview, using
 > the PyMuPDF engine described in Phase 1/Technical Requirements below.
 
