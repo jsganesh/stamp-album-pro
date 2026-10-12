@@ -119,7 +119,10 @@ async def version():
     import time
 
     from stamp_album import __version__
-    return {"version": __version__ if hasattr(__import__('stamp_album'), '__version__') else "dev", "ts": int(time.time())}
+    return {
+        "version": __version__ if hasattr(__import__('stamp_album'), '__version__') else "dev",
+        "ts": int(time.time()),
+    }
 
 
 @app.get("/style.css")
@@ -354,7 +357,9 @@ async def export_album(request: ExportRequest):
 
         elif fmt == "svg":
             svg_text = SVGExporter().generate_to_string(album)
-            with tempfile.NamedTemporaryFile(suffix=".svg", delete=False, mode="w", encoding="utf-8") as tmp:
+            with tempfile.NamedTemporaryFile(
+                suffix=".svg", delete=False, mode="w", encoding="utf-8"
+            ) as tmp:
                 tmp.write(svg_text)
                 svg_path = tmp.name
             return FileResponse(
@@ -371,7 +376,9 @@ async def export_album(request: ExportRequest):
                 html_content,
             )
             gallery_html = _build_html_gallery(html_content, album)
-            with tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode="w", encoding="utf-8") as tmp:
+            with tempfile.NamedTemporaryFile(
+                suffix=".html", delete=False, mode="w", encoding="utf-8"
+            ) as tmp:
                 tmp.write(gallery_html)
                 html_path = tmp.name
             return FileResponse(
@@ -397,11 +404,14 @@ def _build_html_gallery(html_content: str, album: "Album") -> str:
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{title} — Gallery</title>
     <style>
-        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: #f5f5f5; margin: 0; padding: 20px; }}
         h1 {{ text-align: center; color: #333; margin-bottom: 30px; }}
         .gallery {{ display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }}
-        .page {{ background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 4px; overflow: hidden; }}
-        .page-label {{ text-align: center; padding: 8px; font-size: 12px; color: #666; background: #fafafa; border-top: 1px solid #eee; }}
+        .page {{ background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 4px;
+                 overflow: hidden; }}
+        .page-label {{ text-align: center; padding: 8px; font-size: 12px; color: #666;
+                       background: #fafafa; border-top: 1px solid #eee; }}
     </style>
 </head>
 <body>
@@ -644,7 +654,9 @@ async def export_from_state(req: CanvasStateRequest):
             with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
                 pdf_path = tmp.name
                 PDFGenerator().generate(album, pdf_path, base_url="http://localhost:8080")
-            filename = req.source_path.replace(".slbum", ".pdf").replace(".txt", ".pdf") or "album.pdf"
+            filename = (
+                req.source_path.replace(".slbum", ".pdf").replace(".txt", ".pdf") or "album.pdf"
+            )
             return FileResponse(
                 pdf_path, media_type="application/pdf", filename=filename,
                 background=BackgroundTask(_cleanup, pdf_path),
@@ -654,17 +666,23 @@ async def export_from_state(req: CanvasStateRequest):
             with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
                 tmp.write(png_bytes)
                 png_path = tmp.name
-            filename = req.source_path.replace(".slbum", ".png").replace(".txt", ".png") or "album.png"
+            filename = (
+                req.source_path.replace(".slbum", ".png").replace(".txt", ".png") or "album.png"
+            )
             return FileResponse(
                 png_path, media_type="image/png", filename=filename,
                 background=BackgroundTask(_cleanup, png_path),
             )
         elif fmt == "svg":
             svg_text = SVGExporter().generate_to_string(album)
-            with tempfile.NamedTemporaryFile(suffix=".svg", delete=False, mode="w", encoding="utf-8") as tmp:
+            with tempfile.NamedTemporaryFile(
+                suffix=".svg", delete=False, mode="w", encoding="utf-8"
+            ) as tmp:
                 tmp.write(svg_text)
                 svg_path = tmp.name
-            filename = req.source_path.replace(".slbum", ".svg").replace(".txt", ".svg") or "album.svg"
+            filename = (
+                req.source_path.replace(".slbum", ".svg").replace(".txt", ".svg") or "album.svg"
+            )
             return FileResponse(
                 svg_path, media_type="image/svg+xml", filename=filename,
                 background=BackgroundTask(_cleanup, svg_path),
@@ -828,17 +846,31 @@ async def auto_layout(request: AutoLayoutRequest):
             all_stamps.append(stamp)
     if not all_stamps:
         raise HTTPException(status_code=400, detail="No stamps on page")
-    strategy_map = {"row_first": LayoutStrategy.ROW_FIRST, "column_first": LayoutStrategy.COLUMN_FIRST, "grid": LayoutStrategy.GRID, "packing": LayoutStrategy.PACKING, "balanced": LayoutStrategy.BALANCED}
+    strategy_map = {
+        "row_first": LayoutStrategy.ROW_FIRST,
+        "column_first": LayoutStrategy.COLUMN_FIRST,
+        "grid": LayoutStrategy.GRID,
+        "packing": LayoutStrategy.PACKING,
+        "balanced": LayoutStrategy.BALANCED,
+    }
     strategy = strategy_map.get(request.strategy, LayoutStrategy.ROW_FIRST)
     ps = album.page_setup
     content_width = ps.width - ps.margin_left - ps.margin_right
     from stamp_album.engines.layout_engine import LayoutEngine
     engine = LayoutEngine(ps)
-    result = engine.auto_arrange_stamps(all_stamps, max_width=content_width, spacing=request.spacing, strategy=strategy)
+    result = engine.auto_arrange_stamps(
+        all_stamps, max_width=content_width, spacing=request.spacing, strategy=strategy
+    )
     page.rows = result.rows
     page.content_flow = [("row", row) for row in result.rows]
     updated_dsl = serializer.to_dsl(album)
-    return {"dsl": updated_dsl, "strategy": request.strategy, "rows_created": len(result.rows), "stamps_arranged": sum(len(r.stamps) for r in result.rows), "fits_on_page": result.fits_on_page}
+    return {
+        "dsl": updated_dsl,
+        "strategy": request.strategy,
+        "rows_created": len(result.rows),
+        "stamps_arranged": sum(len(r.stamps) for r in result.rows),
+        "fits_on_page": result.fits_on_page,
+    }
 
 
 # ============================================================
@@ -853,14 +885,19 @@ async def import_stamps_excel(file: UploadFile = File(...)):
     try:
         import openpyxl
     except ImportError:
-        raise HTTPException(status_code=500, detail="openpyxl not installed. Run: pip install openpyxl")
+        raise HTTPException(
+            status_code=500, detail="openpyxl not installed. Run: pip install openpyxl"
+        )
     content = await file.read()
     try:
         wb = openpyxl.load_workbook(filename=__import__("io").BytesIO(content))
         ws = wb.active
         rows = list(ws.iter_rows(values_only=True))
         if len(rows) < 2:
-            raise HTTPException(status_code=400, detail="Excel file must have a header row and at least one data row")
+            raise HTTPException(
+                status_code=400,
+                detail="Excel file must have a header row and at least one data row",
+            )
         import csv
         import io
         output = io.StringIO()
@@ -898,18 +935,26 @@ async def websocket_preview(websocket: WebSocket):
                 if msg_type == "render":
                     dsl = msg.get("dsl", "")
                     if not dsl.strip():
-                        await websocket.send_json({"type": "preview", "html": "", "status": "empty"})
+                        await websocket.send_json(
+                            {"type": "preview", "html": "", "status": "empty"}
+                        )
                         continue
                     try:
                         album = parser.parse(dsl)
                         renderer = HTMLRenderer(album, None)
                         html = renderer.render()
                         warnings = parser.validate(album)
-                        await websocket.send_json({"type": "preview", "html": html, "status": "ok", "warnings": warnings})
+                        await websocket.send_json(
+                            {"type": "preview", "html": html, "status": "ok", "warnings": warnings}
+                        )
                     except ParseError as e:
-                        await websocket.send_json({"type": "error", "message": str(e), "line": e.line_number})
+                        await websocket.send_json(
+                            {"type": "error", "message": str(e), "line": e.line_number}
+                        )
                     except Exception as e:
-                        await websocket.send_json({"type": "error", "message": "Render error: " + str(e)})
+                        await websocket.send_json(
+                            {"type": "error", "message": "Render error: " + str(e)}
+                        )
                 elif msg_type == "ping":
                     await websocket.send_json({"type": "pong"})
                 elif msg_type == "validate":
@@ -917,9 +962,13 @@ async def websocket_preview(websocket: WebSocket):
                     try:
                         album = parser.parse(dsl)
                         warnings = parser.validate(album)
-                        await websocket.send_json({"type": "validation", "valid": True, "warnings": warnings})
+                        await websocket.send_json(
+                            {"type": "validation", "valid": True, "warnings": warnings}
+                        )
                     except ParseError as e:
-                        await websocket.send_json({"type": "validation", "valid": False, "error": str(e)})
+                        await websocket.send_json(
+                            {"type": "validation", "valid": False, "error": str(e)}
+                        )
             except json.JSONDecodeError:
                 await websocket.send_json({"type": "error", "message": "Invalid JSON"})
             except Exception as e:
@@ -1095,7 +1144,12 @@ async def api_revoke_share(share_id: str, request: Request):
 async def list_templates():
     """List all available album templates."""
     return [
-        {"id": t["id"], "name": t["name"], "description": t["description"], "category": t.get("category", "General")}
+        {
+            "id": t["id"],
+            "name": t["name"],
+            "description": t["description"],
+            "category": t.get("category", "General"),
+        }
         for t in TEMPLATES
     ]
 
@@ -1105,7 +1159,12 @@ async def get_template(template_id: str):
     """Get a specific template by ID."""
     for t in TEMPLATES:
         if t["id"] == template_id:
-            return {"id": t["id"], "name": t["name"], "description": t["description"], "dsl": t["content"]}
+            return {
+                "id": t["id"],
+                "name": t["name"],
+                "description": t["description"],
+                "dsl": t["content"],
+            }
     raise HTTPException(status_code=404, detail="Template not found")
 
 
