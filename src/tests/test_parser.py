@@ -261,15 +261,15 @@ class TestStampCommands:
         source = (
             "PAGE_START\n"
             "ROW_START_FS (HN 6 0.1 6.0)\n"
-            'STAMP_ADD (32.0 37.0 "2 1/2d deep blue" "sg 1" "" "sacc 1")'
+            'STAMP_ADD (19.0 22.0 "1d black" "StampWorld 1" "" "")'
         )
         album = parser.parse(source)
         row = album.pages[0].rows[0]
         assert len(row.stamps) == 1
         stamp = row.stamps[0]
-        assert stamp.width == 32.0
-        assert stamp.height == 37.0
-        assert stamp.description == "2 1/2d deep blue"
+        assert stamp.width == 19.0
+        assert stamp.height == 22.0
+        assert stamp.description == "1d black"
         assert stamp.shape == StampShape.RECTANGLE
 
     def test_stamp_add_blank(self, parser):
@@ -394,15 +394,15 @@ PAGE_TEXT (HN 10 "Introduction text goes here.")
 PAGE_TEXT_CENTRE (HS 12 "Section Heading")
 
 ROW_START_FS (HN 8 0.5 6.0)
-STAMP_ADD (32.0 37.0 "2 1/2d deep blue" "sg 1" "" "sacc 1")
-STAMP_ADD (32.0 37.0 "2 1/2d blue" "sg 2" "" "sacc 1a")
+STAMP_ADD (19.0 22.0 "1d black" "StampWorld 1" "" "")
+STAMP_ADD (19.0 22.0 "2d blue" "StampWorld 2" "" "")
 
 PAGE_START
 
 PAGE_TEXT_CENTRE (HN 12 "Second Page")
 
 ROW_START_FS (HN 8 0.5 6.0)
-STAMP_ADD (25.0 28.0 "1d green" "sg 3" "" "sacc 2")
+STAMP_ADD (19.0 22.0 "1d red-brown" "StampWorld 3" "" "")
 """
         album = parser.parse(source)
 

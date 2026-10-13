@@ -1,5 +1,11 @@
 # AlbumEasy DSL Command Reference
 
+> This page lists the AlbumEasy commands found in my own album files, so that
+> StampAlbum Pro can open them. AlbumEasy is free stamp-album software by
+> Clive Levinson (Bundu Technology Ltd., www.theStampWeb.com); its own
+> documentation is the authoritative description of these commands. See the
+> Acknowledgements section of the README.
+
 > Extracted from user's 6 albums (Tristan da Cunha, Bahrain, BAT, Christmas Island, Guernsey, Pakistan)
 > These are the commands StampAlbum Pro needs to support for import compatibility.
 

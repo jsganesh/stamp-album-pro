@@ -249,21 +249,23 @@ ALBUM_DEFINE_FONT (MY "My Custom Font")
 
 ## Example Album
 ```
-# Union of South Africa Album
-ALBUM_PAGES_SIZE (215.9 279.4)
-ALBUM_PAGES_MARGINS (25.0 12.0 15.0 15.0)
-ALBUM_PAGES_BORDER (0.1 0.5 0.1 1.0)
-ALBUM_PAGES_TITLE (TB 16 "Union of South Africa")
-ALBUM_PAGES_SPACING (6.0 6.0)
+# Great Britain: The First Stamps
+ALBUM_PAGES_SIZE (210.0 297.0)
+ALBUM_PAGES_MARGINS (20.0 15.0 15.0 15.0)
+ALBUM_PAGES_BORDER (0.5 0.1 0.0 1.0)
+ALBUM_PAGES_TITLE (TB 16 "Great Britain")
+ALBUM_PAGES_SPACING (8.0 8.0)
 
 PAGE_START
 
-PAGE_TEXT (HN 10 "The Cape of Good Hope, Natal, the Orange Free State and "\
-                 "Transvaal were united on the 31st of May 1910...")
+PAGE_TEXT_CENTRE (HB 12 "The First Postage Stamps\nLine-engraved, imperforate, 1840")
 
-PAGE_TEXT_CENTRE (HS 12 "4 November 1910\nInauguration of The Union Parliament.")
+PAGE_TEXT (HN 10 "Uniform Penny Postage began on 10 January 1840. "\
+                 "Prepaid adhesive stamps followed in May.")
 
-ROW_START_FS (HN 6 0.1 6.0)
-STAMP_ADD (32.0 37.0 "2 1/2d \n deep blue \n blue surface" "sg 1" "" "sacc 1")
-STAMP_ADD (32.0 37.0 "2 1/2d \n blue \n white surface" "sg 2" "" "sacc 1a")
+ROW_START_FS (HN 8 0.5 8.0)
+STAMP_ADD (19.0 22.0 "1d \n black" "StampWorld 1" "" "")
+STAMP_ADD (19.0 22.0 "2d \n blue" "StampWorld 2" "" "")
 ```
+
+A longer version is in `assets/templates/sample_album.txt`.
