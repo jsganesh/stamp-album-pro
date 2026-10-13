@@ -19,6 +19,7 @@ Design and print stamp album pages. StampAlbum Pro pairs a drag-and-drop page ca
 - **Starter templates:** four exhibition-style pages in the wizard's Template Gallery: Single stamp, Set row, Title page and Exhibition page
 - **DSL mode:** an advanced text view of the same page, for precise or bulk editing
 - **Export:** PDF, PNG and SVG
+- **Print calibration page:** a PDF with rulers, a measured square and sample frames, to check your printer prints 1 mm as 1 mm (File › Print calibration page…)
 - **Album files:** create, open, save and delete `.slbum` albums from the sidebar
 
 ![DSL editor](docs/screenshots/04-dsl-editor.png)

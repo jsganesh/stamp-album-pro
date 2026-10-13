@@ -16,7 +16,7 @@ from fastapi import (
     WebSocket,
     WebSocketDisconnect,
 )
-from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
+from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse, Response
 from pydantic import BaseModel
 
 from stamp_album.cloud_sync import (
@@ -44,6 +44,7 @@ from stamp_album.collection import (
 from stamp_album.core.models import Album
 from stamp_album.core.parser import AlbumParser, ParseError
 from stamp_album.core.serializer import AlbumSerializer
+from stamp_album.engines import calibration
 from stamp_album.engines.html_renderer import HTMLRenderer
 from stamp_album.engines.pdf import PDFGenerator
 from stamp_album.engines.raster import PNGGenerator
@@ -699,6 +700,22 @@ async def export_from_state(req: CanvasStateRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Export error: {e}")
+
+
+@app.get("/calibration.pdf")
+async def calibration_pdf(paper: str = "a4"):
+    """The print calibration page for one paper size (see engines/calibration.py)."""
+    from stamp_album import __version__
+
+    key = paper.lower()
+    if key not in calibration.PAPERS:
+        raise HTTPException(status_code=400, detail=f"Unknown paper size: {paper}")
+    pdf = calibration.generate_pdf(key, version=f"v{__version__}")
+    return Response(
+        pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="calibration-{key}.pdf"'},
+    )
 
 
 # ============================================================

@@ -358,6 +358,7 @@ function init() {
 
     // ── Page setup / Grid ──
     S.wirePageSetup();
+    S.wireCalibration();
     S.wireFitPrompt();
     $("grid").addEventListener("change", function() {
         S._sn = parseInt(this.value) || 0;
