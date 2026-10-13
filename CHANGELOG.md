@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+- **Security policy** (`SECURITY.md`): how to report a vulnerability privately (GitHub's Report a vulnerability, or email), the 7-day reply, which versions get fixes, and how the app is meant to run: on `127.0.0.1` by default, and only on a trusted network when `STAMP_ALBUM_HOST` opens it to other devices
+
+### Changed
+- Dependabot updates Python packages with its `uv` support, so `pyproject.toml` and `uv.lock` change together; the template's npm and Docker entries, for files this repository doesn't have, are removed
+
 ## [0.3.1] - 2026-10-14
 
 Adds a print calibration page, and releases are now published from a tag.
