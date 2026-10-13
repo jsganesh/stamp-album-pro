@@ -2,10 +2,13 @@ name: App build
 # Builds the macOS app and the Windows folder with PyInstaller, runs the
 # built app (packaging/smoke_test.py), and keeps both as zipped artifacts.
 # Runs on demand and when the packaging or the app's start-up changes.
+# Pushing a v* tag also publishes a GitHub release with both zips attached,
+# its notes taken from that version's CHANGELOG section (tools/release_notes.py).
 on:
   workflow_dispatch:
   push:
     branches: [main]
+    tags: ["v*"]   # path filters don't apply to tag pushes
     paths:
       - packaging/**
       - pyproject.toml
@@ -62,3 +65,28 @@ jobs:
           name: StampAlbumPro-${{ matrix.name }}
           path: StampAlbumPro-${{ matrix.name }}.zip
           retention-days: 30
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Release notes from CHANGELOG.md
+        run: python3 tools/release_notes.py "$GITHUB_REF_NAME" > release-notes.md
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # 0.x versions are alphas, so they go out as pre-releases.
+          case "$GITHUB_REF_NAME" in v0.*) pre=--prerelease ;; *) pre= ;; esac
+          gh release create "$GITHUB_REF_NAME" $pre --verify-tag \
+            --title "StampAlbum Pro $GITHUB_REF_NAME" \
+            --notes-file release-notes.md \
+            dist/StampAlbumPro-macos.zip dist/StampAlbumPro-windows.zip
