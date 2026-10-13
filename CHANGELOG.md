@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-14
+
+Adds a print calibration page, and releases are now published from a tag.
+
+### Known issues
+- The macOS app and the Windows folder are not signed, so macOS and Windows warn the first time they are opened (on a Mac: right-click › Open; on Windows: More info › Run anyway)
+- The macOS app is built for Apple silicon only
+- The Windows app is built and checked in CI but has not been tried by hand
+- The launch scripts in `launcher/` have not been tested for this release
+- Dependency licences have not been audited
+
 ### Added
 - **Print calibration page** (File › Print calibration page…): a one-page PDF to print at 100% and measure, to check that the printer prints 1 mm as 1 mm. It has a ruler across and a ruler down the page with 1 mm ticks, a 100 mm square (50 mm on A5), corner marks 5 mm and 10 mm from each edge that show the printer's unprintable margin, and three Penny Black-size stamps (19 × 22 mm) with the Thin, Medium and Double frames and their captions, drawn by the same code as the PDF export. The paper size (A3, A4, A5, Letter or Legal) starts as the album's. There is no correction factor: a page that measures wrong needs the print dialog's scaling changed. Served at `/calibration.pdf?paper=a4` (`engines/calibration.py`)
 - **Releases from a tag**: pushing a `v*` tag now builds the macOS app and the Windows folder, checks them as before, and publishes a GitHub release with both zips attached. The notes are that version's section of this changelog (`tools/release_notes.py`), after a short Downloads section; 0.x versions go out as pre-releases. A tag whose version has no changelog section fails the release
