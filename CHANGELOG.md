@@ -4,6 +4,9 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+- **Print calibration page** (File › Print calibration page…): a one-page PDF to print at 100% and measure, to check that the printer prints 1 mm as 1 mm. It has a ruler across and a ruler down the page with 1 mm ticks, a 100 mm square (50 mm on A5), corner marks 5 mm and 10 mm from each edge that show the printer's unprintable margin, and three Penny Black-size stamps (19 × 22 mm) with the Thin, Medium and Double frames and their captions, drawn by the same code as the PDF export. The paper size (A3, A4, A5, Letter or Legal) starts as the album's. There is no correction factor: a page that measures wrong needs the print dialog's scaling changed. Served at `/calibration.pdf?paper=a4` (`engines/calibration.py`)
+
 ## [0.3.0] - 2026-10-14
 
 The editor is now the web app only, with app builds for macOS and Windows, exhibition-style stamp frames and captions, themes and page borders, and exports that match the editor.

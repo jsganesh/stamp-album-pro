@@ -504,6 +504,10 @@ def test_menu_items_reach_their_actions(page):
     page.click("#menu-page-setup")
     assert page.is_visible("#page-setup-overlay")
     page.click("#ps-cancel")
+    page.click("#menu-file-btn")
+    page.click("#menu-calibration")
+    assert page.is_visible("#calibration-overlay")
+    page.click("#cal-cancel")
     assert page.locator("#menu-file [data-fmt]").count() == 4, (
         "File menu lists PDF, PNG, SVG and HTML export"
     )
@@ -833,3 +837,27 @@ def test_palette_hint_returns_after_repeated_clicks_on_a_blank_page(page):
     for i in range(3):
         page.mouse.click(box["x"] + 40 + i * 5, box["y"] + 40)
     assert _hint_visible(page)
+
+
+# ── Print calibration page ──
+
+def test_calibration_page_starts_at_the_album_paper_and_downloads_a_pdf(page):
+    _load(page, "ALBUM_PAGES_SIZE(148 210)\\nPAGE_START")
+    page.click("#menu-file-btn")
+    page.click("#menu-calibration")
+    assert page.input_value("#cal-paper") == "a5", "starts at the album's paper size"
+    page.select_option("#cal-paper", "letter")
+    with page.expect_download() as dl:
+        page.click("#cal-download")
+    assert dl.value.suggested_filename == "calibration-letter.pdf"
+    with open(dl.value.path(), "rb") as f:
+        assert f.read(4) == b"%PDF"
+    assert not page.is_visible("#calibration-overlay")
+    assert page.js_errors == []
+
+
+def test_calibration_dialog_closes_with_escape(page):
+    page.click("#menu-file-btn")
+    page.click("#menu-calibration")
+    page.keyboard.press("Escape")
+    assert not page.is_visible("#calibration-overlay")
