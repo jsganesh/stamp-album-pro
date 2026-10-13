@@ -4,6 +4,9 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+- **Releases from a tag**: pushing a `v*` tag now builds the macOS app and the Windows folder, checks them as before, and publishes a GitHub release with both zips attached. The notes are that version's section of this changelog (`tools/release_notes.py`), after a short Downloads section; 0.x versions go out as pre-releases. A tag whose version has no changelog section fails the release
+
 ## [0.3.0] - 2026-10-14
 
 The editor is now the web app only, with app builds for macOS and Windows, exhibition-style stamp frames and captions, themes and page borders, and exports that match the editor.
