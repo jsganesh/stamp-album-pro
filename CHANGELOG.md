@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-14
+
+The editor is now the web app only, with app builds for macOS and Windows, exhibition-style stamp frames and captions, themes and page borders, and exports that match the editor.
+
+### Known issues
+- The macOS app and the Windows folder are not signed, so macOS and Windows warn the first time they are opened (on a Mac: right-click › Open; on Windows: More info › Run anyway)
+- The macOS app is built for Apple silicon only
+- The Windows app is built and checked in CI but has not been tried by hand
+- The launch scripts in `launcher/` have not been tested for this release
+- Dependency licences have not been audited
+
 ### Added
 - **Acknowledgements** in the README: the page-description language follows AlbumEasy's command syntax, by Clive Levinson. The sample album (`assets/templates/sample_album.txt`), the example in `docs/DSL_SPEC.md` and a parser test now use new Great Britain 1840 to 1841 pages, the same stamps as the first-run sample, in place of an example adapted from AlbumEasy's own sample album
 - **App build for macOS and Windows** (pending item 11): one PyInstaller spec, `packaging/stamp_album.spec`, builds the current app: the web editor in its own window (pywebview), with the editor files, caption fonts and every module it needs. Opened with no arguments, the built app opens its own window, and it falls back to the browser if the window can't open; `--cli` and `--web` work as from source. `make app` (or `./build.sh`) builds, checks and zips the macOS app. A new **App build** workflow builds the macOS app and a zipped Windows folder on GitHub, runs each built app (`packaging/smoke_test.py`: a CLI PDF, then the editor page, fonts and PDF/PNG exports from the built server), and keeps both zips as artifacts; it runs when packaging or start-up code changes, or on demand. The apps are not signed yet. `docs/BUILD.md` is rewritten for the current app
