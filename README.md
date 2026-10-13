@@ -86,6 +86,12 @@ docs/           architecture and build notes
 - [docs/BUILD.md](docs/BUILD.md): building the macOS and Windows apps
 - [CHANGELOG.md](CHANGELOG.md): what changed in each release
 
+## Acknowledgements
+
+StampAlbum Pro's page-description language follows the command syntax of **AlbumEasy**, the free stamp-album software written by Clive Levinson (Bundu Technology Ltd., [theStampWeb.com](http://www.thestampweb.com)) since 2005. AlbumEasy showed that a plain-text description could produce well-formatted album pages, and years of my own album pages were made with it. StampAlbum Pro reads AlbumEasy-style album files so that work carries forward, and keeps AlbumEasy's command names and font codes (TN, HB, …) for that reason. My thanks to Clive for the idea and for many years of AlbumEasy.
+
+StampAlbum Pro is a separate program written from scratch in Python and JavaScript. It contains no AlbumEasy source code, artwork or fonts, and it is not affiliated with or endorsed by AlbumEasy. AlbumEasy is licensed under the GNU GPL v3.
+
 ## Licence
 
 MIT, see [LICENSE](LICENSE).

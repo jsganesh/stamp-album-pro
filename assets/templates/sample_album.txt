@@ -1,97 +1,79 @@
 ################################################################################
 # StampAlbum Pro - Sample Album
 #
-# This is a sample album file demonstrating the DSL syntax.
-# Comments start with # and are ignored.
+# A short album in the row-based page description (DSL). Each STAMP_ADD gives
+# the stamp's width and height in millimetres, its description, then up to
+# three catalogue references. Comments start with # and are ignored.
+#
+# Catalogue numbers are StampWorld's (Great Britain 1 to 3), the same stamps
+# as the app's first-run sample page.
 ################################################################################
 
 # Document metadata
-ALBUM_TITLE ("Union of South Africa")
+ALBUM_TITLE ("Great Britain: The Line-Engraved Issues")
 ALBUM_AUTHOR ("StampAlbum Pro Sample")
 
-# Page setup - US Letter size
-ALBUM_PAGES_SIZE (215.9 279.4)
+# Page setup - A4
+ALBUM_PAGES_SIZE (210.0 297.0)
 
 # Margins (left, right, top, bottom)
-ALBUM_PAGES_MARGINS (25.0 12.0 15.0 15.0)
+ALBUM_PAGES_MARGINS (20.0 15.0 15.0 15.0)
 
-# Triple line border
-ALBUM_PAGES_BORDER (0.1 0.5 0.1 1.0)
+# Double line border
+ALBUM_PAGES_BORDER (0.5 0.1 0.0 1.0)
 
-# Spacing between elements
-ALBUM_PAGES_SPACING (6.0 6.0)
+# Spacing between elements (horizontal, vertical)
+ALBUM_PAGES_SPACING (8.0 8.0)
 
 # Page title
-ALBUM_PAGES_TITLE (TB 16 "Union of South Africa")
+ALBUM_PAGES_TITLE (TB 16 "Great Britain")
 
 # Define a custom font
 ALBUM_DEFINE_FONT (MY "DejaVu Serif")
 
-# Set colors
+# Set colours
 COLOUR_ALBUM_TITLE (navy)
-COLOUR_ALBUM_BORDER (darkred)
+COLOUR_ALBUM_BORDER (black)
 
 # ============================================================================
-# Page 1
+# Page 1 - The 1840 issue
 # ============================================================================
 
 PAGE_START
 
-PAGE_TEXT (HN 10 "The Cape of Good Hope, Natal, the Orange Free State and " \
-                 "Transvaal were united on the 31st of May 1910 to form " \
-                 "The Union of South Africa.")
-
-PAGE_TEXT_CENTRE (HS 12 "4 November 1910")
-PAGE_TEXT_CENTRE (HN 12 "Inauguration of The Union Parliament")
+PAGE_TEXT_CENTRE (HB 12 "The First Postage Stamps")
+PAGE_TEXT_CENTRE (HN 10 "Line-engraved, imperforate, 1840")
 
 # Horizontal rule
 PAGE_RULE_H (0.5 3 0)
 
-PAGE_TEXT_CENTRE (HN 10 "First Definitives")
+PAGE_TEXT (HN 10 "Uniform Penny Postage began on 10 January 1840. Prepaid " \
+                 "adhesive stamps followed in May: the Penny Black for " \
+                 "letters up to half an ounce, and the Twopence Blue for " \
+                 "letters up to one ounce.")
 
 # Row of stamps
-ROW_START_FS (HN 8 0.5 6.0)
+ROW_START_FS (HN 8 0.5 8.0)
 
-STAMP_ADD (32.0 37.0 "2 1/2d deep blue" "sg 1" "" "sacc 1")
-STAMP_ADD (32.0 37.0 "2 1/2d blue white surface" "sg 2" "" "sacc 1a")
-STAMP_ADD (32.0 37.0 "3d black & orange-red" "sg 3" "" "sacc 2")
-STAMP_ADD (32.0 37.0 "4d orange-yellow" "sg 4" "" "sacc 3")
-
-# Another row
-ROW_START_FS (HN 8 0.5 6.0)
-
-STAMP_ADD (25.0 28.0 "1d rose red" "sg 5" "" "sacc 4")
-STAMP_ADD (25.0 28.0 "2d dull purple" "sg 6" "" "sacc 5")
-STAMP_ADD (25.0 28.0 "6d black & violet" "sg 7" "" "sacc 6")
-STAMP_ADD (25.0 28.0 "1s orange" "sg 8" "" "sacc 7")
+STAMP_ADD (19.0 22.0 "1d black" "StampWorld 1" "" "")
+STAMP_ADD (19.0 22.0 "2d blue" "StampWorld 2" "" "")
 
 # ============================================================================
-# Page 2
+# Page 2 - The 1841 change of colour
 # ============================================================================
 
 PAGE_START
 
-PAGE_TEXT_CENTRE (HS 14 "King's Heads - George V")
-PAGE_TEXT_CENTRE (HN 12 "First Definitives 1913 - 1921")
+PAGE_TEXT_CENTRE (HB 12 "The Penny Red")
+PAGE_TEXT_CENTRE (HN 10 "1841")
 
 PAGE_RULE_H (0.3 3 0)
 
-ROW_START_FS (HN 7 0.3 5.0)
+PAGE_TEXT (HN 10 "Red cancellations were hard to see on the Penny Black, " \
+                 "and they could be cleaned off for re-use. In 1841 the " \
+                 "penny stamp was printed in red-brown and cancelled in " \
+                 "black ink instead.")
 
-STAMP_ADD (25.0 28.0 "1/2d green" "sg 3" "" "sacc 2")
-STAMP_ADD (25.0 28.0 "1d rose red" "sg 4" "" "sacc 3")
-STAMP_ADD (25.0 28.0 "1 1/2d chestnut" "sg 5" "" "sacc 4")
-STAMP_ADD (25.0 28.0 "2d dull purple" "sg 6" "" "sacc 5")
+ROW_START_FS (HN 8 0.5 8.0)
 
-ROW_START_FS (HN 7 0.3 5.0)
-
-STAMP_ADD (25.0 28.0 "2 1/2d bright blue" "sg 7" "" "sacc 6")
-STAMP_ADD (25.0 28.0 "3d ultramarine" "sg 9" "" "sacc 8")
-STAMP_ADD (25.0 28.0 "4d orange-yellow & olive-green" "sg 10" "" "sacc 9")
-
-ROW_START_FS (HN 7 0.3 5.0)
-
-STAMP_ADD (25.0 28.0 "6d black & violet" "sg 11" "" "sacc 10")
-STAMP_ADD (25.0 28.0 "1s orange" "sg 12" "" "sacc 11")
-STAMP_ADD (25.0 28.0 "2s 6d purple & green" "sg 14" "" "sacc 13")
-STAMP_ADD (25.0 28.0 "5s purple & blue" "sg 15" "" "sacc 14")
+STAMP_ADD (19.0 22.0 "1d red-brown" "StampWorld 3" "" "")
