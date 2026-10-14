@@ -36,16 +36,22 @@ def _settle(pg):
 def test_page_on_whole_pixels(page, name):
     w_mm, h_mm = SIZES[name]
     page.evaluate(f"StampAlbum.applyPageSize({w_mm}, {h_mm})")
+    page.evaluate("StampAlbum.setZoomMode('fit-page')")  # any zoom, fractional ones too
     for width in WIDTHS:
         page.set_viewport_size({"width": width, "height": 900})
         _settle(page)
         left, top, w, h = _origin(page)
         assert _on_device_pixel(left, 1) and _on_device_pixel(top, 1), (name, width, left, top)
-        # The page keeps 2.5 px per mm, shown at the zoom (Fit width shrinks it in narrow windows).
+        # The page keeps 2.5 px per mm, shown at the zoom.
         z = page.evaluate("StampAlbum.zoom")
         assert abs(w - w_mm * 2.5 * z) < 1e-3 and abs(h - h_mm * 2.5 * z) < 1e-3, (name, width, z)
-        if width == 1500 and name != "A4 landscape":
-            assert z == 1, (name, width, z)
+    # At Actual size it is exactly 2.5 px per mm.
+    page.evaluate("StampAlbum.setZoomMode('actual')")
+    page.set_viewport_size({"width": 1500, "height": 900})
+    _settle(page)
+    left, top, w, h = _origin(page)
+    assert _on_device_pixel(left, 1) and _on_device_pixel(top, 1), (name, left, top)
+    assert abs(w - w_mm * 2.5) < 1e-3 and abs(h - h_mm * 2.5) < 1e-3, (name, w, h)
 
 
 def test_page_snaps_when_a_panel_changes_the_space(page):

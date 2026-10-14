@@ -182,7 +182,7 @@ def test_status_bar_returns_from_a_free_zoom_to_fit_width(phone):
     _empty(phone)
     x, y = _paper_point(phone)
     _pinch(phone, [x, y], [x + 40, y], [x - 20, y], [x + 60, y])
-    assert "fit the width" in phone.get_attribute("#sb-zoom", "aria-label")
+    assert "fit the page to the window" in phone.get_attribute("#sb-zoom", "aria-label")
     phone.evaluate("document.getElementById('sb-zoom').click()")
     _settle(phone)
     assert phone.evaluate("StampAlbum.zoomMode") == "fit-width"
@@ -257,15 +257,15 @@ def test_zoom_keys_and_menu(page):
     assert page.evaluate("StampAlbum.zoom") == 1.25
     page.evaluate("document.getElementById('menu-zoom-out').click()")
     assert page.evaluate("StampAlbum.zoom") == 1.1
-    page.keyboard.press("Control+0")
-    assert page.evaluate("StampAlbum.zoomMode") == "fit-width"
-    assert page.evaluate("StampAlbum.zoom") == 1
+    page.keyboard.press("Control+0")  # the default fit: the whole page on a computer
+    assert page.evaluate("StampAlbum.zoomMode") == "fit-page"
+    assert page.evaluate("StampAlbum.zoom") > 1
     # Typing in a field is left alone.
     eid = _add_item(page)
     page.evaluate(f"StampAlbum.select({eid!r})")
     page.focus("#plbl")
     page.keyboard.press("Control+=")
-    assert page.evaluate("StampAlbum.zoomMode") == "fit-width"
+    assert page.evaluate("StampAlbum.zoomMode") == "fit-page"
 
 
 def test_safari_gesture_events_zoom_the_page(page):

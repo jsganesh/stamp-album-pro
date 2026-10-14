@@ -170,6 +170,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 /* Grid lines overlay */
 #grid-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
 #grid-overlay svg { width: 100%; height: 100%; }
+/* Dots at rest; lines while an item is dragged or resized, or dragged in from the palette. */
+#grid-overlay .grid-lines { display: none; }
+#page.moving #grid-overlay .grid-lines, #page.drag-over #grid-overlay .grid-lines { display: inline; }
+#page.moving #grid-overlay .grid-dots, #page.drag-over #grid-overlay .grid-dots { display: none; }
 
 /* ── Alignment guides ── */
 .guide-line { position: absolute; pointer-events: none; z-index: 50; }

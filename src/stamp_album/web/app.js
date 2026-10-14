@@ -249,25 +249,45 @@ function renderPageDots() {
     }
 }
 
-// ── Grid lines ──
+// ── Grid ──
+// At rest, a faint dot at every snap point (multiples of the snap step, from the
+// page's top left). While an item is dragged or resized, or a palette item is
+// dragged over the page, the full lines show instead (style.css: #page.moving,
+// #page.drag-over). Dots and lines keep their size on screen at any zoom.
+// The grid is never printed or exported.
+var GRID_DOT_R = 0.9;  // dot radius, screen px
 function updateGrid() {
     var svg = $("grid-overlay");
     if (!svg) return;
-    var pattern = svg.querySelector("#grid-pattern");
-    if (!pattern) return;
+    var lines = svg.querySelector("#grid-pattern"), dots = svg.querySelector("#grid-dots");
+    if (!lines || !dots) return;
     if (_sn > 0) {
-        var gs = _sn * _sc;
-        pattern.setAttribute("width", gs);
-        pattern.setAttribute("height", gs);
-        var path = pattern.querySelector("path");
+        var gs = _sn * _sc, h = gs / 2, z = S.zoom || 1;
+        [lines, dots].forEach(function(p) {
+            // Offset by half a cell so the marks drawn in the cell's middle land on its corners.
+            p.setAttribute("width", gs); p.setAttribute("height", gs);
+            p.setAttribute("x", -h); p.setAttribute("y", -h);
+        });
+        var path = lines.querySelector("path");
         if (path) {
-            var h = gs / 2;
             path.setAttribute("d", "M " + h + " 0 L " + h + " " + gs + " M 0 " + h + " L " + gs + " " + h);
+            path.setAttribute("stroke-width", String(1 / z));
+        }
+        var dot = dots.querySelector("circle");
+        if (dot) {
+            dot.setAttribute("cx", h); dot.setAttribute("cy", h);
+            dot.setAttribute("r", String(GRID_DOT_R / z));
         }
         svg.style.display = "block";
     } else {
         svg.style.display = "none";
     }
+}
+
+// Show the grid's lines while an item moves (on), dots again when it stops (off).
+function gridMoving(on) {
+    var pg = $("page");
+    if (pg) pg.classList.toggle("moving", !!on);
 }
 
 
@@ -593,6 +613,7 @@ Object.defineProperties(S, {
     updateTitle: { value: updateTitle }, switchPage: { value: switchPage },
     addPage: { value: addPage }, deletePage: { value: deletePage },
     renderPageDots: { value: renderPageDots }, updateGrid: { value: updateGrid },
+    gridMoving: { value: gridMoving },
     newAlbum: { value: newAlbum },     // loadFileList/saveFile/uploadImageFile/loadImageList defined in files.js
     buildCanvasState: { value: buildCanvasState }, openPreview: { value: openPreview },
     schedulePreviewRefresh: { value: schedulePreviewRefresh }, refreshPreview: { value: refreshPreview },
