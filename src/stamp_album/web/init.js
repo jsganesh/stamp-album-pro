@@ -88,6 +88,7 @@ function init() {
 
     document.addEventListener("mousemove", function(e) {
         if (!S._drg || !S._dragEl) return;
+        S.gridMoving(true);
         var d = dragDelta(e.clientX, e.clientY);
         var dx = d.x, dy = d.y;
         var h = S._dragH, x = S._ds.ox, y = S._ds.oy, w = S._ds.ow, oh = S._ds.oh;
@@ -117,6 +118,7 @@ function init() {
     });
 
     document.addEventListener("mouseup", function() {
+        S.gridMoving(false);
         if (S._drg && S._dragEl) { pushUndo(); }
         S._drg = false;
         S._dragEl = null;
@@ -655,6 +657,7 @@ function init() {
         if (S.pinchEvent) S.pinchEvent(e);
         if (e.touches.length > 1) { cancelTouchDrag(); return; }
         if (!S._drg || !S._dragEl) return;
+        S.gridMoving(true);
         var touch = e.touches[0];
         // Same as the mouse: snap to the grid in mm (it used to snap to 5 px and ignore Snap Off).
         var d = dragDelta(touch.clientX, touch.clientY);
@@ -684,6 +687,7 @@ function init() {
             touchEl.removeEventListener("touchcancel", onItemTouchEnd);
             touchEl = null;
         }
+        S.gridMoving(false);
         if (S._drg && S._dragEl) { pushUndo(); }
         S._drg = false;
         S._dragEl = null;
@@ -693,6 +697,7 @@ function init() {
     // item goes back where it was, with no undo step.
     function cancelTouchDrag() {
         if (!S._drg || !S._dragEl) return;
+        S.gridMoving(false);
         var el = S._dragEl;
         el.x = S._ds.ox; el.y = S._ds.oy; el.w = S._ds.ow; el.h = S._ds.oh;
         S._drg = false;

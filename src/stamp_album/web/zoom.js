@@ -5,9 +5,11 @@
 // at every zoom. The page is drawn with a CSS scale inside #page-zoom, a box that
 // takes up the scaled size so the page can be centred and scrolled.
 //
-// Modes: "fit-width" (the default), "fit-page" and "actual" (100%). The fits
-// never enlarge the page past 100%, so a wide window shows it at full size. The
-// mode is remembered on this device, not in the album.
+// Modes: "fit-width", "fit-page" and "actual" (100%). The default is Fit whole
+// page on a computer and Fit width on a phone (or any window narrower than
+// DESKTOP_MIN_W, or without a fine pointer). The fits enlarge the page up to
+// FIT_MAX, so a big screen shows it big. The mode is remembered on this device,
+// not in the album.
 //
 // A pinch (two fingers, a trackpad pinch, Ctrl/Cmd + wheel, Ctrl/Cmd + = and -)
 // sets a free zoom ("custom", 25% to 400%) that keeps the point being zoomed at
@@ -16,18 +18,26 @@
 
 var MODES = ["fit-width", "fit-page", "actual"];
 var MIN_ZOOM = 0.1;
+var FIT_MAX = 2;           // a fit never shows the page larger than 200%
+var DESKTOP_MIN_W = 700;   // narrower windows use the phone default (Fit width)
 var PINCH_MIN = 0.25, PINCH_MAX = 4;
 var SNAP_TO_100 = 0.05;  // a free zoom within 5% of 100% becomes exactly 100%
 // Ctrl/Cmd + = and - step through these.
 var STEPS = [0.25, 0.33, 0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4];
 
 // The scale that fits a pageW × pageH page into availW × availH (all px).
-// Rounded down to 1/1000 so the scaled page never overflows the space.
+// Rounded down to 1/1000 so the scaled page never overflows the space; at most FIT_MAX.
+// The default mode for a screen: Fit whole page with a mouse or trackpad and room
+// for the page, Fit width on a phone or a narrow window.
+function defaultMode(width, finePointer) {
+    return finePointer && width >= DESKTOP_MIN_W ? "fit-page" : "fit-width";
+}
+
 function fitZoom(availW, availH, pageW, pageH, mode) {
     if (mode === "actual" || !(pageW > 0) || !(availW > 0)) return 1;
     var z = availW / pageW;
     if (mode === "fit-page" && pageH > 0 && availH > 0) z = Math.min(z, availH / pageH);
-    z = Math.min(1, z);
+    z = Math.min(FIT_MAX, z);
     return Math.max(MIN_ZOOM, Math.floor(z * 1000 + 1e-9) / 1000);
 }
 
@@ -58,8 +68,8 @@ function anchorScroll(scroll, edge, p, z, c) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-    module.exports = { fitZoom: fitZoom, clampZoom: clampZoom, stepZoom: stepZoom,
-                       anchorScroll: anchorScroll, MODES: MODES,
+    module.exports = { fitZoom: fitZoom, defaultMode: defaultMode, clampZoom: clampZoom,
+                       stepZoom: stepZoom, anchorScroll: anchorScroll, MODES: MODES, FIT_MAX: FIT_MAX,
                        PINCH_MIN: PINCH_MIN, PINCH_MAX: PINCH_MAX };
 }
 if (!root || !root.document || !root.StampAlbum) return;
@@ -68,9 +78,16 @@ var S = root.StampAlbum, $ = S.$;
 var KEY = "stampalbum-zoom";
 var LABELS = { "fit-width": "ui.fit_width", "fit-page": "ui.fit_whole_page", "actual": "msg.zoom_actual",
                "custom": "msg.zoom_custom" };
-var _mode = "fit-width", _z = 1, _custom = 1;
+var _mode = null, _z = 1, _custom = 1;
+
+// This screen's default fit (see defaultMode).
+function screenDefault() {
+    var fine = !!(root.matchMedia && root.matchMedia("(pointer: fine)").matches);
+    return defaultMode(root.innerWidth || 0, fine);
+}
 
 function loadMode() {
+    _mode = screenDefault();
     try {
         var m = root.localStorage.getItem(KEY);
         if (MODES.indexOf(m) >= 0) _mode = m;
@@ -89,6 +106,7 @@ function applyZoom() {
     var cs = root.getComputedStyle(wrap);
     var aw = wrap.clientWidth - pad(cs, "paddingLeft", "paddingRight");
     var ah = wrap.clientHeight - pad(cs, "paddingTop", "paddingBottom");
+    if (!_mode) _mode = screenDefault();  // sized before start() ran
     var z = _mode === "custom" ? _custom : fitZoom(aw, ah, S._pw, S._ph, _mode);
     _z = z;
     pg.style.transform = z === 1 ? "" : "scale(" + z + ")";
@@ -97,6 +115,7 @@ function applyZoom() {
     // Handles and "!" badges keep their size on screen at any zoom.
     document.documentElement.style.setProperty("--inv-zoom", String(1 / z));
     syncControls();
+    if (S.updateGrid) S.updateGrid();  // grid dots and lines keep their size on screen
     if (S.snapPageToPixels) S.snapPageToPixels();
 }
 
@@ -231,7 +250,7 @@ function onKey(e) {
     if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (t && t.isContentEditable)) return;
     if (e.key === "=" || e.key === "+") { e.preventDefault(); zoomStep(1); }
     else if (e.key === "-" || e.key === "_") { e.preventDefault(); zoomStep(-1); }
-    else if (e.key === "0") { e.preventDefault(); setZoomMode("fit-width"); }
+    else if (e.key === "0") { e.preventDefault(); setZoomMode(screenDefault()); }
 }
 
 Object.defineProperties(S, {
@@ -241,6 +260,7 @@ Object.defineProperties(S, {
     setZoomMode: { value: setZoomMode },
     toPagePx: { value: toPagePx },
     fitZoom: { value: fitZoom },
+    defaultZoomMode: { get: screenDefault },
     zoomAt: { value: zoomAt },
     zoomStep: { value: zoomStep },
     pinchEvent: { value: pinchEvent },
@@ -254,7 +274,7 @@ function start() {
     root.addEventListener("resize", applyZoom); // rotation, a new screen
     var sb = $("sb-zoom");
     if (sb) sb.addEventListener("click", function() {
-        setZoomMode(_mode === "fit-width" || _mode === "fit-page" ? "actual" : "fit-width");
+        setZoomMode(_mode === "fit-width" || _mode === "fit-page" ? "actual" : screenDefault());
     });
     // Capture, so the pinch sees a touch before a stamp's handlers redraw the page.
     ["touchstart", "touchmove", "touchend", "touchcancel"].forEach(function(t) {

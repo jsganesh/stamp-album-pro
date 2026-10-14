@@ -71,6 +71,10 @@ def page(base_url):
         pg.goto(base_url + "/")
         wait_for_app(pg)
         pg.evaluate("document.getElementById('tutorial-overlay').classList.remove('open')")
+        # A desktop window opens at Fit whole page, which enlarges the page past 100%.
+        # These tests measure the editor in canvas px against the exports, so they work
+        # at Actual size; test_zoom_ui.py and test_pinch_zoom.py cover the fits.
+        pg.evaluate("StampAlbum.setZoomMode('actual')")
         yield pg
         browser.close()
 

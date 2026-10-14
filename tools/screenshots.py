@@ -58,9 +58,9 @@ def _box(page, selector):
 
 
 def _page_mm(page, x0, y0, x1, y1):
-    """A box given in page millimetres, in CSS px of the window."""
+    """A box given in page millimetres, in CSS px of the window (at the editor's zoom)."""
     left, top, _, _ = _box(page, "#page")
-    sc = page.evaluate("StampAlbum._sc")
+    sc = page.evaluate("StampAlbum._sc * StampAlbum.zoom")
     return left + x0 * sc, top + y0 * sc, left + x1 * sc, top + y1 * sc
 
 

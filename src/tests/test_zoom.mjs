@@ -2,7 +2,8 @@
 // Zoom only scales how the page is shown; fitZoom picks the scale for a mode.
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-const { fitZoom, clampZoom, stepZoom, anchorScroll, MODES, PINCH_MIN, PINCH_MAX } = require("../stamp_album/web/zoom.js");
+const { fitZoom, defaultMode, FIT_MAX, clampZoom, stepZoom, anchorScroll, MODES, PINCH_MIN, PINCH_MAX } =
+  require("../stamp_album/web/zoom.js");
 
 let failures = 0;
 function check(name, cond, detail) {
@@ -22,10 +23,22 @@ z = fitZoom(336, 426, ...A4, "fit-page");
 check("fit whole page uses the height when that is tighter", Math.abs(z - Math.floor(426 / 742.5 * 1000) / 1000) < 1e-9, z);
 check("whole page fits both ways", 525 * z <= 336 && 742.5 * z <= 426);
 
-// A wide window: the fits never enlarge the page
-check("fit width stops at 100%", fitZoom(1000, 900, ...A4, "fit-width") === 1);
-check("fit whole page stops at 100%", fitZoom(1000, 2000, ...A4, "fit-page") === 1);
-check("fit width ignores the height", fitZoom(1000, 100, ...A4, "fit-width") === 1);
+// A big window: the fits enlarge the page, up to 200%
+check("fits stop at 200%", FIT_MAX === 2);
+z = fitZoom(912, 809, ...A4, "fit-page");  // 14-inch MacBook, the space beside the panels
+check("fit whole page enlarges on a laptop", z > 1 && 742.5 * z <= 809 && 525 * z <= 912, z);
+z = fitZoom(1000, 900, ...A4, "fit-width");
+check("fit width enlarges a wide window", Math.abs(z - Math.floor(1000 / 525 * 1000) / 1000) < 1e-9, z);
+check("fit width stops at 200%", fitZoom(3000, 900, ...A4, "fit-width") === 2);
+check("fit whole page stops at 200%", fitZoom(3000, 3000, ...A4, "fit-page") === 2);
+check("fit width ignores the height", fitZoom(1000, 100, ...A4, "fit-width") > 1.9);
+
+// The default fit: the whole page on a computer, the width on a phone or a narrow window
+check("computer: fit whole page", defaultMode(1512, true) === "fit-page");
+check("phone (no fine pointer): fit width", defaultMode(390, false) === "fit-width");
+check("tablet held wide (no fine pointer): fit width", defaultMode(1180, false) === "fit-width");
+check("narrow computer window: fit width", defaultMode(650, true) === "fit-width");
+check("700 px computer window: fit whole page", defaultMode(700, true) === "fit-page");
 check("fit whole page shrinks for a short window", fitZoom(1000, 371.25, ...A4, "fit-page") === 0.5);
 
 // Actual size is always 100%, even on a phone

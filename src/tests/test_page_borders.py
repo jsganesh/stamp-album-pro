@@ -139,11 +139,12 @@ def _editor_img(base_url, page, style):
     try:
         pg.goto(base_url + "/")
         wait_for_app(pg)
+        pg.evaluate("StampAlbum.setZoomMode('actual')")  # compared with the exports at 100%
         _editor_markup(pg, style)
         pg.evaluate(
             "(() => { const p = document.getElementById('page'); p.style.background = '#fff';"
             " p.style.backgroundImage = 'none';"
-            " p.querySelectorAll('.cel, .col-guide').forEach(n => n.remove()); })()"
+            " p.querySelectorAll('.cel, .col-guide, #grid-overlay').forEach(n => n.remove()); })()"
         )
         return Image.open(BytesIO(pg.locator("#page-border").screenshot())).convert("L")
     finally:

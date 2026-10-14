@@ -261,19 +261,75 @@ def test_rotating_the_phone_refits(phone):
     assert g["width"] <= g["avail"] + 0.5, g
 
 
-def test_wide_window_stays_at_actual_size(base_url):
+def _desktop(p, size):
+    """A fresh computer window (mouse, no touch)."""
+    try:
+        browser = p.chromium.launch()
+    except Exception as exc:
+        if os.environ.get("STAMP_ALBUM_REQUIRE_BROWSER"):
+            raise
+        pytest.skip(f"chromium unavailable: {exc}")
+    return browser, browser.new_page(viewport=size)
+
+
+def _open(pg, base_url, stored=None):
+    pg.goto(base_url + "/")
+    if stored:
+        pg.evaluate(f"localStorage.setItem('stampalbum-zoom', {stored!r})")
+        pg.reload()
+    wait_for_app(pg)
+    pg.evaluate("document.getElementById('tutorial-overlay').classList.remove('open')")
+    _settle(pg)
+
+
+@pytest.mark.parametrize("size", [{"width": 1440, "height": 900}, {"width": 1512, "height": 982},
+                                  {"width": 2560, "height": 1440}])
+def test_desktop_opens_with_the_whole_page_in_view(base_url, size):
     with pw.sync_playwright() as p:
-        try:
-            browser = p.chromium.launch()
-        except Exception as exc:
-            if os.environ.get("STAMP_ALBUM_REQUIRE_BROWSER"):
-                raise
-            pytest.skip(f"chromium unavailable: {exc}")
-        pg = browser.new_page(viewport={"width": 1500, "height": 950})
-        pg.goto(base_url + "/")
-        wait_for_app(pg)
-        assert pg.evaluate("StampAlbum.zoomMode") == "fit-width"
-        assert pg.evaluate("StampAlbum.zoom") == 1
+        browser, pg = _desktop(p, size)
+        _open(pg, base_url)
+        g = _geometry(pg)
+        assert g["mode"] == "fit-page", g
+        # All of the page is on screen, inside the canvas area: no scrolling either way.
+        assert g["width"] <= g["avail"] + 0.5 and g["left"] >= g["wrapLeft"] - 0.5, g
+        assert g["scrollW"] <= g["clientW"], g
+        assert pg.evaluate("document.getElementById('page-wrap').scrollHeight"
+                           " <= document.getElementById('page-wrap').clientHeight"), g
+        # A 14-inch MacBook and larger show it above 100%, never above 200%.
+        if size["height"] >= 982:
+            assert 1 < g["zoom"] <= 2, g
+        # Rounded as the app rounds (Math.round: 94.5 -> 95; Python's round gives 94).
+        pct = pg.evaluate("Math.round(StampAlbum.zoom * 100) + '%'")
+        assert pg.locator("#sb-zoom").inner_text() == pct
+        browser.close()
+
+
+def test_status_bar_switches_a_desktop_between_whole_page_and_actual_size(base_url):
+    with pw.sync_playwright() as p:
+        browser, pg = _desktop(p, {"width": 1512, "height": 982})
+        _open(pg, base_url)
+        pg.locator("#sb-zoom").click()
+        _settle(pg)
+        assert _geometry(pg)["mode"] == "actual" and pg.evaluate("StampAlbum.zoom") == 1
         assert pg.evaluate("document.getElementById('page').style.transform") == ""
-        assert pg.locator("#sb-zoom").inner_text() == "100%"
+        pg.locator("#sb-zoom").click()
+        _settle(pg)
+        assert _geometry(pg)["mode"] == "fit-page"
+        browser.close()
+
+
+def test_a_stored_choice_beats_the_desktop_default(base_url):
+    with pw.sync_playwright() as p:
+        browser, pg = _desktop(p, {"width": 1512, "height": 982})
+        _open(pg, base_url, stored="fit-width")
+        g = _geometry(pg)
+        assert g["mode"] == "fit-width" and g["zoom"] > 1.5, g  # the width, enlarged
+        browser.close()
+
+
+def test_a_narrow_computer_window_fits_the_width(base_url):
+    with pw.sync_playwright() as p:
+        browser, pg = _desktop(p, {"width": 650, "height": 900})
+        _open(pg, base_url)
+        assert _geometry(pg)["mode"] == "fit-width"
         browser.close()

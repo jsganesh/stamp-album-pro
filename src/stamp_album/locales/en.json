@@ -28,6 +28,7 @@
   "ui.large_text": "Large text",
   "ui.zoom": "Zoom",
   "ui.fit_width": "Fit width",
+  "ui.key_fit_page": "Fit the page to the window",
   "ui.fit_whole_page": "Fit whole page",
   "ui.actual_size_100": "Actual size (100%)",
   "ui.zoom_in": "Zoom in",
@@ -406,9 +407,9 @@
   "msg.zoom_actual": "Actual size",
   "msg.zoom_custom": "Zoomed",
   "msg.zoom_title_to_actual": "Zoom: {mode} ({pct}). Click to show at actual size.",
-  "msg.zoom_title_to_fit": "Zoom: {mode} ({pct}). Click to fit the width.",
+  "msg.zoom_title_to_fit": "Zoom: {mode} ({pct}). Click to fit the page to the window.",
   "msg.zoom_label_to_actual": "Zoom {pct}, {mode}. Click to show at actual size.",
-  "msg.zoom_label_to_fit": "Zoom {pct}, {mode}. Click to fit the width.",
+  "msg.zoom_label_to_fit": "Zoom {pct}, {mode}. Click to fit the page to the window.",
   "msg.dsl_applied": "DSL applied",
   "ui.language": "Language"
 }
