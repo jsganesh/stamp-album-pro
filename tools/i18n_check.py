@@ -42,6 +42,9 @@ UNTRANSLATED = re.compile(
     r"""|setAttribute\(\s*["'](?:aria-label|title|placeholder|aria-description)["']\s*,\s*["'][^"']*[A-Za-z]{2}"""
 )
 PLACEHOLDER = re.compile(r"\{(\w+)\}")
+# Markup a phrase may hold (i18n.js RICH_TAGS); anything else would show as text.
+RICH_TAGS = {"b", "strong", "i", "em", "kbd", "br"}
+TAG = re.compile(r"</?([A-Za-z][\w-]*)[^>]*>")
 
 
 def phrase_lists() -> dict[str, dict]:
@@ -103,6 +106,11 @@ def check() -> tuple[list[str], list[str]]:
         for k, v in phrases.items():
             if isinstance(v, dict) and "other" not in v:
                 problems.append(f"{lang}.json: {k} has plural forms but no \"other\"")
+            for s in v.values() if isinstance(v, dict) else [v]:
+                bad = sorted({t.lower() for t in TAG.findall(s)} - RICH_TAGS)
+                if bad:
+                    problems.append(f"{lang}.json: {k} has markup other than "
+                                    f"{', '.join(sorted(RICH_TAGS))}: {', '.join(bad)}")
         if lang == "en":
             continue
         for k in sorted(set(phrases) - set(en)):

@@ -78,10 +78,12 @@ function fill(str, params) {
 var ACCENTS = { a: "à", e: "ë", i: "ï", o: "ö", u: "ü", y: "ÿ", c: "ç", n: "ñ", s: "š", z: "ž",
                 A: "À", E: "Ë", I: "Ï", O: "Ö", U: "Ü", Y: "Ÿ", C: "Ç", N: "Ñ", S: "Š", Z: "Ž" };
 function pseudo(str) {
-    var out = String(str).replace(/(\{\w+\}|<[^>]*>|&\w+;)|([A-Za-z])/g, function(m, keep, ch) {
-        return keep ? keep : (ACCENTS[ch] || ch);
+    var letters = 0;
+    var out = String(str).replace(/(\{\w+\}|<[^>]*>|&\w+;)|([^{<&]+)/g, function(m, keep, text) {
+        if (keep) return keep;
+        letters += text.length;
+        return text.replace(/[A-Za-z]/g, function(ch) { return ACCENTS[ch] || ch; });
     });
-    var letters = String(str).replace(/\{\w+\}|<[^>]*>/g, "").length;
     return "[" + out + " " + new Array(Math.max(1, Math.round(letters * 0.35)) + 1).join("·") + "]";
 }
 
@@ -117,6 +119,31 @@ function ownText(el) {
     return null;
 }
 
+// Phrases with markup (the tutorial's steps) may only hold these inline tags; the rest
+// of the phrase is always text. Built as elements, never through innerHTML.
+var RICH_TAGS = ["b", "strong", "i", "em", "kbd", "br"];
+var RICH_TAG = /<(\/?)([a-z]+)\s*\/?>/gi;
+var ENTITIES = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", "#39": "'", nbsp: "\u00a0" };
+function decode(s) {
+    return s.replace(/&(#39|\w+);/g, function(m, name) { return ENTITIES[name] || m; });
+}
+function setRich(el, phrase) {
+    var doc = el.ownerDocument, open = [el], last = 0, m;
+    el.textContent = "";
+    function text(s) { if (s) open[open.length - 1].appendChild(doc.createTextNode(decode(s))); }
+    RICH_TAG.lastIndex = 0;
+    while ((m = RICH_TAG.exec(phrase)) !== null) {
+        var name = m[2].toLowerCase();
+        if (RICH_TAGS.indexOf(name) === -1) continue;  // not markup: stays in the text
+        text(phrase.slice(last, m.index));
+        last = RICH_TAG.lastIndex;
+        if (name === "br") open[open.length - 1].appendChild(doc.createElement("br"));
+        else if (!m[1]) open.push(open[open.length - 1].appendChild(doc.createElement(name)));
+        else if (open.length > 1 && open[open.length - 1].localName === name) open.pop();
+    }
+    text(phrase.slice(last));
+}
+
 function setText(el, text) {
     var n = ownText(el);
     if (n) {
@@ -135,7 +162,7 @@ function apply(scope) {
     els = scope.querySelectorAll("[data-i18n]");
     for (i = 0; i < els.length; i++) setText(els[i], t(els[i].getAttribute("data-i18n")));
     els = scope.querySelectorAll("[data-i18n-html]");
-    for (i = 0; i < els.length; i++) els[i].innerHTML = t(els[i].getAttribute("data-i18n-html"));
+    for (i = 0; i < els.length; i++) setRich(els[i], t(els[i].getAttribute("data-i18n-html")));
     els = scope.querySelectorAll("[data-i18n-attr]");
     for (i = 0; i < els.length; i++) {
         els[i].getAttribute("data-i18n-attr").split(";").forEach(function(pair) {
@@ -185,6 +212,7 @@ var I18n = {
     language: function() { return _lang; },
     missing: function() { return Object.keys(_missing); },
     STORE_KEY: STORE_KEY,
+    RICH_TAGS: RICH_TAGS,
     // Node tests: use these phrase lists instead of window.StampAlbumLocales.
     _useCatalogs: function(c, lang) { _nodeCatalogs = c; _lang = lang || FALLBACK; _missing = {}; },
 };

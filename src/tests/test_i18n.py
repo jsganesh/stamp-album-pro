@@ -108,11 +108,13 @@ def test_checker_finds_translation_mistakes(editor):
         "msg.opened": "Geöffnet",             # lost {name}
         "msg.extra": "Nicht im Englischen",   # not an English key
         "ui.save": {"one": "Speichern"},      # plural forms need "other"
+        "ui.undo": '<a href="x">Rückgängig</a>',  # only inline markup like <b>
     })
     assert sorted(problems) == sorted([
         "de.json: msg.extra is not an English key",
         "de.json: msg.opened placeholders [] differ from English ['name']",
         'de.json: ui.save has plural forms but no "other"',
+        "de.json: ui.undo has markup other than b, br, em, i, kbd, strong: a",
     ])
 
 

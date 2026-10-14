@@ -10,8 +10,10 @@
   effect at once, matching a fresh start in that language.
 German isn't shipped yet, so these tests add a small German list of their own.
 """
+import json
 import os
 import re
+from pathlib import Path
 
 import pytest
 from test_ui_smoke import base_url, pw, wait_for_app  # noqa: F401
@@ -28,7 +30,9 @@ GERMAN = {
     "msg.untitled": "Unbenannt", "msg.paper_orientation": "{paper} · {orientation}",
     "ui.portrait": "Hochformat", "msg.hide_sidebar": "Seitenleiste ausblenden",
 }
-ADD_GERMAN = "window.StampAlbumLocales = { de: %s };" % __import__("json").dumps(GERMAN)
+ADD_GERMAN = "window.StampAlbumLocales = { de: %s };" % json.dumps(GERMAN)
+EN = json.loads((Path(__file__).resolve().parents[1] / "stamp_album" / "locales" / "en.json")
+                .read_text(encoding="utf-8"))
 NO_TUTORIAL = "try { localStorage.setItem('stampalbum-tutorial-done', '1'); } catch (e) {}"
 
 
@@ -88,7 +92,28 @@ def test_english_by_default_with_every_phrase(browser, base_url):
     pg.click("#btn-page-setup")
     pg.click("#ps-cancel")
     assert pg.evaluate("StampAlbumI18n.missing()") == []
+    # The tutorial's steps keep their bold words and line breaks, built from the phrases.
+    rich = pg.evaluate("[...document.querySelectorAll('[data-i18n-html]')]"
+                       ".map(e => [e.dataset.i18nHtml, e.innerHTML])")
+    assert len(rich) == 4
+    assert [html for _, html in rich] == [EN[key] for key, _ in rich]
     assert pg.js_errors == []
+
+
+def test_phrases_cannot_add_other_markup(browser, base_url):
+    key = "ui.add_stamps_at_their_catalogue"
+    sneaky = {key: '<b>Marken</b><br><img src=x onerror="window.hacked=1"> <a href="#">Link</a>'}
+    ctx = browser.new_context(locale="de-DE")
+    ctx.add_init_script(NO_TUTORIAL)
+    ctx.add_init_script("window.StampAlbumLocales = { de: %s };" % json.dumps(sneaky))
+    pg = ctx.new_page()
+    pg.goto(base_url + "/")
+    wait_for_app(pg)
+    step = pg.locator(f'[data-i18n-html="{key}"]')
+    assert step.evaluate("e => [...e.querySelectorAll('*')].map(c => c.localName)") == ["b", "br"]
+    assert '<img src=x onerror="window.hacked=1"> <a href="#">Link</a>' in step.text_content()
+    assert pg.evaluate("window.hacked") is None
+    ctx.close()
 
 
 def test_language_menu_hidden_with_one_language(browser, base_url):
