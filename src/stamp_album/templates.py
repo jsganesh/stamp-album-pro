@@ -31,13 +31,13 @@ PAGE_TEXT_AT(20.0 18.0 170.0 10.0 "HB" 16 "Great Britain: The Penny Black" "cent
 PAGE_TEXT_ROLE("heading")
 PAGE_TEXT_AT(20.0 29.0 170.0 7.0 "HN" 10 "The world's first adhesive postage stamp, 1840" "center")
 PAGE_TEXT_AT(20.0 44.0 170.0 12.0 "HN" 9 "Put one important item at the centre of the page, with a short note on why it matters. Replace this text with your own: what the stamp is, when and how it was printed, and what makes this example worth showing." "left")
-STAMP_ADD_AT(95.5 84.0 19.0 22.0 "Penny Black" "StampWorld 1" "" "" rectangle "solid" "#000000" 0.5 "#ffffff" 100)
+STAMP_ADD_AT(95.5 84.0 19.0 22.0 "Penny Black" "Cat. no." "" "" rectangle "solid" "#000000" 0.5 "#ffffff" 100)
 STAMP_HEADING("HN" 9 "1840")
-STAMP_DETAILS("1d" "Used" "")
+STAMP_DETAILS("" "Used" "")
 PAGE_TEXT_AT(20.0 134.0 170.0 11.0 "HN" 9 "Issued on 6 May 1840, printed imperforate in sheets of 240 by Perkins, Bacon & Petch. The check letters in the lower corners give each stamp's position in the sheet." "left")
-STAMP_ADD_AT(35.0 174.0 140.0 85.0 "Penny Black on cover" "StampWorld 1" "" "" rectangle "solid" "#000000" 0.5 "#ffffff" 100)
+STAMP_ADD_AT(35.0 174.0 140.0 85.0 "Penny Black on cover" "Cat. no." "" "" rectangle "solid" "#000000" 0.5 "#ffffff" 100)
 STAMP_HEADING("HN" 9 "Use on cover")
-STAMP_DETAILS("1d" "Posted" "")
+STAMP_DETAILS("" "Posted" "")
 """,
     },
     {

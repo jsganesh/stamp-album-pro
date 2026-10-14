@@ -264,8 +264,8 @@ PAGE_TEXT (HN 10 "Uniform Penny Postage began on 10 January 1840. "\
                  "Prepaid adhesive stamps followed in May.")
 
 ROW_START_FS (HN 8 0.5 8.0)
-STAMP_ADD (19.0 22.0 "1d \n black" "StampWorld 1" "" "")
-STAMP_ADD (19.0 22.0 "2d \n blue" "StampWorld 2" "" "")
+STAMP_ADD (19.0 22.0 "1d \n black" "Cat. no." "" "")
+STAMP_ADD (19.0 22.0 "2d \n blue" "Cat. no." "" "")
 ```
 
 A longer version is in `assets/templates/sample_album.txt`.

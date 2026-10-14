@@ -3,9 +3,8 @@
 #
 # A short album in the row-based page description (DSL). Each STAMP_ADD gives
 # the stamp's width and height in millimetres, its description, then up to
-# three catalogue references. Comments start with # and are ignored.
-#
-# Catalogue numbers are StampWorld's (Great Britain 1 to 3), the same stamps
+# three catalogue references (left empty here: add your own catalogue's
+# numbers). Comments start with # and are ignored. The stamps are the same
 # as the app's first-run sample page.
 ################################################################################
 
@@ -55,8 +54,8 @@ PAGE_TEXT (HN 10 "Uniform Penny Postage began on 10 January 1840. Prepaid " \
 # Row of stamps
 ROW_START_FS (HN 8 0.5 8.0)
 
-STAMP_ADD (19.0 22.0 "1d black" "StampWorld 1" "" "")
-STAMP_ADD (19.0 22.0 "2d blue" "StampWorld 2" "" "")
+STAMP_ADD (19.0 22.0 "1d black" "" "" "")
+STAMP_ADD (19.0 22.0 "2d blue" "" "" "")
 
 # ============================================================================
 # Page 2 - The 1841 change of colour
@@ -76,4 +75,4 @@ PAGE_TEXT (HN 10 "Red cancellations were hard to see on the Penny Black, " \
 
 ROW_START_FS (HN 8 0.5 8.0)
 
-STAMP_ADD (19.0 22.0 "1d red-brown" "StampWorld 3" "" "")
+STAMP_ADD (19.0 22.0 "1d red-brown" "" "" "")

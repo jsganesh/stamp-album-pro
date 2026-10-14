@@ -261,7 +261,7 @@ class TestStampCommands:
         source = (
             "PAGE_START\n"
             "ROW_START_FS (HN 6 0.1 6.0)\n"
-            'STAMP_ADD (19.0 22.0 "1d black" "StampWorld 1" "" "")'
+            'STAMP_ADD (19.0 22.0 "1d black" "Cat. no. 1" "" "")'
         )
         album = parser.parse(source)
         row = album.pages[0].rows[0]
@@ -394,15 +394,15 @@ PAGE_TEXT (HN 10 "Introduction text goes here.")
 PAGE_TEXT_CENTRE (HS 12 "Section Heading")
 
 ROW_START_FS (HN 8 0.5 6.0)
-STAMP_ADD (19.0 22.0 "1d black" "StampWorld 1" "" "")
-STAMP_ADD (19.0 22.0 "2d blue" "StampWorld 2" "" "")
+STAMP_ADD (19.0 22.0 "1d black" "Cat. no. 1" "" "")
+STAMP_ADD (19.0 22.0 "2d blue" "Cat. no. 2" "" "")
 
 PAGE_START
 
 PAGE_TEXT_CENTRE (HN 12 "Second Page")
 
 ROW_START_FS (HN 8 0.5 6.0)
-STAMP_ADD (19.0 22.0 "1d red-brown" "StampWorld 3" "" "")
+STAMP_ADD (19.0 22.0 "1d red-brown" "Cat. no. 3" "" "")
 """
         album = parser.parse(source)
 

@@ -36,7 +36,7 @@ SAMPLES = [
     "Penny Black on cover",
     "1d · Used · Imperforate",
     "Plate 1a, check letters A–L, lightly cancelled",
-    "SG 2 · StampWorld 1 · Michel 1",
+    "Cat. no. 2 · Ref. 1 · No. 14a",
     "Office fluff: “quoted” — dashes, ½ and ¾, fi fl ffi",
     "Ελλάς · Россия · Österreich · Ærø",
     "日本 ₹ 🙂",
