@@ -146,3 +146,17 @@ def test_not_saved_is_shown_in_words(page):
 def test_add_page_says_so_in_words(page):
     add = page.get_by_role("button", name="Add page", exact=True)
     assert add.inner_text().strip() == "Add page"
+
+
+def test_shortcut_keys_never_run_into_their_words(page):
+    """A long key name ("Ctrl+wheel") keeps its own width instead of spilling onto its words."""
+    for width in (1440, 1024):
+        page.set_viewport_size({"width": width, "height": 900})
+        page.click("#btn-help-tb")
+        clash = page.evaluate("""[...document.querySelectorAll('#help-overlay .help-row')]
+            .filter(r => { const k = r.querySelector('kbd'), t = r.querySelector('span');
+                           const kr = k.getBoundingClientRect(), tr = t.getBoundingClientRect();
+                           return k.scrollWidth > k.clientWidth + 1 || kr.right > tr.left + 0.5; })
+            .map(r => r.innerText)""")
+        assert clash == [], (width, clash)
+        page.evaluate("document.getElementById('help-overlay').classList.remove('open')")

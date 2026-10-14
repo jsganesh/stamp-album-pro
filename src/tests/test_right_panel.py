@@ -230,3 +230,17 @@ def test_tutorial_uses_the_new_names(page):
     text = page.evaluate("document.querySelector('.tutorial-body').textContent")
     assert "Philatelic data" not in text and "Above the page" not in text
     assert "More details" in text and "Name" in text
+
+
+def test_palette_text_items_hold_their_words(page):
+    """Every part of a text item stays inside its box at every text size (a two-line hint
+    ran out of the bottom of the Description box)."""
+    for size in (1, 1.25, 1.5):
+        page.evaluate(f"StampAlbum.setTextSize({size})")
+        out = page.evaluate("""[...document.querySelectorAll('#sidebar .p-item.tx')].flatMap(i => {
+            const b = i.getBoundingClientRect();
+            return [...i.children].filter(c => { const r = c.getBoundingClientRect();
+                return r.bottom > b.bottom + 0.5 || r.right > b.right + 0.5; })
+              .map(c => i.dataset.st + ' ' + c.className); })""")
+        assert out == [], (size, out)
+    page.evaluate("StampAlbum.setTextSize(1)")
