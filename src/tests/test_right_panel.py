@@ -244,3 +244,49 @@ def test_palette_text_items_hold_their_words(page):
               .map(c => i.dataset.st + ' ' + c.className); })""")
         assert out == [], (size, out)
     page.evaluate("StampAlbum.setTextSize(1)")
+
+
+# ── Only the fields that change the page (owner, 2026-10-14) ──
+
+def _select_new(page, props):
+    page.evaluate(
+        "p => { StampAlbum._dirty = false; StampAlbum.newAlbum(); StampAlbum.add(p); }", props)
+
+
+def _shown(page, ids):
+    return {i: page.is_visible("#" + i) for i in ids}
+
+
+def test_mark_as_heading_explains_itself_on_its_own_line(page):
+    _select_new(page, {"t": "text", "x": 20, "y": 20, "w": 200, "h": 30, "lbl": "Title"})
+    assert page.is_visible("#phead-hint")
+    assert page.text_content("#phead-hint") == "A heading is drawn in the album's theme colour."
+    row = page.evaluate("document.getElementById('phead-row').getBoundingClientRect().bottom")
+    note = page.evaluate("document.getElementById('phead-hint').getBoundingClientRect().top")
+    assert note >= row - 0.5, "the note sits below the checkbox, not squeezed beside it"
+    assert page.get_attribute("#phead", "aria-describedby") == "phead-hint"
+
+
+def test_an_image_has_no_label_font_or_size(page):
+    _select_new(page, {"t": "image", "x": 20, "y": 20, "w": 100, "h": 75,
+                       "lbl": "bahcoa.png", "img": "/images/bahcoa.png"})
+    shown = _shown(page, ["cap-sec", "lbl-row", "font-row", "fsize-row", "phead-row",
+                          "img-sec", "img-row", "img-file"])
+    assert shown == {"cap-sec": False, "lbl-row": False, "font-row": False, "fsize-row": False,
+                     "phead-row": False, "img-sec": True, "img-row": True, "img-file": True}
+    assert page.text_content("#img-file") == "File: bahcoa.png"
+
+
+def test_a_free_shape_has_a_label_but_no_font_or_size(page):
+    # Its label is a caption, drawn in the caption font at a fixed size.
+    _select_new(page, {"t": "freehand", "s": "freehand", "x": 20, "y": 20, "w": 100, "h": 80})
+    shown = _shown(page, ["cap-sec", "lbl-row", "font-row", "fsize-row", "img-sec"])
+    assert shown == {"cap-sec": True, "lbl-row": True, "font-row": False, "fsize-row": False,
+                     "img-sec": False}
+
+
+def test_a_text_item_keeps_font_and_size(page):
+    _select_new(page, {"t": "text", "x": 20, "y": 20, "w": 200, "h": 30, "lbl": "Title"})
+    shown = _shown(page, ["lbl-row", "font-row", "fsize-row", "phead-row", "img-sec", "img-file"])
+    assert shown == {"lbl-row": True, "font-row": True, "fsize-row": True, "phead-row": True,
+                     "img-sec": False, "img-file": False}

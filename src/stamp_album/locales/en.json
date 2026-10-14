@@ -148,7 +148,6 @@
   "ui.size": "Size",
   "ui.font_size": "Font size",
   "ui.mark_as_heading": "Mark as heading",
-  "ui.theme_colour": "theme colour",
   "ui.heading": "Heading",
   "ui.condition": "Condition",
   "ui.not_set": "Not set",
@@ -419,5 +418,7 @@
   "msg.delete_album": "Delete",
   "msg.open_failed": "Could not open {name}",
   "msg.list_failed": "Could not list the saved albums",
-  "msg.delete_failed": "Could not delete {name}"
+  "msg.delete_failed": "Could not delete {name}",
+  "ui.a_heading_takes_the_theme": "A heading is drawn in the album's theme colour.",
+  "msg.image_file": "File: {name}"
 }

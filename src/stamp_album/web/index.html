@@ -166,14 +166,15 @@
             <h3 data-i18n="ui.frame" class="rp-sec" id="frame-sec">Frame</h3>
             <div class="rp-row" id="frame-row"><label data-i18n="ui.frame" for="pbs">Frame</label><select data-i18n-attr="title:ui.stamp_frames_are_black" id="pbs" title="Stamp frames are black"><option data-i18n="ui.none" value="none">None</option><option data-i18n="ui.thin" value="thin">Thin</option><option data-i18n="ui.medium" value="medium">Medium</option><option data-i18n="ui.double" value="double">Double</option></select></div>
             <p class="rp-note" id="pframe-size"></p>
-            <!-- A stamp: Caption (Heading, Name, More details). Text: Text, Font, Size. Shapes and pictures: Label. -->
+            <!-- A stamp: Caption (Heading, Name, More details). Text: Text, Font, Size. Free shapes: Label (a caption). Images: none. -->
             <h3 data-i18n="ui.caption" class="rp-sec" id="cap-sec">Caption</h3>
             <div class="rp-row" id="phil-hdg-row" hidden><label data-i18n="ui.heading" for="phdg">Heading</label><input type="text" id="phdg"></div>
             <div class="rp-row" id="lbl-row"><label data-i18n="ui.name" id="plbl-name" for="plbl">Name</label><input type="text" id="plbl"></div>
             <p data-i18n="ui.captions_use_the_caption_font" class="rp-note" id="pcapfont-note" hidden>Captions use the caption font at fixed sizes. The heading weight is an album setting: click an empty part of the page to see it.</p>
             <div class="rp-row" id="font-row"><label data-i18n="ui.font" for="pfnt">Font</label><select id="pfnt"></select></div>
             <div class="rp-row" id="fsize-row"><label data-i18n="ui.size" for="pfs">Size</label><input data-i18n-attr="aria-label:ui.font_size" aria-label="Font size" type="number" id="pfs" value="12" min="6" max="72" step="1"><span class="unit">pt</span></div>
-            <div class="rp-row" id="phead-row"><span class="rp-gap" aria-hidden="true"></span><input type="checkbox" id="phead" aria-describedby="phead-hint"><label data-i18n="ui.mark_as_heading" for="phead" class="rp-check">Mark as heading</label><span data-i18n="ui.theme_colour" class="unit" id="phead-hint">theme colour</span></div>
+            <div class="rp-row" id="phead-row"><span class="rp-gap" aria-hidden="true"></span><input type="checkbox" id="phead" aria-describedby="phead-hint"><label data-i18n="ui.mark_as_heading" for="phead" class="rp-check">Mark as heading</label></div>
+            <p data-i18n="ui.a_heading_takes_the_theme" class="rp-note" id="phead-hint">A heading is drawn in the album's theme colour.</p>
             <div id="more-wrap" hidden>
                 <button type="button" class="rp-more" id="more-toggle" aria-expanded="false" aria-controls="more-body"><span data-i18n="ui.more_details_optional">More details (optional)</span><span class="rp-more-count" id="more-count"></span><svg class="ic" aria-hidden="true"><use href="#i-chev-down"/></svg></button>
                 <div id="more-body" hidden>
@@ -185,6 +186,7 @@
                 </div>
             </div>
             <h3 data-i18n="ui.image" class="rp-sec" id="img-sec" hidden>Image</h3>
+            <p class="rp-note" id="img-file" hidden></p>
             <div class="rp-row" id="img-row" hidden><button data-i18n="ui.change_image" id="btn-chg-img" style="flex:1">Change image</button><button data-i18n-attr="aria-label:ui.remove_image" id="btn-rm-img" aria-label="Remove image"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div>
             <div class="rp-actions">
                 <button data-i18n="ui.duplicate" id="btn-dup-el"><svg class="ic" aria-hidden="true"><use href="#i-copy"/></svg>Duplicate</button>
