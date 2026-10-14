@@ -298,7 +298,9 @@ def test_desktop_opens_with_the_whole_page_in_view(base_url, size):
         # A 14-inch MacBook and larger show it above 100%, never above 200%.
         if size["height"] >= 982:
             assert 1 < g["zoom"] <= 2, g
-        assert pg.locator("#sb-zoom").inner_text() == f"{round(g['zoom'] * 100)}%"
+        # Rounded as the app rounds (Math.round: 94.5 -> 95; Python's round gives 94).
+        pct = pg.evaluate("Math.round(StampAlbum.zoom * 100) + '%'")
+        assert pg.locator("#sb-zoom").inner_text() == pct
         browser.close()
 
 
