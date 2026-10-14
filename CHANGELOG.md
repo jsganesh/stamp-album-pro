@@ -28,6 +28,9 @@ All notable changes to this project are documented here. The format follows [Kee
 - On a phone, longer words no longer push the Export button off the screen: the app name gives way first. The status bar keeps to one line, shortening the selection with "…"; on a phone it leaves out the element count and the alignment readout, which had already pushed "Unsaved" past the edge of the screen in English
 - Dependabot updates Python packages with its `uv` support, so `pyproject.toml` and `uv.lock` change together; the template's npm and Docker entries, for files this repository doesn't have, are removed
 
+
+### Fixed
+- **Unsaved work from last time is shown when the editor opens.** It was loaded but not drawn: the page looked blank while the status bar counted the old items, adding a stamp brought them all back, and undo went back to the old work instead of a blank page. Now the old work is drawn at once and marked Not saved, with a note above the page: "This is the album you were working on last time. It has not been saved yet.", **Keep working on it** or **Start a new album** (which asks before discarding it). The note goes when the album is saved, another is opened or a new one started. Undo stops at the restored work
 ## [0.3.1] - 2026-10-14
 
 Adds a print calibration page, and releases are now published from a tag.

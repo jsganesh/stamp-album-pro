@@ -176,6 +176,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 /* Page wrap — canvas container */
 /* #page-zoom takes up the page's size on screen (zoom.js); auto side margins centre it
    and, unlike justify-content: center, leave all of a wider page reachable by scrolling. */
+/* Unsaved work from last time: said plainly, with a way out */
+.restore-note { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; padding: 0.625rem 0.875rem; background: #FFF6E5; border-bottom: 1px solid #E8C98A; color: #3D2704; flex-shrink: 0; }
+.restore-note[hidden] { display: none; }
+.restore-text { margin: 0; flex: 1 1 18rem; font-size: 1rem; line-height: 1.45; }
+.restore-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.restore-btns button { min-height: var(--ctl); padding: 0 0.875rem; background: #fff; border: 1px solid #C9A964; border-radius: var(--radius); color: var(--text); font: inherit; font-size: 0.9375rem; cursor: pointer; }
+.restore-btns button:hover { border-color: var(--accent); background: var(--accent-soft); }
+.restore-btns button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 #page-wrap { flex: 1; overflow: auto; display: flex; padding: 20px; background: var(--canvas); position: relative; scrollbar-gutter: stable; }
 /* Two fingers on the canvas zoom the page (zoom.js), not the whole app; one finger scrolls. */
 #page-wrap { touch-action: pan-x pan-y; }

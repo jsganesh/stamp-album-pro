@@ -8,6 +8,7 @@ var pushUndo = S.pushUndo, render = S.render;
 // Open an album read from a file (the Saved files list or File > Open). Starts a
 // fresh undo history, then offers to move any elements past the page edge inside it.
 function openAlbum(name, content) {
+    if (S.hideRestoreNote) S.hideRestoreNote();
     S._currentFile = name;
     parseDSL(content);
     S._dirty = false;
@@ -81,6 +82,7 @@ function saveFile() {
             throw new Error(S.t("msg.save_failed"));
         }).then(function(data) {
             S._dirty = false;
+            if (S.hideRestoreNote) S.hideRestoreNote();
             S.clearDraft();
             updateTitle();
             if (S.updateStatusBar) S.updateStatusBar();
