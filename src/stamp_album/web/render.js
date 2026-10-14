@@ -387,16 +387,22 @@ function fillPanel(el, changed) {
     $("plbl-name").textContent = S.t(isStamp ? "ui.name" : isText ? "ui.text" : "ui.label");
     show("phil-hdg-row", isStamp);
     show("phead-row", isText);
+    show("phead-hint", isText);
+    // An image draws only the picture, so it has no label, font or size to set.
+    show("cap-sec", !isImg);
+    show("lbl-row", !isImg);
     $("phead").checked = el.role === "heading";
     $("pfnt").value = el.font || "HN";
     $("pfs").value = el.fs || 12;
-    // Stamp captions always use the bundled caption font at fixed sizes, so Font and
-    // Size would do nothing for a stamp. Any values stored on it are left as they are.
-    show("font-row", !isStamp);
-    show("fsize-row", !isStamp);
+    // Font and Size are for text items only. Captions (stamps, free shapes) use the
+    // bundled caption font at fixed sizes. Any values stored on an item are kept.
+    show("font-row", isText);
+    show("fsize-row", isText);
     show("pcapfont-note", isStamp);
     show("img-sec", isImg);
     show("img-row", isImg);
+    show("img-file", isImg && !!el.img);
+    if (isImg) $("img-file").textContent = S.t("msg.image_file", { name: String(el.img || "").split("/").pop() });
     show("more-wrap", isStamp);
     if (isStamp) {
         $("phdg").value = el.hdg || "";
@@ -758,6 +764,7 @@ function render() {
     markCaptionWarnings(captionItems);
     updateFrameNote();
     syncPanel();
+    if (S.syncImageList) S.syncImageList();  // the Images section lists the album's images
 
     // Draw column guides if columns are enabled
     if (S._colMode > 1) {

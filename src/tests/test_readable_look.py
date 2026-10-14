@@ -33,7 +33,7 @@ CONTROLS = """() => [...document.querySelectorAll(
 
 # Small by design: the panel edge handles, the status bar's zoom percentage, and the
 # delete cross that sits on an image thumbnail (the thumbnail itself is the 40 px button).
-SMALL_OK = re.compile(r"^(sb-handle|rp-handle|sb-zoom|BUTTON\.img-del)$")
+SMALL_OK = re.compile(r"^(sb-handle|rp-handle|sb-zoom)$")
 
 
 def _open_everything(page):
@@ -52,7 +52,7 @@ def test_no_text_under_14px_outside_the_page(page):
 def test_buttons_and_fields_are_at_least_40px_tall(page):
     page.set_viewport_size({"width": 1440, "height": 900})
     _open_everything(page)
-    for menu in ("file", "view"):
+    for menu in ("file", "view", "help"):
         page.click(f"#menu-{menu}-btn")
         short = [c for c in page.evaluate(CONTROLS) if c[1] < 40 - 0.5 and not SMALL_OK.match(c[0])]
         assert short == [], (menu, short)
@@ -80,7 +80,7 @@ def test_icons_come_from_the_one_line_icon_set(page):
 def test_every_toolbar_button_has_a_word_at_1440(page):
     page.set_viewport_size({"width": 1440, "height": 900})
     words = page.evaluate(
-        """['btn-undo', 'btn-redo', 'btn-preview', 'btn-export', 'btn-help-tb'].map(id =>
+        """['btn-undo', 'btn-redo', 'btn-preview', 'btn-export', 'menu-help-btn'].map(id =>
            document.getElementById(id).innerText.trim())"""
     )
     assert words == ["Undo", "Redo", "Preview", "Export", "Help"]
@@ -152,7 +152,8 @@ def test_shortcut_keys_never_run_into_their_words(page):
     """A long key name ("Ctrl+wheel") keeps its own width instead of spilling onto its words."""
     for width in (1440, 1024):
         page.set_viewport_size({"width": width, "height": 900})
-        page.click("#btn-help-tb")
+        page.click("#menu-help-btn")
+        page.click("#btn-help")
         clash = page.evaluate("""[...document.querySelectorAll('#help-overlay .help-row')]
             .filter(r => { const k = r.querySelector('kbd'), t = r.querySelector('span');
                            const kr = k.getBoundingClientRect(), tr = t.getBoundingClientRect();

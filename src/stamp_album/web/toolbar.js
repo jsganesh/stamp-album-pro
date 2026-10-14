@@ -3,16 +3,19 @@
 var S = window.StampAlbum;
 var $ = S.$;
 
-// ── Toolbar: File / Edit / View menus, selection tools, checkbox states ──
+// ── Toolbar: File / Edit / View / Help menus, selection tools, checkbox states ──
 
 var IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || "");
-var MENUS = ["file", "edit", "view"];
-var _open = null, _hoverOpened = null;
+var MENUS = ["file", "edit", "view", "help"];
+var _open = null, _hoverOpened = null, _recentOpen = false;
 
 function menuBtn(name) { return $("menu-" + name + "-btn"); }
 function menuList(name) { return $("menu-" + name); }
 function items(name) {
-    return Array.prototype.slice.call(menuList(name).querySelectorAll(".mi")).filter(function(b) { return !b.disabled; });
+    // The menu's own items; those in a submenu (Open recent) are reached from it.
+    return Array.prototype.slice.call(menuList(name).querySelectorAll(".mi")).filter(function(b) {
+        return !b.disabled && !b.closest(".tb-submenu");
+    });
 }
 
 function openMenu(name, focusFirst) {
@@ -24,12 +27,70 @@ function openMenu(name, focusFirst) {
     if (focusFirst) { var it = items(name); if (it.length) it[0].focus(); }
 }
 function closeMenu(returnFocus) {
+    closeRecent();
     if (!_open) return;
     var name = _open;
     menuList(name).hidden = true;
     menuBtn(name).setAttribute("aria-expanded", "false");
     _open = null;
     if (returnFocus) menuBtn(name).focus();
+}
+
+// ── File › Open recent: a submenu, filled with the newest albums each time it opens ──
+function recentItems() {
+    return Array.prototype.slice.call($("menu-recent-list").querySelectorAll(".mi")).filter(function(b) { return !b.disabled; });
+}
+function openRecent(focusFirst) {
+    var list = $("menu-recent-list");
+    _recentOpen = true;
+    $("menu-recent").setAttribute("aria-expanded", "true");
+    list.hidden = false;
+    S.fillRecent(list, function() {
+        if (!_recentOpen) return;
+        if (focusFirst) { var it = recentItems(); (it[0] || $("menu-recent")).focus(); }
+    });
+}
+function closeRecent(returnFocus) {
+    if (!_recentOpen) return;
+    _recentOpen = false;
+    $("menu-recent").setAttribute("aria-expanded", "false");
+    $("menu-recent-list").hidden = true;
+    if (returnFocus) $("menu-recent").focus();
+}
+function wireRecent() {
+    var btn = $("menu-recent"), list = $("menu-recent-list");
+    // A click toggles it, except the click that ends the hover which just opened it.
+    var hoverOpened = false;
+    btn.addEventListener("click", function() {
+        if (hoverOpened) { hoverOpened = false; return; }
+        if (_recentOpen) closeRecent(); else openRecent(false);
+    });
+    btn.addEventListener("mouseenter", function() {
+        if (!_recentOpen) { openRecent(false); hoverOpened = true; }
+    });
+    btn.addEventListener("mouseleave", function() { hoverOpened = false; });
+    btn.addEventListener("keydown", function(e) {
+        if (e.key === "ArrowRight" || e.key === "Enter" || e.key === " ") {
+            e.preventDefault(); e.stopPropagation(); openRecent(true);
+        }
+    });
+    // Moving to another File item closes the submenu.
+    menuList("file").querySelectorAll(".mi").forEach(function(b) {
+        if (b === btn || b.closest(".tb-submenu")) return;
+        b.addEventListener("mouseenter", function() { closeRecent(); });
+        b.addEventListener("focus", function() { closeRecent(); });
+    });
+    list.addEventListener("keydown", function(e) {
+        var it = recentItems(), i = it.indexOf(document.activeElement);
+        if (e.key === "ArrowDown" && it.length) { e.preventDefault(); it[(i + 1) % it.length].focus(); }
+        else if (e.key === "ArrowUp" && it.length) { e.preventDefault(); it[(i - 1 + it.length) % it.length].focus(); }
+        else if (e.key === "Home" && it.length) { e.preventDefault(); it[0].focus(); }
+        else if (e.key === "End" && it.length) { e.preventDefault(); it[it.length - 1].focus(); }
+        else if (e.key === "ArrowLeft") { e.preventDefault(); closeRecent(true); }
+        else if (e.key === "Tab") { closeMenu(); return; }
+        else return;
+        e.stopPropagation();
+    });
 }
 
 // Run a menu item's action after closing the menu, so dialogs it opens get focus.
@@ -138,8 +199,11 @@ function wireToolbar() {
         });
     });
     // Escape closes the open menu; this runs before the editor's own shortcuts.
+    // In Open recent it closes the submenu only.
     document.addEventListener("keydown", function(e) {
-        if (_open && e.key === "Escape") { e.preventDefault(); e.stopImmediatePropagation(); closeMenu(true); }
+        if (!_open || e.key !== "Escape") return;
+        e.preventDefault(); e.stopImmediatePropagation();
+        if (_recentOpen) closeRecent(true); else closeMenu(true);
     }, true);
     document.addEventListener("mousedown", function(e) {
         if (_open && !e.target.closest(".tb-menu")) closeMenu();
@@ -149,10 +213,11 @@ function wireToolbar() {
     onItem("btn-new", function() { S.newAlbum(); });
     onItem("btn-wizard", function() { $("wizard-panel").classList.add("open"); var t = $("wiz-title"); if (t) t.focus(); });
     onItem("menu-template", function() { $("btn-wiz-template").click(); });
-    onItem("btn-open", function() { $("file-inp").click(); });
+    onItem("btn-open", function() { if (S.okToDiscard()) $("file-inp").click(); });
+    wireRecent();
+    onItem("menu-manage", function() { S.openManageAlbums(); });
     onItem("btn-save", function() { S.saveFile(); });
     onItem("menu-page-setup", function() { S.openPageSetup(); });
-    onItem("menu-calibration", function() { S.openCalibration(); });
     ["pdf", "png", "svg", "html"].forEach(function(fmt) {
         onItem("menu-export-" + fmt, function() { if (S.exportFormat) S.exportFormat(fmt); });
     });
@@ -175,10 +240,11 @@ function wireToolbar() {
     });
     onItem("menu-zoom-in", function() { S.zoomStep(1); });
     onItem("menu-zoom-out", function() { S.zoomStep(-1); });
+    onItem("btn-reset", function() { S.resetApp(); });
+    // Help
     onItem("menu-tutorial", function() { if (S.showTutorial) S.showTutorial(); });
     onItem("btn-help", function() { $("help-overlay").classList.add("open"); });
-    onItem("btn-reset", function() { S.resetApp(); });
-    $("btn-help-tb").addEventListener("click", function() { $("help-overlay").classList.add("open"); });
+    onItem("menu-calibration", function() { S.openCalibration(); });
     ["btn-dsl"].forEach(function(id) { $(id).addEventListener("click", function() { closeMenu(); }); });
 
     // Phone width: start with the side panels collapsed so the page has room;

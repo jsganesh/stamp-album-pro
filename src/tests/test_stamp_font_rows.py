@@ -34,15 +34,16 @@ def test_font_and_size_are_hidden_for_stamps(page):
     assert "caption font" in page.inner_text("#pcapfont-note")
 
 
-def test_font_and_size_come_back_for_text_and_shapes(page):
+def test_font_and_size_are_for_text_items_only(page):
+    # A free shape's label is a caption, drawn in the caption font at a fixed size,
+    # and the file stores no font for it, so Font and Size would do nothing there.
     _ready(page)
-    for item in ("s", "t", "s", "f"):
+    for item in ("s", "t", "s", "f", "t"):
         page.evaluate(f"StampAlbum.select('{item}')")
-        stamp = item == "s"
-        assert _shown(page, "#pfnt") is not stamp, item
-        assert _shown(page, "#pfs") is not stamp, item
-        assert _shown(page, "#pcapfont-note") is stamp, item
-    assert page.input_value("#pfs") == "14", "the shape's own size is shown"
+        text = item == "t"
+        assert _shown(page, "#pfnt") is text, item
+        assert _shown(page, "#pfs") is text, item
+        assert _shown(page, "#pcapfont-note") is (item == "s"), item
 
 
 def test_stored_stamp_font_is_kept_in_the_file(page):

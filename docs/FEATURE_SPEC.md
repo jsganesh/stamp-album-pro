@@ -69,7 +69,7 @@ A modern web application for creating professional stamp album pages for display
 
 ### 2.1 Web Interface
 - **Split view**: Editor and live preview panels
-- **Toolbar**: File, Edit and View menus; Undo, Redo, Preview and Export on the bar; align, duplicate, grid fill and delete appear in the page bar when a stamp is selected. Fits narrow windows (icons, then menus, at phone width)
+- **Toolbar**: File, Edit, View and Help menus; Undo, Redo, Preview and Export on the bar; align, duplicate, grid fill and delete appear in the page bar when a stamp is selected. Fits narrow windows (icons, then menus, at phone width)
 - **Status bar**: File name, save status, operation feedback
 - **Keyboard shortcuts**: Ctrl+S (save), Ctrl+O (open), Ctrl+N (new), Ctrl+E (export)
 
@@ -86,10 +86,10 @@ A modern web application for creating professional stamp album pages for display
 - **Toggle**: Show/hide preview panel
 
 ### 2.4 File Management
-- **File browser**: Sidebar listing all `.slbum` files
-- **Upload**: Import `.slbum` files from disk
+- **Open recent**: File › Open recent lists the ten newest saved albums
+- **Saved albums**: File › Manage saved albums… opens or deletes them (deleting asks first)
+- **Open**: File › Open… reads a `.slbum` file from disk
 - **Save**: Persist files to user directory (`~/StampAlbum/`)
-- **Delete**: Remove files with confirmation
 - **Auto-detect**: Files saved from desktop app are visible in web app
 
 ### 2.5 PDF Export
@@ -202,7 +202,7 @@ A modern web application for creating professional stamp album pages for display
 
 ### Smart Features
 - Auto-layout engine
-- CSV/Excel import
+- Fill pages from a list: each row of a spreadsheet becomes a stamp with its caption filled in, laid out in rows across new pages
 - Font pairing suggestions
 - Color palette generation
 

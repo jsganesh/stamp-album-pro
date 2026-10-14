@@ -23,13 +23,14 @@ def _album(*pages):
 
 
 def _open_saved(page, dsl, name="old album.slbum"):
-    """Open an album from the Saved files list, served by a fake file store."""
-    page.route("**/files", lambda r: r.fulfill(json=[name]))
-    page.route(re.compile(r".*/files/[^/]+$"),
+    """Open an album from File › Open recent, served by a fake file store."""
+    page.route(re.compile(r".*/files\?.*"), lambda r: r.fulfill(json=[name]))
+    page.route(re.compile(r".*/files/[^/?]+$"),
                lambda r: r.fulfill(body=dsl, content_type="text/plain"))
-    page.evaluate("StampAlbum.loadFileList()")
-    page.wait_for_selector(".file-item button")
-    page.click(".file-item button:first-child")
+    page.click("#menu-file-btn")
+    page.click("#menu-recent")
+    page.wait_for_selector("#menu-recent-list .mi[data-file]")
+    page.click("#menu-recent-list .mi[data-file]")
     for _ in range(100):
         if page.evaluate(f"StampAlbum._currentFile === {name!r}"):
             break
