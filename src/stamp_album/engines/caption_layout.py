@@ -7,6 +7,7 @@ same way:
 * below the box, in order: the description (8 pt), the details line
   ("1/2D · Used · Imperforate", 8 pt italic) and the catalogue number
   (8 pt italic);
+* a picture has one caption below it, its own (8 pt italic), and nothing else;
 * every caption is set in the bundled Source Serif 4 Caption (``caption_fonts``),
   whatever the stamp's own font;
 * the nearest line box is ``GAP_MM`` from the frame's outer edge on each side
@@ -45,7 +46,7 @@ class CaptionLine:
     """One line of caption text, positioned on the page (mm)."""
 
     text: str
-    kind: str  # "heading" | "description" | "details" | "catalogue"
+    kind: str  # "heading" | "description" | "details" | "catalogue" | "picture"
     font_id: str  # caption font id: "CapR", "CapI", "CapB" or "CapSB" (caption_fonts)
     size_pt: float
     top: float  # top of the line box
@@ -74,7 +75,10 @@ def catalogue_text(refs) -> str:
 def caption_parts(stamp, heading_weight: Optional[str] = None) -> tuple[list, list]:
     """(above, below) as lists of (kind, text, font_id, size_pt), empty parts dropped."""
     above, below = [], []
-    if getattr(stamp, "is_picture", False):  # pictures have no captions
+    if getattr(stamp, "is_picture", False):  # a picture: its own caption only
+        text = (getattr(stamp, "picture_caption", "") or "").strip()
+        if text:
+            below.append(("picture", text, "CapI", CAPTION_PT))
         return above, below
     heading = getattr(stamp, "heading", None)
     if heading is not None and (heading.text or "").strip():

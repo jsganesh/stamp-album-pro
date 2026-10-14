@@ -166,6 +166,10 @@ function init() {
     });
 
     // ── Philatelic data change handlers ──
+    $("pcap").addEventListener("change", function() {
+        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        el.cap = this.value; pushUndo(); render();
+    });
     $("phdg").addEventListener("change", function() {
         var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
         el.hdg = this.value; pushUndo(); render();

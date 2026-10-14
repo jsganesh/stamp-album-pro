@@ -108,6 +108,9 @@ ROW_ALIGN_BOTTOM
 STAMP_ADD (width height "description" "catalog1" "catalog2" "catalog3")
 STAMP_ADD_BLANK (width height)
 STAMP_ADD_IMG (width height "image_file" "description" ...)
+STAMP_ADD_IMG (x y width height "image_file" "label" "caption" "")   # a picture placed on the page:
+    # the label is the file's name and never prints; the caption prints 2 mm below the
+    # picture in 8 pt italic, centred and wrapped to its width (empty: none). No frame.
 STAMP_ADD_TRIANGLE (width height ...)
 STAMP_ADD_DIAMOND (width height ...)
 STAMP_ADD_OVAL (width height ...)

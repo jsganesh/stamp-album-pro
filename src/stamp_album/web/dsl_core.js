@@ -145,7 +145,7 @@ var PLAIN_BORDERS = ["none", "solid", "double"];
 function serializeEl(el) {
     var E = escapeDSL;  // every text field is escaped, so quotes and backslashes survive a save
     if (el.t === "image") {
-        return 'STAMP_ADD_IMG(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + E(el.img || "") + '" "' + E(el.lbl || "") + '" "" "")';
+        return 'STAMP_ADD_IMG(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + E(el.img || "") + '" "' + E(el.lbl || "") + '" "' + E(el.cap || "") + '" "")';
     } else if (el.t === "freehand") {
         return 'STAMP_ADD_AT(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + E(el.lbl || "") + '" "freehand" "" "" ' + (el.s || "freehand") + ' "' + E(el.bdr || "solid") + '" "' + E(el.bdrC || "#000") + '" ' + (el.bdrW || 0.5) + ' "' + E(el.fill || "#FEFEFE") + '" ' + (el.fillA != null ? el.fillA : 100) + ')';
     } else if (el.t === "text") {
@@ -330,7 +330,7 @@ function parseDSL(dsl) {
 
         var mImg = matchDSL(t, /^STAMP_ADD_IMG\(\s*(-?[\d.]+)\s+(-?[\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\)/);
         if (mImg) {
-            currentElements.push({ id: "el" + (nid++), t: "image", s: "rectangle", x: parseFloat(mImg[1]), y: parseFloat(mImg[2]), w: parseFloat(mImg[3]), h: parseFloat(mImg[4]), lbl: mImg[6] || "", bdr: "none", bdrC: "transparent", bdrW: 0, fill: "transparent", fillA: 0, img: mImg[5] || "", font: "HN", fs: 12 });
+            currentElements.push({ id: "el" + (nid++), t: "image", s: "rectangle", x: parseFloat(mImg[1]), y: parseFloat(mImg[2]), w: parseFloat(mImg[3]), h: parseFloat(mImg[4]), lbl: mImg[6] || "", cap: mImg[7] || "", bdr: "none", bdrC: "transparent", bdrW: 0, fill: "transparent", fillA: 0, img: mImg[5] || "", font: "HN", fs: 12 });
             continue;
         }
 
@@ -642,6 +642,10 @@ function wrapLines(text, maxWidth, measure) {
 function captionParts(el, opts) {
     var above = [], below = [];
     var trim = function(v) { return String(v || "").trim(); };
+    if (el.t === "image") {  // a picture: its own caption only (its label is the file's name)
+        if (trim(el.cap)) below.push({ kind: "picture", text: trim(el.cap), fontId: "CapI", sizePt: CAPTION.CAPTION_PT });
+        return { above: above, below: below };
+    }
     if (trim(el.hdg)) above.push({ kind: "heading", text: trim(el.hdg), fontId: headingFont(opts && opts.headingWeight), sizePt: CAPTION.HEADING_PT });
     if (trim(el.lbl)) below.push({ kind: "description", text: trim(el.lbl), fontId: "CapR", sizePt: CAPTION.CAPTION_PT });
     var details = [el.denom, el.cond, el.perf].map(trim).filter(Boolean).join(" · ");
@@ -650,8 +654,8 @@ function captionParts(el, opts) {
     return { above: above, below: below };
 }
 
-// Which elements carry captions: stamps (any shape) and free shapes.
-function hasCaptions(el) { return !!el && (el.t === "stamp" || el.t === "freehand"); }
+// Which elements carry captions: stamps (any shape), free shapes and pictures.
+function hasCaptions(el) { return !!el && (el.t === "stamp" || el.t === "freehand" || el.t === "image"); }
 
 // (x, y, w, h) is the stamp's own size; captions are placed around its frame.
 // measure(text, fontId, sizePt) -> mm defaults to captionMeasure; opts as captionParts.

@@ -67,7 +67,8 @@ class AlbumSerializer:
             return out
         if getattr(stamp, "is_picture", False):
             img, label = e(stamp.image_path or ""), e(stamp.description)
-            return [f'STAMP_ADD_IMG({x} {y} {w} {h} "{img}" "{label}" "" "")']
+            cap = e(getattr(stamp, "picture_caption", ""))
+            return [f'STAMP_ADD_IMG({x} {y} {w} {h} "{img}" "{label}" "{cap}" "")']
         # The frame as the editor writes it (FRAMES in web/dsl_core.js)
         frame = getattr(stamp, "frame", "thin") or "thin"
         frames = {"none": ("none", 0), "medium": ("solid", 1), "double": ("double", 1)}

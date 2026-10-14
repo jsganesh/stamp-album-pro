@@ -424,7 +424,9 @@ var LOCALES = {
   "msg.list_failed": "Could not list the saved albums",
   "msg.delete_failed": "Could not delete {name}",
   "ui.a_heading_takes_the_theme": "A heading is drawn in the album's theme colour.",
-  "msg.image_file": "File: {name}"
+  "msg.image_file": "File: {name}",
+  "ui.a_picture_caption_prints": "Printed below the image in small italics, wrapped to its width. Leave it empty for none.",
+  "ui.caption_below_the_image": "Caption below the image"
  }
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = LOCALES;

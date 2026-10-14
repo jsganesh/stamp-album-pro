@@ -267,13 +267,14 @@ def test_mark_as_heading_explains_itself_on_its_own_line(page):
     assert page.get_attribute("#phead", "aria-describedby") == "phead-hint"
 
 
-def test_an_image_has_no_label_font_or_size(page):
+def test_an_image_has_a_caption_but_no_label_font_or_size(page):
     _select_new(page, {"t": "image", "x": 20, "y": 20, "w": 100, "h": 75,
                        "lbl": "bahcoa.png", "img": "/images/bahcoa.png"})
-    shown = _shown(page, ["cap-sec", "lbl-row", "font-row", "fsize-row", "phead-row",
+    shown = _shown(page, ["cap-sec", "pcap-row", "lbl-row", "font-row", "fsize-row", "phead-row",
                           "img-sec", "img-row", "img-file"])
-    assert shown == {"cap-sec": False, "lbl-row": False, "font-row": False, "fsize-row": False,
-                     "phead-row": False, "img-sec": True, "img-row": True, "img-file": True}
+    assert shown == {"cap-sec": True, "pcap-row": True, "lbl-row": False, "font-row": False,
+                     "fsize-row": False, "phead-row": False, "img-sec": True, "img-row": True,
+                     "img-file": True}
     assert page.text_content("#img-file") == "File: bahcoa.png"
 
 
