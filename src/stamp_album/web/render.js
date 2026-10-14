@@ -325,54 +325,88 @@ function updateFrameNote() {
 }
 
 // ── Select ──
+// The right panel names what is selected; with nothing selected it holds the
+// album and page settings (page size, border, theme, headings, snap).
+var PANEL_TITLES = { stamp: "msg.kind_stamp", text: "msg.kind_text", image: "msg.kind_image",
+                     freehand: "msg.kind_freehand" };
+function panelTitle(el) {
+    return S.t(el ? (PANEL_TITLES[el.t] || "msg.kind_stamp") : "ui.album_and_page");
+}
+// The details a reader may not need, under More details (optional): Value,
+// Condition, Perforation and Catalogue no.
+var MORE_FIELDS = ["denom", "cond", "perf", "cat"];
+function moreFilled(el) {
+    return MORE_FIELDS.filter(function(k) { return el && el[k] && String(el[k]).trim(); }).length;
+}
+function updateMoreCount(el) {
+    var n = moreFilled(el);
+    $("more-count").textContent = n ? S.t("msg.n_filled_in", { count: n }) : S.t("msg.none_filled_in");
+}
+function setMoreOpen(open) {
+    $("more-toggle").setAttribute("aria-expanded", open ? "true" : "false");
+    $("more-body").hidden = !open;
+}
+function show(id, on) { $(id).hidden = !on; }
+
+// Which item the panel shows (null: the album settings). Many paths clear or
+// replace the selection directly (Escape, undo, a page switch, opening a file),
+// so render() brings the panel in step whenever this no longer matches.
+var _panelFor = null;
+function syncPanel() {
+    var el = S.E.find(function(x) { return x.id === S.sel; });
+    if ((el ? el.id : null) !== _panelFor) fillPanel(el, true);
+}
+
 function select(id) {
+    var changed = id !== _panelFor;
     S.sel = id;
     render();
-    var el = S.E.find(function(x) { return x.id === id; });
-    if (!el) {
-        $("rp-content").style.display = "none";
-        $("rp-none").style.display = "block";
-        return;
-    }
-    $("rp-content").style.display = "block";
-    $("rp-none").style.display = "none";
+    fillPanel(S.E.find(function(x) { return x.id === id; }), changed);
+}
+
+function fillPanel(el, changed) {
+    _panelFor = el ? el.id : null;
+    $("rp-title").textContent = panelTitle(el);
+    $("rp-content").hidden = !el;
+    $("rp-none").hidden = !!el;
+    if (!el) return;
     $("px").value = mm(el.x);
     $("py").value = mm(el.y);
     $("pw").value = mm(el.w);
     $("ph").value = mm(el.h);
     $("plbl").value = el.lbl || "";
+    var isStamp = el.t === "stamp", isText = el.t === "text", isImg = el.t === "image";
     // Stamps and free shapes have a frame; text items can be marked as a heading.
-    var framed = el.t === "stamp" || el.t === "freehand";
-    $("frame-sec").style.display = framed ? "block" : "none";
-    $("frame-row").style.display = framed ? "flex" : "none";
+    var framed = isStamp || el.t === "freehand";
+    show("frame-sec", framed);
+    show("frame-row", framed);
     $("pbs").value = S.CORE.frameOf(el);
-    $("phead-row").style.display = el.t === "text" ? "flex" : "none";
+    // A stamp's caption: Heading and Name (the description line under the stamp;
+    // the file still calls it the label). A text item's words are its Text.
+    $("cap-sec").textContent = S.t(isStamp ? "ui.caption" : isText ? "ui.text" : "ui.label");
+    $("plbl-name").textContent = S.t(isStamp ? "ui.name" : isText ? "ui.text" : "ui.label");
+    show("phil-hdg-row", isStamp);
+    show("phead-row", isText);
     $("phead").checked = el.role === "heading";
     $("pfnt").value = el.font || "HN";
     $("pfs").value = el.fs || 12;
     // Stamp captions always use the bundled caption font at fixed sizes, so Font and
     // Size would do nothing for a stamp. Any values stored on it are left as they are.
-    var capFont = el.t === "stamp";
-    $("font-row").style.display = capFont ? "none" : "flex";
-    $("fsize-row").style.display = capFont ? "none" : "flex";
-    $("pcapfont-note").style.display = capFont ? "block" : "none";
-    var isImg = el.t === "image";
-    $("img-sec").style.display = isImg ? "block" : "none";
-    $("img-row").style.display = isImg ? "flex" : "none";
-    /* Philatelic fields — show for stamp type */
-    var isStamp = el.t === "stamp";
-    $("phil-sec").style.display = isStamp ? "block" : "none";
-    $("phil-hdg-row").style.display = isStamp ? "flex" : "none";
-    $("phil-cat-row").style.display = isStamp ? "flex" : "none";
-    $("phil-denom-row").style.display = isStamp ? "flex" : "none";
-    $("phil-cond-row").style.display = isStamp ? "flex" : "none";
-    $("phil-perf-row").style.display = isStamp ? "flex" : "none";
+    show("font-row", !isStamp);
+    show("fsize-row", !isStamp);
+    show("pcapfont-note", isStamp);
+    show("img-sec", isImg);
+    show("img-row", isImg);
+    show("more-wrap", isStamp);
     if (isStamp) {
         $("phdg").value = el.hdg || "";
         $("pcat").value = el.cat || "";
         $("pdenom").value = el.denom || "";
         $("pcond").value = el.cond || "";
         $("pperf").value = el.perf || "";
+        updateMoreCount(el);
+        // Folded unless one is filled in; a choice made by hand lasts while the stamp stays selected.
+        if (changed) setMoreOpen(moreFilled(el) > 0);
     }
 }
 
@@ -490,12 +524,12 @@ function drawCaptions(d, el, lines) {
     groups.forEach(function(g) {
         var n = captionNode(el, g, d);
         if (g[0].kind === "description") {
-            // The description is edited in place, below the box where it prints.
+            // The stamp's name is edited in place, below the box where it prints.
             n.classList.add("elbl");
             n.contentEditable = "true";
             n.spellcheck = false;
             n.style.pointerEvents = "auto";
-            n.setAttribute("aria-label", S.t("ui.description"));
+            n.setAttribute("aria-label", S.t("ui.name_below_the_stamp"));
             var before = null;
             n.addEventListener("focus", function() {
                 before = el.lbl || "";
@@ -723,6 +757,7 @@ function render() {
     });
     markCaptionWarnings(captionItems);
     updateFrameNote();
+    syncPanel();
 
     // Draw column guides if columns are enabled
     if (S._colMode > 1) {
@@ -781,6 +816,9 @@ S.clearAlignmentGuides = clearAlignmentGuides;
 S.applySnap = applySnap;
 S.add = add;
 S.select = select;
+S.updateMoreCount = updateMoreCount;
+S.setMoreOpen = setMoreOpen;
+S.panelTitle = panelTitle;
 S.updateStatusBar = updateStatusBar;
 S.updateProps = updateProps;
 S.getShapePath = getShapePath;

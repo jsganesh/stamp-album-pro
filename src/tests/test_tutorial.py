@@ -44,8 +44,8 @@ def test_next_walks_through_the_steps_and_finishes(page):
     assert "open" not in (page.get_attribute("#tutorial-overlay", "class") or "")
 
 
-NAMED = ["#pbs", "#phil-sec", "#def-theme", "#def-bdr", "#btn-page-setup",
-         "#btn-preview", "#btn-export", "#btn-save", "#pw", "#ph"]
+NAMED = ["#pbs", "#cap-sec", "#phdg", "#plbl", "#more-toggle", "#def-theme", "#def-bdr",
+         "#btn-page-setup", "#btn-preview", "#btn-export", "#btn-save", "#pw", "#ph"]
 
 
 @pytest.mark.parametrize("selector", NAMED)

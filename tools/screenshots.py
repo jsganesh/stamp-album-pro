@@ -140,18 +140,15 @@ def main():
             StampAlbum.select(StampAlbum.E.find(e => e.lbl === 'Penny Black').id);
             document.activeElement && document.activeElement.blur();
         }""")
-        # No hover outlines, size labels or empty-panel hint in the pictures
-        page.add_style_tag(
-            content=".cel .dim, #toast-container { display: none !important; }"
-            " #rp-none { visibility: hidden; }"
-        )
+        # No hover outlines or size labels in the pictures
+        page.add_style_tag(content=".cel .dim, #toast-container { display: none !important; }")
         page.mouse.move(5, 890)
         page.wait_for_timeout(400)
         full = _shot(page)
 
         # 1. A stamp at its catalogue size, and the sizes in Properties
         stamp = _crop(full, _page_mm(page, 40, 40, 82, 104))
-        props_top = _box(page, "#rp .rp-sec")[1]
+        props_top = _box(page, "#rp-content .rp-sec")[1]
         props = _crop(
             full,
             (
@@ -171,17 +168,16 @@ def main():
             _fit([_crop(full, _page_mm(page, 38, 38, 172, 102))]), WEB / "tutorial-2-captions.png"
         )
 
-        # 3. The bar above the page (Page, then Page border and Theme) over the top of the page
-        bar = _box(page, "#ca-toolbar")
-        page_btn = _box(page, "#btn-page-setup")
-        theme_sel = _box(page, "#def-theme")
-        left = _crop(full, (bar[0], bar[1], page_btn[2] + 3, bar[3]))
-        border_label = _box(page, 'label[for="def-bdr"]')
-        right = _crop(full, (border_label[0] - 8, bar[1], theme_sel[2] + 8, bar[3]))
-        sheet = _crop(full, _page_mm(page, 0, 0, 210, 44))
-        _save(_fit([_stack([[left, right], sheet])]), WEB / "tutorial-3-page.png")
+        # 3. With nothing selected, the album settings in the right panel (Paper, Page border,
+        #    Theme, Headings) beside the top of the page
+        rp = _box(page, "#rp")
+        settings = _crop(full, (rp[0], _box(page, "#rp-title")[1] - 8, rp[2],
+                                _box(page, "#heading-note")[3] + 6))
+        sheet = _crop(full, _page_mm(page, 0, 0, 210, 120))
+        _save(_fit([sheet, settings]), WEB / "tutorial-3-page.png")
 
-        # 4. Preview and the Export menu
+        # 4. Preview and the Export menu (the panel's words behind the menu would only distract)
+        page.add_style_tag(content="#rp > * { visibility: hidden; }")
         page.click("#btn-export")
         page.wait_for_timeout(250)
         full = _shot(page)
@@ -200,6 +196,7 @@ def main():
         page.mouse.click(5, 890)
 
         # README: the editor, and the DSL editor
+        page.add_style_tag(content="#rp > * { visibility: visible; }")
         page.evaluate("StampAlbum.select(StampAlbum.E.find(e => e.lbl === 'Penny Black').id)")
         page.mouse.move(5, 890)
         page.wait_for_timeout(300)

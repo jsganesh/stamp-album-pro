@@ -88,9 +88,10 @@
             </div>
             <h2 data-i18n="ui.text" class="sec-title">Text</h2>
             <div class="palette">
-                <div data-i18n-attr="title:ui.click_to_add_at_the;aria-label:ui.add_label_hn_12pt" class="p-item wide" draggable="true" role="button" tabindex="0" aria-label="Add Label, HN 12pt" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="label" data-w="120" data-h="18"><span class="icon" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-label"/></svg></span><span data-i18n="ui.label_hn_12pt" class="lbl">Label — HN 12pt</span></div>
-                <div data-i18n-attr="title:ui.click_to_add_at_the;aria-label:ui.add_heading_hb_16pt" class="p-item wide" draggable="true" role="button" tabindex="0" aria-label="Add Heading, HB 16pt" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="heading" data-w="140" data-h="24"><span class="icon" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-heading"/></svg></span><span data-i18n="ui.heading_hb_16pt" class="lbl">Heading — HB 16pt</span></div>
-                <div data-i18n-attr="title:ui.click_to_add_at_the;aria-label:ui.add_description_hn_10pt" class="p-item wide" draggable="true" role="button" tabindex="0" aria-label="Add Description, HN 10pt" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="desc" data-w="160" data-h="16"><span class="icon" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-paragraph"/></svg></span><span data-i18n="ui.description_hn_10pt" class="lbl">Description — HN 10pt</span></div>
+                <!-- What each text item is for, in a line under its name; its size is shown, never a font code -->
+                <div data-i18n-attr="title:ui.click_to_add_at_the;aria-label:ui.add_heading" class="p-item wide tx" draggable="true" role="button" tabindex="0" aria-label="Add Heading" aria-describedby="hint-heading" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="heading" data-w="140" data-h="24"><span class="icon" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-heading"/></svg></span><span data-i18n="ui.heading" class="lbl lbl-heading">Heading</span><span data-i18n="ui.size_16_pt" class="sz" aria-hidden="true">16 pt</span><span data-i18n="ui.hint_heading" class="hint" id="hint-heading">A page or section heading</span></div>
+                <div data-i18n-attr="title:ui.click_to_add_at_the;aria-label:ui.add_label" class="p-item wide tx" draggable="true" role="button" tabindex="0" aria-label="Add Label" aria-describedby="hint-label" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="label" data-w="120" data-h="18"><span class="icon" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-label"/></svg></span><span data-i18n="ui.label" class="lbl">Label</span><span data-i18n="ui.size_12_pt" class="sz" aria-hidden="true">12 pt</span><span data-i18n="ui.hint_label" class="hint" id="hint-label">A title above a paragraph</span></div>
+                <div data-i18n-attr="title:ui.click_to_add_at_the;aria-label:ui.add_description" class="p-item wide tx" draggable="true" role="button" tabindex="0" aria-label="Add Description" aria-describedby="hint-description" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="desc" data-w="160" data-h="16"><span class="icon" aria-hidden="true"><svg class="ic" aria-hidden="true"><use href="#i-paragraph"/></svg></span><span data-i18n="ui.description" class="lbl">Description</span><span data-i18n="ui.size_10_pt" class="sz" aria-hidden="true">10 pt</span><span data-i18n="ui.hint_description" class="hint" id="hint-description">A paragraph on what the page shows</span></div>
             </div>
             <h2 data-i18n="ui.images" class="sec-title">Images <button data-i18n-attr="aria-label:ui.images" type="button" class="sec-toggle" id="img-toggle" aria-label="Images" aria-expanded="true" aria-controls="img-body"><svg class="ic" aria-hidden="true"><use href="#i-chev-down"/></svg></button></h2>
             <div class="sec-body" id="img-body">
@@ -121,26 +122,9 @@
     <main id="ca">
         <div id="ca-toolbar">
             <span class="ca-group">
-                <label data-i18n="ui.page" for="btn-page-setup">Page</label>
-                <button data-i18n-attr="title:ui.page_setup_paper_size_and" id="btn-page-setup" title="Page setup: paper size and orientation">A4 · Portrait</button>
                 <div data-i18n-attr="aria-label:ui.pages" id="pg-dots" role="group" aria-label="Pages"></div>
             </span>
-            <span class="ca-group">
-                <label data-i18n="ui.snap" for="grid">Snap</label>
-                <select data-i18n-attr="title:ui.snap_moves_to_a_grid" id="grid" title="Snap moves to a grid"><option data-i18n="ui.off" value="0">Off</option><option data-i18n="ui.5_mm_grid" value="5" selected>5 mm grid</option><option data-i18n="ui.10_mm_grid" value="10">10 mm grid</option></select>
-            </span>
             <span class="spacer"></span>
-            <span class="ca-group" id="page-defaults">
-                <label data-i18n="ui.page_border" for="def-bdr">Page border</label>
-                <select id="def-bdr" aria-describedby="bdr-note"><optgroup label="Plain"><option data-i18n="ui.none" value="none">None</option><option data-i18n="ui.single" value="solid">Single</option><option data-i18n="ui.double" value="double">Double</option></optgroup><optgroup label="Decorative (not for competition)"><option data-i18n="ui.classic" value="classic">Classic</option><option data-i18n="ui.victorian" value="victorian">Victorian</option><option data-i18n="ui.art_deco" value="artdeco">Art Deco</option><option data-i18n="ui.greek_key" value="greek_key">Greek Key</option><option data-i18n="ui.rope" value="rope">Rope</option><option data-i18n="ui.laurel" value="laurel">Laurel</option><option data-i18n="ui.gothic" value="gothic">Gothic</option><option data-i18n="ui.filigree" value="filigree">Filigree</option><option data-i18n="ui.dashed" value="dashed">Dashed</option><option data-i18n="ui.dotted" value="dotted">Dotted</option></optgroup></select>
-                <span data-i18n="ui.decorative_not_for_competition" id="bdr-note" class="bdr-note" hidden>Decorative: not for competition</span>
-                <span class="ca-sep"></span>
-                <label data-i18n="ui.theme" for="def-theme">Theme</label>
-                <select data-i18n-attr="title:ui.colours_the_page_border_and" id="def-theme" title="Colours the page border and headings. Stamp frames stay black."><option data-i18n="ui.exhibition" value="exhibition">Exhibition</option><option data-i18n="ui.green" value="green">Green</option><option data-i18n="ui.maroon" value="maroon">Maroon</option><option data-i18n="ui.navy" value="navy">Navy</option><option data-i18n="ui.brown" value="brown">Brown</option></select>
-                <span class="ca-sep"></span>
-                <label data-i18n="ui.headings" for="def-heading">Headings</label>
-                <select data-i18n-attr="title:ui.weight_of_the_headings_above" id="def-heading" title="Weight of the headings above stamps"><option data-i18n="ui.bold" value="bold">Bold</option><option data-i18n="ui.semibold" value="semibold">Semibold</option></select>
-            </span>
             <span data-i18n-attr="aria-label:ui.selected_stamp" class="ca-group" id="sel-tools" role="toolbar" aria-label="Selected stamp" hidden>
                                 <span data-i18n="ui.align" class="sel-lbl">Align</span>
                 <button data-i18n-attr="title:ui.align_left;aria-label:ui.align_left" id="btn-align-l" class="ca-icon" title="Align left" aria-label="Align left"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3v18"/><rect x="8" y="6" width="12" height="4"/><rect x="8" y="14" width="7" height="4"/></svg></button><button data-i18n-attr="title:ui.align_centre;aria-label:ui.align_centre" id="btn-align-c" class="ca-icon" title="Align centre" aria-label="Align centre"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><rect x="5" y="6" width="14" height="4"/><rect x="8" y="14" width="8" height="4"/></svg></button><button data-i18n-attr="title:ui.align_right;aria-label:ui.align_right" id="btn-align-r" class="ca-icon" title="Align right" aria-label="Align right"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 3v18"/><rect x="4" y="6" width="12" height="4"/><rect x="9" y="14" width="7" height="4"/></svg></button>
@@ -162,30 +146,50 @@
 
     <button data-i18n-attr="aria-label:ui.hide_the_properties_panel" type="button" class="panel-handle" id="rp-handle" aria-label="Hide the properties panel" aria-controls="rp" aria-expanded="true"></button>
 
-    <!-- Right Panel: Properties -->
+    <!-- Right Panel: what is selected, or with nothing selected the album and page settings -->
     <aside data-i18n-attr="aria-label:ui.properties" id="rp" aria-label="Properties">
-        <div data-i18n="ui.select_an_element_to_edit" class="rp-none" id="rp-none">Select an element to edit</div>
-        <div id="rp-content" style="display:none">
-            <h2 data-i18n="ui.position" class="rp-sec"><button data-i18n-attr="aria-label:ui.hide_the_properties_panel" type="button" class="sec-toggle" id="rp-toggle" aria-label="Hide the properties panel" aria-expanded="true" aria-controls="rp"><svg class="ic" aria-hidden="true"><use href="#i-chev-right"/></svg></button>Position</h2>
+        <h2 class="rp-head"><span data-i18n="ui.album_and_page" id="rp-title">Album and page</span><button data-i18n-attr="aria-label:ui.hide_the_properties_panel" type="button" class="sec-toggle" id="rp-toggle" aria-label="Hide the properties panel" aria-expanded="true" aria-controls="rp"><svg class="ic" aria-hidden="true"><use href="#i-chev-right"/></svg></button></h2>
+        <div id="rp-none">
+            <p data-i18n="ui.click_a_stamp_or_text" class="rp-note rp-lead">Click a stamp or a piece of text on the page to change it here. These settings are for the whole album.</p>
+            <h3 data-i18n="ui.page" class="rp-sec">Page</h3>
+            <div class="rp-row"><label data-i18n="ui.paper" for="btn-page-setup">Paper</label><button data-i18n-attr="title:ui.page_setup_paper_size_and" type="button" class="rp-field-btn" id="btn-page-setup" title="Page setup: paper size and orientation">A4 · Portrait</button></div>
+            <div class="rp-row"><label data-i18n="ui.page_border" for="def-bdr">Page border</label><select id="def-bdr" aria-describedby="bdr-note"><optgroup label="Plain"><option data-i18n="ui.none" value="none">None</option><option data-i18n="ui.single" value="solid">Single</option><option data-i18n="ui.double" value="double">Double</option></optgroup><optgroup label="Decorative (not for competition)"><option data-i18n="ui.classic" value="classic">Classic</option><option data-i18n="ui.victorian" value="victorian">Victorian</option><option data-i18n="ui.art_deco" value="artdeco">Art Deco</option><option data-i18n="ui.greek_key" value="greek_key">Greek Key</option><option data-i18n="ui.rope" value="rope">Rope</option><option data-i18n="ui.laurel" value="laurel">Laurel</option><option data-i18n="ui.gothic" value="gothic">Gothic</option><option data-i18n="ui.filigree" value="filigree">Filigree</option><option data-i18n="ui.dashed" value="dashed">Dashed</option><option data-i18n="ui.dotted" value="dotted">Dotted</option></optgroup></select></div>
+            <p data-i18n="ui.decorative_not_for_competition" id="bdr-note" class="rp-note bdr-note" hidden>Decorative: not for competition</p>
+            <div class="rp-row"><label data-i18n="ui.theme" for="def-theme">Theme</label><select id="def-theme" aria-describedby="theme-note"><option data-i18n="ui.exhibition" value="exhibition">Exhibition</option><option data-i18n="ui.green" value="green">Green</option><option data-i18n="ui.maroon" value="maroon">Maroon</option><option data-i18n="ui.navy" value="navy">Navy</option><option data-i18n="ui.brown" value="brown">Brown</option></select></div>
+            <p data-i18n="ui.colours_the_page_border_and" id="theme-note" class="rp-note">Colours the page border and headings. Stamp frames stay black.</p>
+            <div class="rp-row"><label data-i18n="ui.headings" for="def-heading">Headings</label><select id="def-heading" aria-describedby="heading-note"><option data-i18n="ui.bold" value="bold">Bold</option><option data-i18n="ui.semibold" value="semibold">Semibold</option></select></div>
+            <p data-i18n="ui.weight_of_the_headings_above" id="heading-note" class="rp-note">Weight of the headings above stamps.</p>
+            <h3 data-i18n="ui.placing_items" class="rp-sec">Placing items</h3>
+            <div class="rp-row"><label data-i18n="ui.snap" for="grid">Snap</label><select id="grid" aria-describedby="snap-note"><option data-i18n="ui.off" value="0">Off</option><option data-i18n="ui.5_mm_grid" value="5" selected>5 mm grid</option><option data-i18n="ui.10_mm_grid" value="10">10 mm grid</option></select></div>
+            <p data-i18n="ui.snap_moves_to_a_grid" id="snap-note" class="rp-note">Items you move jump to the nearest grid point.</p>
+        </div>
+        <div id="rp-content" hidden>
+            <h3 data-i18n="ui.position_and_size" class="rp-sec">Position and size</h3>
             <div class="rp-row"><label for="px">X</label><input data-i18n-attr="aria-label:ui.x_position" aria-label="X position" type="number" id="px" step="0.5"><span class="unit">mm</span><label for="py">Y</label><input data-i18n-attr="aria-label:ui.y_position" aria-label="Y position" type="number" id="py" step="0.5"><span class="unit">mm</span></div>
             <div class="rp-row"><label for="pw">W</label><input data-i18n-attr="aria-label:ui.width" aria-label="Width" type="number" id="pw" step="0.5"><span class="unit">mm</span><label for="ph">H</label><input data-i18n-attr="aria-label:ui.height" aria-label="Height" type="number" id="ph" step="0.5"><span class="unit">mm</span></div>
-            <h2 data-i18n="ui.frame" class="rp-sec" id="frame-sec">Frame</h2>
+            <h3 data-i18n="ui.frame" class="rp-sec" id="frame-sec">Frame</h3>
             <div class="rp-row" id="frame-row"><label data-i18n="ui.frame" for="pbs">Frame</label><select data-i18n-attr="title:ui.stamp_frames_are_black" id="pbs" title="Stamp frames are black"><option data-i18n="ui.none" value="none">None</option><option data-i18n="ui.thin" value="thin">Thin</option><option data-i18n="ui.medium" value="medium">Medium</option><option data-i18n="ui.double" value="double">Double</option></select></div>
             <p class="rp-note" id="pframe-size"></p>
-            <h2 data-i18n="ui.text" class="rp-sec">Text</h2>
-            <div class="rp-row"><label data-i18n="ui.label" for="plbl">Label</label><input data-i18n-attr="placeholder:ui.description" type="text" id="plbl" placeholder="Description"></div>
-            <p data-i18n="ui.captions_use_the_caption_font" class="rp-note" id="pcapfont-note" style="display:none">Captions use the caption font at fixed sizes. Heading weight is set with Headings above the page.</p>
+            <!-- A stamp: Caption (Heading, Name, More details). Text: Text, Font, Size. Shapes and pictures: Label. -->
+            <h3 data-i18n="ui.caption" class="rp-sec" id="cap-sec">Caption</h3>
+            <div class="rp-row" id="phil-hdg-row" hidden><label data-i18n="ui.heading" for="phdg">Heading</label><input type="text" id="phdg"></div>
+            <div class="rp-row" id="lbl-row"><label data-i18n="ui.name" id="plbl-name" for="plbl">Name</label><input type="text" id="plbl"></div>
+            <p data-i18n="ui.captions_use_the_caption_font" class="rp-note" id="pcapfont-note" hidden>Captions use the caption font at fixed sizes. The heading weight is an album setting: click an empty part of the page to see it.</p>
             <div class="rp-row" id="font-row"><label data-i18n="ui.font" for="pfnt">Font</label><select id="pfnt"></select></div>
             <div class="rp-row" id="fsize-row"><label data-i18n="ui.size" for="pfs">Size</label><input data-i18n-attr="aria-label:ui.font_size" aria-label="Font size" type="number" id="pfs" value="12" min="6" max="72" step="1"><span class="unit">pt</span></div>
             <div class="rp-row" id="phead-row"><span class="rp-gap" aria-hidden="true"></span><input type="checkbox" id="phead" aria-describedby="phead-hint"><label data-i18n="ui.mark_as_heading" for="phead" class="rp-check">Mark as heading</label><span data-i18n="ui.theme_colour" class="unit" id="phead-hint">theme colour</span></div>
-            <h2 data-i18n="ui.philatelic_data" class="rp-sec" id="phil-sec" style="display:none">Philatelic data</h2>
-            <div class="rp-row" id="phil-hdg-row" style="display:none"><label data-i18n="ui.heading" for="phdg">Heading</label><input data-i18n-attr="placeholder:ui.e_g_m_v_kista" type="text" id="phdg" placeholder="e.g. M.V. Kista Dan"></div>
-            <div class="rp-row" id="phil-cat-row" style="display:none"><label data-i18n="ui.catalogue" for="pcat">Catalogue #</label><input data-i18n-attr="aria-label:ui.catalogue_number;placeholder:ui.sg_1_sc_1" aria-label="Catalogue number" type="text" id="pcat" placeholder="SG#1 / SC#1"></div>
-            <div class="rp-row" id="phil-denom-row" style="display:none"><label data-i18n="ui.denom" for="pdenom">Denom</label><input data-i18n-attr="aria-label:ui.denomination" aria-label="Denomination" type="text" id="pdenom" placeholder="½p"></div>
-            <div class="rp-row" id="phil-cond-row" style="display:none"><label data-i18n="ui.condition" for="pcond">Condition</label><select id="pcond"><option data-i18n="ui.not_set" value="">Not set</option><option data-i18n="ui.mint_nh" value="Mint NH">Mint NH</option><option data-i18n="ui.mint_hinged" value="Mint H">Mint Hinged</option><option data-i18n="ui.used" value="Used">Used</option><option data-i18n="ui.fdc" value="FDC">FDC</option><option data-i18n="ui.cto" value="CTO">CTO</option><option data-i18n="ui.on_cover" value="On Cover">On Cover</option></select></div>
-            <div class="rp-row" id="phil-perf-row" style="display:none"><label data-i18n="ui.perf" for="pperf">Perf</label><input data-i18n-attr="aria-label:ui.perforation;placeholder:ui.e_g_a1" aria-label="Perforation" type="text" id="pperf" placeholder="e.g. A1"></div>
-            <h2 data-i18n="ui.image" class="rp-sec" id="img-sec" style="display:none">Image</h2>
-            <div class="rp-row" id="img-row" style="display:none"><button data-i18n="ui.change_image" id="btn-chg-img" style="flex:1">Change image</button><button data-i18n-attr="aria-label:ui.remove_image" id="btn-rm-img" aria-label="Remove image"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+            <div id="more-wrap" hidden>
+                <button type="button" class="rp-more" id="more-toggle" aria-expanded="false" aria-controls="more-body"><span data-i18n="ui.more_details_optional">More details (optional)</span><span class="rp-more-count" id="more-count"></span><svg class="ic" aria-hidden="true"><use href="#i-chev-down"/></svg></button>
+                <div id="more-body" hidden>
+                    <p data-i18n="ui.fill_in_only_what_helps" class="rp-note">Fill in only what helps the reader. An empty field leaves nothing on the page: leave Value empty when the stamp shows it, and Perforation empty for an imperforate stamp.</p>
+                    <div class="rp-row"><label data-i18n="ui.value" for="pdenom">Value</label><input type="text" id="pdenom"></div>
+                    <div class="rp-row"><label data-i18n="ui.condition" for="pcond">Condition</label><select id="pcond"><option data-i18n="ui.not_set" value="">Not set</option><option data-i18n="ui.mint_nh" value="Mint NH">Mint NH (never hinged)</option><option data-i18n="ui.mint_hinged" value="Mint H">Mint H (hinged)</option><option data-i18n="ui.used" value="Used">Used</option><option data-i18n="ui.fdc" value="FDC">FDC (first day cover)</option><option data-i18n="ui.cto" value="CTO">CTO (cancelled to order)</option><option data-i18n="ui.on_cover" value="On Cover">On Cover</option></select></div>
+                    <div class="rp-row"><label data-i18n="ui.perforation" for="pperf">Perforation</label><input type="text" id="pperf"></div>
+                    <div class="rp-row"><label data-i18n="ui.catalogue_no" for="pcat">Catalogue no.</label><input type="text" id="pcat"></div>
+                </div>
+            </div>
+            <h3 data-i18n="ui.image" class="rp-sec" id="img-sec" hidden>Image</h3>
+            <div class="rp-row" id="img-row" hidden><button data-i18n="ui.change_image" id="btn-chg-img" style="flex:1">Change image</button><button data-i18n-attr="aria-label:ui.remove_image" id="btn-rm-img" aria-label="Remove image"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div>
             <div class="rp-actions">
                 <button data-i18n="ui.duplicate" id="btn-dup-el"><svg class="ic" aria-hidden="true"><use href="#i-copy"/></svg>Duplicate</button>
                 <button data-i18n="ui.centre" id="btn-center"><svg class="ic" aria-hidden="true"><use href="#i-centre"/></svg>Centre</button>
@@ -350,17 +354,17 @@
                 </div>
             </div>
             <div class="tutorial-step" data-step="2">
-                <img data-i18n-attr="alt:ui.three_framed_stamps_each_with" class="tutorial-img" src="tutorial-2-captions.png" alt="Three framed stamps, each with a year above and its name, details and catalogue number below" width="520" height="260">
+                <img data-i18n-attr="alt:ui.three_framed_stamps_each_with" class="tutorial-img" src="tutorial-2-captions.png" alt="Three framed stamps, each with a year above and its name and condition below" width="520" height="260">
                 <div class="tutorial-step-row">
                     <span class="tutorial-step-num">2</span>
-                    <span data-i18n-html="ui.frames_and_captions_choose_thin" class="tutorial-step-text"><b>Frames and captions</b><br>Choose <b>Thin</b>, <b>Medium</b> or <b>Double</b> under <b>Frame</b>. Type the description below the stamp; the heading, catalogue number and details go under <b>Philatelic data</b>. An amber <b>!</b> means a caption or frame runs into something or past the page border.</span>
+                    <span data-i18n-html="ui.frames_and_captions_choose_thin" class="tutorial-step-text"><b>Frames and captions</b><br>Choose <b>Thin</b>, <b>Medium</b> or <b>Double</b> under <b>Frame</b>. Under <b>Caption</b>, the <b>Heading</b> goes above the stamp and its <b>Name</b> below. Value, condition, perforation and catalogue number are under <b>More details</b>: fill them in only when they help. An amber <b>!</b> means a caption or frame runs into something or past the page border.</span>
                 </div>
             </div>
             <div class="tutorial-step" data-step="3">
-                <img data-i18n-attr="alt:ui.the_bar_above_the_page" class="tutorial-img" src="tutorial-3-page.png" alt="The bar above the page with the Page button, Page border and Theme" width="520" height="260">
+                <img data-i18n-attr="alt:ui.the_bar_above_the_page" class="tutorial-img" src="tutorial-3-page.png" alt="The album and page settings on the right: Paper, Page border, Theme and Headings" width="520" height="260">
                 <div class="tutorial-step-row">
                     <span class="tutorial-step-num">3</span>
-                    <span data-i18n-html="ui.theme_page_border_and_paper" class="tutorial-step-text"><b>Theme, page border and paper</b><br>Above the page, <b>Theme</b> colours the page border and headings, and <b>Page border</b> has plain borders for exhibition pages and decorative ones for personal albums. The <b>Page</b> button changes the paper size and orientation.</span>
+                    <span data-i18n-html="ui.theme_page_border_and_paper" class="tutorial-step-text"><b>Theme, page border and paper</b><br>Click an empty part of the page to see the album's settings on the right. <b>Theme</b> colours the page border and headings, and <b>Page border</b> has plain borders for exhibition pages and decorative ones for personal albums. <b>Paper</b> changes the paper size and orientation.</span>
                 </div>
             </div>
             <div class="tutorial-step" data-step="4">

@@ -52,12 +52,11 @@ function syncMenuState() {
     });
 }
 
-// Selected-stamp tools replace the page defaults in the page bar.
+// The selected item's tools show in the page bar beside the pages.
 function updateSelectionUI() {
     var hasSel = !!(S.sel && S.E.some(function(x) { return x.id === S.sel; }));
-    var tools = $("sel-tools"), defs = $("page-defaults");
+    var tools = $("sel-tools");
     if (tools) tools.hidden = !hasSel;
-    if (defs) defs.hidden = hasSel;
     $("btn-undo").disabled = S._undoStack.length < 2;
     $("btn-redo").disabled = S._redoStack.length === 0;
 }

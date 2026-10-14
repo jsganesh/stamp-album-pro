@@ -584,6 +584,7 @@ function refreshLanguage() {
     if (S.populateFonts) S.populateFonts();
     render();  // the page's items, their warnings and the status bar
     updateProps();
+    if (S.select) S.select(sel);  // the right panel's title and field names
     if (S.syncPanelLabels) S.syncPanelLabels();
     if (S.applyZoom) S.applyZoom();
     if (S.loadFileList) S.loadFileList();
