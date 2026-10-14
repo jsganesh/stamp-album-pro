@@ -186,6 +186,15 @@ function init() {
         var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
         el.perf = this.value; pushUndo(); render();
     });
+    // The four optional details keep their count up to date as they are filled in
+    ["pcat", "pdenom", "pcond", "pperf"].forEach(function(id) {
+        $(id).addEventListener("change", function() {
+            S.updateMoreCount(S.E.find(function(x) { return x.id === S.sel; }));
+        });
+    });
+    $("more-toggle").addEventListener("click", function() {
+        S.setMoreOpen(this.getAttribute("aria-expanded") !== "true");
+    });
 
     // ── Buttons ──
     $("btn-dup").addEventListener("click", function() {

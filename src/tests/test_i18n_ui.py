@@ -86,6 +86,8 @@ def test_english_by_default_with_every_phrase(browser, base_url):
     assert pg.inner_text("#sb-page") == "Page 1 of 1"
     _add_stamp(pg)
     assert pg.inner_text("#sb-elements") == "1 element"
+    pg.click("#more-toggle")
+    pg.evaluate("StampAlbum.select(null)")  # Paper is with the album settings
     for menu in ("file", "edit", "view"):
         pg.click(f"#menu-{menu}-btn")
         pg.keyboard.press("Escape")
@@ -173,6 +175,9 @@ def _states(pg):
     yield "start"
     _add_stamp(pg)
     yield "stamp selected"
+    pg.click("#more-toggle")
+    yield "stamp's more details"
+    pg.evaluate("StampAlbum.select(null)")  # the album settings, in the right panel
     for menu in ("file", "edit", "view"):
         pg.click(f"#menu-{menu}-btn")
         yield f"{menu} menu"

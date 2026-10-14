@@ -40,6 +40,12 @@ def phone(base_url):
         browser.close()
 
 
+def _snap(pg, step):
+    """Choose Snap in the right panel, which a phone starts with shut."""
+    pg.evaluate("""v => { const g = document.getElementById('grid'); g.value = v;
+                          g.dispatchEvent(new Event('change')); }""", step)
+
+
 def _settle(pg):
     """Wait until the zoom stops changing: panels slide open or shut over 0.2 s."""
     pg.evaluate(
@@ -176,7 +182,7 @@ def test_view_menu_sets_and_shows_the_zoom(phone):
 
 
 def test_touch_drag_moves_by_screen_distance_over_zoom(phone):
-    phone.select_option("#grid", "0")  # Snap Off and no snapping to guides: the move is exact
+    _snap(phone, "0")  # Snap Off and no snapping to guides: the move is exact
     phone.evaluate("StampAlbum._snapEnabled = false")
     eid = _add_item(phone)
     before = _item(phone, eid)
@@ -189,7 +195,7 @@ def test_touch_drag_moves_by_screen_distance_over_zoom(phone):
 
 
 def test_touch_drag_snaps_to_the_grid_in_mm(phone):
-    phone.select_option("#grid", "5")  # 5 mm = 12.5 canvas px
+    _snap(phone, "5")  # 5 mm = 12.5 canvas px
     phone.evaluate("StampAlbum._snapEnabled = false")
     eid = _add_item(phone)
     before = _item(phone, eid)
@@ -202,7 +208,7 @@ def test_touch_drag_snaps_to_the_grid_in_mm(phone):
 
 
 def test_mouse_drag_moves_by_screen_distance_over_zoom(phone):
-    phone.select_option("#grid", "0")
+    _snap(phone, "0")
     phone.evaluate("StampAlbum._snapEnabled = false")
     eid = _add_item(phone)
     before = _item(phone, eid)

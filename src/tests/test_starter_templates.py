@@ -194,3 +194,13 @@ def test_gallery_api_lists_the_templates(client):
     for tid in EXPECTED_IDS:
         r = client.get(f"/api/templates/{tid}")
         assert r.status_code == 200 and "PAGE_START" in r.json()["dsl"]
+
+
+def test_stamp_placeholders_never_say_description():
+    """A stamp's own name is Name; "Description" is the paragraph text item."""
+    for t in TEMPLATES:
+        for s in _stamps(t):
+            assert s.description != "Description", t["id"]
+    names = {s.description for s in _stamps(next(t for t in TEMPLATES
+                                                    if t["id"] == "exhibition_page"))}
+    assert names == {"Name"}
