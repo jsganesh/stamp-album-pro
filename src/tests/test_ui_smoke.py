@@ -508,14 +508,14 @@ def test_menu_items_reach_their_actions(page):
     page.click("#menu-page-setup")
     assert page.is_visible("#page-setup-overlay")
     page.click("#ps-cancel")
-    page.click("#menu-file-btn")
+    page.click("#menu-help-btn")
     page.click("#menu-calibration")
     assert page.is_visible("#calibration-overlay")
     page.click("#cal-cancel")
     assert page.locator("#menu-file [data-fmt]").count() == 4, (
         "File menu lists PDF, PNG, SVG and HTML export"
     )
-    page.click("#menu-view-btn")
+    page.click("#menu-help-btn")
     page.click("#btn-help")
     assert "open" in page.get_attribute("#help-overlay", "class")
     assert page.js_errors == []
@@ -643,9 +643,9 @@ def test_snap_to_guides_pulls_a_stamp_onto_a_guide(page):
     assert x == 100, f"stamp should snap onto the guide at 100, got {x}"
 
 
-def test_view_menu_can_show_the_tutorial_again(page):
+def test_help_menu_can_show_the_tutorial_again(page):
     before = page.evaluate("StampAlbum.E.length")
-    page.click("#menu-view-btn")
+    page.click("#menu-help-btn")
     page.click("#menu-tutorial")
     assert "open" in page.get_attribute("#tutorial-overlay", "class")
     assert page.evaluate("StampAlbum.E.length") == before, (
@@ -847,7 +847,7 @@ def test_palette_hint_returns_after_repeated_clicks_on_a_blank_page(page):
 
 def test_calibration_page_starts_at_the_album_paper_and_downloads_a_pdf(page):
     _load(page, "ALBUM_PAGES_SIZE(148 210)\\nPAGE_START")
-    page.click("#menu-file-btn")
+    page.click("#menu-help-btn")
     page.click("#menu-calibration")
     assert page.input_value("#cal-paper") == "a5", "starts at the album's paper size"
     page.select_option("#cal-paper", "letter")
@@ -861,7 +861,7 @@ def test_calibration_page_starts_at_the_album_paper_and_downloads_a_pdf(page):
 
 
 def test_calibration_dialog_closes_with_escape(page):
-    page.click("#menu-file-btn")
+    page.click("#menu-help-btn")
     page.click("#menu-calibration")
     page.keyboard.press("Escape")
     assert not page.is_visible("#calibration-overlay")

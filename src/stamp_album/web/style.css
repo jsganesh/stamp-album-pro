@@ -56,6 +56,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .mi:hover:not(:disabled), .mi:focus-visible { background: var(--accent-soft); }
 .mi:disabled { color: var(--muted); cursor: default; }
 .mi[data-danger] { color: var(--accent); }
+/* File › Open recent: a submenu beside its item (below it on a phone) */
+.msubmenu { position: relative; display: flex; flex-direction: column; }
+#menu-recent::after { content: ""; margin-left: auto; width: 0.5rem; height: 0.5rem; border: solid var(--text2); border-width: 0 2px 2px 0; transform: rotate(-45deg); }
+#menu-recent[aria-expanded="true"] { background: var(--accent-soft); }
+.tb-submenu { top: -0.375rem; left: calc(100% - 0.25rem); min-width: 16rem; max-width: 26rem; }
+.tb-submenu .mi { overflow: hidden; text-overflow: ellipsis; }
+.tb-submenu .mi[aria-current="true"] { font-weight: 650; }
 .mi .mk { margin-left: auto; padding-left: 1.5rem; font-size: 0.875rem; color: var(--text2); font-family: 'SF Mono', Menlo, Consolas, monospace; }
 .mi .mcheck { position: absolute; left: 0.75rem; top: 50%; width: 0.875rem; height: 0.875rem; margin-top: -0.4375rem; }
 .mi[aria-checked="true"] .mcheck::after { content: ""; position: absolute; left: 0.25rem; top: 0; width: 0.3125rem; height: 0.625rem; border: solid var(--accent); border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
@@ -124,24 +131,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .p-item.wide.tx .sz { grid-column: 3; font-size: 0.875rem; color: var(--text2); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .p-item.wide.tx .hint { grid-column: 2 / span 2; font-size: 0.875rem; line-height: 1.35; color: var(--text2); text-align: left; }
 
-/* Import section */
-.imp-btns { display: flex; flex-direction: column; gap: 0.5rem; padding: 0 0.875rem 0.5rem; }
-.imp-hint { font-size: 0.875rem; color: var(--text2); padding: 0.25rem 0.875rem 0.75rem; line-height: 1.45; }
-
-/* File list in sidebar */
-.file-list { padding: 0 0.875rem 0.5rem; display: flex; flex-direction: column; gap: 0.375rem; }
-.file-item { display: flex; align-items: center; gap: 0.375rem; min-height: calc(var(--ctl) + 0.25rem); padding: 0 0.125rem 0 0.75rem; background: #fff; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; font-size: 0.9375rem; transition: border-color 0.15s; }
-.file-item:hover { border-color: var(--accent); }
-.file-item.active { border-color: var(--accent); background: var(--accent-soft); }
-.file-item .fn { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.file-item .fdel { cursor: pointer; color: var(--text2); width: var(--ctl); height: var(--ctl); display: inline-flex; align-items: center; justify-content: center; background: none; border: 1px solid transparent; border-radius: var(--radius); }
-.file-item .file-open { all: unset; flex: 1; min-width: 0; min-height: var(--ctl); display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
-.file-item .fdel:hover { color: var(--accent); border-color: var(--border); }
-.file-item .favicon { color: var(--text2); }
-.file-btn, .img-upl-btn { display: flex; align-items: center; gap: 0.625rem; width: 100%; min-height: 2.75rem; padding: 0 0.75rem; background: #fff; border: 1px solid var(--border); color: var(--text); border-radius: var(--radius); cursor: pointer; font: inherit; font-size: 0.9375rem; text-align: left; }
-.file-btn .ic, .img-upl-btn .ic { font-size: 1.15rem; color: var(--text2); }
-.file-btn:hover, .img-upl-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
-#file-body > .file-btn, #img-body > .img-upl-btn { width: calc(100% - 1.75rem); margin: 0 0.875rem 0.75rem; }
+.img-upl-btn { display: flex; align-items: center; gap: 0.625rem; width: 100%; min-height: 2.75rem; padding: 0 0.75rem; background: #fff; border: 1px solid var(--border); color: var(--text); border-radius: var(--radius); cursor: pointer; font: inherit; font-size: 0.9375rem; text-align: left; }
+.img-upl-btn .ic { font-size: 1.15rem; color: var(--text2); }
+.img-upl-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
+#img-body > .img-upl-btn { width: calc(100% - 1.75rem); margin: 0 0.875rem 0.75rem; }
 
 /* Image grid in sidebar */
 .img-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; padding: 0 0.875rem 0.5rem; }
@@ -149,11 +142,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .img-item { position: relative; background: #fff; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
 .img-item:hover { border-color: var(--accent); }
 .img-item img { max-width: 100%; max-height: 100%; object-fit: contain; }
-.img-del { position: absolute; top: 0.25rem; right: 0.25rem; background: rgba(0,0,0,0.7); color: #fff; border: none; border-radius: 50%; width: 1.75rem; height: 1.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; padding: 0; }
-.img-item:hover .img-del, .img-item:focus-within .img-del { opacity: 1; }
-@media (hover: none) { .img-del { opacity: 1; } }
 .img-add { all: unset; box-sizing: border-box; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .img-add img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.img-grid[hidden] { display: none; }
+/* No images in the album yet: say what the button does */
+.img-empty { font-size: 0.9375rem; line-height: 1.45; color: var(--text2); margin: 0; padding: 0 0.875rem 0.625rem; }
+.img-empty[hidden] { display: none; }
+/* An image whose file has gone from the images folder */
+.img-item.missing { border-style: dashed; cursor: default; }
+.img-item.missing .img-add { cursor: default; padding: 0.5rem; }
+.img-missing { font-size: 0.875rem; line-height: 1.35; color: var(--text2); text-align: center; white-space: normal; }
 
 /* Canvas area */
 #ca { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 300px; }
@@ -425,8 +423,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 /* Dialog titles in the serif, and one style for the close (cross) buttons */
 .wiz-hdr h2, .dsl-hdr h2, .tg-hdr h2, .ps-hdr h2, .help-hdr h2 { font-family: var(--serif); font-size: 1.25rem; font-weight: 600; margin: 0; }
-:is(#btn-tg-close, #btn-help-close, #ps-close, #cal-close) { display: inline-flex; align-items: center; justify-content: center; width: var(--ctl); height: var(--ctl); background: none; border: 1px solid transparent; border-radius: var(--radius); color: var(--text2); cursor: pointer; font-size: 1.15rem; }
-:is(#btn-tg-close, #btn-help-close, #ps-close, #cal-close):hover { color: var(--accent); border-color: var(--border); }
+:is(#btn-tg-close, #btn-help-close, #ps-close, #cal-close, #alb-close) { display: inline-flex; align-items: center; justify-content: center; width: var(--ctl); height: var(--ctl); background: none; border: 1px solid transparent; border-radius: var(--radius); color: var(--text2); cursor: pointer; font-size: 1.15rem; }
+:is(#btn-tg-close, #btn-help-close, #ps-close, #cal-close, #alb-close):hover { color: var(--accent); border-color: var(--border); }
 
 /* ── Responsive / small-screen tweaks ── */
 /* The page bar stays one row, so selecting an item never shrinks the page: where the bar
@@ -466,11 +464,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     #tb .logo { font-size: 1rem; margin-right: 0.25rem; flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
     #tb .logo-long { display: none; }
     #tb .logo-short { display: inline; }
-    #tb .tb-history, #tb #btn-preview, #tb #btn-help-tb { display: none; }
+    #tb .tb-history, #tb #btn-preview { display: none; }
     .tb-mbtn { min-height: 2.75rem; padding: 0 0.5rem; }
+    .tb-mbtn .chev { display: none; }  /* four menu names fit, in longer languages too */
     #tb .tb-btn { width: 2.75rem; height: 2.75rem; }
     .tb-menu-list { position: fixed; left: 8px; right: 8px; top: calc(var(--toolbar) + 4px); min-width: 0; max-height: calc(100vh - var(--toolbar) - 16px); overflow-y: auto; }
     .mi { min-height: 2.75rem; }
+    .tb-submenu { position: static; box-shadow: none; border: none; border-left: 3px solid var(--bg3); margin-left: 1.25rem; padding: 0; max-height: none; overflow: visible; max-width: none; }
+    #menu-recent[aria-expanded="true"]::after { transform: rotate(45deg); }
     #ca { min-width: 0; }
     /* The bar above the page: tighter spacing, still 16 px text (smaller fields make Safari zoom) */
     #ca-toolbar { gap: 0.375rem 0.375rem; padding: 0.375rem 0.5rem; }
@@ -490,26 +491,36 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 }
 
 /* Page setup dialog and the fit prompt */
-:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay) { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 16px; }
-:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay).open { display: flex; }
-:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay) .ps-box { background: #fff; border: 1px solid var(--border); border-radius: 0.75rem; width: 30rem; max-width: 100%; max-height: 100%; overflow-y: auto; box-shadow: 0 8px 40px var(--page-shadow); color: var(--text); }
-:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay) .ps-hdr { display: flex; align-items: center; padding: 0.75rem 1rem 0.75rem 1.25rem; border-bottom: 1px solid var(--border); }
-:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay) .ps-hdr .spacer { flex: 1; }
-:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay) .ps-body { padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 0.625rem; }
-:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay) .ps-body > label, #page-setup-overlay legend { font-size: 0.9375rem; font-weight: 650; color: var(--text); }
-:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay) select { min-height: var(--ctl); background: #fff; border: 1px solid var(--border); color: var(--text); padding: 0 0.625rem; border-radius: var(--radius); font: inherit; font-size: 1rem; }
-:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay) .ps-orient { border: none; display: flex; gap: 1.25rem; flex-wrap: wrap; margin-top: 0.25rem; }
-:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay) .ps-orient legend { width: 100%; margin-bottom: 0.25rem; }
-:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay) .ps-orient label { font-size: 1rem; min-height: var(--ctl); display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
-:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay) .ps-orient input { width: 1.125rem; height: 1.125rem; accent-color: var(--accent); }
-:is(#ps-note, #cal-note) { font-size: 0.9375rem; line-height: 1.5; color: var(--text2); background: var(--bg1); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.625rem 0.75rem; margin-top: 0.25rem; }
+:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay, #albums-overlay) { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 16px; }
+:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay, #albums-overlay).open { display: flex; }
+:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay, #albums-overlay) .ps-box { background: #fff; border: 1px solid var(--border); border-radius: 0.75rem; width: 30rem; max-width: 100%; max-height: 100%; overflow-y: auto; box-shadow: 0 8px 40px var(--page-shadow); color: var(--text); }
+:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay, #albums-overlay) .ps-hdr { display: flex; align-items: center; padding: 0.75rem 1rem 0.75rem 1.25rem; border-bottom: 1px solid var(--border); }
+:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay, #albums-overlay) .ps-hdr .spacer { flex: 1; }
+:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay, #albums-overlay) .ps-body { padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 0.625rem; }
+:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay, #albums-overlay) .ps-body > label, #page-setup-overlay legend { font-size: 0.9375rem; font-weight: 650; color: var(--text); }
+:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay, #albums-overlay) select { min-height: var(--ctl); background: #fff; border: 1px solid var(--border); color: var(--text); padding: 0 0.625rem; border-radius: var(--radius); font: inherit; font-size: 1rem; }
+:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay, #albums-overlay) .ps-orient { border: none; display: flex; gap: 1.25rem; flex-wrap: wrap; margin-top: 0.25rem; }
+:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay, #albums-overlay) .ps-orient legend { width: 100%; margin-bottom: 0.25rem; }
+:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay, #albums-overlay) .ps-orient label { font-size: 1rem; min-height: var(--ctl); display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay, #albums-overlay) .ps-orient input { width: 1.125rem; height: 1.125rem; accent-color: var(--accent); }
+:is(#ps-note, #cal-note, #alb-note) { font-size: 0.9375rem; line-height: 1.5; color: var(--text2); background: var(--bg1); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.625rem 0.75rem; margin-top: 0.25rem; }
 #ps-note.warn { color: #5B3A06; background: #FFF6E5; border-color: #E8C98A; }
+/* Manage saved albums: one row per album, its name then Open and Delete */
+.alb-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.375rem; max-height: 22rem; overflow-y: auto; }
+.alb-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.25rem 0.25rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius); background: #fff; }
+.alb-row.current { border-color: var(--accent); background: var(--accent-soft); }
+.alb-name { flex: 1; min-width: 0; font-size: 1rem; overflow-wrap: anywhere; }
+.alb-row button { min-height: var(--ctl); background: #fff; border: 1px solid var(--border); color: var(--text); padding: 0 0.875rem; border-radius: var(--radius); cursor: pointer; font: inherit; font-size: 1rem; flex-shrink: 0; }
+.alb-row button:hover { border-color: var(--accent); background: var(--accent-soft); }
+.alb-row .alb-del { color: var(--accent); }
+.alb-row button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.alb-none { font-size: 1rem; color: var(--text2); padding: 0.5rem 0; }
 #fp-note { font-size: 1rem; line-height: 1.55; color: var(--text); margin: 0; }
-:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay) .ps-actions { display: flex; justify-content: flex-end; gap: 0.5rem; padding: 0.75rem 1.25rem; border-top: 1px solid var(--border); flex-wrap: wrap; }
-:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay) .ps-actions button { min-height: var(--ctl); background: #fff; border: 1px solid var(--border); color: var(--text); padding: 0 1rem; border-radius: var(--radius); cursor: pointer; font: inherit; font-size: 1rem; }
-:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay) .ps-actions button:hover { border-color: var(--accent); background: var(--accent-soft); }
-:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay) .ps-actions button.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
-:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay) .ps-actions button.primary:hover { background: var(--accent2); }
+:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay, #albums-overlay) .ps-actions { display: flex; justify-content: flex-end; gap: 0.5rem; padding: 0.75rem 1.25rem; border-top: 1px solid var(--border); flex-wrap: wrap; }
+:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay, #albums-overlay) .ps-actions button { min-height: var(--ctl); background: #fff; border: 1px solid var(--border); color: var(--text); padding: 0 1rem; border-radius: var(--radius); cursor: pointer; font: inherit; font-size: 1rem; }
+:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay, #albums-overlay) .ps-actions button:hover { border-color: var(--accent); background: var(--accent-soft); }
+:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay, #albums-overlay) .ps-actions button.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+:is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay, #albums-overlay) .ps-actions button.primary:hover { background: var(--accent2); }
 
 /* Palette hint: hidden after the first add, back when the user seems stuck */
 .palette-hint { margin: 0 0.875rem 0.625rem; font-size: 0.875rem; line-height: 1.45; color: var(--text2); animation: palette-hint-in 0.3s ease-out; }
@@ -524,7 +535,7 @@ h1.logo { margin: 0; }
 button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible,
 [role="button"]:focus-visible, [role="menuitem"]:focus-visible, [role="menuitemradio"]:focus-visible,
 .p-item:focus-visible, .tg-card:focus-visible, .export-dd-item:focus-visible,
-.img-add:focus-visible, .file-open:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.img-add:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 .cel:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
 .cel:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; box-shadow: 0 0 0 6px rgba(139,0,0,0.18); }
 .img-add:focus-visible { outline-offset: -3px; }  /* the tile clips anything outside it */

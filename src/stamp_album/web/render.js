@@ -758,6 +758,7 @@ function render() {
     markCaptionWarnings(captionItems);
     updateFrameNote();
     syncPanel();
+    if (S.syncImageList) S.syncImageList();  // the Images section lists the album's images
 
     // Draw column guides if columns are enabled
     if (S._colMode > 1) {

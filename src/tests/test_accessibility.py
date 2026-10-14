@@ -65,15 +65,17 @@ def _focused(page):
     )
 
 
-def _fake_library(page, images=("stamp1.png",), files=("my album.slbum",)):
-    page.route("**/images", lambda r: r.fulfill(json=list(images)))
+def _fake_library(page, images=("stamp1.png",)):
+    """Give the album images, on a page of their own, so the Images section lists them."""
     page.route(
         re.compile(r".*/images/[^/]+$"), lambda r: r.fulfill(body=PNG, content_type="image/png")
     )
-    page.route("**/files", lambda r: r.fulfill(json=list(files)))
-    page.evaluate("StampAlbum.loadImageList(); StampAlbum.loadFileList()")
+    page.evaluate("""names => {
+        StampAlbum._pages.push(names.map((n, i) => ({ id: 'lib' + i, t: 'image', s: 'rectangle',
+            x: 10, y: 10 + 70 * i, w: 80, h: 60, img: '/images/' + n, lbl: n })));
+        StampAlbum.loadImageList();
+    }""", list(images))
     page.wait_for_selector(".img-item")
-    page.wait_for_selector(".file-item")
 
 
 def _axe(page, context=None):
@@ -172,28 +174,15 @@ def test_images_panel_items_are_named_buttons_that_add_at_the_centre(page):
     assert add.count() == 1
     add.focus()
     page.keyboard.press("Enter")
+    for _ in range(100):  # placed once the image has loaded, at its own shape
+        if _els(page):
+            break
+        page.wait_for_timeout(50)
     els = _els(page)
     assert [e["t"] for e in els] == ["image"], els
     pw_, ph_ = page.evaluate("[StampAlbum._pw, StampAlbum._ph]")
     cx, cy = els[0]["x"] + els[0]["w"] / 2, els[0]["y"] + els[0]["h"] / 2
     assert abs(cx - pw_ / 2) < 15 and abs(cy - ph_ / 2) < 15, els
-
-
-def test_image_delete_button_is_named_and_shown_on_keyboard_focus(page):
-    _fake_library(page)
-    dele = page.get_by_role("button", name="Delete image stamp1.png", exact=True)
-    assert dele.count() == 1
-    dele.focus()
-    assert dele.is_visible()
-
-
-def test_file_list_items_open_and_delete_by_keyboard(page):
-    _fake_library(page)
-    assert page.get_by_role("button", name="Open my album.slbum", exact=True).count() == 1
-    dele = page.get_by_role("button", name="Delete my album.slbum", exact=True)
-    assert dele.count() == 1
-    dele.focus()
-    assert dele.is_visible()
 
 
 def test_upload_image_is_a_button(page):
@@ -202,7 +191,7 @@ def test_upload_image_is_a_button(page):
 
 @pytest.mark.parametrize(
     "toggle,body",
-    [("img-toggle", "img-body"), ("file-toggle", "file-body"), ("imp-toggle", "imp-body")],
+    [("img-toggle", "img-body")],
 )
 def test_section_toggles_are_buttons_that_report_their_state(page, toggle, body):
     t = page.locator("#" + toggle)

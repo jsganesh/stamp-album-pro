@@ -142,7 +142,7 @@ LEFTOVERS = """() => {
   const out = [];
   // The album itself, font names, the DSL, and lists of the user's files and templates.
   const skip = el => el.closest(
-    '#page, #pfnt, .CodeMirror, #template-grid, #file-list, #img-list, #file-name');
+    '#page, #pfnt, .CodeMirror, #template-grid, #menu-recent-list, .alb-name, #file-name');
   const visible = el => {
     const cs = getComputedStyle(el);
     return cs.display !== 'none' && cs.visibility !== 'hidden' && el.getClientRects().length;
@@ -178,12 +178,20 @@ def _states(pg):
     pg.click("#more-toggle")
     yield "stamp's more details"
     pg.evaluate("StampAlbum.select(null)")  # the album settings, in the right panel
-    for menu in ("file", "edit", "view"):
+    for menu in ("file", "edit", "view", "help"):
         pg.click(f"#menu-{menu}-btn")
         yield f"{menu} menu"
         pg.keyboard.press("Escape")
+    pg.click("#menu-file-btn")
+    pg.click("#menu-recent")
+    pg.wait_for_timeout(300)  # the list arrives from the server
+    yield "open recent"
+    pg.keyboard.press("Escape")
+    pg.keyboard.press("Escape")
     for opener, closer, name in (("#btn-page-setup", "#ps-cancel", "page setup"),
-                                 ("#btn-help-tb", None, "keyboard shortcuts")):
+                                 ("#btn-help", None, "keyboard shortcuts")):
+        if opener == "#btn-help":
+            pg.click("#menu-help-btn")  # Keyboard shortcuts is in the Help menu
         pg.click(opener)
         yield name
         if closer:
@@ -194,6 +202,10 @@ def _states(pg):
     pg.evaluate("StampAlbum.openCalibration()")
     yield "calibration page"
     pg.evaluate("document.getElementById('calibration-overlay').classList.remove('open')")
+    pg.evaluate("StampAlbum.openManageAlbums()")
+    pg.wait_for_timeout(300)  # the list arrives from the server
+    yield "saved albums"
+    pg.evaluate("document.getElementById('albums-overlay').classList.remove('open')")
     pg.evaluate("document.getElementById('wizard-panel').classList.add('open')")
     yield "wizard"
     pg.evaluate("document.getElementById('wizard-panel').classList.remove('open')")

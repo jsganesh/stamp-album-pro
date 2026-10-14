@@ -61,7 +61,7 @@ uv run python packaging/smoke_test.py dist/StampAlbumPro/StampAlbumPro.exe
 - The version comes from `stamp_album/__init__.py`.
 - Qt and Tk are excluded on macOS and Windows.
 
-Files the app writes (saved albums, images, collection, version history) go to `~/StampAlbum`, as when run from source.
+Files the app writes (saved albums, images, version history) go to `~/StampAlbum`, as when run from source.
 
 ## Checking a build
 

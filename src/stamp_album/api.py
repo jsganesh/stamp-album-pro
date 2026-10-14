@@ -1,7 +1,6 @@
 import json
 import os
 import secrets
-import shutil
 import tempfile
 from pathlib import Path
 from typing import Dict, Optional
@@ -31,15 +30,6 @@ from stamp_album.cloud_sync import (
     revoke_share,
     share_file,
     validate_session,
-)
-from stamp_album.collection import (
-    add_stamp,
-    delete_stamp,
-    get_collection_stats,
-    import_csv,
-    load_collection,
-    search_stamps,
-    update_stamp,
 )
 from stamp_album.core.models import Album
 from stamp_album.core.parser import AlbumParser, ParseError
@@ -142,11 +132,15 @@ class FileContent(BaseModel):
 
 
 @app.get("/files")
-async def list_files():
-    files = sorted(
-        [f.name for f in FILES_DIR.iterdir() if f.suffix in (".slbum", ".txt")]
-    )
-    return files
+async def list_files(sort: str = "name", limit: int = 0):
+    """The saved albums: by name, or with sort=recent newest first (File › Open recent)."""
+    paths = [f for f in FILES_DIR.iterdir() if f.is_file() and f.suffix in (".slbum", ".txt")]
+    if sort == "recent":
+        paths.sort(key=lambda f: (-f.stat().st_mtime, f.name))
+    else:
+        paths.sort(key=lambda f: f.name)
+    names = [f.name for f in paths]
+    return names[:limit] if limit > 0 else names
 
 
 @app.get("/files/{filename}")
@@ -198,15 +192,29 @@ async def upload_image(file: UploadFile = File(...)):
     if not file.filename:
         raise HTTPException(status_code=400, detail="No filename provided")
 
-    ext = Path(file.filename).suffix.lower()
-    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+    name = Path(file.filename.replace("\\", "/")).name  # never a path into another folder
+    ext = Path(name).suffix.lower()
+    if not name or ext not in ALLOWED_IMAGE_EXTENSIONS:
         raise HTTPException(status_code=400, detail=f"Unsupported image format: {ext}")
 
-    filepath = IMAGES_DIR / file.filename
-    with open(filepath, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    data = await file.read()
+    filepath = _image_path_for(name, data)
+    if not filepath.exists():
+        filepath.write_bytes(data)
+    return {"status": "uploaded", "filename": filepath.name, "path": str(filepath)}
 
-    return {"status": "uploaded", "filename": file.filename, "path": str(filepath)}
+
+def _image_path_for(name: str, data: bytes) -> Path:
+    """Where an attached image is kept: its own name, unless a different image already
+    has that name (another album may use it), then "name-2.ext", "name-3.ext", …
+    The same image attached again reuses its file."""
+    stem, ext = Path(name).stem, Path(name).suffix
+    n = 1
+    while True:
+        candidate = IMAGES_DIR / (name if n == 1 else f"{stem}-{n}{ext}")
+        if not candidate.exists() or candidate.read_bytes() == data:
+            return candidate
+        n += 1
 
 
 @app.delete("/images/{filename}")
@@ -723,122 +731,6 @@ async def calibration_pdf(paper: str = "a4"):
 # ============================================================
 
 
-class StampData(BaseModel):
-    country: str = ""
-    year: int = 0
-    description: str = ""
-    catalog_number: str = ""
-    catalog_type: str = "SG"
-    denomination: str = ""
-    condition: str = ""
-    purchase_price: float = 0.0
-    image_path: str = ""
-    notes: str = ""
-
-
-class StampUpdate(BaseModel):
-    country: Optional[str] = None
-    year: Optional[int] = None
-    description: Optional[str] = None
-    catalog_number: Optional[str] = None
-    catalog_type: Optional[str] = None
-    denomination: Optional[str] = None
-    condition: Optional[str] = None
-    purchase_price: Optional[float] = None
-    image_path: Optional[str] = None
-    notes: Optional[str] = None
-
-
-@app.get("/api/stamps")
-async def list_stamps(
-    query: str = "",
-    country: str = "",
-    year_from: int = 0,
-    year_to: int = 0,
-    catalog_type: str = "",
-    condition: str = "",
-    sort_by: str = "country",
-    sort_order: str = "asc",
-    page: int = 1,
-    per_page: int = 20,
-):
-    results, total = search_stamps(
-        query=query, country=country, year_from=year_from, year_to=year_to,
-        catalog_type=catalog_type, condition=condition,
-        sort_by=sort_by, sort_order=sort_order, page=page, per_page=per_page,
-    )
-    return {"stamps": results, "total": total, "page": page, "per_page": per_page}
-
-
-@app.get("/api/stamps/stats")
-async def collection_stats():
-    return get_collection_stats()
-
-
-@app.get("/api/stamps/{stamp_id}")
-async def get_stamp(stamp_id: str):
-    stamps = load_collection()
-    for s in stamps:
-        if s.get("id") == stamp_id:
-            return s
-    raise HTTPException(status_code=404, detail="Stamp not found")
-
-
-@app.post("/api/stamps")
-async def create_stamp(data: StampData):
-    return add_stamp(data.model_dump())
-
-
-@app.put("/api/stamps/{stamp_id}")
-async def edit_stamp(stamp_id: str, data: StampUpdate):
-    update_data = {k: v for k, v in data.model_dump().items() if v is not None}
-    result = update_stamp(stamp_id, update_data)
-    if not result:
-        raise HTTPException(status_code=404, detail="Stamp not found")
-    return result
-
-
-@app.delete("/api/stamps/{stamp_id}")
-async def remove_stamp(stamp_id: str):
-    if delete_stamp(stamp_id):
-        return {"status": "deleted"}
-    raise HTTPException(status_code=404, detail="Stamp not found")
-
-
-@app.post("/api/stamps/import")
-async def import_stamps_csv(file: UploadFile = File(...)):
-    if not file.filename or not file.filename.lower().endswith(".csv"):
-        raise HTTPException(status_code=400, detail="Please upload a .csv file")
-    content = await file.read()
-    try:
-        csv_text = content.decode("utf-8")
-    except UnicodeDecodeError:
-        csv_text = content.decode("latin-1")
-    count, errors = import_csv(csv_text)
-    return {"imported": count, "errors": errors}
-
-
-@app.get("/api/stamps/export/csv")
-async def export_collection_csv():
-    import csv
-    import io
-    stamps = load_collection()
-    output = io.StringIO()
-    writer = csv.DictWriter(output, fieldnames=[
-        "id", "country", "year", "description", "catalog_number", "catalog_type",
-        "denomination", "condition", "purchase_price", "image_path", "notes",
-        "created_at", "updated_at",
-    ])
-    writer.writeheader()
-    for s in stamps:
-        writer.writerow(s)
-    return PlainTextResponse(
-        output.getvalue(),
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=collection.csv"},
-    )
-
-
 class AutoLayoutRequest(BaseModel):
     dsl: str
     strategy: str = "row_first"
@@ -888,46 +780,6 @@ async def auto_layout(request: AutoLayoutRequest):
         "stamps_arranged": sum(len(r.stamps) for r in result.rows),
         "fits_on_page": result.fits_on_page,
     }
-
-
-# ============================================================
-# Excel Import for Collection
-# ============================================================
-
-@app.post("/api/stamps/import-excel")
-async def import_stamps_excel(file: UploadFile = File(...)):
-    """Import stamps from an Excel (.xlsx) file."""
-    if not file.filename or not file.filename.lower().endswith((".xlsx", ".xls")):
-        raise HTTPException(status_code=400, detail="Please upload an Excel file (.xlsx)")
-    try:
-        import openpyxl
-    except ImportError:
-        raise HTTPException(
-            status_code=500, detail="openpyxl not installed. Run: pip install openpyxl"
-        )
-    content = await file.read()
-    try:
-        wb = openpyxl.load_workbook(filename=__import__("io").BytesIO(content))
-        ws = wb.active
-        rows = list(ws.iter_rows(values_only=True))
-        if len(rows) < 2:
-            raise HTTPException(
-                status_code=400,
-                detail="Excel file must have a header row and at least one data row",
-            )
-        import csv
-        import io
-        output = io.StringIO()
-        writer = csv.writer(output)
-        for row in rows:
-            writer.writerow(row)
-        csv_text = output.getvalue()
-        count, errors = import_csv(csv_text)
-        return {"imported": count, "errors": errors}
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to parse Excel file: {e}")
 
 
 # ============================================================

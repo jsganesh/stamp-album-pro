@@ -62,12 +62,12 @@
 │  │  GET  /style.css   GET/POST/DELETE  POST /parse       │ │
 │  │  GET  /{static}    /images         POST /validate    │ │
 │  │                                                      │ │
-│  │  Canvas State       Collection CRUD   Auth/Sharing   │ │
-│  │  ────────────       ──────────────   ────────────    │ │
-│  │  POST /render-from  GET/POST/PUT     POST /auth/*    │ │
-│  │  -state             /api/stamps      POST /api/share │ │
-│  │  POST /export-from  POST /api/stamps WS /ws/preview  │ │
-│  │  -state             /import(CSV,XLSX)                 │ │
+│  │  Canvas State                         Auth/Sharing   │ │
+│  │  ────────────                        ────────────    │ │
+│  │  POST /render-from                   POST /auth/*    │ │
+│  │  -state                              POST /api/share │ │
+│  │  POST /export-from                   WS /ws/preview  │ │
+│  │  -state                                               │ │
 │  │                     GET /auto-layout                  │ │
 │  └──────────────┬──────────────────────────────────────┘ │
 │                 ▼                                         │
@@ -99,12 +99,12 @@
 │                                                          │
 │  ┌─────────────────────────────────────────────────────┐ │
 │  │  Supporting Services                                 │ │
-│  │  ┌──────────────┐ ┌────────────────┐ ┌───────────┐  │ │
-│  │  │ cloud_sync   │ │ version_history│ │ collection│  │ │
-│  │  │ .py          │ │ .py            │ │ .py       │  │ │
-│  │  │ (auth,       │ │ (snapshot-based│ │ (CRUD +   │  │ │
-│  │  │ sharing)     │ │ versioning)    │ │ CSV/XLSX) │  │ │
-│  │  └──────────────┘ └────────────────┘ └───────────┘  │ │
+│  │  ┌──────────────┐ ┌────────────────┐                │ │
+│  │  │ cloud_sync   │ │ version_history│                │ │
+│  │  │ .py          │ │ .py            │                │ │
+│  │  │ (auth,       │ │ (snapshot-based│                │ │
+│  │  │ sharing)     │ │ versioning)    │                │ │
+│  │  └──────────────┘ └────────────────┘                │ │
 │  └─────────────────────────────────────────────────────┘ │
 └───────────────────────────────────────────────────────────┘
 ```
@@ -322,9 +322,6 @@ Album
 | WS | `/ws/preview` | Real-time preview | WebSocket: render/ping/validate messages |
 | GET | `/api/templates` | List templates | Returns TEMPLATES metadata list |
 | GET | `/api/templates/{id}` | Get template DSL | Returns full template DSL content |
-| POST | `/api/stamps/import` | CSV import | Parses CSV → collection DB |
-| POST | `/api/stamps/import-excel` | XLSX import | openpyxl → collection DB |
-| CRUD | `/api/stamps` | Collection mgmt | JSON file-backed stamp database |
 | CRUD | `/api/version/*` | Version history | Snapshot-based, max 50 per file |
 | POST | `/api/auth/*` | Auth | PBKDF2, session tokens |
 | POST | `/api/share` | File sharing | Owner → user permission records |
@@ -668,13 +665,11 @@ User clicks Preview / Export
 | `test_typography.py` | ~9 | Drop caps, text shadow, text outline, gradient fill HTML output |
 | `test_auto_layout.py` | ~7 | Auto-layout API: row-first, balanced, grid, error cases |
 | `test_build_items.py` | ~7 | Canvas element → DSL round-trip, shape dispatch, text elements |
-| `test_collection.py` | ~14 | Stamp CRUD, search, CSV import, pagination, sorting |
 | `test_cloud_sync.py` | ~11 | Registration, login, logout, file sharing |
 | `test_desktop_and_export.py` | ~6 | PDF/PNG/SVG export, DPI, binary magic bytes |
 | `test_validation.py` | ~15 | ParseError, validation warnings, error line numbers |
 | `test_version_history.py` | ~7 | Version save/list/get/delete, pruning |
 | `test_websocket.py` | ~7 | WebSocket messages: render, ping, validate |
-| `test_low_complexity.py` | ~2 | Excel import error cases |
 
 ---
 
@@ -694,7 +689,7 @@ User clicks Preview / Export
 
 7. **ContentEditable for text editing** — Canvas text uses `contentEditable` spans with `white-space: pre-wrap`. Newlines are stored as literal `\n` in element `lbl` values.
 
-8. **JSON file storage** — User data (stamp collection, cloud sync) uses flat JSON files in `~/StampAlbum/`. No database.
+8. **JSON file storage** — User data (albums, images, cloud sync) uses flat JSON files in `~/StampAlbum/`. No database.
 
 9. **Page border system** — Borders are defined as named styles with separate SVG renderers on the canvas and PyMuPDF drawing functions in the PDF. The ornamental styles (6 styles) and edge patterns (2 styles) each have SVG path data in `borders.js` and equivalent PyMuPDF path drawing code in `pdf_generator.py`.
 
@@ -734,7 +729,6 @@ The JS load order means `events.js` and `canvas.js` are loaded but their code ne
 **Storage locations:**
 - Albums: `~/StampAlbum/*.slbum`
 - Images: `~/StampAlbum/images/*`
-- Stamp collection DB: `~/StampAlbum/.collection.json`
 - Auth/sharing: `~/StampAlbum/.users.json`, `.sessions.json`, `.shares.json`
 - Version history: `~/StampAlbum/.versions/{hash}_{name}/*`
 - Draft auto-save: `localStorage` (browser)

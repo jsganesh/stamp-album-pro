@@ -4,7 +4,7 @@ var S = window.StampAlbum;
 var $ = S.$, showToast = S.showToast;
 var pushUndo = S.pushUndo, render = S.render, updateProps = S.updateProps;
 var select = S.select, add = S.add, undo = S.undo, redo = S.redo;
-var newAlbum = S.newAlbum, saveFile = S.saveFile, loadFileList = S.loadFileList;
+var newAlbum = S.newAlbum, saveFile = S.saveFile;
 var loadImageList = S.loadImageList, uploadImageFile = S.uploadImageFile;
 var openPreview = S.openPreview, exportPDF = S.exportPDF;
 var applyWizard = S.applyWizard, loadTemplateList = S.loadTemplateList, loadDraft = S.loadDraft;
@@ -337,13 +337,9 @@ function init() {
     $("upl-inp").addEventListener("change", function(e) {
         if (e.target.files.length === 0) return;
         var f = e.target.files[0];
-        uploadImageFile(f, function(imgName) {
-            var r = $("page").getBoundingClientRect();
-            add({ t: "image", s: "rectangle", x: 50, y: 50, w: 80, h: 60,
-                lbl: f.name, img: "/images/" + imgName,
-                bdr: "solid", bdrC: "#999", bdrW: 0.5, fill: "#fff", fillA: 100, font: "HN", fs: 12 });
-            loadImageList();
-        });
+        // Attaching puts the image on the current page, centred and selected,
+        // so it belongs to the album from the start.
+        uploadImageFile(f, function(imgName) { S.placeImage(imgName); });
         e.target.value = "";
     });
 
@@ -371,6 +367,7 @@ function init() {
     S.wirePageSetup();
     S.wireCalibration();
     S.wireFitPrompt();
+    S.wireAlbums();
     $("grid").addEventListener("change", function() {
         S._sn = parseInt(this.value) || 0;
         S.updateGrid();
@@ -436,7 +433,7 @@ function init() {
     $("rp-handle").addEventListener("click", function() { $("rp-toggle").click(); });
 
     // ── Collapsible sections ──
-    ["file-toggle", "img-toggle", "imp-toggle"].forEach(function(id) {
+    ["img-toggle"].forEach(function(id) {
         $(id).addEventListener("click", function() {
             var b = $(this.getAttribute("aria-controls"));
             var collapsed = b.classList.toggle("collapsed");
@@ -460,12 +457,12 @@ function init() {
     document.addEventListener("keydown", function(e) {
         if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
         if (e.target.isContentEditable) return;  // typing in a label on the page
-        if ($("page-setup-overlay").classList.contains("open") || S.fitPromptOpen()) return;  // dialogs handle their own keys
+        if ($("page-setup-overlay").classList.contains("open") || S.fitPromptOpen() || S.albumsDialogOpen()) return;  // dialogs handle their own keys
         if (e.target.closest && e.target.closest(".tb-menu")) return;  // menus handle their own keys
         if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); return; }
         if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.key === "z" && e.shiftKey))) { e.preventDefault(); redo(); return; }
         if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); saveFile(); return; }
-        if ((e.ctrlKey || e.metaKey) && e.key === "o") { e.preventDefault(); $("file-inp").click(); return; }
+        if ((e.ctrlKey || e.metaKey) && e.key === "o") { e.preventDefault(); if (S.okToDiscard()) $("file-inp").click(); return; }
         if (e.key === "Delete" || e.key === "Backspace") {
             if (S.sel) { $("btn-del").click(); }
         }
@@ -588,39 +585,6 @@ function init() {
     }
 
     // ── New file button ──
-    $("btn-new-file").addEventListener("click", newAlbum);
-
-
-    // ── CSV / Excel Import ──
-    $("btn-import-csv").addEventListener("click", function() {
-        $("imp-inp").accept = ".csv";
-        $("imp-inp").click();
-    });
-    $("btn-import-excel").addEventListener("click", function() {
-        $("imp-inp").accept = ".xlsx,.xls";
-        $("imp-inp").click();
-    });
-    $("imp-inp").addEventListener("change", function() {
-        var file = this.files[0];
-        if (!file) return;
-        var isExcel = file.name.toLowerCase().endsWith(".xlsx") || file.name.toLowerCase().endsWith(".xls");
-        var endpoint = isExcel ? "/api/stamps/import-excel" : "/api/stamps/import";
-        var fd = new FormData();
-        fd.append("file", file);
-        showToast(S.t("msg.importing", { name: file.name }), "info");
-        fetch(endpoint, { method: "POST", body: fd })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data.errors && data.errors.length > 0) {
-                    showToast(S.t("msg.imported_stamps", { count: data.imported }) + " " + S.t("msg.import_errors", { count: data.errors.length }), "info");
-                } else {
-                    showToast(S.t("msg.imported_stamps", { count: data.imported }), "success");
-                }
-            })
-            .catch(function(err) { showToast(S.t("msg.import_failed", { msg: err }), "error"); });
-        this.value = "";
-    });
-
     // ── Touch / Pointer support for iPad ──
     document.querySelectorAll(".p-item[draggable]").forEach(function(it) {
         it.addEventListener("touchstart", function(e) {
@@ -755,7 +719,6 @@ function init() {
     S.renderPageDots();
     S.updateGrid();
     S.syncPageBar();  // a restored draft may carry a page border and theme
-    loadFileList();
     loadImageList();
     S.updateTitle();
     if (S.updateStatusBar) S.updateStatusBar();  // in the user's language from the start

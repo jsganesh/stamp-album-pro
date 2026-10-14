@@ -588,7 +588,6 @@ function refreshLanguage() {
     if (S.select) S.select(sel);  // the right panel's title and field names
     if (S.syncPanelLabels) S.syncPanelLabels();
     if (S.applyZoom) S.applyZoom();
-    if (S.loadFileList) S.loadFileList();
     if (S.loadImageList) S.loadImageList();
     loadTemplateList();
 }
@@ -637,7 +636,7 @@ Object.defineProperties(S, {
     addPage: { value: addPage }, deletePage: { value: deletePage },
     renderPageDots: { value: renderPageDots }, updateGrid: { value: updateGrid },
     gridMoving: { value: gridMoving },
-    newAlbum: { value: newAlbum },     // loadFileList/saveFile/uploadImageFile/loadImageList defined in files.js
+    newAlbum: { value: newAlbum },     // saveFile/uploadImageFile/loadImageList defined in files.js
     buildCanvasState: { value: buildCanvasState }, openPreview: { value: openPreview },
     schedulePreviewRefresh: { value: schedulePreviewRefresh }, refreshPreview: { value: refreshPreview },
     exportPDF: { value: exportPDF }, loadTemplateList: { value: loadTemplateList },
