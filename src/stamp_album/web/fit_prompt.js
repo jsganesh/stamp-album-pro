@@ -12,8 +12,6 @@ var CORE = window.StampAlbumDSL || {};
 var MARGIN_MM = 15;  // as Page setup
 var _returnFocus = null;
 
-function plural(n, word) { return n + " " + word + (n === 1 ? "" : "s"); }
-
 // Every page of the open album, with the current page's live elements.
 function allPages() {
     var pages = S._pages.slice();
@@ -34,9 +32,7 @@ function checkFitOnOpen() {
     var r = CORE.findOutside(allPages(), S._pw, S._ph);
     if (!r.count) return false;
     var used = S._pages.filter(function(p, i) { return (i === S._currentPage ? S.E : p).length; }).length;
-    $("fp-note").textContent = plural(r.count, "element") + (used > 1 ? " on " + plural(r.pages, "page") : "") +
-        (r.count === 1 ? " sits" : " sit") + " past the page edge. Move " + (r.count === 1 ? "it" : "them") +
-        " inside the page? Sizes stay the same, and you can undo the move.";
+    $("fp-note").textContent = S.t("msg.fp_note", { count: r.count, what: S.countElements(r.count, r.pages, used) });
     _returnFocus = document.activeElement;
     $("fit-prompt-overlay").classList.add("open");
     $("fp-leave").focus();
@@ -51,8 +47,7 @@ function moveInside() {
     S.render();
     S.updateProps();
     if (S.schedulePreviewRefresh) S.schedulePreviewRefresh();
-    var msg = plural(r.moved, "element") + " moved inside the page";
-    if (r.overlaps) msg += "; some now overlap, so check the layout";
+    var msg = S.t(r.overlaps ? "msg.fp_moved_overlap" : "msg.fp_moved", { what: S.t("msg.count_elements", { count: r.moved }) });
     showToast(msg, r.overlaps ? "info" : "success");
 }
 

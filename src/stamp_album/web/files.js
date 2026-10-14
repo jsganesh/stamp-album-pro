@@ -14,7 +14,7 @@ function openAlbum(name, content) {
     S.resetUndo();
     updateTitle();
     loadFileList();
-    showToast("Opened " + name, "success");
+    showToast(S.t("msg.opened", { name: name }), "success");
     if (S.checkFitOnOpen) S.checkFitOnOpen();
 }
 
@@ -32,7 +32,7 @@ function loadFileList() {
                 var openBtn = document.createElement("button");
                 openBtn.type = "button";
                 openBtn.className = "file-open";
-                openBtn.setAttribute("aria-label", "Open " + f);
+                openBtn.setAttribute("aria-label", S.t("msg.open_file", { name: f }));
                 if (f === S._currentFile) openBtn.setAttribute("aria-current", "true");
                 var icon = document.createElement("span");
                 icon.className = "favicon";
@@ -47,13 +47,13 @@ function loadFileList() {
                 delBtn.type = "button";
                 delBtn.className = "fdel";
                 delBtn.textContent = "✕";
-                delBtn.title = "Delete " + f;
-                delBtn.setAttribute("aria-label", "Delete " + f);
+                delBtn.title = S.t("msg.delete_name", { name: f });
+                delBtn.setAttribute("aria-label", S.t("msg.delete_name", { name: f }));
                 delBtn.addEventListener("click", function(ev) {
                     ev.stopPropagation();
-                    if (confirm("Delete " + f + "?")) {
+                    if (confirm(S.t("msg.delete_confirm", { name: f }))) {
                         fetch("/files/" + encodeURIComponent(f), { method: "DELETE" })
-                            .then(function() { loadFileList(); showToast("Deleted " + f, "success"); });
+                            .then(function() { loadFileList(); showToast(S.t("msg.deleted", { name: f }), "success"); });
                     }
                 });
                 item.appendChild(openBtn);
@@ -68,7 +68,7 @@ function loadFileList() {
                 c.appendChild(item);
             });
         })
-        .catch(function() { c.innerHTML = "<div style='padding:8px;color:var(--text2);font-size:11px'>No files yet</div>"; });
+        .catch(function() { c.innerHTML = "<div style='padding:8px;color:var(--text2);font-size:11px'></div>"; c.firstChild.textContent = S.t("msg.no_files"); });
 }
 
 function saveFile() {
@@ -80,16 +80,16 @@ function saveFile() {
             body: JSON.stringify({ content: dsl })
         }).then(function(r) {
             if (r.ok) { return r.json(); }
-            throw new Error("Save failed");
+            throw new Error(S.t("msg.save_failed"));
         }).then(function(data) {
             S._dirty = false;
             S.clearDraft();
             updateTitle();
             if (S.updateStatusBar) S.updateStatusBar();
-            showToast("Saved to " + (data.path || S._currentFile), "success");
-        }).catch(function() { showToast("Save failed", "error"); });
+            showToast(S.t("msg.saved_to", { path: data.path || S._currentFile }), "success");
+        }).catch(function() { showToast(S.t("msg.save_failed"), "error"); });
     } else {
-        var name = prompt("File name:", "album.slbum");
+        var name = prompt(S.t("msg.file_name"), "album.slbum");
         if (!name) return;
         if (!name.endsWith(".slbum") && !name.endsWith(".txt")) name += ".slbum";
         S._currentFile = name;
@@ -104,14 +104,14 @@ function uploadImageFile(file, callback) {
     fetch("/images", { method: "POST", body: formData })
         .then(function(r) {
             if (r.ok) return r.json();
-            throw new Error("Upload failed");
+            throw new Error(S.t("msg.upload_failed_plain"));
         })
         .then(function(data) {
-            showToast("Uploaded " + data.filename, "success");
+            showToast(S.t("msg.uploaded", { name: data.filename }), "success");
             if (callback) callback(data.filename);
             loadImageList();
         })
-        .catch(function(err) { showToast("Upload failed: " + err, "error"); });
+        .catch(function(err) { showToast(S.t("msg.upload_failed", { msg: err }), "error"); });
 }
 
 function loadImageList() {
@@ -128,8 +128,8 @@ function loadImageList() {
                 var addBtn = document.createElement("button");
                 addBtn.type = "button";
                 addBtn.className = "img-add";
-                addBtn.setAttribute("aria-label", "Add image " + img);
-                addBtn.title = "Click to add " + img + " at the page centre";
+                addBtn.setAttribute("aria-label", S.t("msg.add_image", { name: img }));
+                addBtn.title = S.t("msg.add_image_title", { name: img });
                 var im = document.createElement("img");
                 im.src = "/images/" + encodeURIComponent(img);
                 im.alt = "";
@@ -138,13 +138,13 @@ function loadImageList() {
                 del.type = "button";
                 del.className = "img-del";
                 del.textContent = "✕";
-                del.setAttribute("aria-label", "Delete image " + img);
-                del.title = "Delete " + img;
+                del.setAttribute("aria-label", S.t("msg.delete_image", { name: img }));
+                del.title = S.t("msg.delete_name", { name: img });
                 del.addEventListener("click", function(ev) {
                     ev.stopPropagation();
-                    if (confirm("Delete " + img + "?")) {
+                    if (confirm(S.t("msg.delete_confirm", { name: img }))) {
                         fetch("/images/" + encodeURIComponent(img), { method: "DELETE" })
-                            .then(function() { loadImageList(); showToast("Deleted " + img, "success"); });
+                            .then(function() { loadImageList(); showToast(S.t("msg.deleted", { name: img }), "success"); });
                     }
                 });
                 item.appendChild(addBtn);
@@ -158,7 +158,7 @@ function loadImageList() {
             });
         })
         .catch(function() {
-            c.innerHTML = "<div style='padding:8px;color:var(--text2);font-size:11px'>No images yet</div>";
+            c.innerHTML = "<div style='padding:8px;color:var(--text2);font-size:11px'></div>"; c.firstChild.textContent = S.t("msg.no_images");
         });
 }
 

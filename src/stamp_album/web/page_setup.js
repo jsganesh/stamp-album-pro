@@ -32,8 +32,6 @@ function chosenSize() {
     return { w: w, h: h };
 }
 
-function plural(n, word) { return n + " " + word + (n === 1 ? "" : "s"); }
-
 function updateNote() {
     var size = chosenSize();
     var pages = allPages();
@@ -41,14 +39,13 @@ function updateNote() {
     var note = $("ps-note");
     note.classList.toggle("warn", r.moved > 0);
     if (!r.moved) {
-        note.textContent = "Everything on the album fits the new page.";
+        note.textContent = S.t("msg.ps_fits");
         return;
     }
     var used = pages.filter(function(p) { return p && p.length; }).length;
-    var msg = plural(r.moved, "element") + (used > 1 ? " on " + plural(r.pages, "page") : "") +
-        " would fall outside the new page and will be moved inside it. Sizes stay the same.";
-    if (r.tooBig) msg += " " + plural(r.tooBig, "element") + (r.tooBig === 1 ? " is" : " are") + " larger than the page.";
-    if (r.overlaps) msg += " Some will overlap; check the layout after applying.";
+    var msg = S.t("msg.ps_would_move", { what: S.countElements(r.moved, r.pages, used) });
+    if (r.tooBig) msg += " " + S.t("msg.ps_too_big", { count: r.tooBig });
+    if (r.overlaps) msg += " " + S.t("msg.ps_overlap");
     note.textContent = msg;
 }
 
@@ -66,7 +63,7 @@ function openPageSetup() {
             custom.value = "custom";
             sel.appendChild(custom);
         }
-        custom.textContent = "Custom (" + d.label + ")";
+        custom.textContent = S.t("msg.paper_custom", { size: d.label });
         sel.dataset.w = Math.min(wmm, hmm); sel.dataset.h = Math.max(wmm, hmm);
         sel.value = "custom";
     }
@@ -91,8 +88,9 @@ function applyPageSetup() {
     S.render();
     S.updateProps();
     S.schedulePreviewRefresh();
-    var label = CORE.describePageSize(size.w, size.h).label;
-    showToast("Page set to " + label + (r.moved ? "; " + plural(r.moved, "element") + " moved to fit" : ""), "success");
+    var label = S.pageSizeLabel(CORE.describePageSize(size.w, size.h));
+    showToast(r.moved ? S.t("msg.page_set_to_moved", { size: label, what: S.t("msg.count_elements", { count: r.moved }) })
+                      : S.t("msg.page_set_to", { size: label }), "success");
 }
 
 function wirePageSetup() {

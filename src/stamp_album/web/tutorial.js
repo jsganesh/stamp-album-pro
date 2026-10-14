@@ -65,7 +65,7 @@ function _showTutorialStep() {
     });
     var nextBtn = $("btn-tutorial-next");
     if (nextBtn) {
-        nextBtn.textContent = _tutorialStep >= _tutorialMax ? "Get Started" : "Next";
+        nextBtn.textContent = S.t(_tutorialStep >= _tutorialMax ? "msg.get_started" : "ui.next");
     }
 }
 

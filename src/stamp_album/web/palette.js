@@ -26,7 +26,7 @@ function elementFrom(d, x, y) {
     if (d.t === "text") { w = 120; h = d.st === "heading" ? 24 : d.st === "desc" ? 16 : 18; }
     if (d.t === "freehand") { w = 100; h = 80; }
     var el = { t: d.t || "stamp", s: d.s || "rectangle", x: x, y: y, w: w, h: h,
-        lbl: d.t === "text" ? (d.st === "heading" ? "Heading" : d.st === "desc" ? "Description" : "Label") : "",
+        lbl: d.t === "text" ? S.t(d.st === "heading" ? "ui.heading" : d.st === "desc" ? "ui.description" : "ui.label") : "",
         font: d.font || "HN", fs: d.st === "heading" ? 16 : d.st === "desc" ? 10 : 12,
         bdr: "none", bdrC: "#000000", bdrW: 0, fill: "transparent", fillA: 0, img: "" };
     if (el.t === "text") {

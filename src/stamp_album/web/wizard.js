@@ -7,7 +7,7 @@ var parseDSL = S.parseDSL, escapeDSL = S.escapeDSL;
 // ── Wizard ──
 // The wizard always starts a new album; to change the open album's page use Page setup.
 function applyWizard() {
-    if (S._dirty && !confirm("Discard unsaved changes?")) return;
+    if (S._dirty && !confirm(S.t("msg.discard_unsaved"))) return;
     var title = $("wiz-title").value || "";
     var author = $("wiz-author").value || "";
     var pgSize = $("wiz-pg-size").value || "a4";
@@ -36,7 +36,7 @@ function applyWizard() {
     pushUndo();
     render();
     $("wizard-panel").classList.remove("open");
-    showToast("Album created from wizard", "success");
+    showToast(S.t("msg.album_from_wizard"), "success");
 }
 
 // ── Exports ──

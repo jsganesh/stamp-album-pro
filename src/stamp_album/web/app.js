@@ -19,6 +19,20 @@ var updateProps = function() { S.updateProps(); };
 // ── Undo/redo system (defined in undo.js) ──
 var _undoStack = [], _redoStack = [], _undoPaused = false;
 
+// The editor's words in the user's language (i18n.js).
+function tr(key, params) { return window.StampAlbumI18n.t(key, params); }
+// "3 elements", or "3 elements on 2 pages" when more than one page is in use.
+function countElements(n, pages, usedPages) {
+    var s = tr("msg.count_elements", { count: n });
+    return usedPages > 1 ? tr("msg.elements_on_pages", { elements: s, pages: tr("msg.count_pages", { count: pages }) }) : s;
+}
+// "A4 · Portrait", or "200 × 150 mm" for a custom size (dsl_core.js describePageSize).
+function pageSizeLabel(d) {
+    if (!d.name) return d.label;
+    return tr("msg.paper_orientation", { paper: tr("msg.paper_" + d.name),
+              orientation: tr(d.landscape ? "ui.landscape" : "ui.portrait") });
+}
+
 // ── localStorage draft persistence ──
 var _draftTimer = null;
 var _draftKey = "stampalbum.draft";
@@ -165,7 +179,7 @@ detectFonts();
 function updateTitle() {
     var fn = $("file-name");
     if (fn) {
-        var name = _currentFile || "Untitled";
+        var name = _currentFile || tr("msg.untitled");
         fn.textContent = (_dirty ? "● " : "") + name;
     }
 }
@@ -187,10 +201,10 @@ function addPage() {
     S.pushUndo();
     _pages.push([]);
     switchPage(_pages.length - 1, true);
-    showToast("Page added", "success");
+    showToast(tr("msg.page_added"), "success");
 }
 function deletePage() {
-    if (_pages.length <= 1) { showToast("Cannot delete last page", "error"); return; }
+    if (_pages.length <= 1) { showToast(tr("msg.cannot_delete_last_page"), "error"); return; }
     S.pushUndo();
     _pages.splice(_currentPage, 1);
     if (_currentPage >= _pages.length) _currentPage = _pages.length - 1;
@@ -199,7 +213,7 @@ function deletePage() {
     renderPageDots();
     render();
     updateProps();
-    showToast("Page deleted", "success");
+    showToast(tr("msg.page_deleted"), "success");
 }
 function renderPageDots() {
     var c = $("pg-dots");
@@ -222,13 +236,13 @@ function renderPageDots() {
     }
     for (var i = 0; i < _pages.length; i++) {
         (function(idx) {
-            var dot = dotButton(idx === _currentPage ? " active" : "", String(idx + 1), "Page " + (idx + 1),
+            var dot = dotButton(idx === _currentPage ? " active" : "", String(idx + 1), tr("msg.page_n", { n: idx + 1 }),
                                 function() { switchPage(idx); }, "p" + idx);
             if (idx === _currentPage) dot.setAttribute("aria-current", "page");
         })(i);
     }
-    dotButton(" add", "+", "Add page", addPage, "add");
-    if (_pages.length > 1) dotButton(" del", "−", "Delete current page", deletePage, "del");
+    dotButton(" add", "+", tr("ui.add_page"), addPage, "add");
+    if (_pages.length > 1) dotButton(" del", "−", tr("msg.delete_current_page"), deletePage, "del");
     if (hadFocus) {
         var back = c.querySelector('[data-dot="' + hadFocus + '"]') || c.querySelector('[aria-current="page"]');
         if (back) back.focus();
@@ -261,7 +275,7 @@ function updateGrid() {
 
 // ── New album ──
 function newAlbum() {
-    if (_dirty && !confirm("Discard unsaved changes?")) return;
+    if (_dirty && !confirm(tr("msg.discard_unsaved"))) return;
     clearDraft();
     E = [];
     sel = null;
@@ -274,7 +288,7 @@ function newAlbum() {
     updateProps();
     renderPageDots();
     updateTitle();
-    showToast("New album created", "success");
+    showToast(tr("msg.new_album_created"), "success");
 }
 
 // ── File/image management functions defined in files.js ──
@@ -317,7 +331,7 @@ function syncPageBar() {
         if (_theme === "custom" && !custom) {
             custom = document.createElement("option");
             custom.value = "custom";
-            custom.textContent = "Custom";
+            custom.textContent = tr("msg.theme_custom");
             th.appendChild(custom);
         } else if (_theme !== "custom" && custom) {
             custom.remove();
@@ -345,7 +359,7 @@ function refreshPreview() {
     if (!frame) return;
     var overlay = $("preview-overlay");
     if (!overlay || !overlay.classList.contains("open")) return;
-    showToast("Generating preview...", "info");
+    showToast(tr("msg.generating_preview"), "info");
     var state = buildCanvasState("html");
     fetch("/render-from-state", {
         method: "POST",
@@ -353,7 +367,7 @@ function refreshPreview() {
         body: JSON.stringify(state)
     })
     .then(function(r) {
-        if (!r.ok) throw new Error("Render failed (" + r.status + ")");
+        if (!r.ok) throw new Error(tr("msg.render_failed_status", { status: r.status }));
         return r.text();
     })
     .then(function(html) {
@@ -372,14 +386,14 @@ function refreshPreview() {
                 }
             } catch(_) {}
         };
-        showToast("Preview ready", "success");
+        showToast(tr("msg.preview_ready"), "success");
     })
     .catch(function(err) {
         var msg = err.message || String(err);
         if (msg.indexOf("NetworkError") !== -1 || msg.indexOf("Load failed") !== -1 || msg.indexOf("Failed to fetch") !== -1) {
-            showToast("Preview failed — network error. Try a normal reload (Cmd+R) and if it persists, click ⟳ Reset.", "error");
+            showToast(tr("msg.preview_failed_network"), "error");
         } else {
-            showToast("Preview failed: " + msg, "error");
+            showToast(tr("msg.preview_failed", { msg: msg }), "error");
         }
     });
 }
@@ -396,13 +410,13 @@ function openPreview() {
 
 // ── Export PDF (direct — no DSL parser) ──
 function exportPDF() {
-    showToast("Generating PDF...", "info");
+    showToast(tr("msg.generating_format", { format: "PDF" }), "info");
     var filename = _currentFile ? _currentFile.replace(/\.(slbum|txt)$/, ".pdf") : "album.pdf";
     var state = buildCanvasState("pdf");
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
     var timeout = setTimeout(function() {
         if (controller) controller.abort();
-        showToast("Export timed out — try with fewer stamps", "error");
+        showToast(tr("msg.export_timed_out"), "error");
     }, 30000);
     fetch("/export-from-state", {
         method: "POST",
@@ -412,7 +426,7 @@ function exportPDF() {
     })
     .then(function(r) {
         clearTimeout(timeout);
-        if (!r.ok) throw new Error("Server returned " + r.status);
+        if (!r.ok) throw new Error(tr("msg.server_returned", { status: r.status }));
         return r.blob();
     })
     .then(function(b) {
@@ -421,16 +435,16 @@ function exportPDF() {
         a.download = filename;
         a.click();
         setTimeout(function() { URL.revokeObjectURL(a.href); }, 100);
-        showToast("PDF saved to Downloads/" + filename, "success");
+        showToast(tr("msg.saved_to_downloads", { format: "PDF", name: filename }), "success");
     })
     .catch(function(err) {
         clearTimeout(timeout);
         var msg = err.message || String(err);
         if (msg.indexOf("abort") !== -1) return;
         if (msg.indexOf("NetworkError") !== -1 || msg.indexOf("Load failed") !== -1 || msg.indexOf("Failed to fetch") !== -1) {
-            showToast("Export failed — network error. Try a normal reload (Cmd+R) and if it persists, click ⟳ Reset.", "error");
+            showToast(tr("msg.export_failed_network"), "error");
         } else {
-            showToast("Export failed: " + msg, "error");
+            showToast(tr("msg.export_failed", { msg: msg }), "error");
         }
     });
 }
@@ -450,7 +464,7 @@ function applyPageSize(wmm, hmm) {
     }
     var btn = document.getElementById("btn-page-setup");
     var core = window.StampAlbumDSL;
-    if (btn && core && core.describePageSize) btn.textContent = core.describePageSize(wmm, hmm).label;
+    if (btn && core && core.describePageSize) btn.textContent = pageSizeLabel(core.describePageSize(wmm, hmm));
     if (S.updateGrid) S.updateGrid();
     if (S.renderPageBorder) S.renderPageBorder(_pageBorder);
     if (S.applyZoom) S.applyZoom(); // a new paper size can need a new fit
@@ -501,7 +515,11 @@ function loadTemplateList() {
     fetch("/api/templates")
         .then(function(r) { return r.json(); })
         .then(function(templates) {
-            sel.innerHTML = '<option value="blank">Blank Page</option>';
+            sel.innerHTML = "";
+            var blank = document.createElement("option");
+            blank.value = "blank";
+            blank.textContent = tr("ui.blank_page");
+            sel.appendChild(blank);
             templates.forEach(function(t) {
                 var o = document.createElement("option");
                 o.value = t.id;
@@ -510,6 +528,26 @@ function loadTemplateList() {
             });
         })
         .catch(function() { /* ignore — template endpoint may not exist */ });
+}
+
+// After the language changes (View › Language): i18n.js has already put the page's
+// own words in the new language; these are the words the scripts wrote.
+function refreshLanguage() {
+    var th = $("def-theme"), custom = th && th.querySelector('option[value="custom"]');
+    if (custom) custom.remove();  // syncPageBar adds it back, in the new language
+    syncPageBar();
+    renderPageDots();
+    updateTitle();
+    var core = window.StampAlbumDSL, btn = $("btn-page-setup");
+    if (btn && core) btn.textContent = pageSizeLabel(core.describePageSize(_pw / _sc, _ph / _sc));
+    if (S.populateFonts) S.populateFonts();
+    render();  // the page's items, their warnings and the status bar
+    updateProps();
+    if (S.syncPanelLabels) S.syncPanelLabels();
+    if (S.applyZoom) S.applyZoom();
+    if (S.loadFileList) S.loadFileList();
+    if (S.loadImageList) S.loadImageList();
+    loadTemplateList();
 }
 
 // ── DSL functions (escapeDSL, buildDSL, parseDSL) defined in dsl.js ──
@@ -548,7 +586,7 @@ Object.defineProperties(S, {
     _init: { get: function(){ return _init; }, set: function(v){ _init = v; } },
     SYSTEM_FONTS: { get: function(){ return SYSTEM_FONTS; }, set: function(v){ SYSTEM_FONTS = v; } },
     $: { value: $ }, mm: { value: mm }, px: { value: px }, ptPx: { value: ptPx }, withAlpha: { value: withAlpha }, clamp: { value: clamp },
-    fontCSS: { value: fontCSS }, showToast: { value: showToast },
+    fontCSS: { value: fontCSS }, showToast: { value: showToast }, t: { value: tr }, refreshLanguage: { value: refreshLanguage }, countElements: { value: countElements }, pageSizeLabel: { value: pageSizeLabel },
     // pushUndo/undo/redo/loadElements defined in undo.js
     saveDraft: { value: saveDraft }, scheduleDraftSave: { value: scheduleDraftSave },
     loadDraft: { value: loadDraft }, clearDraft: { value: clearDraft }, syncNid: { value: syncNid },
@@ -574,7 +612,7 @@ function getSelectedElements() {
 }
 
 function alignSelected(direction) {
-    if (!S.sel) { showToast("Select an element first", "error"); return; }
+    if (!S.sel) { showToast(tr("msg.select_element_first"), "error"); return; }
     var el = S.E.find(function(x) { return x.id === S.sel; });
     if (!el) return;
     var pw = S._pw, ph = S._ph;
@@ -589,7 +627,7 @@ function alignSelected(direction) {
     S.pushUndo();
     S.render();
     S.updateProps();
-    showToast("Aligned: " + direction, "success");
+    showToast(tr("msg.aligned_" + direction), "success");
 }
 
 
@@ -598,16 +636,16 @@ function alignSelected(direction) {
 // Snap to guides is on at start; View > Snap to guides shows and changes it.
 function toggleSnap() {
     S._snapEnabled = !S._snapEnabled;
-    showToast(S._snapEnabled ? "Snap to guides on" : "Snap to guides off", "info");
+    showToast(tr(S._snapEnabled ? "msg.snap_on" : "msg.snap_off"), "info");
 }
 
 function toggleLargeText() {
     document.body.classList.toggle("large-text");
-    showToast(document.body.classList.contains("large-text") ? "Large text on" : "Large text off", "info");
+    showToast(tr(document.body.classList.contains("large-text") ? "msg.large_text_on" : "msg.large_text_off"), "info");
 }
 
 function resetApp() {
-    if (!confirm("Reset App — this will clear all saved drafts and reload the page. Continue?")) return;
+    if (!confirm(tr("msg.reset_confirm"))) return;
     clearDraft();
     localStorage.removeItem(_draftKey);
     localStorage.removeItem(_draftFileKey);
