@@ -85,8 +85,14 @@ def _item(pg, eid):
 
 
 def _centre_on_screen(pg, eid):
+    """The item's centre on screen, scrolled into view first.
+
+    A phone shows little of a zoomed page.
+    """
     return pg.evaluate(
-        f"""(()=>{{const r=document.querySelector('.cel[data-id="{eid}"]').getBoundingClientRect();
+        f"""(()=>{{const e=document.querySelector('.cel[data-id="{eid}"]');
+        e.scrollIntoView({{block:'center', inline:'center'}});
+        const r=e.getBoundingClientRect();
         return [r.left + r.width/2, r.top + r.height/2]}})()"""
     )
 

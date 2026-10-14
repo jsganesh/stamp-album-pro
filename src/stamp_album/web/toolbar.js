@@ -46,7 +46,10 @@ function syncMenuState() {
     $("menu-redo").disabled = S._redoStack.length === 0;
     $("menu-del-page").disabled = S._pages.length <= 1;
     $("btn-snap").setAttribute("aria-checked", S._snapEnabled ? "true" : "false");
-    $("btn-large-text").setAttribute("aria-checked", document.body.classList.contains("large-text") ? "true" : "false");
+    ["standard", "large", "xlarge"].forEach(function(k) {
+        var it = $("menu-text-" + k);
+        if (it) it.setAttribute("aria-checked", Number(it.dataset.size) === S.textSize ? "true" : "false");
+    });
 }
 
 // Selected-stamp tools replace the page defaults in the page bar.
@@ -165,7 +168,9 @@ function wireToolbar() {
     // View (btn-dsl keeps its handler in init.js)
     onItem("menu-preview", function() { S.openPreview(); });
     onItem("btn-snap", function() { S.toggleSnap(); });
-    onItem("btn-large-text", function() { S.toggleLargeText(); });
+    ["standard", "large", "xlarge"].forEach(function(k) {
+        onItem("menu-text-" + k, function() { S.setTextSize($("menu-text-" + k).dataset.size); });
+    });
     ["fit-width", "fit-page", "actual"].forEach(function(m) {
         onItem("menu-zoom-" + m, function() { S.setZoomMode(m); });
     });

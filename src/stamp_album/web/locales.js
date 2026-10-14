@@ -29,7 +29,6 @@ var LOCALES = {
   "ui.preview": "Preview",
   "ui.dsl_editor": "DSL editor",
   "ui.snap_to_guides": "Snap to guides",
-  "ui.large_text": "Large text",
   "ui.zoom": "Zoom",
   "ui.fit_width": "Fit width",
   "ui.key_fit_page": "Fit the page to the window",
@@ -228,7 +227,6 @@ var LOCALES = {
   "ui.edit_properties": "Edit properties",
   "ui.other": "Other",
   "ui.this_help": "This Help",
-  "ui.unsaved": "● Unsaved",
   "ui.live_preview": "Live preview",
   "ui.refresh": "Refresh",
   "ui.export_format": "Export format",
@@ -278,8 +276,6 @@ var LOCALES = {
   "msg.aligned_bottom": "Aligned: bottom",
   "msg.snap_on": "Snap to guides on",
   "msg.snap_off": "Snap to guides off",
-  "msg.large_text_on": "Large text on",
-  "msg.large_text_off": "Large text off",
   "msg.reset_confirm": "Reset App — this will clear all saved drafts and reload the page. Continue?",
   "msg.select_stamp_for_grid": "Select a stamp to duplicate in grid",
   "msg.grid_columns": "Number of columns:",
@@ -415,7 +411,13 @@ var LOCALES = {
   "msg.zoom_label_to_actual": "Zoom {pct}, {mode}. Click to show at actual size.",
   "msg.zoom_label_to_fit": "Zoom {pct}, {mode}. Click to fit the page to the window.",
   "msg.dsl_applied": "DSL applied",
-  "ui.language": "Language"
+  "ui.language": "Language",
+  "ui.help": "Help",
+  "ui.not_saved": "Not saved",
+  "ui.text_size": "Text size",
+  "ui.text_size_standard": "Standard",
+  "ui.text_size_large": "Large (125%)",
+  "ui.text_size_extra_large": "Extra large (150%)"
  }
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = LOCALES;

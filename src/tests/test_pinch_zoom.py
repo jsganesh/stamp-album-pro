@@ -259,7 +259,9 @@ def test_zoom_keys_and_menu(page):
     assert page.evaluate("StampAlbum.zoom") == 1.1
     page.keyboard.press("Control+0")  # the default fit: the whole page on a computer
     assert page.evaluate("StampAlbum.zoomMode") == "fit-page"
-    assert page.evaluate("StampAlbum.zoom") > 1
+    fitted = page.evaluate("StampAlbum.zoom")
+    page.evaluate("StampAlbum.setZoomMode('fit-page')")
+    assert page.evaluate("StampAlbum.zoom") == fitted != 1.1
     # Typing in a field is left alone.
     eid = _add_item(page)
     page.evaluate(f"StampAlbum.select({eid!r})")

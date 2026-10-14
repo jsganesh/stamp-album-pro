@@ -26,7 +26,7 @@ function loadFileList() {
         .then(function(files) {
             c.innerHTML = "";
             files.forEach(function(f) {
-                // A row holds two buttons: the name opens the file, the ✕ deletes it
+                // A row holds two buttons: the name opens the file, the cross deletes it
                 var item = document.createElement("div");
                 item.className = "file-item" + (f === S._currentFile ? " active" : "");
                 var openBtn = document.createElement("button");
@@ -34,10 +34,8 @@ function loadFileList() {
                 openBtn.className = "file-open";
                 openBtn.setAttribute("aria-label", S.t("msg.open_file", { name: f }));
                 if (f === S._currentFile) openBtn.setAttribute("aria-current", "true");
-                var icon = document.createElement("span");
-                icon.className = "favicon";
-                icon.setAttribute("aria-hidden", "true");
-                icon.textContent = f.endsWith(".slbum") ? "📖" : "📄";
+                var icon = S.icon(f.endsWith(".slbum") ? "album" : "file");
+                icon.classList.add("favicon");
                 var nameSpan = document.createElement("span");
                 nameSpan.className = "fn";
                 nameSpan.textContent = f;
@@ -46,7 +44,7 @@ function loadFileList() {
                 var delBtn = document.createElement("button");
                 delBtn.type = "button";
                 delBtn.className = "fdel";
-                delBtn.textContent = "✕";
+                delBtn.appendChild(S.icon("x"));
                 delBtn.title = S.t("msg.delete_name", { name: f });
                 delBtn.setAttribute("aria-label", S.t("msg.delete_name", { name: f }));
                 delBtn.addEventListener("click", function(ev) {
@@ -137,7 +135,7 @@ function loadImageList() {
                 var del = document.createElement("button");
                 del.type = "button";
                 del.className = "img-del";
-                del.textContent = "✕";
+                del.appendChild(S.icon("x"));
                 del.setAttribute("aria-label", S.t("msg.delete_image", { name: img }));
                 del.title = S.t("msg.delete_name", { name: img });
                 del.addEventListener("click", function(ev) {

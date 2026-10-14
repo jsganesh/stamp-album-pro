@@ -404,14 +404,12 @@ function init() {
     $("sb-toggle").addEventListener("click", function() {
         S._collapsed.sb = !S._collapsed.sb;
         $("sidebar").classList.toggle("collapsed", S._collapsed.sb);
-        this.firstElementChild.textContent = S._collapsed.sb ? "▶" : "◀";
         setPanelState(this, $("sb-handle"), !S._collapsed.sb, "sidebar");
         if (S._collapsed.sb && document.activeElement === this) $("sb-handle").focus();
     });
     $("rp-toggle").addEventListener("click", function() {
         S._collapsed.rp = !S._collapsed.rp;
         $("rp").classList.toggle("collapsed", S._collapsed.rp);
-        this.firstElementChild.textContent = S._collapsed.rp ? "◀" : "▶";
         setPanelState(this, $("rp-handle"), !S._collapsed.rp, "properties");
         if (S._collapsed.rp && document.activeElement === this) $("rp-handle").focus();
     });
@@ -433,7 +431,6 @@ function init() {
         $(id).addEventListener("click", function() {
             var b = $(this.getAttribute("aria-controls"));
             var collapsed = b.classList.toggle("collapsed");
-            this.firstElementChild.textContent = collapsed ? "▶" : "▼";
             this.setAttribute("aria-expanded", collapsed ? "false" : "true");
         });
     });
