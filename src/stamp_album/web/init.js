@@ -729,9 +729,16 @@ function init() {
     });
 
     // ── Restore draft from localStorage ──
-    if (loadDraft) {
-        var _restored = loadDraft();
-        if (_restored) console.log("StampAlbum Pro: restored draft from localStorage");
+    // The album is drawn (it used to be loaded but not drawn, so the page looked blank
+    // until something was added), marked Not saved, and a note says where it came from.
+    var _restored = false;
+    if (loadDraft) _restored = loadDraft();
+    if (_restored) {
+        S._dirty = true;
+        var hasItems = S._pages.some(function(p, i) {
+            return (i === S._currentPage ? S.E : (p || [])).length > 0;
+        });
+        if (hasItems) $("restore-note").hidden = false;
     }
 
     // ── Init ──
@@ -750,12 +757,25 @@ function init() {
     if (initTutorial) initTutorial(!!_restored);
     if (_wireTutorialEvents) _wireTutorialEvents();
     S.resetUndo();  // after any sample album, so the first edit can be undone
+    render();       // a restored album is drawn, and undo stops at it
+    S.updateTitle();
+    $("restore-keep").addEventListener("click", hideRestoreNote);
+    $("restore-new").addEventListener("click", function() {
+        S.newAlbum();  // asks first: the work is unsaved
+        if (!S._dirty) hideRestoreNote();
+    });
 
     console.log("StampAlbum Pro: ready");
 }
 
+function hideRestoreNote() {
+    var n = $("restore-note");
+    if (n) n.hidden = true;
+}
+
 // ── Exports ──
 S.init = init;
+S.hideRestoreNote = hideRestoreNote;
 
 // Auto-init when DOM is ready
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);

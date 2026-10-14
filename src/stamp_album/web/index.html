@@ -151,6 +151,14 @@
                 <button data-i18n-attr="title:ui.delete_del;aria-label:ui.delete" id="btn-del" class="ca-btn danger" title="Delete (Del)" aria-label="Delete"><svg class="ico" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg><span data-i18n="ui.delete" class="lbl">Delete</span></button>
             </span>
         </div>
+        <!-- Shown when the editor opens on unsaved work from last time -->
+        <div id="restore-note" class="restore-note" role="status" hidden>
+            <p data-i18n="ui.restored_unsaved_work" class="restore-text">This is the album you were working on last time. It has not been saved yet.</p>
+            <span class="restore-btns">
+                <button data-i18n="ui.keep_working_on_it" type="button" id="restore-keep">Keep working on it</button>
+                <button data-i18n="ui.start_a_new_album" type="button" id="restore-new">Start a new album</button>
+            </span>
+        </div>
         <div id="page-wrap">
           <div id="page-zoom">
             <div data-i18n-attr="aria-label:ui.album_page" class="page a4" id="page" tabindex="-1" role="group" aria-label="Album page" aria-describedby="page-keys">

@@ -317,6 +317,7 @@ function gridMoving(on) {
 // ── New album ──
 function newAlbum() {
     if (_dirty && !confirm(tr("msg.discard_unsaved"))) return;
+    if (S.hideRestoreNote) S.hideRestoreNote();
     clearDraft();
     E = [];
     sel = null;
