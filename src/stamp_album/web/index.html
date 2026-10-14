@@ -18,143 +18,143 @@
 
 <header id="tb">
     <h1 class="logo"><span class="logo-long">StampAlbum Pro</span><span class="logo-short" aria-hidden="true">StampAlbum</span></h1>
-    <nav class="tb-menus" aria-label="Main menu">
-        <div class="tb-menu"><button class="tb-mbtn" id="menu-file-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-file">File <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="tb-menu-list" id="menu-file" role="menu" aria-label="File" hidden><button class="mi" role="menuitem" id="btn-new">New album</button><button class="mi" role="menuitem" id="btn-wizard">New from wizard…</button><button class="mi" role="menuitem" id="menu-template">New from template…</button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="btn-open" aria-keyshortcuts="Meta+O">Open…<span class="mk" aria-hidden="true">⌘O</span></button><button class="mi" role="menuitem" id="btn-save" aria-keyshortcuts="Meta+S">Save<span class="mk" aria-hidden="true">⌘S</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-page-setup">Page setup…</button><button class="mi" role="menuitem" id="menu-calibration">Print calibration page…</button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-export-pdf" data-fmt="pdf">Export as PDF</button><button class="mi" role="menuitem" id="menu-export-png" data-fmt="png">Export as PNG</button><button class="mi" role="menuitem" id="menu-export-svg" data-fmt="svg">Export as SVG</button><button class="mi" role="menuitem" id="menu-export-html" data-fmt="html">Export as HTML</button></div></div>
-        <div class="tb-menu"><button class="tb-mbtn" id="menu-edit-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-edit">Edit <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="tb-menu-list" id="menu-edit" role="menu" aria-label="Edit" hidden><button class="mi" role="menuitem" id="menu-undo" aria-keyshortcuts="Meta+Z">Undo<span class="mk" aria-hidden="true">⌘Z</span></button><button class="mi" role="menuitem" id="menu-redo" aria-keyshortcuts="Shift+Meta+Z">Redo<span class="mk" aria-hidden="true">⇧⌘Z</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-dup" aria-keyshortcuts="Meta+D">Duplicate<span class="mk" aria-hidden="true">⌘D</span></button><button class="mi" role="menuitem" id="menu-grid">Grid fill…</button><button class="mi" role="menuitem" id="menu-del" aria-keyshortcuts="Delete">Delete<span class="mk" aria-hidden="true">Del</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-add-page">Add page</button><button class="mi" role="menuitem" id="menu-del-page">Delete page</button></div></div>
-        <div class="tb-menu"><button class="tb-mbtn" id="menu-view-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-view">View <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="tb-menu-list" id="menu-view" role="menu" aria-label="View" hidden><button class="mi" role="menuitem" id="menu-preview" aria-keyshortcuts="F5">Preview<span class="mk" aria-hidden="true">F5</span></button><button class="mi" role="menuitem" id="btn-dsl">DSL editor</button><div class="msep" role="separator"></div><button class="mi" id="btn-snap" role="menuitemcheckbox" aria-checked="false"><span class="mcheck" aria-hidden="true"></span>Snap to guides</button><button class="mi" id="btn-large-text" role="menuitemcheckbox" aria-checked="false"><span class="mcheck" aria-hidden="true"></span>Large text</button><div class="msep" role="separator"></div><div role="group" aria-label="Zoom"><button class="mi" id="menu-zoom-fit-width" role="menuitemradio" aria-checked="true"><span class="mcheck" aria-hidden="true"></span>Fit width</button><button class="mi" id="menu-zoom-fit-page" role="menuitemradio" aria-checked="false"><span class="mcheck" aria-hidden="true"></span>Fit whole page</button><button class="mi" id="menu-zoom-actual" role="menuitemradio" aria-checked="false"><span class="mcheck" aria-hidden="true"></span>Actual size (100%)</button></div><button class="mi" role="menuitem" id="menu-zoom-in" aria-keyshortcuts="Meta+=">Zoom in<span class="mk" aria-hidden="true">⌘=</span></button><button class="mi" role="menuitem" id="menu-zoom-out" aria-keyshortcuts="Meta+-">Zoom out<span class="mk" aria-hidden="true">⌘−</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="menu-tutorial">Show tutorial again</button><button class="mi" role="menuitem" id="btn-help" aria-keyshortcuts="?">Keyboard shortcuts<span class="mk" aria-hidden="true">?</span></button><div class="msep" role="separator"></div><button class="mi" role="menuitem" id="btn-reset" data-danger="1">Reset app…</button></div></div>
+    <nav data-i18n-attr="aria-label:ui.main_menu" class="tb-menus" aria-label="Main menu">
+        <div class="tb-menu"><button data-i18n="ui.file" class="tb-mbtn" id="menu-file-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-file">File <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div data-i18n-attr="aria-label:ui.file" class="tb-menu-list" id="menu-file" role="menu" aria-label="File" hidden><button data-i18n="ui.new_album" class="mi" role="menuitem" id="btn-new">New album</button><button data-i18n="ui.new_from_wizard" class="mi" role="menuitem" id="btn-wizard">New from wizard…</button><button data-i18n="ui.new_from_template" class="mi" role="menuitem" id="menu-template">New from template…</button><div class="msep" role="separator"></div><button data-i18n="ui.open" class="mi" role="menuitem" id="btn-open" aria-keyshortcuts="Meta+O">Open…<span class="mk" aria-hidden="true">⌘O</span></button><button data-i18n="ui.save" class="mi" role="menuitem" id="btn-save" aria-keyshortcuts="Meta+S">Save<span class="mk" aria-hidden="true">⌘S</span></button><div class="msep" role="separator"></div><button data-i18n="ui.page_setup" class="mi" role="menuitem" id="menu-page-setup">Page setup…</button><button data-i18n="ui.print_calibration_page" class="mi" role="menuitem" id="menu-calibration">Print calibration page…</button><div class="msep" role="separator"></div><button data-i18n="ui.export_as_pdf" class="mi" role="menuitem" id="menu-export-pdf" data-fmt="pdf">Export as PDF</button><button data-i18n="ui.export_as_png" class="mi" role="menuitem" id="menu-export-png" data-fmt="png">Export as PNG</button><button data-i18n="ui.export_as_svg" class="mi" role="menuitem" id="menu-export-svg" data-fmt="svg">Export as SVG</button><button data-i18n="ui.export_as_html" class="mi" role="menuitem" id="menu-export-html" data-fmt="html">Export as HTML</button></div></div>
+        <div class="tb-menu"><button data-i18n="ui.edit" class="tb-mbtn" id="menu-edit-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-edit">Edit <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div data-i18n-attr="aria-label:ui.edit" class="tb-menu-list" id="menu-edit" role="menu" aria-label="Edit" hidden><button data-i18n="ui.undo" class="mi" role="menuitem" id="menu-undo" aria-keyshortcuts="Meta+Z">Undo<span class="mk" aria-hidden="true">⌘Z</span></button><button data-i18n="ui.redo" class="mi" role="menuitem" id="menu-redo" aria-keyshortcuts="Shift+Meta+Z">Redo<span class="mk" aria-hidden="true">⇧⌘Z</span></button><div class="msep" role="separator"></div><button data-i18n="ui.duplicate" class="mi" role="menuitem" id="menu-dup" aria-keyshortcuts="Meta+D">Duplicate<span class="mk" aria-hidden="true">⌘D</span></button><button data-i18n="ui.grid_fill" class="mi" role="menuitem" id="menu-grid">Grid fill…</button><button data-i18n="ui.delete" class="mi" role="menuitem" id="menu-del" aria-keyshortcuts="Delete">Delete<span class="mk" aria-hidden="true">Del</span></button><div class="msep" role="separator"></div><button data-i18n="ui.add_page" class="mi" role="menuitem" id="menu-add-page">Add page</button><button data-i18n="ui.delete_page" class="mi" role="menuitem" id="menu-del-page">Delete page</button></div></div>
+        <div class="tb-menu"><button data-i18n="ui.view" class="tb-mbtn" id="menu-view-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-view">View <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div data-i18n-attr="aria-label:ui.view" class="tb-menu-list" id="menu-view" role="menu" aria-label="View" hidden><button data-i18n="ui.preview" class="mi" role="menuitem" id="menu-preview" aria-keyshortcuts="F5">Preview<span class="mk" aria-hidden="true">F5</span></button><button data-i18n="ui.dsl_editor" class="mi" role="menuitem" id="btn-dsl">DSL editor</button><div class="msep" role="separator"></div><button data-i18n="ui.snap_to_guides" class="mi" id="btn-snap" role="menuitemcheckbox" aria-checked="false"><span class="mcheck" aria-hidden="true"></span>Snap to guides</button><button data-i18n="ui.large_text" class="mi" id="btn-large-text" role="menuitemcheckbox" aria-checked="false"><span class="mcheck" aria-hidden="true"></span>Large text</button><div class="msep" role="separator"></div><div data-i18n-attr="aria-label:ui.zoom" role="group" aria-label="Zoom"><button data-i18n="ui.fit_width" class="mi" id="menu-zoom-fit-width" role="menuitemradio" aria-checked="true"><span class="mcheck" aria-hidden="true"></span>Fit width</button><button data-i18n="ui.fit_whole_page" class="mi" id="menu-zoom-fit-page" role="menuitemradio" aria-checked="false"><span class="mcheck" aria-hidden="true"></span>Fit whole page</button><button data-i18n="ui.actual_size_100" class="mi" id="menu-zoom-actual" role="menuitemradio" aria-checked="false"><span class="mcheck" aria-hidden="true"></span>Actual size (100%)</button></div><button data-i18n="ui.zoom_in" class="mi" role="menuitem" id="menu-zoom-in" aria-keyshortcuts="Meta+=">Zoom in<span class="mk" aria-hidden="true">⌘=</span></button><button data-i18n="ui.zoom_out" class="mi" role="menuitem" id="menu-zoom-out" aria-keyshortcuts="Meta+-">Zoom out<span class="mk" aria-hidden="true">⌘−</span></button><div class="msep" role="separator" id="menu-lang-sep" hidden></div><div role="group" id="menu-lang" data-i18n-attr="aria-label:ui.language" aria-label="Language" hidden></div><div class="msep" role="separator"></div><button data-i18n="ui.show_tutorial_again" class="mi" role="menuitem" id="menu-tutorial">Show tutorial again</button><button data-i18n="ui.keyboard_shortcuts" class="mi" role="menuitem" id="btn-help" aria-keyshortcuts="?">Keyboard shortcuts<span class="mk" aria-hidden="true">?</span></button><div class="msep" role="separator"></div><button data-i18n="ui.reset_app" class="mi" role="menuitem" id="btn-reset" data-danger="1">Reset app…</button></div></div>
     </nav>
     <span class="tb-sep"></span>
-    <span id="file-name" title="Current file name"></span>
+    <span data-i18n-attr="title:ui.current_file_name" id="file-name" title="Current file name"></span>
     <span class="spacer"></span>
     <div class="tb-group tb-history">
-        <button id="btn-undo" class="tb-btn" title="Undo (⌘Z)" aria-label="Undo"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 010 10h-3"/></svg><span class="lbl">Undo</span></button>
-        <button id="btn-redo" class="tb-btn" title="Redo (⇧⌘Z)" aria-label="Redo"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 14l5-5-5-5"/><path d="M20 9H9a5 5 0 000 10h3"/></svg><span class="lbl">Redo</span></button>
+        <button data-i18n-attr="title:ui.undo_z;aria-label:ui.undo" id="btn-undo" class="tb-btn" title="Undo (⌘Z)" aria-label="Undo"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 010 10h-3"/></svg><span data-i18n="ui.undo" class="lbl">Undo</span></button>
+        <button data-i18n-attr="title:ui.redo_z;aria-label:ui.redo" id="btn-redo" class="tb-btn" title="Redo (⇧⌘Z)" aria-label="Redo"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 14l5-5-5-5"/><path d="M20 9H9a5 5 0 000 10h3"/></svg><span data-i18n="ui.redo" class="lbl">Redo</span></button>
     </div>
     <span class="tb-sep tb-history"></span>
-    <button id="btn-preview" class="tb-btn" title="Preview (F5)" aria-label="Preview"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="lbl">Preview</span></button>
-    <div class="export-dd" id="btn-export-dd"><button id="btn-export" class="tb-btn primary" title="Export" aria-label="Export" aria-haspopup="menu"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span class="lbl">Export</span><svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="export-dd-menu" role="menu"><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="pdf">PDF</div><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="png">PNG</div><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="svg">SVG</div><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="html">HTML</div></div></div>
-    <button id="btn-help-tb" class="tb-icon" title="Help and keyboard shortcuts (?)" aria-label="Help and keyboard shortcuts"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 015.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
+    <button data-i18n-attr="title:ui.preview_f5;aria-label:ui.preview" id="btn-preview" class="tb-btn" title="Preview (F5)" aria-label="Preview"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg><span data-i18n="ui.preview" class="lbl">Preview</span></button>
+    <div class="export-dd" id="btn-export-dd"><button data-i18n-attr="title:ui.export;aria-label:ui.export" id="btn-export" class="tb-btn primary" title="Export" aria-label="Export" aria-haspopup="menu"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span data-i18n="ui.export" class="lbl">Export</span><svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="export-dd-menu" role="menu"><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="pdf">PDF</div><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="png">PNG</div><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="svg">SVG</div><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="html">HTML</div></div></div>
+    <button data-i18n-attr="title:ui.help_and_keyboard_shortcuts;aria-label:ui.help_and_keyboard_shortcuts_2" id="btn-help-tb" class="tb-icon" title="Help and keyboard shortcuts (?)" aria-label="Help and keyboard shortcuts"><svg class="ico" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 015.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
 </header>
 
 <div id="main">
     <!-- Left Sidebar: Palette + Files + Images -->
-    <aside id="sidebar" aria-label="Stamps, images and files">
-        <h2 class="sec-title">Stamps <button type="button" class="sec-toggle" id="sb-toggle" aria-label="Hide the sidebar" aria-expanded="true" aria-controls="sidebar"><span aria-hidden="true">◀</span></button></h2>
+    <aside data-i18n-attr="aria-label:ui.stamps_images_and_files" id="sidebar" aria-label="Stamps, images and files">
+        <h2 data-i18n="ui.stamps" class="sec-title">Stamps <button data-i18n-attr="aria-label:ui.hide_the_sidebar" type="button" class="sec-toggle" id="sb-toggle" aria-label="Hide the sidebar" aria-expanded="true" aria-controls="sidebar"><span aria-hidden="true">◀</span></button></h2>
         <div class="sec-body" id="sb-body">
-            <p id="palette-hint" class="palette-hint" role="status">Click an item to add it to the page, or drag it where you want it.</p>
+            <p data-i18n="ui.click_an_item_to_add" id="palette-hint" class="palette-hint" role="status">Click an item to add it to the page, or drag it where you want it.</p>
             <div class="palette">
-                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Rectangle" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="rectangle"><span class="icon" aria-hidden="true">▬</span><span class="lbl">Rectangle</span></div>
-                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Oval" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="oval"><span class="icon" aria-hidden="true">●</span><span class="lbl">Oval</span></div>
-                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Diamond" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="diamond"><span class="icon" aria-hidden="true">◆</span><span class="lbl">Diamond</span></div>
-                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Triangle" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="triangle"><span class="icon" aria-hidden="true">▲</span><span class="lbl">Triangle</span></div>
-                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Hexagon" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="hexagon"><span class="icon" aria-hidden="true">⬡</span><span class="lbl">Hexagon</span></div>
-                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Octagon" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="octagon"><span class="icon" aria-hidden="true">⯃</span><span class="lbl">Octagon</span></div>
-                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Pentagon" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="pentagon"><span class="icon" aria-hidden="true">⬠</span><span class="lbl">Pentagon</span></div>
-                <div class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Free Shape" title="Click to add at the page centre, or drag onto the page" data-t="freehand"><span class="icon" aria-hidden="true">✎</span><span class="lbl">Free Shape</span></div>
+                <div data-i18n-attr="title:ui.click_to_add_at_the;aria-label:ui.add_rectangle" class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Rectangle" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="rectangle"><span class="icon" aria-hidden="true">▬</span><span data-i18n="ui.rectangle" class="lbl">Rectangle</span></div>
+                <div data-i18n-attr="title:ui.click_to_add_at_the;aria-label:ui.add_oval" class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Oval" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="oval"><span class="icon" aria-hidden="true">●</span><span data-i18n="ui.oval" class="lbl">Oval</span></div>
+                <div data-i18n-attr="title:ui.click_to_add_at_the;aria-label:ui.add_diamond" class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Diamond" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="diamond"><span class="icon" aria-hidden="true">◆</span><span data-i18n="ui.diamond" class="lbl">Diamond</span></div>
+                <div data-i18n-attr="title:ui.click_to_add_at_the;aria-label:ui.add_triangle" class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Triangle" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="triangle"><span class="icon" aria-hidden="true">▲</span><span data-i18n="ui.triangle" class="lbl">Triangle</span></div>
+                <div data-i18n-attr="title:ui.click_to_add_at_the;aria-label:ui.add_hexagon" class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Hexagon" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="hexagon"><span class="icon" aria-hidden="true">⬡</span><span data-i18n="ui.hexagon" class="lbl">Hexagon</span></div>
+                <div data-i18n-attr="title:ui.click_to_add_at_the;aria-label:ui.add_octagon" class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Octagon" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="octagon"><span class="icon" aria-hidden="true">⯃</span><span data-i18n="ui.octagon" class="lbl">Octagon</span></div>
+                <div data-i18n-attr="title:ui.click_to_add_at_the;aria-label:ui.add_pentagon" class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Pentagon" title="Click to add at the page centre, or drag onto the page" data-t="stamp" data-s="pentagon"><span class="icon" aria-hidden="true">⬠</span><span data-i18n="ui.pentagon" class="lbl">Pentagon</span></div>
+                <div data-i18n-attr="title:ui.click_to_add_at_the;aria-label:ui.add_free_shape" class="p-item" draggable="true" role="button" tabindex="0" aria-label="Add Free Shape" title="Click to add at the page centre, or drag onto the page" data-t="freehand"><span class="icon" aria-hidden="true">✎</span><span data-i18n="ui.free_shape" class="lbl">Free Shape</span></div>
             </div>
-            <h2 class="sec-title">Text</h2>
+            <h2 data-i18n="ui.text" class="sec-title">Text</h2>
             <div class="palette">
-                <div class="p-item wide" draggable="true" role="button" tabindex="0" aria-label="Add Label, HN 12pt" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="label" data-w="120" data-h="18"><span class="icon" aria-hidden="true">🏷</span><span class="lbl">Label — HN 12pt</span></div>
-                <div class="p-item wide" draggable="true" role="button" tabindex="0" aria-label="Add Heading, HB 16pt" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="heading" data-w="140" data-h="24"><span class="icon" aria-hidden="true"><b>H</b></span><span class="lbl">Heading — HB 16pt</span></div>
-                <div class="p-item wide" draggable="true" role="button" tabindex="0" aria-label="Add Description, HN 10pt" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="desc" data-w="160" data-h="16"><span class="icon" aria-hidden="true">¶</span><span class="lbl">Description — HN 10pt</span></div>
+                <div data-i18n-attr="title:ui.click_to_add_at_the;aria-label:ui.add_label_hn_12pt" class="p-item wide" draggable="true" role="button" tabindex="0" aria-label="Add Label, HN 12pt" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="label" data-w="120" data-h="18"><span class="icon" aria-hidden="true">🏷</span><span data-i18n="ui.label_hn_12pt" class="lbl">Label — HN 12pt</span></div>
+                <div data-i18n-attr="title:ui.click_to_add_at_the;aria-label:ui.add_heading_hb_16pt" class="p-item wide" draggable="true" role="button" tabindex="0" aria-label="Add Heading, HB 16pt" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="heading" data-w="140" data-h="24"><span class="icon" aria-hidden="true"><b>H</b></span><span data-i18n="ui.heading_hb_16pt" class="lbl">Heading — HB 16pt</span></div>
+                <div data-i18n-attr="title:ui.click_to_add_at_the;aria-label:ui.add_description_hn_10pt" class="p-item wide" draggable="true" role="button" tabindex="0" aria-label="Add Description, HN 10pt" title="Click to add at the page centre, or drag onto the page" data-t="text" data-st="desc" data-w="160" data-h="16"><span class="icon" aria-hidden="true">¶</span><span data-i18n="ui.description_hn_10pt" class="lbl">Description — HN 10pt</span></div>
             </div>
-            <h2 class="sec-title">Images <button type="button" class="sec-toggle" id="img-toggle" aria-label="Images" aria-expanded="true" aria-controls="img-body"><span aria-hidden="true">▼</span></button></h2>
+            <h2 data-i18n="ui.images" class="sec-title">Images <button data-i18n-attr="aria-label:ui.images" type="button" class="sec-toggle" id="img-toggle" aria-label="Images" aria-expanded="true" aria-controls="img-body"><span aria-hidden="true">▼</span></button></h2>
             <div class="sec-body" id="img-body">
                 <div class="img-grid" id="img-grid"></div>
-                <button type="button" class="img-upl-btn" id="img-upl-btn"><span aria-hidden="true">📤 </span>Upload image</button>
-                <input type="file" id="upl-inp" accept="image/*" hidden aria-label="Image file">
+                <button data-i18n="ui.upload_image" type="button" class="img-upl-btn" id="img-upl-btn"><span aria-hidden="true">📤 </span>Upload image</button>
+                <input data-i18n-attr="aria-label:ui.image_file" type="file" id="upl-inp" accept="image/*" hidden aria-label="Image file">
             </div>
-            <h2 class="sec-title">Import <button type="button" class="sec-toggle" id="imp-toggle" aria-label="Import" aria-expanded="true" aria-controls="imp-body"><span aria-hidden="true">▼</span></button></h2>
+            <h2 data-i18n="ui.import" class="sec-title">Import <button data-i18n-attr="aria-label:ui.import" type="button" class="sec-toggle" id="imp-toggle" aria-label="Import" aria-expanded="true" aria-controls="imp-body"><span aria-hidden="true">▼</span></button></h2>
             <div class="sec-body" id="imp-body">
                 <div class="imp-btns">
-                    <button class="file-btn" id="btn-import-csv"><span aria-hidden="true">📊 </span>Import CSV</button>
-                    <button class="file-btn" id="btn-import-excel"><span aria-hidden="true">📈 </span>Import Excel</button>
+                    <button data-i18n="ui.import_csv" class="file-btn" id="btn-import-csv"><span aria-hidden="true">📊 </span>Import CSV</button>
+                    <button data-i18n="ui.import_excel" class="file-btn" id="btn-import-excel"><span aria-hidden="true">📈 </span>Import Excel</button>
                 </div>
-                <div class="imp-hint">CSV or Excel file with columns: country, year, description, catalog_number, denomination, condition</div>
-                <input type="file" id="imp-inp" accept=".csv,.xlsx,.xls" hidden aria-label="CSV or Excel file">
+                <div data-i18n="ui.csv_or_excel_file_with" class="imp-hint">CSV or Excel file with columns: country, year, description, catalog_number, denomination, condition</div>
+                <input data-i18n-attr="aria-label:ui.csv_or_excel_file" type="file" id="imp-inp" accept=".csv,.xlsx,.xls" hidden aria-label="CSV or Excel file">
             </div>
-            <h2 class="sec-title">Files <button type="button" class="sec-toggle" id="file-toggle" aria-label="Files" aria-expanded="true" aria-controls="file-body"><span aria-hidden="true">▼</span></button></h2>
+            <h2 data-i18n="ui.files" class="sec-title">Files <button data-i18n-attr="aria-label:ui.files" type="button" class="sec-toggle" id="file-toggle" aria-label="Files" aria-expanded="true" aria-controls="file-body"><span aria-hidden="true">▼</span></button></h2>
             <div class="sec-body" id="file-body">
                 <div class="file-list" id="file-list"></div>
-                <button class="file-btn" id="btn-new-file"><span aria-hidden="true">✚ </span>New album</button>
+                <button data-i18n="ui.new_album" class="file-btn" id="btn-new-file"><span aria-hidden="true">✚ </span>New album</button>
             </div>
         </div>
     </aside>
 
-    <button type="button" class="panel-handle" id="sb-handle" aria-label="Hide the sidebar" aria-controls="sidebar" aria-expanded="true"></button>
+    <button data-i18n-attr="aria-label:ui.hide_the_sidebar" type="button" class="panel-handle" id="sb-handle" aria-label="Hide the sidebar" aria-controls="sidebar" aria-expanded="true"></button>
 
     <!-- Canvas Area -->
     <main id="ca">
         <div id="ca-toolbar">
             <span class="ca-group">
-                <label for="btn-page-setup">Page</label>
-                <button id="btn-page-setup" title="Page setup: paper size and orientation">A4 · Portrait</button>
-                <div id="pg-dots" role="group" aria-label="Pages"></div>
+                <label data-i18n="ui.page" for="btn-page-setup">Page</label>
+                <button data-i18n-attr="title:ui.page_setup_paper_size_and" id="btn-page-setup" title="Page setup: paper size and orientation">A4 · Portrait</button>
+                <div data-i18n-attr="aria-label:ui.pages" id="pg-dots" role="group" aria-label="Pages"></div>
             </span>
             <span class="ca-group">
-                <label for="grid">Snap</label>
-                <select id="grid" title="Snap moves to a grid"><option value="0">Off</option><option value="5" selected>5 mm grid</option><option value="10">10 mm grid</option></select>
+                <label data-i18n="ui.snap" for="grid">Snap</label>
+                <select data-i18n-attr="title:ui.snap_moves_to_a_grid" id="grid" title="Snap moves to a grid"><option data-i18n="ui.off" value="0">Off</option><option data-i18n="ui.5_mm_grid" value="5" selected>5 mm grid</option><option data-i18n="ui.10_mm_grid" value="10">10 mm grid</option></select>
             </span>
             <span class="spacer"></span>
             <span class="ca-group" id="page-defaults">
-                <label for="def-bdr">Page border</label>
-                <select id="def-bdr" aria-describedby="bdr-note"><optgroup label="Plain"><option value="none">None</option><option value="solid">Single</option><option value="double">Double</option></optgroup><optgroup label="Decorative (not for competition)"><option value="classic">Classic</option><option value="victorian">Victorian</option><option value="artdeco">Art Deco</option><option value="greek_key">Greek Key</option><option value="rope">Rope</option><option value="laurel">Laurel</option><option value="gothic">Gothic</option><option value="filigree">Filigree</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option></optgroup></select>
-                <span id="bdr-note" class="bdr-note" hidden>Decorative: not for competition</span>
+                <label data-i18n="ui.page_border" for="def-bdr">Page border</label>
+                <select id="def-bdr" aria-describedby="bdr-note"><optgroup label="Plain"><option data-i18n="ui.none" value="none">None</option><option data-i18n="ui.single" value="solid">Single</option><option data-i18n="ui.double" value="double">Double</option></optgroup><optgroup label="Decorative (not for competition)"><option data-i18n="ui.classic" value="classic">Classic</option><option data-i18n="ui.victorian" value="victorian">Victorian</option><option data-i18n="ui.art_deco" value="artdeco">Art Deco</option><option data-i18n="ui.greek_key" value="greek_key">Greek Key</option><option data-i18n="ui.rope" value="rope">Rope</option><option data-i18n="ui.laurel" value="laurel">Laurel</option><option data-i18n="ui.gothic" value="gothic">Gothic</option><option data-i18n="ui.filigree" value="filigree">Filigree</option><option data-i18n="ui.dashed" value="dashed">Dashed</option><option data-i18n="ui.dotted" value="dotted">Dotted</option></optgroup></select>
+                <span data-i18n="ui.decorative_not_for_competition" id="bdr-note" class="bdr-note" hidden>Decorative: not for competition</span>
                 <span class="ca-sep"></span>
-                <label for="def-theme">Theme</label>
-                <select id="def-theme" title="Colours the page border and headings. Stamp frames stay black."><option value="exhibition">Exhibition</option><option value="green">Green</option><option value="maroon">Maroon</option><option value="navy">Navy</option><option value="brown">Brown</option></select>
+                <label data-i18n="ui.theme" for="def-theme">Theme</label>
+                <select data-i18n-attr="title:ui.colours_the_page_border_and" id="def-theme" title="Colours the page border and headings. Stamp frames stay black."><option data-i18n="ui.exhibition" value="exhibition">Exhibition</option><option data-i18n="ui.green" value="green">Green</option><option data-i18n="ui.maroon" value="maroon">Maroon</option><option data-i18n="ui.navy" value="navy">Navy</option><option data-i18n="ui.brown" value="brown">Brown</option></select>
                 <span class="ca-sep"></span>
-                <label for="def-heading">Headings</label>
-                <select id="def-heading" title="Weight of the headings above stamps"><option value="bold">Bold</option><option value="semibold">Semibold</option></select>
+                <label data-i18n="ui.headings" for="def-heading">Headings</label>
+                <select data-i18n-attr="title:ui.weight_of_the_headings_above" id="def-heading" title="Weight of the headings above stamps"><option data-i18n="ui.bold" value="bold">Bold</option><option data-i18n="ui.semibold" value="semibold">Semibold</option></select>
             </span>
-            <span class="ca-group" id="sel-tools" role="toolbar" aria-label="Selected stamp" hidden>
-                                <span class="sel-lbl">Align</span>
-                <button id="btn-align-l" class="ca-icon" title="Align left" aria-label="Align left"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3v18"/><rect x="8" y="6" width="12" height="4"/><rect x="8" y="14" width="7" height="4"/></svg></button><button id="btn-align-c" class="ca-icon" title="Align centre" aria-label="Align centre"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><rect x="5" y="6" width="14" height="4"/><rect x="8" y="14" width="8" height="4"/></svg></button><button id="btn-align-r" class="ca-icon" title="Align right" aria-label="Align right"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 3v18"/><rect x="4" y="6" width="12" height="4"/><rect x="9" y="14" width="7" height="4"/></svg></button>
-                <button id="btn-align-t" class="ca-icon" title="Align top" aria-label="Align top"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18"/><rect x="6" y="8" width="4" height="12"/><rect x="14" y="8" width="4" height="7"/></svg></button><button id="btn-align-m" class="ca-icon" title="Align middle" aria-label="Align middle"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18"/><rect x="6" y="5" width="4" height="14"/><rect x="14" y="8" width="4" height="8"/></svg></button><button id="btn-align-b" class="ca-icon" title="Align bottom" aria-label="Align bottom"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18"/><rect x="6" y="4" width="4" height="12"/><rect x="14" y="9" width="4" height="7"/></svg></button>
+            <span data-i18n-attr="aria-label:ui.selected_stamp" class="ca-group" id="sel-tools" role="toolbar" aria-label="Selected stamp" hidden>
+                                <span data-i18n="ui.align" class="sel-lbl">Align</span>
+                <button data-i18n-attr="title:ui.align_left;aria-label:ui.align_left" id="btn-align-l" class="ca-icon" title="Align left" aria-label="Align left"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3v18"/><rect x="8" y="6" width="12" height="4"/><rect x="8" y="14" width="7" height="4"/></svg></button><button data-i18n-attr="title:ui.align_centre;aria-label:ui.align_centre" id="btn-align-c" class="ca-icon" title="Align centre" aria-label="Align centre"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><rect x="5" y="6" width="14" height="4"/><rect x="8" y="14" width="8" height="4"/></svg></button><button data-i18n-attr="title:ui.align_right;aria-label:ui.align_right" id="btn-align-r" class="ca-icon" title="Align right" aria-label="Align right"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 3v18"/><rect x="4" y="6" width="12" height="4"/><rect x="9" y="14" width="7" height="4"/></svg></button>
+                <button data-i18n-attr="title:ui.align_top;aria-label:ui.align_top" id="btn-align-t" class="ca-icon" title="Align top" aria-label="Align top"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18"/><rect x="6" y="8" width="4" height="12"/><rect x="14" y="8" width="4" height="7"/></svg></button><button data-i18n-attr="title:ui.align_middle;aria-label:ui.align_middle" id="btn-align-m" class="ca-icon" title="Align middle" aria-label="Align middle"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18"/><rect x="6" y="5" width="4" height="14"/><rect x="14" y="8" width="4" height="8"/></svg></button><button data-i18n-attr="title:ui.align_bottom;aria-label:ui.align_bottom" id="btn-align-b" class="ca-icon" title="Align bottom" aria-label="Align bottom"><svg class="ico" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18"/><rect x="6" y="4" width="4" height="12"/><rect x="14" y="9" width="4" height="7"/></svg></button>
                 <span class="ca-sep"></span>
-                <button id="btn-dup" class="ca-btn" title="Duplicate (⌘D)" aria-label="Duplicate"><svg class="ico" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M4 16V5a1 1 0 011-1h11"/></svg><span class="lbl">Duplicate</span></button>
-                <button id="btn-grid" class="ca-btn" title="Grid fill: copy into rows and columns" aria-label="Grid fill"><svg class="ico" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span class="lbl">Grid fill</span></button>
-                <button id="btn-del" class="ca-btn danger" title="Delete (Del)" aria-label="Delete"><svg class="ico" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg><span class="lbl">Delete</span></button>
+                <button data-i18n-attr="title:ui.duplicate_d;aria-label:ui.duplicate" id="btn-dup" class="ca-btn" title="Duplicate (⌘D)" aria-label="Duplicate"><svg class="ico" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M4 16V5a1 1 0 011-1h11"/></svg><span data-i18n="ui.duplicate" class="lbl">Duplicate</span></button>
+                <button data-i18n-attr="title:ui.grid_fill_copy_into_rows;aria-label:ui.grid_fill_2" id="btn-grid" class="ca-btn" title="Grid fill: copy into rows and columns" aria-label="Grid fill"><svg class="ico" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span data-i18n="ui.grid_fill_2" class="lbl">Grid fill</span></button>
+                <button data-i18n-attr="title:ui.delete_del;aria-label:ui.delete" id="btn-del" class="ca-btn danger" title="Delete (Del)" aria-label="Delete"><svg class="ico" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg><span data-i18n="ui.delete" class="lbl">Delete</span></button>
             </span>
         </div>
         <div id="page-wrap">
           <div id="page-zoom">
-            <div class="page a4" id="page" tabindex="-1" role="group" aria-label="Album page" aria-describedby="page-keys">
-                <p id="page-keys" class="sr-only">Tab moves between items on the page. Arrow keys move the selected item one grid step, Shift with an arrow moves it 10 millimetres. Enter edits its properties, Delete removes it.</p><svg id="grid-overlay" aria-hidden="true"><defs><pattern id="grid-pattern" patternUnits="userSpaceOnUse"><path d="M 0 0 L 0 0" fill="none" stroke="#aaa" stroke-width="1" opacity="0.6"/></pattern></defs><rect width="100%" height="100%" fill="url(#grid-pattern)"/></svg>
+            <div data-i18n-attr="aria-label:ui.album_page" class="page a4" id="page" tabindex="-1" role="group" aria-label="Album page" aria-describedby="page-keys">
+                <p data-i18n="ui.tab_moves_between_items_on" id="page-keys" class="sr-only">Tab moves between items on the page. Arrow keys move the selected item one grid step, Shift with an arrow moves it 10 millimetres. Enter edits its properties, Delete removes it.</p><svg id="grid-overlay" aria-hidden="true"><defs><pattern id="grid-pattern" patternUnits="userSpaceOnUse"><path d="M 0 0 L 0 0" fill="none" stroke="#aaa" stroke-width="1" opacity="0.6"/></pattern></defs><rect width="100%" height="100%" fill="url(#grid-pattern)"/></svg>
             </div>
           </div>
         </div>
     </main>
 
-    <button type="button" class="panel-handle" id="rp-handle" aria-label="Hide the properties panel" aria-controls="rp" aria-expanded="true"></button>
+    <button data-i18n-attr="aria-label:ui.hide_the_properties_panel" type="button" class="panel-handle" id="rp-handle" aria-label="Hide the properties panel" aria-controls="rp" aria-expanded="true"></button>
 
     <!-- Right Panel: Properties -->
-    <aside id="rp" aria-label="Properties">
-        <div class="rp-none" id="rp-none">Select an element to edit</div>
+    <aside data-i18n-attr="aria-label:ui.properties" id="rp" aria-label="Properties">
+        <div data-i18n="ui.select_an_element_to_edit" class="rp-none" id="rp-none">Select an element to edit</div>
         <div id="rp-content" style="display:none">
-            <h2 class="rp-sec"><button type="button" class="sec-toggle" id="rp-toggle" aria-label="Hide the properties panel" aria-expanded="true" aria-controls="rp"><span aria-hidden="true">▶</span></button>Position</h2>
-            <div class="rp-row"><label for="px">X</label><input aria-label="X position" type="number" id="px" step="0.5"><span class="unit">mm</span><label for="py">Y</label><input aria-label="Y position" type="number" id="py" step="0.5"><span class="unit">mm</span></div>
-            <div class="rp-row"><label for="pw">W</label><input aria-label="Width" type="number" id="pw" step="0.5"><span class="unit">mm</span><label for="ph">H</label><input aria-label="Height" type="number" id="ph" step="0.5"><span class="unit">mm</span></div>
-            <h2 class="rp-sec" id="frame-sec">Frame</h2>
-            <div class="rp-row" id="frame-row"><label for="pbs">Frame</label><select id="pbs" title="Stamp frames are black"><option value="none">None</option><option value="thin">Thin</option><option value="medium">Medium</option><option value="double">Double</option></select></div>
+            <h2 data-i18n="ui.position" class="rp-sec"><button data-i18n-attr="aria-label:ui.hide_the_properties_panel" type="button" class="sec-toggle" id="rp-toggle" aria-label="Hide the properties panel" aria-expanded="true" aria-controls="rp"><span aria-hidden="true">▶</span></button>Position</h2>
+            <div class="rp-row"><label for="px">X</label><input data-i18n-attr="aria-label:ui.x_position" aria-label="X position" type="number" id="px" step="0.5"><span class="unit">mm</span><label for="py">Y</label><input data-i18n-attr="aria-label:ui.y_position" aria-label="Y position" type="number" id="py" step="0.5"><span class="unit">mm</span></div>
+            <div class="rp-row"><label for="pw">W</label><input data-i18n-attr="aria-label:ui.width" aria-label="Width" type="number" id="pw" step="0.5"><span class="unit">mm</span><label for="ph">H</label><input data-i18n-attr="aria-label:ui.height" aria-label="Height" type="number" id="ph" step="0.5"><span class="unit">mm</span></div>
+            <h2 data-i18n="ui.frame" class="rp-sec" id="frame-sec">Frame</h2>
+            <div class="rp-row" id="frame-row"><label data-i18n="ui.frame" for="pbs">Frame</label><select data-i18n-attr="title:ui.stamp_frames_are_black" id="pbs" title="Stamp frames are black"><option data-i18n="ui.none" value="none">None</option><option data-i18n="ui.thin" value="thin">Thin</option><option data-i18n="ui.medium" value="medium">Medium</option><option data-i18n="ui.double" value="double">Double</option></select></div>
             <p class="rp-note" id="pframe-size"></p>
-            <h2 class="rp-sec">Text</h2>
-            <div class="rp-row"><label for="plbl">Label</label><input type="text" id="plbl" placeholder="Description"></div>
-            <p class="rp-note" id="pcapfont-note" style="display:none">Captions use the caption font at fixed sizes. Heading weight is set with Headings above the page.</p>
-            <div class="rp-row" id="font-row"><label for="pfnt">Font</label><select id="pfnt"></select></div>
-            <div class="rp-row" id="fsize-row"><label for="pfs">Size</label><input aria-label="Font size" type="number" id="pfs" value="12" min="6" max="72" step="1"><span class="unit">pt</span></div>
-            <div class="rp-row" id="phead-row"><span class="rp-gap" aria-hidden="true"></span><input type="checkbox" id="phead" aria-describedby="phead-hint"><label for="phead" class="rp-check">Mark as heading</label><span class="unit" id="phead-hint">theme colour</span></div>
-            <h2 class="rp-sec" id="phil-sec" style="display:none">Philatelic data</h2>
-            <div class="rp-row" id="phil-hdg-row" style="display:none"><label for="phdg">Heading</label><input type="text" id="phdg" placeholder="e.g. M.V. Kista Dan"></div>
-            <div class="rp-row" id="phil-cat-row" style="display:none"><label for="pcat">Catalogue #</label><input aria-label="Catalogue number" type="text" id="pcat" placeholder="SG#1 / SC#1"></div>
-            <div class="rp-row" id="phil-denom-row" style="display:none"><label for="pdenom">Denom</label><input aria-label="Denomination" type="text" id="pdenom" placeholder="½p"></div>
-            <div class="rp-row" id="phil-cond-row" style="display:none"><label for="pcond">Condition</label><select id="pcond"><option value="">Not set</option><option value="Mint NH">Mint NH</option><option value="Mint H">Mint Hinged</option><option value="Used">Used</option><option value="FDC">FDC</option><option value="CTO">CTO</option><option value="On Cover">On Cover</option></select></div>
-            <div class="rp-row" id="phil-perf-row" style="display:none"><label for="pperf">Perf</label><input aria-label="Perforation" type="text" id="pperf" placeholder="e.g. A1"></div>
-            <h2 class="rp-sec" id="img-sec" style="display:none">Image</h2>
-            <div class="rp-row" id="img-row" style="display:none"><button id="btn-chg-img" style="flex:1">Change image</button><button id="btn-rm-img" aria-label="Remove image"><span aria-hidden="true">✕</span></button></div>
+            <h2 data-i18n="ui.text" class="rp-sec">Text</h2>
+            <div class="rp-row"><label data-i18n="ui.label" for="plbl">Label</label><input data-i18n-attr="placeholder:ui.description" type="text" id="plbl" placeholder="Description"></div>
+            <p data-i18n="ui.captions_use_the_caption_font" class="rp-note" id="pcapfont-note" style="display:none">Captions use the caption font at fixed sizes. Heading weight is set with Headings above the page.</p>
+            <div class="rp-row" id="font-row"><label data-i18n="ui.font" for="pfnt">Font</label><select id="pfnt"></select></div>
+            <div class="rp-row" id="fsize-row"><label data-i18n="ui.size" for="pfs">Size</label><input data-i18n-attr="aria-label:ui.font_size" aria-label="Font size" type="number" id="pfs" value="12" min="6" max="72" step="1"><span class="unit">pt</span></div>
+            <div class="rp-row" id="phead-row"><span class="rp-gap" aria-hidden="true"></span><input type="checkbox" id="phead" aria-describedby="phead-hint"><label data-i18n="ui.mark_as_heading" for="phead" class="rp-check">Mark as heading</label><span data-i18n="ui.theme_colour" class="unit" id="phead-hint">theme colour</span></div>
+            <h2 data-i18n="ui.philatelic_data" class="rp-sec" id="phil-sec" style="display:none">Philatelic data</h2>
+            <div class="rp-row" id="phil-hdg-row" style="display:none"><label data-i18n="ui.heading" for="phdg">Heading</label><input data-i18n-attr="placeholder:ui.e_g_m_v_kista" type="text" id="phdg" placeholder="e.g. M.V. Kista Dan"></div>
+            <div class="rp-row" id="phil-cat-row" style="display:none"><label data-i18n="ui.catalogue" for="pcat">Catalogue #</label><input data-i18n-attr="aria-label:ui.catalogue_number;placeholder:ui.sg_1_sc_1" aria-label="Catalogue number" type="text" id="pcat" placeholder="SG#1 / SC#1"></div>
+            <div class="rp-row" id="phil-denom-row" style="display:none"><label data-i18n="ui.denom" for="pdenom">Denom</label><input data-i18n-attr="aria-label:ui.denomination" aria-label="Denomination" type="text" id="pdenom" placeholder="½p"></div>
+            <div class="rp-row" id="phil-cond-row" style="display:none"><label data-i18n="ui.condition" for="pcond">Condition</label><select id="pcond"><option data-i18n="ui.not_set" value="">Not set</option><option data-i18n="ui.mint_nh" value="Mint NH">Mint NH</option><option data-i18n="ui.mint_hinged" value="Mint H">Mint Hinged</option><option data-i18n="ui.used" value="Used">Used</option><option data-i18n="ui.fdc" value="FDC">FDC</option><option data-i18n="ui.cto" value="CTO">CTO</option><option data-i18n="ui.on_cover" value="On Cover">On Cover</option></select></div>
+            <div class="rp-row" id="phil-perf-row" style="display:none"><label data-i18n="ui.perf" for="pperf">Perf</label><input data-i18n-attr="aria-label:ui.perforation;placeholder:ui.e_g_a1" aria-label="Perforation" type="text" id="pperf" placeholder="e.g. A1"></div>
+            <h2 data-i18n="ui.image" class="rp-sec" id="img-sec" style="display:none">Image</h2>
+            <div class="rp-row" id="img-row" style="display:none"><button data-i18n="ui.change_image" id="btn-chg-img" style="flex:1">Change image</button><button data-i18n-attr="aria-label:ui.remove_image" id="btn-rm-img" aria-label="Remove image"><span aria-hidden="true">✕</span></button></div>
             <div class="rp-actions">
-                <button id="btn-dup-el"><span aria-hidden="true">⧉ </span>Duplicate</button>
-                <button id="btn-center"><span aria-hidden="true">⊙ </span>Centre</button>
+                <button data-i18n="ui.duplicate" id="btn-dup-el"><span aria-hidden="true">⧉ </span>Duplicate</button>
+                <button data-i18n="ui.centre" id="btn-center"><span aria-hidden="true">⊙ </span>Centre</button>
             </div>
         </div>
     </aside>
@@ -162,61 +162,61 @@
 
 <!-- Wizard Panel (bottom) -->
 <div id="wizard-panel" role="dialog" aria-labelledby="wiz-title-hdr">
-    <div class="wiz-hdr"><h2 id="wiz-title-hdr"><span aria-hidden="true">⚡ </span>New album wizard</h2><span class="spacer"></span><button id="btn-app-wiz">Apply</button><button id="btn-cls-wiz" aria-label="Close the wizard"><span aria-hidden="true">✕</span></button></div>
+    <div class="wiz-hdr"><h2 data-i18n="ui.new_album_wizard" id="wiz-title-hdr"><span aria-hidden="true">⚡ </span>New album wizard</h2><span class="spacer"></span><button data-i18n="ui.apply" id="btn-app-wiz">Apply</button><button data-i18n-attr="aria-label:ui.close_the_wizard" id="btn-cls-wiz" aria-label="Close the wizard"><span aria-hidden="true">✕</span></button></div>
     <div id="wizard-body">
         <div class="wiz-group">
-            <label for="wiz-title">Album title</label>
-            <input type="text" id="wiz-title" placeholder="Album Title">
-            <label for="wiz-author">Author</label>
-            <input type="text" id="wiz-author" placeholder="Your Name">
+            <label data-i18n="ui.album_title" for="wiz-title">Album title</label>
+            <input data-i18n-attr="placeholder:ui.album_title_2" type="text" id="wiz-title" placeholder="Album Title">
+            <label data-i18n="ui.author" for="wiz-author">Author</label>
+            <input data-i18n-attr="placeholder:ui.your_name" type="text" id="wiz-author" placeholder="Your Name">
         </div>
         <div class="wiz-group">
-            <label for="wiz-pg-size">Page size</label>
-            <select id="wiz-pg-size"><option value="a4">A4 (210×297mm)</option><option value="a5">A5 (148×210mm)</option><option value="a3">A3 (297×420mm)</option><option value="letter">Letter (216×279mm)</option><option value="legal">Legal (216×356mm)</option></select>
-            <label for="wiz-orient">Orientation</label>
-            <select id="wiz-orient"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select>
+            <label data-i18n="ui.page_size" for="wiz-pg-size">Page size</label>
+            <select id="wiz-pg-size"><option data-i18n="ui.a4_210_297mm" value="a4">A4 (210×297mm)</option><option data-i18n="ui.a5_148_210mm" value="a5">A5 (148×210mm)</option><option data-i18n="ui.a3_297_420mm" value="a3">A3 (297×420mm)</option><option data-i18n="ui.letter_216_279mm" value="letter">Letter (216×279mm)</option><option data-i18n="ui.legal_216_356mm" value="legal">Legal (216×356mm)</option></select>
+            <label data-i18n="ui.orientation" for="wiz-orient">Orientation</label>
+            <select id="wiz-orient"><option data-i18n="ui.portrait" value="portrait">Portrait</option><option data-i18n="ui.landscape" value="landscape">Landscape</option></select>
         </div>
         <div class="wiz-group">
-            <label for="wiz-template">Template</label>
-            <select id="wiz-template"><option value="blank">Blank Page</option></select>
-            <div class="wiz-hint">Choose a pre-built album template to start quickly</div>
+            <label data-i18n="ui.template" for="wiz-template">Template</label>
+            <select id="wiz-template"><option data-i18n="ui.blank_page" value="blank">Blank Page</option></select>
+            <div data-i18n="ui.choose_a_pre_built_album" class="wiz-hint">Choose a pre-built album template to start quickly</div>
         </div>
     </div>
     <div class="wiz-actions">
-        <button id="btn-wiz-template"><span aria-hidden="true">📚 </span>Template gallery</button>
-        <button class="primary" id="btn-wiz-apply">Create Album</button>
+        <button data-i18n="ui.template_gallery" id="btn-wiz-template"><span aria-hidden="true">📚 </span>Template gallery</button>
+        <button data-i18n="ui.create_album" class="primary" id="btn-wiz-apply">Create Album</button>
     </div>
 </div>
 
 <!-- Template Gallery Panel -->
 <div id="template-gallery-panel" role="dialog" aria-labelledby="tg-title">
-    <div class="tg-hdr"><h2 id="tg-title"><span aria-hidden="true">📚 </span>Template gallery</h2><span class="spacer"></span><button id="btn-tg-close" aria-label="Close the template gallery"><span aria-hidden="true">✕</span></button></div>
+    <div class="tg-hdr"><h2 data-i18n="ui.template_gallery" id="tg-title"><span aria-hidden="true">📚 </span>Template gallery</h2><span class="spacer"></span><button data-i18n-attr="aria-label:ui.close_the_template_gallery" id="btn-tg-close" aria-label="Close the template gallery"><span aria-hidden="true">✕</span></button></div>
     <div id="template-grid" class="tg-grid"></div>
 </div>
 
 <!-- DSL Panel (bottom) -->
 <div id="dsl-panel" role="dialog" aria-labelledby="dsl-title">
-    <div class="dsl-hdr"><h2 id="dsl-title">DSL editor (advanced)</h2><span class="spacer"></span><button id="btn-app-dsl">Apply</button><button id="btn-cls-dsl" aria-label="Close the DSL editor"><span aria-hidden="true">✕</span></button></div>
-    <div id="dsl-editor"><textarea id="dsl-ta" spellcheck="false" aria-label="Album DSL"></textarea></div>
+    <div class="dsl-hdr"><h2 data-i18n="ui.dsl_editor_advanced" id="dsl-title">DSL editor (advanced)</h2><span class="spacer"></span><button data-i18n="ui.apply" id="btn-app-dsl">Apply</button><button data-i18n-attr="aria-label:ui.close_the_dsl_editor" id="btn-cls-dsl" aria-label="Close the DSL editor"><span aria-hidden="true">✕</span></button></div>
+    <div id="dsl-editor"><textarea data-i18n-attr="aria-label:ui.album_dsl" id="dsl-ta" spellcheck="false" aria-label="Album DSL"></textarea></div>
 </div>
 
 <!-- Page Setup Dialog -->
 <div id="page-setup-overlay" role="dialog" aria-modal="true" aria-labelledby="ps-title">
     <div class="ps-box">
-        <div class="ps-hdr"><h2 id="ps-title">Page setup</h2><span class="spacer"></span><button id="ps-close" aria-label="Close page setup"><span aria-hidden="true">✕</span></button></div>
+        <div class="ps-hdr"><h2 data-i18n="ui.page_setup_2" id="ps-title">Page setup</h2><span class="spacer"></span><button data-i18n-attr="aria-label:ui.close_page_setup" id="ps-close" aria-label="Close page setup"><span aria-hidden="true">✕</span></button></div>
         <div class="ps-body">
-            <label for="ps-size">Paper size</label>
-            <select id="ps-size"><option value="a4">A4 (210 × 297 mm)</option><option value="a5">A5 (148 × 210 mm)</option><option value="a3">A3 (297 × 420 mm)</option><option value="letter">Letter (216 × 279 mm)</option><option value="legal">Legal (216 × 356 mm)</option></select>
+            <label data-i18n="ui.paper_size" for="ps-size">Paper size</label>
+            <select id="ps-size"><option data-i18n="ui.a4_210_297_mm" value="a4">A4 (210 × 297 mm)</option><option data-i18n="ui.a5_148_210_mm" value="a5">A5 (148 × 210 mm)</option><option data-i18n="ui.a3_297_420_mm" value="a3">A3 (297 × 420 mm)</option><option data-i18n="ui.letter_216_279_mm" value="letter">Letter (216 × 279 mm)</option><option data-i18n="ui.legal_216_356_mm" value="legal">Legal (216 × 356 mm)</option></select>
             <fieldset class="ps-orient">
-                <legend>Orientation</legend>
-                <label><input type="radio" name="ps-orient" id="ps-orient-portrait" value="portrait"> Portrait</label>
-                <label><input type="radio" name="ps-orient" id="ps-orient-landscape" value="landscape"> Landscape</label>
+                <legend data-i18n="ui.orientation">Orientation</legend>
+                <label data-i18n="ui.portrait"><input type="radio" name="ps-orient" id="ps-orient-portrait" value="portrait"> Portrait</label>
+                <label data-i18n="ui.landscape"><input type="radio" name="ps-orient" id="ps-orient-landscape" value="landscape"> Landscape</label>
             </fieldset>
             <p id="ps-note" aria-live="polite"></p>
         </div>
         <div class="ps-actions">
-            <button id="ps-cancel">Cancel</button>
-            <button class="primary" id="ps-apply">Apply</button>
+            <button data-i18n="ui.cancel" id="ps-cancel">Cancel</button>
+            <button data-i18n="ui.apply" class="primary" id="ps-apply">Apply</button>
         </div>
     </div>
 </div>
@@ -224,15 +224,15 @@
 <!-- Print calibration page: a PDF to check the printer prints 1 mm as 1 mm -->
 <div id="calibration-overlay" role="dialog" aria-modal="true" aria-labelledby="cal-title" aria-describedby="cal-note">
     <div class="ps-box">
-        <div class="ps-hdr"><h2 id="cal-title">Print calibration page</h2><span class="spacer"></span><button id="cal-close" aria-label="Close print calibration page"><span aria-hidden="true">✕</span></button></div>
+        <div class="ps-hdr"><h2 data-i18n="ui.print_calibration_page_2" id="cal-title">Print calibration page</h2><span class="spacer"></span><button data-i18n-attr="aria-label:ui.close_print_calibration_page" id="cal-close" aria-label="Close print calibration page"><span aria-hidden="true">✕</span></button></div>
         <div class="ps-body">
-            <label for="cal-paper">Paper size</label>
-            <select id="cal-paper"><option value="a4">A4 (210 × 297 mm)</option><option value="a5">A5 (148 × 210 mm)</option><option value="a3">A3 (297 × 420 mm)</option><option value="letter">Letter (216 × 279 mm)</option><option value="legal">Legal (216 × 356 mm)</option></select>
-            <p id="cal-note">A one-page PDF with rulers, a measured square, corner marks and sample stamp frames. Print it at 100% (“Actual size”, not “Fit to page”), then measure it with a ruler to check that your printer prints 1&nbsp;mm as 1&nbsp;mm.</p>
+            <label data-i18n="ui.paper_size" for="cal-paper">Paper size</label>
+            <select id="cal-paper"><option data-i18n="ui.a4_210_297_mm" value="a4">A4 (210 × 297 mm)</option><option data-i18n="ui.a5_148_210_mm" value="a5">A5 (148 × 210 mm)</option><option data-i18n="ui.a3_297_420_mm" value="a3">A3 (297 × 420 mm)</option><option data-i18n="ui.letter_216_279_mm" value="letter">Letter (216 × 279 mm)</option><option data-i18n="ui.legal_216_356_mm" value="legal">Legal (216 × 356 mm)</option></select>
+            <p data-i18n="ui.a_one_page_pdf_with" id="cal-note">A one-page PDF with rulers, a measured square, corner marks and sample stamp frames. Print it at 100% (“Actual size”, not “Fit to page”), then measure it with a ruler to check that your printer prints 1&nbsp;mm as 1&nbsp;mm.</p>
         </div>
         <div class="ps-actions">
-            <button id="cal-cancel">Cancel</button>
-            <button class="primary" id="cal-download">Download PDF</button>
+            <button data-i18n="ui.cancel" id="cal-cancel">Cancel</button>
+            <button data-i18n="ui.download_pdf" class="primary" id="cal-download">Download PDF</button>
         </div>
     </div>
 </div>
@@ -240,11 +240,11 @@
 <!-- Fit prompt: an opened album has elements past the page edge -->
 <div id="fit-prompt-overlay" role="alertdialog" aria-modal="true" aria-labelledby="fp-title" aria-describedby="fp-note">
     <div class="ps-box">
-        <div class="ps-hdr"><h2 id="fp-title">Elements past the page edge</h2></div>
+        <div class="ps-hdr"><h2 data-i18n="ui.elements_past_the_page_edge" id="fp-title">Elements past the page edge</h2></div>
         <div class="ps-body"><p id="fp-note"></p></div>
         <div class="ps-actions">
-            <button id="fp-leave">Leave as they are</button>
-            <button class="primary" id="fp-move">Move inside</button>
+            <button data-i18n="ui.leave_as_they_are" id="fp-leave">Leave as they are</button>
+            <button data-i18n="ui.move_inside" class="primary" id="fp-move">Move inside</button>
         </div>
     </div>
 </div>
@@ -252,32 +252,32 @@
 <!-- Help Overlay -->
 <div id="help-overlay" role="dialog" aria-labelledby="help-title">
     <div class="help-box">
-        <div class="help-hdr"><h2 id="help-title"><span aria-hidden="true">⌨ </span>Keyboard shortcuts</h2><span class="spacer"></span><button id="btn-help-close" aria-label="Close keyboard shortcuts"><span aria-hidden="true">✕</span></button></div>
+        <div class="help-hdr"><h2 data-i18n="ui.keyboard_shortcuts" id="help-title"><span aria-hidden="true">⌨ </span>Keyboard shortcuts</h2><span class="spacer"></span><button data-i18n-attr="aria-label:ui.close_keyboard_shortcuts" id="btn-help-close" aria-label="Close keyboard shortcuts"><span aria-hidden="true">✕</span></button></div>
         <div class="help-body">
             <div class="help-col">
-                <h3 class="help-sec">File</h3>
-                <div class="help-row"><kbd>Ctrl+O</kbd> <span>Open File</span></div>
-                <div class="help-row"><kbd>Ctrl+S</kbd> <span>Save</span></div>
-                <div class="help-row"><kbd>F5</kbd> <span>Preview</span></div>
-                <div class="help-row"><kbd>Ctrl+=</kbd> <span>Zoom in</span></div>
-                <div class="help-row"><kbd>Ctrl+−</kbd> <span>Zoom out</span></div>
-                <div class="help-row"><kbd>Ctrl+0</kbd> <span>Fit width</span></div>
-                <div class="help-row"><kbd>Ctrl+wheel</kbd> <span>Zoom at the pointer (or pinch)</span></div>
-                <h3 class="help-sec">Edit</h3>
-                <div class="help-row"><kbd>Ctrl+Z</kbd> <span>Undo</span></div>
-                <div class="help-row"><kbd>Ctrl+Y</kbd> <span>Redo</span></div>
-                <div class="help-row"><kbd>Ctrl+D</kbd> <span>Duplicate</span></div>
-                <div class="help-row"><kbd>Del</kbd> <span>Delete Element</span></div>
-                <div class="help-row"><kbd>Esc</kbd> <span>Deselect</span></div>
+                <h3 data-i18n="ui.file" class="help-sec">File</h3>
+                <div class="help-row"><kbd>Ctrl+O</kbd> <span data-i18n="ui.open_file">Open File</span></div>
+                <div class="help-row"><kbd>Ctrl+S</kbd> <span data-i18n="ui.save">Save</span></div>
+                <div class="help-row"><kbd>F5</kbd> <span data-i18n="ui.preview">Preview</span></div>
+                <div class="help-row"><kbd>Ctrl+=</kbd> <span data-i18n="ui.zoom_in">Zoom in</span></div>
+                <div class="help-row"><kbd>Ctrl+−</kbd> <span data-i18n="ui.zoom_out">Zoom out</span></div>
+                <div class="help-row"><kbd>Ctrl+0</kbd> <span data-i18n="ui.fit_width">Fit width</span></div>
+                <div class="help-row"><kbd data-i18n="ui.key_ctrl_wheel">Ctrl+wheel</kbd> <span data-i18n="ui.zoom_at_the_pointer_or">Zoom at the pointer (or pinch)</span></div>
+                <h3 data-i18n="ui.edit" class="help-sec">Edit</h3>
+                <div class="help-row"><kbd>Ctrl+Z</kbd> <span data-i18n="ui.undo">Undo</span></div>
+                <div class="help-row"><kbd>Ctrl+Y</kbd> <span data-i18n="ui.redo">Redo</span></div>
+                <div class="help-row"><kbd>Ctrl+D</kbd> <span data-i18n="ui.duplicate">Duplicate</span></div>
+                <div class="help-row"><kbd>Del</kbd> <span data-i18n="ui.delete_element">Delete Element</span></div>
+                <div class="help-row"><kbd>Esc</kbd> <span data-i18n="ui.deselect">Deselect</span></div>
             </div>
             <div class="help-col">
-                <h3 class="help-sec">On the page</h3>
-                <div class="help-row"><kbd>Tab</kbd> <span>Next item</span></div>
-                <div class="help-row"><kbd>Arrows</kbd> <span>Move one grid step</span></div>
-                <div class="help-row"><kbd>Shift+Arrows</kbd> <span>Move 10 mm</span></div>
-                <div class="help-row"><kbd>Enter</kbd> <span>Edit properties</span></div>
-                <h3 class="help-sec">Other</h3>
-                <div class="help-row"><kbd>?</kbd> <span>This Help</span></div>
+                <h3 data-i18n="ui.on_the_page" class="help-sec">On the page</h3>
+                <div class="help-row"><kbd>Tab</kbd> <span data-i18n="ui.next_item">Next item</span></div>
+                <div class="help-row"><kbd data-i18n="ui.key_arrows">Arrows</kbd> <span data-i18n="ui.move_one_grid_step">Move one grid step</span></div>
+                <div class="help-row"><kbd data-i18n="ui.key_shift_arrows">Shift+Arrows</kbd> <span data-i18n="ui.move_10_mm">Move 10 mm</span></div>
+                <div class="help-row"><kbd>Enter</kbd> <span data-i18n="ui.edit_properties">Edit properties</span></div>
+                <h3 data-i18n="ui.other" class="help-sec">Other</h3>
+                <div class="help-row"><kbd>?</kbd> <span data-i18n="ui.this_help">This Help</span></div>
             </div>
         </div>
     </div>
@@ -294,52 +294,52 @@
     <span class="sb-spacer"></span>
     <button type="button" id="sb-zoom">100%</button>
     <span class="sb-sep" aria-hidden="true">│</span>
-    <span id="sb-dirty" class="sb-dirty-hidden">● Unsaved</span>
+    <span data-i18n="ui.unsaved" id="sb-dirty" class="sb-dirty-hidden">● Unsaved</span>
 </footer>
 
 <!-- Preview Overlay -->
 <div id="preview-overlay" role="dialog" aria-labelledby="preview-title">
-        <div class="preview-hdr"><h2 id="preview-title"><span aria-hidden="true">👁 </span>Live preview</h2><span class="spacer"></span><button id="btn-preview-refresh"><span aria-hidden="true">↻ </span>Refresh</button><div class="export-dd" id="btn-preview-export-dd"><button id="btn-preview-export" aria-haspopup="menu"><span aria-hidden="true">📄 </span>Export<span aria-hidden="true"> ▾</span></button><div class="export-dd-menu" role="menu" aria-label="Export format"><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="pdf"><span aria-hidden="true">📄 </span>PDF</div><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="png"><span aria-hidden="true">🖼 </span>PNG</div><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="svg"><span aria-hidden="true">✏️ </span>SVG</div><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="html"><span aria-hidden="true">🌐 </span>HTML</div></div></div><button id="btn-preview-close"><span aria-hidden="true">✕ </span>Close</button></div>
-    <div id="preview-body"><iframe id="preview-frame" title="Album preview" width="900" height="1200"></iframe></div>
+        <div class="preview-hdr"><h2 data-i18n="ui.live_preview" id="preview-title"><span aria-hidden="true">👁 </span>Live preview</h2><span class="spacer"></span><button data-i18n="ui.refresh" id="btn-preview-refresh"><span aria-hidden="true">↻ </span>Refresh</button><div class="export-dd" id="btn-preview-export-dd"><button data-i18n="ui.export" id="btn-preview-export" aria-haspopup="menu"><span aria-hidden="true">📄 </span>Export<span aria-hidden="true"> ▾</span></button><div data-i18n-attr="aria-label:ui.export_format" class="export-dd-menu" role="menu" aria-label="Export format"><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="pdf"><span aria-hidden="true">📄 </span>PDF</div><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="png"><span aria-hidden="true">🖼 </span>PNG</div><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="svg"><span aria-hidden="true">✏️ </span>SVG</div><div class="export-dd-item" role="menuitem" tabindex="0" data-fmt="html"><span aria-hidden="true">🌐 </span>HTML</div></div></div><button data-i18n="ui.close" id="btn-preview-close"><span aria-hidden="true">✕ </span>Close</button></div>
+    <div id="preview-body"><iframe data-i18n-attr="title:ui.album_preview" id="preview-frame" title="Album preview" width="900" height="1200"></iframe></div>
 </div>
 
 <!-- Tutorial Overlay -->
 <div id="tutorial-overlay" role="dialog" aria-labelledby="tutorial-title">
     <div class="tutorial-box">
-        <h2 class="tutorial-hdr" id="tutorial-title"><span aria-hidden="true">👋 </span>Welcome to StampAlbum Pro</h2>
+        <h2 data-i18n="ui.welcome_to_stampalbum_pro" class="tutorial-hdr" id="tutorial-title"><span aria-hidden="true">👋 </span>Welcome to StampAlbum Pro</h2>
         <div class="tutorial-body">
             <div class="tutorial-step active" data-step="1">
-                <img class="tutorial-img" src="tutorial-1-add.png" alt="A stamp selected on the page, its frame drawn just outside a dashed outline, and the Properties panel giving the stamp and frame sizes" width="520" height="260">
+                <img data-i18n-attr="alt:ui.a_stamp_selected_on_the" class="tutorial-img" src="tutorial-1-add.png" alt="A stamp selected on the page, its frame drawn just outside a dashed outline, and the Properties panel giving the stamp and frame sizes" width="520" height="260">
                 <div class="tutorial-step-row">
                     <span class="tutorial-step-num">1</span>
-                    <span class="tutorial-step-text"><b>Add stamps at their catalogue size</b><br>Click a shape in the palette, or drag it onto the page. Type the stamp's size from the catalogue into <b>W</b> and <b>H</b>: the frame is drawn 1 mm outside it, and a dashed line shows the stamp itself.</span>
+                    <span data-i18n-html="ui.add_stamps_at_their_catalogue" class="tutorial-step-text"><b>Add stamps at their catalogue size</b><br>Click a shape in the palette, or drag it onto the page. Type the stamp's size from the catalogue into <b>W</b> and <b>H</b>: the frame is drawn 1 mm outside it, and a dashed line shows the stamp itself.</span>
                 </div>
             </div>
             <div class="tutorial-step" data-step="2">
-                <img class="tutorial-img" src="tutorial-2-captions.png" alt="Three framed stamps, each with a year above and its name, details and catalogue number below" width="520" height="260">
+                <img data-i18n-attr="alt:ui.three_framed_stamps_each_with" class="tutorial-img" src="tutorial-2-captions.png" alt="Three framed stamps, each with a year above and its name, details and catalogue number below" width="520" height="260">
                 <div class="tutorial-step-row">
                     <span class="tutorial-step-num">2</span>
-                    <span class="tutorial-step-text"><b>Frames and captions</b><br>Choose <b>Thin</b>, <b>Medium</b> or <b>Double</b> under <b>Frame</b>. Type the description below the stamp; the heading, catalogue number and details go under <b>Philatelic data</b>. An amber <b>!</b> means a caption or frame runs into something or past the page border.</span>
+                    <span data-i18n-html="ui.frames_and_captions_choose_thin" class="tutorial-step-text"><b>Frames and captions</b><br>Choose <b>Thin</b>, <b>Medium</b> or <b>Double</b> under <b>Frame</b>. Type the description below the stamp; the heading, catalogue number and details go under <b>Philatelic data</b>. An amber <b>!</b> means a caption or frame runs into something or past the page border.</span>
                 </div>
             </div>
             <div class="tutorial-step" data-step="3">
-                <img class="tutorial-img" src="tutorial-3-page.png" alt="The bar above the page with the Page button, Page border and Theme" width="520" height="260">
+                <img data-i18n-attr="alt:ui.the_bar_above_the_page" class="tutorial-img" src="tutorial-3-page.png" alt="The bar above the page with the Page button, Page border and Theme" width="520" height="260">
                 <div class="tutorial-step-row">
                     <span class="tutorial-step-num">3</span>
-                    <span class="tutorial-step-text"><b>Theme, page border and paper</b><br>Above the page, <b>Theme</b> colours the page border and headings, and <b>Page border</b> has plain borders for exhibition pages and decorative ones for personal albums. The <b>Page</b> button changes the paper size and orientation.</span>
+                    <span data-i18n-html="ui.theme_page_border_and_paper" class="tutorial-step-text"><b>Theme, page border and paper</b><br>Above the page, <b>Theme</b> colours the page border and headings, and <b>Page border</b> has plain borders for exhibition pages and decorative ones for personal albums. The <b>Page</b> button changes the paper size and orientation.</span>
                 </div>
             </div>
             <div class="tutorial-step" data-step="4">
-                <img class="tutorial-img" src="tutorial-4-export.png" alt="The toolbar's Preview and Export buttons, with the Export menu open on PDF, PNG, SVG and HTML" width="520" height="260">
+                <img data-i18n-attr="alt:ui.the_toolbar_s_preview_and" class="tutorial-img" src="tutorial-4-export.png" alt="The toolbar's Preview and Export buttons, with the Export menu open on PDF, PNG, SVG and HTML" width="520" height="260">
                 <div class="tutorial-step-row">
                     <span class="tutorial-step-num">4</span>
-                    <span class="tutorial-step-text"><b>Preview and export</b><br><b>Preview</b> shows the page as it will print. <b>Export</b> makes a PDF, PNG or SVG that matches it, and <b>File › Save</b> keeps the album to work on later.</span>
+                    <span data-i18n-html="ui.preview_and_export_preview_shows" class="tutorial-step-text"><b>Preview and export</b><br><b>Preview</b> shows the page as it will print. <b>Export</b> makes a PDF, PNG or SVG that matches it, and <b>File › Save</b> keeps the album to work on later.</span>
                 </div>
             </div>
         </div>
         <div class="tutorial-actions">
-            <button id="btn-tutorial-skip">Skip</button>
-            <button id="btn-tutorial-next">Next</button>
+            <button data-i18n="ui.skip" id="btn-tutorial-skip">Skip</button>
+            <button data-i18n="ui.next" id="btn-tutorial-next">Next</button>
         </div>
     </div>
 </div>
@@ -348,9 +348,11 @@
 <div id="toast-container" role="status" aria-live="polite"></div>
 
 <!-- Hidden inputs -->
-<input type="file" id="file-inp" accept=".slbum,.txt" hidden aria-label="Album file">
+<input data-i18n-attr="aria-label:ui.album_file" type="file" id="file-inp" accept=".slbum,.txt" hidden aria-label="Album file">
 
 <script src="codemirror.min.js"></script>
+<script src="locales.js?v={{{VERSION}}}"></script>
+<script src="i18n.js?v={{{VERSION}}}"></script>
 <script src="app.js?v={{{VERSION}}}"></script>
 <script src="render.js?v={{{VERSION}}}"></script>
 <script src="undo.js?v={{{VERSION}}}"></script>

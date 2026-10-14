@@ -90,7 +90,7 @@ function parseDSL(dsl) {
         S.updateTitle();
         if (size.migrated) {
             // Elements now past the edge are offered a move by the fit prompt (fit_prompt.js) when a file is opened.
-            showToast("Page size corrected to " + size.pw + " x " + size.ph + " mm (older versions saved it oversized).", "info");
+            showToast(S.t("msg.page_size_corrected", { w: size.pw, h: size.ph }), "info");
         }
     }
     applyState();

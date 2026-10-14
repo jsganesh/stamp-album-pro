@@ -23,17 +23,17 @@ function populateFonts() {
         { v: "CS", t: "Courier New Bold Italic" },
     ];
     var og = document.createElement("optgroup");
-    og.label = "Standard Fonts";
+    og.label = S.t("msg.fonts_standard");
     stdFonts.forEach(function(f) { var o = document.createElement("option"); o.value = f.v; o.textContent = f.t; og.appendChild(o); });
     pfnt.appendChild(og);
     if (S.SYSTEM_FONTS && S.SYSTEM_FONTS.length) {
         var og2 = document.createElement("optgroup");
-        og2.label = "System Fonts";
+        og2.label = S.t("msg.fonts_system");
         S.SYSTEM_FONTS.forEach(function(f) { var o = document.createElement("option"); o.value = f; o.textContent = f; og2.appendChild(o); });
         pfnt.appendChild(og2);
     }
     var ws = document.createElement("optgroup");
-    ws.label = "Web Safe";
+    ws.label = S.t("msg.fonts_web_safe");
     ["Arial","Helvetica","Times New Roman","Courier New","Georgia","Verdana","Trebuchet MS","Impact","Comic Sans MS"].forEach(function(f) { var o = document.createElement("option"); o.value = f; o.textContent = f; ws.appendChild(o); });
     pfnt.appendChild(ws);
 }
@@ -66,8 +66,8 @@ function drawAlignmentGuides(el) {
 
     // Page center and quarter lines (always present as reference)
     var pageGuides = [
-        { pos: pw / 2, type: "v", label: "Page Center" },
-        { pos: ph / 2, type: "h", label: "Page Center" },
+        { pos: pw / 2, type: "v", label: S.t("msg.guide_page_center") },
+        { pos: ph / 2, type: "h", label: S.t("msg.guide_page_center") },
         { pos: pw * 0.25, type: "v", label: "¼" },
         { pos: pw * 0.75, type: "v", label: "¾" },
     ];
@@ -89,14 +89,14 @@ function drawAlignmentGuides(el) {
 
     // Vertical edges of dragged element
     var vEdges = [
-        { pos: el.x, label: "Left edge" },
-        { pos: el.x + el.w / 2, label: "Center" },
-        { pos: el.x + el.w, label: "Right edge" },
+        { pos: el.x, label: S.t("msg.guide_left_edge") },
+        { pos: el.x + el.w / 2, label: S.t("msg.guide_center") },
+        { pos: el.x + el.w, label: S.t("msg.guide_right_edge") },
     ];
     var hEdges = [
-        { pos: el.y, label: "Top edge" },
-        { pos: el.y + el.h / 2, label: "Middle" },
-        { pos: el.y + el.h, label: "Bottom edge" },
+        { pos: el.y, label: S.t("msg.guide_top_edge") },
+        { pos: el.y + el.h / 2, label: S.t("msg.guide_middle") },
+        { pos: el.y + el.h, label: S.t("msg.guide_bottom_edge") },
     ];
 
     vEdges.forEach(function(ve) {
@@ -114,7 +114,7 @@ function drawAlignmentGuides(el) {
             if (other.id === el.id) return;
             [other.x, other.x + other.w / 2, other.x + other.w].forEach(function(op) {
                 if (Math.abs(ve.pos - op) < GUIDE_THRESHOLD) {
-                    guides.push({ pos: op, dir: "v", label: "Aligned", isPage: false });
+                    guides.push({ pos: op, dir: "v", label: S.t("msg.guide_aligned"), isPage: false });
                     snapped.v = op;
                     vLabel = alignmentLabel(ve.pos, op, other, "v");
                 }
@@ -135,7 +135,7 @@ function drawAlignmentGuides(el) {
             if (other.id === el.id) return;
             [other.y, other.y + other.h / 2, other.y + other.h].forEach(function(op) {
                 if (Math.abs(he.pos - op) < GUIDE_THRESHOLD) {
-                    guides.push({ pos: op, dir: "h", label: "Aligned", isPage: false });
+                    guides.push({ pos: op, dir: "h", label: S.t("msg.guide_aligned"), isPage: false });
                     snapped.h = op;
                     hLabel = alignmentLabel(he.pos, op, other, "h");
                 }
@@ -315,9 +315,8 @@ function frameNote(el) {
     var sc = S._sc, o = S.CORE.frameOutset(el);
     var w = el.w / sc, h = el.h / sc;
     var f = function(v) { return (Math.round(v * 10) / 10).toString(); };
-    if (!o) return "No frame. The stamp is " + f(w) + " × " + f(h) + " mm.";
-    return "Frame " + f(w + 2 * o) + " × " + f(h + 2 * o) + " mm, " + S.CORE.FRAME_CLEARANCE_MM +
-        " mm clear all round the stamp (" + f(w) + " × " + f(h) + " mm, dashed).";
+    if (!o) return S.t("msg.no_frame_note", { w: f(w), h: f(h) });
+    return S.t("msg.frame_note", { fw: f(w + 2 * o), fh: f(h + 2 * o), clear: S.CORE.FRAME_CLEARANCE_MM, w: f(w), h: f(h) });
 }
 function updateFrameNote() {
     var n = $("pframe-size");
@@ -393,22 +392,22 @@ function updateStatusBar() {
     var sel = S.sel;
     // Page info
     if ($("sb-page")) {
-        $("sb-page").textContent = "Page " + (S._currentPage + 1) + " of " + (S._pages ? S._pages.length : 1);
+        $("sb-page").textContent = S.t("msg.page_n_of", { n: S._currentPage + 1, total: S._pages ? S._pages.length : 1 });
     }
     // Element count
     if ($("sb-elements")) {
         var n = E.length;
-        $("sb-elements").textContent = n + " element" + (n !== 1 ? "s" : "");
+        $("sb-elements").textContent = S.t("msg.count_elements", { count: n });
     }
     // Selection info
     if ($("sb-selection")) {
         if (!sel) {
-            $("sb-selection").textContent = "No selection";
+            $("sb-selection").textContent = S.t("msg.no_selection");
         } else {
             var el = E.find(function(x) { return x.id === sel; });
             if (el) {
-                var label = el.lbl || el.hdg || (el.t === "text" ? "Text" : "Stamp");
-                $("sb-selection").textContent = el.t + " — " + label.substring(0, 30);
+                var label = el.lbl || el.hdg || S.t(el.t === "text" ? "msg.kind_text" : "msg.kind_stamp");
+                $("sb-selection").textContent = S.t("msg.sel_" + (el.t === "text" || el.t === "image" || el.t === "freehand" ? el.t : "stamp")) + " — " + label.substring(0, 30);
             }
         }
     }
@@ -421,11 +420,11 @@ function updateStatusBar() {
             if (el) {
                 var pw = S._pw || 595, ph = S._ph || 842;
                 var centerX = el.x + el.w / 2, centerY = el.y + el.h / 2;
-                var hPos = centerX < pw * 0.35 ? "Left" : centerX > pw * 0.65 ? "Right" : "Center";
-                var vPos = centerY < ph * 0.35 ? "Top" : centerY > ph * 0.65 ? "Bottom" : "Middle";
-                var alignLabel = vPos + " " + hPos;
+                var hPos = centerX < pw * 0.35 ? "left" : centerX > pw * 0.65 ? "right" : "center";
+                var vPos = centerY < ph * 0.35 ? "top" : centerY > ph * 0.65 ? "bottom" : "middle";
+                var alignLabel = S.t("msg.pos_" + vPos + "_" + hPos);
                 if (S._snapTarget && (S._snapTarget.v !== null || S._snapTarget.h !== null)) {
-                    alignLabel += " • Snapped";
+                    alignLabel += " • " + S.t("msg.snapped");
                 }
                 $("sb-align").textContent = alignLabel;
             }
@@ -496,7 +495,7 @@ function drawCaptions(d, el, lines) {
             n.contentEditable = "true";
             n.spellcheck = false;
             n.style.pointerEvents = "auto";
-            n.setAttribute("aria-label", "Description");
+            n.setAttribute("aria-label", S.t("ui.description"));
             var before = null;
             n.addEventListener("focus", function() {
                 before = el.lbl || "";
@@ -531,9 +530,7 @@ function markCaptionWarnings(items) {
     items.forEach(function(it) {
         var why = warn[it.id];
         if (!why) return;
-        var edge = inset ? "the page border" : "the page edge";
-        var msg = { "border": "Captions run past " + edge, "overlap": "Captions run into another item",
-                    "frame-border": "The frame runs past " + edge, "frame-overlap": "The frame runs into another item" }[why];
+        var msg = S.t("msg.warn_" + why.replace("-", "_") + (why.indexOf("border") !== -1 ? (inset ? "_border" : "_edge") : ""));
         it.node.classList.add("caption-warn");
         if (why.indexOf("frame") === 0) it.node.classList.add("frame-warn");
         it.node.setAttribute("aria-description", msg);
@@ -675,7 +672,9 @@ function render() {
             d.style.backgroundColor = "rgba(200,200,200,0.1)";
             var fh = document.createElement("div");
             fh.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:10px;color:#999;text-align:center;";
-            fh.innerHTML = "✎ Free Shape<br><small>Draw custom shape</small>";
+            fh.textContent = "✎ " + S.t("ui.free_shape");
+            fh.appendChild(document.createElement("br"));
+            fh.appendChild(document.createElement("small")).textContent = S.t("msg.draw_custom_shape");
             d.appendChild(fh);
         }
 
@@ -761,18 +760,17 @@ function render() {
 
 // What a screen reader says for an item on the page, e.g.
 // "Rectangle stamp, Penny Black, 40 × 30 mm at 20, 25 mm"
-var SHAPE_WORDS = { rectangle: "Rectangle", oval: "Oval", diamond: "Diamond", triangle: "Triangle",
-                    hexagon: "Hexagon", octagon: "Octagon", pentagon: "Pentagon" };
+var SHAPES = ["rectangle", "oval", "diamond", "triangle", "hexagon", "octagon", "pentagon"];
 function describeElement(el) {
     var kind;
-    if (el.t === "text") kind = "Text";
-    else if (el.t === "image") kind = "Image";
-    else if (el.t === "freehand") kind = "Free shape";
-    else kind = (SHAPE_WORDS[el.s] || "Rectangle") + " stamp";
+    if (el.t === "text") kind = S.t("msg.kind_text");
+    else if (el.t === "image") kind = S.t("msg.kind_image");
+    else if (el.t === "freehand") kind = S.t("msg.kind_freehand");
+    else kind = S.t("msg.stamp_" + (SHAPES.indexOf(el.s) !== -1 ? el.s : "rectangle"));
     var parts = [kind];
     var text = (el.lbl || el.hdg || "").trim();
     if (text) parts.push(text.length > 60 ? text.substring(0, 60) + "…" : text);
-    parts.push(mm(el.w) + " × " + mm(el.h) + " mm at " + mm(el.x) + ", " + mm(el.y) + " mm");
+    parts.push(S.t("msg.size_at", { w: mm(el.w), h: mm(el.h), x: mm(el.x), y: mm(el.y) }));
     return parts.join(", ");
 }
 

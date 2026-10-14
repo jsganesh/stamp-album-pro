@@ -51,6 +51,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 #status-bar .sb-sep { color: var(--border); margin: 0 2px; }
 #status-bar .sb-spacer { flex: 1; }
 #status-bar .sb-dirty-hidden { display: none; }
+/* Longer words in other languages shorten the selection, never wrap the bar. */
+#status-bar { overflow: hidden; }
+#status-bar > * { white-space: nowrap; flex-shrink: 0; }
+#status-bar > #sb-selection { flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 #sb-dirty { color: var(--accent); font-weight: 600; }
 #sb-selection { font-style: italic; }
 #sb-zoom { background: none; border: 1px solid transparent; border-radius: 3px; color: inherit; font: inherit; padding: 1px 6px; cursor: pointer; min-width: 44px; }
@@ -456,7 +460,10 @@ body.large-text .mi, body.large-text .tb-mbtn { font-size: 17px; }
 @media (max-width: 600px) {
     :root { --sidebar: 180px; --props: 220px; --toolbar: 56px; }
     #tb { gap: 2px; padding: 0 8px; }
-    #tb .logo { font-size: 15px; margin-right: 4px; }
+    /* The name gives way first when longer menu words need the room. */
+    /* The status bar keeps the page, selection, zoom and Unsaved; it had no room for all. */
+    #sb-elements, #sb-elements + .sb-sep, #sb-align { display: none; }
+    #tb .logo { font-size: 15px; margin-right: 4px; flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
     #tb .logo-long { display: none; }
     #tb .logo-short { display: inline; }
     #tb .tb-history, #tb #btn-preview, #tb #btn-help-tb { display: none; }

@@ -187,17 +187,17 @@ function init() {
 
     // ── Buttons ──
     $("btn-dup").addEventListener("click", function() {
-        if (!S.sel) { showToast("Select an element first", "error"); return; }
+        if (!S.sel) { showToast(S.t("msg.select_element_first"), "error"); return; }
         var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
         add(Object.assign({}, el, { id: "el" + (S.nid++), x: el.x + 20, y: el.y + 20 }));
     });
     $("btn-grid").addEventListener("click", function() {
-        if (!S.sel) { showToast("Select a stamp to duplicate in grid", "error"); return; }
+        if (!S.sel) { showToast(S.t("msg.select_stamp_for_grid"), "error"); return; }
         var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
-        var cols = parseInt(prompt("Number of columns:", "3")) || 3;
-        var rows = parseInt(prompt("Number of rows:", "3")) || 3;
-        var gapX = parseFloat(prompt("Horizontal gap (mm):", "5")) || 5;
-        var gapY = parseFloat(prompt("Vertical gap (mm):", "5")) || 5;
+        var cols = parseInt(prompt(S.t("msg.grid_columns"), "3")) || 3;
+        var rows = parseInt(prompt(S.t("msg.grid_rows"), "3")) || 3;
+        var gapX = parseFloat(prompt(S.t("msg.grid_gap_x"), "5")) || 5;
+        var gapY = parseFloat(prompt(S.t("msg.grid_gap_y"), "5")) || 5;
         var startX = el.x, startY = el.y;
         for (var r = 0; r < rows; r++) {
             for (var c = 0; c < cols; c++) {
@@ -213,7 +213,7 @@ function init() {
         if (!S.sel) return;
         var active = document.activeElement;
         var hadFocus = active && active.classList && active.classList.contains("cel") && active.dataset.id === S.sel;
-        if (!confirm("Delete this element?")) return;
+        if (!confirm(S.t("msg.delete_element_confirm"))) return;
         var idx = S.E.findIndex(function(x) { return x.id === S.sel; });
         S.E = S.E.filter(function(x) { return x.id !== S.sel; });
         S.sel = null;
@@ -254,11 +254,11 @@ function init() {
             tabSize: 2,
             autofocus: false,
             placeholder: '',
-            screenReaderLabel: "Album DSL",  // CodeMirror 5.61+: names its hidden input
+            screenReaderLabel: S.t("ui.album_dsl"),  // CodeMirror 5.61+: names its hidden input
         });
         // Older builds ignore screenReaderLabel, so name the input directly too
         var cmInput = _cmEditor.getInputField && _cmEditor.getInputField();
-        if (cmInput) cmInput.setAttribute("aria-label", "Album DSL");
+        if (cmInput) cmInput.setAttribute("aria-label", S.t("ui.album_dsl"));
         // Custom DSL highlighting (simple keyword-based)
         CodeMirror.defineMode("text/x-stampalbum", function() {
             return {
@@ -289,7 +289,7 @@ function init() {
         if (S.renderPageBorder) S.renderPageBorder(S._pageBorder);
         pushUndo();
         render();
-        showToast("DSL applied", "success");
+        showToast(S.t("msg.dsl_applied"), "success");
     });
     $("btn-cls-dsl").addEventListener("click", function() {
         $("dsl-panel").classList.remove("open");
@@ -392,7 +392,7 @@ function init() {
     // ── Collapsible Panels ──
     // The toggle inside each panel and the handle beside it both report the panel's state.
     function setPanelState(toggle, handle, open, what) {
-        var name = (open ? "Hide the " : "Show the ") + what;
+        var name = S.t((open ? "msg.hide_" : "msg.show_") + what);
         [toggle, handle].forEach(function(b) {
             b.setAttribute("aria-expanded", open ? "true" : "false");
             b.setAttribute("aria-label", name);
@@ -410,9 +410,19 @@ function init() {
         S._collapsed.rp = !S._collapsed.rp;
         $("rp").classList.toggle("collapsed", S._collapsed.rp);
         this.firstElementChild.textContent = S._collapsed.rp ? "◀" : "▶";
-        setPanelState(this, $("rp-handle"), !S._collapsed.rp, "properties panel");
+        setPanelState(this, $("rp-handle"), !S._collapsed.rp, "properties");
         if (S._collapsed.rp && document.activeElement === this) $("rp-handle").focus();
     });
+    // The panels' Hide/Show names, in the current language (a tooltip only where one was set).
+    S.syncPanelLabels = function() {
+        [["sb", "sidebar"], ["rp", "properties"]].forEach(function(p) {
+            var name = S.t((S._collapsed[p[0]] ? "msg.show_" : "msg.hide_") + p[1]);
+            [$(p[0] + "-toggle"), $(p[0] + "-handle")].forEach(function(b) {
+                b.setAttribute("aria-label", name);
+                if (b.hasAttribute("title")) b.title = name;
+            });
+        });
+    };
     $("sb-handle").addEventListener("click", function() { $("sb-toggle").click(); });
     $("rp-handle").addEventListener("click", function() { $("rp-toggle").click(); });
 
@@ -474,7 +484,7 @@ function init() {
 
     // ── Properties panel actions ──
     $("btn-dup-el").addEventListener("click", function() {
-        if (!S.sel) { showToast("Select an element first", "error"); return; }
+        if (!S.sel) { showToast(S.t("msg.select_element_first"), "error"); return; }
         var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
         S.add(Object.assign({}, el, { id: "el" + (S.nid++), x: el.x + 20, y: el.y + 20 }));
     });
@@ -521,7 +531,11 @@ function init() {
     function openTemplateGallery() {
         var grid = $("template-grid");
         if (!grid) return;
-        grid.innerHTML = '<div class="tg-loading">Loading templates...</div>';
+        grid.innerHTML = "";
+        var loading = document.createElement("div");
+        loading.className = "tg-loading";
+        loading.textContent = S.t("msg.loading_templates");
+        grid.appendChild(loading);
         $("template-gallery-panel").classList.add("open");
         fetch("/api/templates")
             .then(function(r) { return r.json(); })
@@ -546,18 +560,22 @@ function init() {
                                     parseDSL(data.dsl);
                                     pushUndo();
                                     render();
-                                    showToast("Template loaded: " + data.name, "success");
+                                    showToast(S.t("msg.template_loaded", { name: data.name }), "success");
                                     $("template-gallery-panel").classList.remove("open");
                                     $("wizard-panel").classList.remove("open");
                                 }
                             })
-                            .catch(function(err) { showToast("Failed to load: " + err, "error"); });
+                            .catch(function(err) { showToast(S.t("msg.failed_to_load", { msg: err }), "error"); });
                     });
                     grid.appendChild(card);
                 });
             })
             .catch(function() {
-                grid.innerHTML = '<div class="tg-error">Could not load templates</div>';
+                grid.innerHTML = "";
+                var failed = document.createElement("div");
+                failed.className = "tg-error";
+                failed.textContent = S.t("msg.could_not_load_templates");
+                grid.appendChild(failed);
             });
     }
 
@@ -581,17 +599,17 @@ function init() {
         var endpoint = isExcel ? "/api/stamps/import-excel" : "/api/stamps/import";
         var fd = new FormData();
         fd.append("file", file);
-        showToast("Importing " + file.name + "...", "info");
+        showToast(S.t("msg.importing", { name: file.name }), "info");
         fetch(endpoint, { method: "POST", body: fd })
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (data.errors && data.errors.length > 0) {
-                    showToast("Imported " + data.imported + " stamps (" + data.errors.length + " errors)", "info");
+                    showToast(S.t("msg.imported_stamps", { count: data.imported }) + " " + S.t("msg.import_errors", { count: data.errors.length }), "info");
                 } else {
-                    showToast("Imported " + data.imported + " stamps", "success");
+                    showToast(S.t("msg.imported_stamps", { count: data.imported }), "success");
                 }
             })
-            .catch(function(err) { showToast("Import failed: " + err, "error"); });
+            .catch(function(err) { showToast(S.t("msg.import_failed", { msg: err }), "error"); });
         this.value = "";
     });
 
@@ -722,6 +740,7 @@ function init() {
     loadFileList();
     loadImageList();
     S.updateTitle();
+    if (S.updateStatusBar) S.updateStatusBar();  // in the user's language from the start
 
     if (S.wirePalette) S.wirePalette();
 

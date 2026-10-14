@@ -23,7 +23,7 @@ function downloadCalibration() {
     var paper = $("cal-paper").value;
     var filename = "calibration-" + paper + ".pdf";
     closeCalibration();
-    showToast("Generating the calibration page...", "info");
+    showToast(S.t("msg.generating_calibration"), "info");
     return fetch("/calibration.pdf?paper=" + encodeURIComponent(paper))
     .then(function(r) {
         if (!r.ok) throw new Error("(" + r.status + ")");
@@ -35,9 +35,9 @@ function downloadCalibration() {
         a.download = filename;
         a.click();
         setTimeout(function() { URL.revokeObjectURL(a.href); }, 100);
-        showToast("Saved to Downloads/" + filename + ". Print it at 100% (Actual size).", "success");
+        showToast(S.t("msg.calibration_saved", { name: filename }), "success");
     })
-    .catch(function(err) { showToast("Calibration page failed " + err.message, "error"); });
+    .catch(function(err) { showToast(S.t("msg.calibration_failed", { msg: err.message }), "error"); });
 }
 
 function wireCalibration() {

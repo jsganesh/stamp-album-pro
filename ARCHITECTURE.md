@@ -562,6 +562,29 @@ Each element in `S.E` becomes a `.cel` div with:
 
 Corner ornaments use `scale(-1,1)` / `scale(1,-1)` transforms for each corner.
 
+### 7g. The editor's words (i18n.js + locales.js)
+
+Every word the editor shows comes from a phrase list, `src/stamp_album/locales/<lang>.json`
+(English, `en.json`, is the source). `python3 tools/locales.py` turns the lists into
+`web/locales.js`; `web/i18n.js` looks phrases up. Both load before `app.js`.
+
+- **The page:** `data-i18n="ui.…"` (an element's own text, keeping its icons and shortcut
+  labels), `data-i18n-attr="title:ui.…;aria-label:ui.…"`, and `data-i18n-html` (the
+  tutorial steps, which hold `<b>`). `index.html` keeps the English as well; a test checks it
+  matches `en.json`.
+- **Scripts:** `S.t("msg.…", { name: … })`. A phrase written `{"one": …, "other": …}` takes
+  its form from `{count}` and the browser's plural rules. `S.countElements()` and
+  `S.pageSizeLabel()` build the shared "3 elements on 2 pages" and "A4 · Portrait".
+- **Language:** View › Language (stored as `stampalbum-lang`), else the computer's language
+  when there is a list for it, else English; `?lang=` overrides for one visit. Missing
+  phrases show in English. The menu appears only once there are two languages, and
+  `S.refreshLanguage()` redraws the words the scripts wrote, without a reload.
+- **Checks:** `python3 tools/i18n_check.py` (missing, unused, English left in a script
+  message, translation placeholder mistakes); `?lang=pseudo` shows every phrase accented and
+  a third longer, which `test_i18n_ui.py` uses on each screen and at phone width.
+- **Not translated yet:** templates, the sample album, tutorial pictures, the calibration
+  page, key names, server error messages, and the DSL.
+
 ---
 
 ## 8. Data Flow: Save/Load Cycle

@@ -40,7 +40,7 @@ function openPreview() {
     var frame = $("preview-frame");
     if (!overlay || !frame) return;
     overlay.classList.add("open");
-    showToast("Generating preview...", "info");
+    showToast(S.t("msg.generating_preview"), "info");
     var state = buildCanvasState("html");
     fetch("/render-from-state", {
         method: "POST",
@@ -48,7 +48,7 @@ function openPreview() {
         body: JSON.stringify(state)
     })
     .then(function(r) {
-        if (!r.ok) throw new Error("Render failed (" + r.status + ")");
+        if (!r.ok) throw new Error(S.t("msg.render_failed_status", { status: r.status }));
         return r.text();
     })
     .then(function(html) {
@@ -63,10 +63,10 @@ function openPreview() {
                 frame.style.height = firstPage.offsetHeight + "px";
             }
         }
-        showToast("Preview ready", "success");
+        showToast(S.t("msg.preview_ready"), "success");
     })
     .catch(function(err) {
-        showToast("Preview failed: " + err, "error");
+        showToast(S.t("msg.preview_failed", { msg: err }), "error");
     });
 }
 
@@ -74,7 +74,7 @@ function openPreview() {
 function exportFormat(fmt) {
     var labels = { pdf: "PDF", png: "PNG", svg: "SVG", html: "HTML" };
     var exts = { pdf: ".pdf", png: ".png", svg: ".svg", html: ".html" };
-    showToast("Generating " + (labels[fmt] || fmt) + "...", "info");
+    showToast(S.t("msg.generating_format", { format: labels[fmt] || fmt }), "info");
     var filename = S._currentFile ? S._currentFile.replace(/\.(slbum|txt)$/, exts[fmt] || ".pdf") : "album" + (exts[fmt] || ".pdf");
     var state = buildCanvasState(fmt);
     fetch("/export-from-state", {
@@ -83,7 +83,7 @@ function exportFormat(fmt) {
         body: JSON.stringify(state)
     })
     .then(function(r) {
-        if (!r.ok) throw new Error("Export failed (" + r.status + ")");
+        if (!r.ok) throw new Error(S.t("msg.export_failed_status", { status: r.status }));
         if (fmt === "html") return r.text();
         return r.blob();
     })
@@ -91,7 +91,7 @@ function exportFormat(fmt) {
         if (fmt === "html") {
             var w = window.open("", "_blank");
             if (w) { w.document.write(data); w.document.close(); }
-            else { showToast("Popup blocked — allow popups for HTML export", "error"); }
+            else { showToast(S.t("msg.popup_blocked"), "error"); }
         } else {
             var a = document.createElement("a");
             a.href = URL.createObjectURL(data);
@@ -99,9 +99,9 @@ function exportFormat(fmt) {
             a.click();
             setTimeout(function() { URL.revokeObjectURL(a.href); }, 100);
         }
-        showToast((labels[fmt] || fmt) + " saved to Downloads/" + filename, "success");
+        showToast(S.t("msg.saved_to_downloads", { format: labels[fmt] || fmt, name: filename }), "success");
     })
-    .catch(function(err) { showToast("Export failed: " + err, "error"); });
+    .catch(function(err) { showToast(S.t("msg.export_failed", { msg: err }), "error"); });
 }
 
 // ── Export ──

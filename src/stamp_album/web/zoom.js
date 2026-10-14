@@ -66,8 +66,8 @@ if (!root || !root.document || !root.StampAlbum) return;
 
 var S = root.StampAlbum, $ = S.$;
 var KEY = "stampalbum-zoom";
-var LABELS = { "fit-width": "Fit width", "fit-page": "Fit whole page", "actual": "Actual size",
-               "custom": "Zoomed" };
+var LABELS = { "fit-width": "ui.fit_width", "fit-page": "ui.fit_whole_page", "actual": "msg.zoom_actual",
+               "custom": "msg.zoom_custom" };
 var _mode = "fit-width", _z = 1, _custom = 1;
 
 function loadMode() {
@@ -105,9 +105,10 @@ function syncControls() {
     var sb = $("sb-zoom");
     if (sb) {
         sb.textContent = pct;
-        var next = _mode === "fit-width" || _mode === "fit-page" ? "show at actual size" : "fit the width";
-        sb.title = "Zoom: " + LABELS[_mode] + " (" + pct + "). Click to " + next + ".";
-        sb.setAttribute("aria-label", "Zoom " + pct + ", " + LABELS[_mode] + ". Click to " + next + ".");
+        var fitted = _mode === "fit-width" || _mode === "fit-page";
+        var p = { mode: S.t(LABELS[_mode]), pct: pct };
+        sb.title = S.t(fitted ? "msg.zoom_title_to_actual" : "msg.zoom_title_to_fit", p);
+        sb.setAttribute("aria-label", S.t(fitted ? "msg.zoom_label_to_actual" : "msg.zoom_label_to_fit", p));
     }
     MODES.forEach(function(m) {
         var it = $("menu-zoom-" + m);

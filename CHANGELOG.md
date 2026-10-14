@@ -7,7 +7,15 @@ All notable changes to this project are documented here. The format follows [Kee
 ### Added
 - **Security policy** (`SECURITY.md`): how to report a vulnerability privately (GitHub's Report a vulnerability, or email), the 7-day reply, which versions get fixes, and how the app is meant to run: on `127.0.0.1` by default, and only on a trusted network when `STAMP_ALBUM_HOST` opens it to other devices
 
+- **Translation support**: every word the editor shows now comes from a phrase list, `src/stamp_album/locales/en.json` (393 phrases), so the editor can be translated without touching its code. English is the only language so far, and nothing changes in it.
+  - `web/i18n.js` looks phrases up: `S.t("msg.page_added")` in the scripts, with `{name}` placeholders and plural forms chosen by the browser's plural rules (`{"one": …, "other": …}`, and `few`/`many` where a language has them); `data-i18n`, `data-i18n-attr` and `data-i18n-html` in `index.html`, which keeps its English for the moment before the script runs. A phrase's markup is limited to `<b>`, `<strong>`, `<i>`, `<em>`, `<kbd>` and `<br>`, built as elements rather than through `innerHTML`; anything else shows as text
+  - The language is the one chosen in View › Language, else the computer's language when there is a phrase list for it, else English. A phrase another language hasn't translated shows in English. The Language menu appears only once there is a second language; a choice is remembered on the device and takes effect at once, without reloading
+  - `python3 tools/locales.py` turns the phrase lists into `web/locales.js` (a test fails if it is out of date); `python3 tools/i18n_check.py` lists phrases the code uses that are missing, phrases nothing uses, English written straight into a script message, and placeholder mistakes in a translation
+  - `?lang=pseudo` in the address shows every phrase accented and about a third longer (`[Ëxpört àš PÐF ·····]`), to find words not yet in the phrase list and layouts that break with longer words. The tests use it on every screen of the editor, at 1024 px and on a phone
+  - Not yet translatable: the starter templates, the sample album, the tutorial pictures and the calibration page (page content, to be translated with each language's catalogue numbering), key names in Keyboard shortcuts, and the server's error messages
+
 ### Changed
+- On a phone, longer words no longer push the Export button off the screen: the app name gives way first. The status bar keeps to one line, shortening the selection with "…"; on a phone it leaves out the element count and the alignment readout, which had already pushed "Unsaved" past the edge of the screen in English
 - Dependabot updates Python packages with its `uv` support, so `pyproject.toml` and `uv.lock` change together; the template's npm and Docker entries, for files this repository doesn't have, are removed
 
 ## [0.3.1] - 2026-10-14

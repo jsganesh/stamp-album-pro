@@ -33,8 +33,8 @@ function closeMenu(returnFocus) {
 }
 
 // Run a menu item's action after closing the menu, so dialogs it opens get focus.
-function onItem(id, fn) {
-    var b = $(id);
+function onItem(id, fn, el) {
+    var b = el || $(id);
     if (b) b.addEventListener("click", function(e) { closeMenu(); fn.call(this, e); });
 }
 
@@ -57,6 +57,40 @@ function updateSelectionUI() {
     if (defs) defs.hidden = hasSel;
     $("btn-undo").disabled = S._undoStack.length < 2;
     $("btn-redo").disabled = S._redoStack.length === 0;
+}
+
+// View › Language: shown once there is more than one language. A choice is
+// remembered on this device and takes effect at once; the album is untouched.
+function buildLanguageMenu() {
+    var I18n = window.StampAlbumI18n, group = $("menu-lang");
+    if (!I18n || !group) return;
+    var langs = I18n.available();
+    group.textContent = "";
+    group.hidden = $("menu-lang-sep").hidden = langs.length < 2;
+    if (langs.length < 2) return;
+    langs.forEach(function(lang) {
+        var b = document.createElement("button");
+        b.className = "mi";
+        b.id = "menu-lang-" + lang;
+        b.setAttribute("role", "menuitemradio");
+        b.setAttribute("lang", lang);
+        b.setAttribute("aria-checked", lang === I18n.language() ? "true" : "false");
+        var mark = document.createElement("span");
+        mark.className = "mcheck";
+        mark.setAttribute("aria-hidden", "true");
+        b.appendChild(mark);
+        b.appendChild(document.createTextNode(I18n.nativeName(lang)));
+        onItem(b.id, function() { chooseLanguage(lang); }, b);
+        group.appendChild(b);
+    });
+}
+function chooseLanguage(lang) {
+    var I18n = window.StampAlbumI18n;
+    if (lang === I18n.language()) return;
+    I18n.setLanguage(lang, true);  // the page's own words
+    localiseShortcuts();            // they came back Mac-style
+    buildLanguageMenu();
+    S.refreshLanguage();            // the words the scripts wrote
 }
 
 // Shortcut labels are written Mac-style; show Ctrl/Shift elsewhere.
@@ -150,6 +184,7 @@ function wireToolbar() {
         if (!S._collapsed.rp) $("rp-toggle").click();
     }
 
+    buildLanguageMenu();
     localiseShortcuts();
     updateSelectionUI();
 }
