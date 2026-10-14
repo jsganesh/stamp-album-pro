@@ -63,7 +63,23 @@ def test_sample_album_shows_stamps_at_catalogue_size(page):
     assert [s["lbl"] for s in stamps] == ["Penny Black", "Twopence Blue", "Penny Red"]
     for s in stamps:
         assert (s["w"], s["h"]) == (pytest.approx(19), pytest.approx(22)), "kept at its size"
-        assert s["frame"] == "thin" and s["cat"]
+        assert s["frame"] == "thin" and not s["cat"], "no catalogue's numbers are shipped"
     assert stamps[0]["x"] == pytest.approx(51.5)
     assert page.locator("#page .caption-warn").count() == 0, "the sample page has no warnings"
     assert page.evaluate("StampAlbum._pageBorder") == "solid"
+
+
+def test_sample_captions_give_year_name_and_condition_only(page):
+    # The stamp shows its value, an imperforate stamp has no perforation to note,
+    # and no catalogue's numbering is copied into the app.
+    caps = page.evaluate(
+        """(()=>{StampAlbum.newAlbum(); StampAlbum.loadSampleAlbum();
+        return StampAlbum.E.filter(e=>e.t==='stamp').map(e=>
+          [...document.querySelectorAll('#page .cel[data-id="'+e.id+'"] .caption')]
+            .map(n=>n.textContent).join(' | '))})()"""
+    )
+    assert caps == [
+        "1840 | Penny Black | Used",
+        "1840 | Twopence\nBlue | Used",
+        "1841 | Penny Red | Used",
+    ], caps

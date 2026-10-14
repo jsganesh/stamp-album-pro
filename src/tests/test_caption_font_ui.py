@@ -15,7 +15,7 @@ TEXTS = {
     "denom": "1d",
     "cond": "Used",
     "perf": "Imperforate",
-    "cat": "StampWorld 1",
+    "cat": "Cat. no. 1",
 }
 
 
