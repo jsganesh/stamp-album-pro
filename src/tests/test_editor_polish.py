@@ -78,14 +78,13 @@ def test_wizard_shows_one_toast(page):
 # ── Properties panel ──
 
 
-@pytest.mark.parametrize("large_text", [False, True])
+@pytest.mark.parametrize("size", ["standard", "large", "xlarge"])
 @pytest.mark.parametrize("kind", ["stamp", "text"])
-def test_properties_panel_fits_at_1440(page, kind, large_text):
+def test_properties_panel_fits_at_1440(page, kind, size):
     page.set_viewport_size({"width": 1440, "height": 900})
     page.evaluate("document.getElementById('tutorial-overlay').classList.remove('open')")
-    if large_text:
-        page.click("#menu-view-btn")
-        page.click("#btn-large-text")
+    page.click("#menu-view-btn")
+    page.click(f"#menu-text-{size}")
     page.evaluate(f"StampAlbum.select(StampAlbum.E.find(e => e.t === '{kind}').id)")
     page.wait_for_timeout(250)  # panel width transition
     over = page.evaluate("""(() => {

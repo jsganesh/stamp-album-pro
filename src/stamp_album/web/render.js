@@ -672,7 +672,7 @@ function render() {
             d.style.backgroundColor = "rgba(200,200,200,0.1)";
             var fh = document.createElement("div");
             fh.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:10px;color:#999;text-align:center;";
-            fh.textContent = "✎ " + S.t("ui.free_shape");
+            fh.textContent = S.t("ui.free_shape");
             fh.appendChild(document.createElement("br"));
             fh.appendChild(document.createElement("small")).textContent = S.t("msg.draw_custom_shape");
             d.appendChild(fh);

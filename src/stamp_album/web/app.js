@@ -180,8 +180,22 @@ function updateTitle() {
     var fn = $("file-name");
     if (fn) {
         var name = _currentFile || tr("msg.untitled");
-        fn.textContent = (_dirty ? "● " : "") + name;
+        fn.textContent = name;
     }
+    var dirty = $("tb-dirty");  // "Not saved", in words beside the name
+    if (dirty) dirty.hidden = !_dirty;
+}
+
+// A line icon from the set in index.html (<symbol id="i-…">), for buttons built in script.
+function icon(name) {
+    var ns = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("class", "ic");
+    svg.setAttribute("aria-hidden", "true");
+    var use = document.createElementNS(ns, "use");
+    use.setAttribute("href", "#i-" + name);
+    svg.appendChild(use);
+    return svg;
 }
 
 // ── Page management ──
@@ -241,7 +255,14 @@ function renderPageDots() {
             if (idx === _currentPage) dot.setAttribute("aria-current", "page");
         })(i);
     }
-    dotButton(" add", "+", tr("ui.add_page"), addPage, "add");
+    // Add page in words beside a plus (the words hide on a phone, where the button keeps its name)
+    var add = dotButton(" add", "", tr("ui.add_page"), addPage, "add");
+    add.appendChild(icon("plus"));
+    var addLbl = document.createElement("span");
+    addLbl.className = "lbl";
+    addLbl.textContent = tr("ui.add_page");
+    add.appendChild(addLbl);
+    add.removeAttribute("title");
     if (_pages.length > 1) dotButton(" del", "−", tr("msg.delete_current_page"), deletePage, "del");
     if (hadFocus) {
         var back = c.querySelector('[data-dot="' + hadFocus + '"]') || c.querySelector('[aria-current="page"]');
@@ -622,7 +643,8 @@ Object.defineProperties(S, {
     // ── Alignment functions ──
     alignSelected: { value: alignSelected },
     toggleSnap: { value: toggleSnap },
-    toggleLargeText: { value: toggleLargeText },
+    setTextSize: { value: setTextSize }, textSize: { get: function(){ return _textSize; } },
+    icon: { value: icon },
     resetApp: { value: resetApp },
 });
 
@@ -660,10 +682,27 @@ function toggleSnap() {
     showToast(tr(S._snapEnabled ? "msg.snap_on" : "msg.snap_off"), "info");
 }
 
-function toggleLargeText() {
-    document.body.classList.toggle("large-text");
-    showToast(tr(document.body.classList.contains("large-text") ? "msg.large_text_on" : "msg.large_text_off"), "info");
+// ── Text size (View › Text size) ──
+// Scales the editor's own text, buttons and panels (style.css sizes them in rem); the album
+// page, its captions and the exports keep their sizes. Remembered on this device.
+var TEXT_SIZES = [1, 1.25, 1.5], TEXT_SIZE_KEY = "stampalbum-text-size", _textSize = 1;
+function setTextSize(v, quiet) {
+    v = Number(v);
+    if (TEXT_SIZES.indexOf(v) < 0) v = 1;
+    _textSize = v;
+    document.documentElement.style.setProperty("--ui-scale", String(v));
+    if (!quiet) {
+        try { localStorage.setItem(TEXT_SIZE_KEY, String(v)); } catch (_) { /* not remembered, still works */ }
+    }
+    if (S.syncMenuState) S.syncMenuState();
+    if (S.applyZoom) S.applyZoom();  // the panels changed width: refit the page
 }
+function loadTextSize() {
+    var v = 1;
+    try { v = Number(localStorage.getItem(TEXT_SIZE_KEY)) || 1; } catch (_) { /* storage blocked */ }
+    setTextSize(v, true);
+}
+loadTextSize();
 
 function resetApp() {
     if (!confirm(tr("msg.reset_confirm"))) return;
