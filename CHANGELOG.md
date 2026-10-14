@@ -4,11 +4,22 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-15
+
+A clearer, easier-to-read editor for older collectors: larger text and controls with a Text size choice, plain names for captions, album settings in the right panel, File and Help menus, images that belong to their album, with captions of their own, and translation support.
+
+### Known issues
+- The macOS app and the Windows folder are not signed, so macOS and Windows warn the first time they are opened (on a Mac: right-click › Open; on Windows: More info › Run anyway)
+- The macOS app is built for Apple silicon only
+- The Windows app is built and checked in CI but has not been tried by hand
+- The launch scripts in `launcher/` have not been tested for this release
+- Dependency licences have not been audited
+- Only English is shipped; the phrase lists are ready for other languages
+
 ### Added
 - **A caption for an image**: select an image and type in **Caption** (or click its caption on the page to type there). It prints 2 mm below the image in 8 pt italic, centred and wrapped to the image's width, growing a line at a time; there is no box or frame round it. The same in the editor, Preview, PDF, PNG, SVG and HTML, and it gets the "!" warning when it runs past the page border. Duplicating an image keeps its caption. It is stored in the third quoted field of the image's `STAMP_ADD_IMG` line, empty in every older album, so they open unchanged. The image's label (its file name) is still never printed.
 - **Security policy** (`SECURITY.md`): how to report a vulnerability privately (GitHub's Report a vulnerability, or email), the 7-day reply, which versions get fixes, and how the app is meant to run: on `127.0.0.1` by default, and only on a trusted network when `STAMP_ALBUM_HOST` opens it to other devices
-
-- **Translation support**: every word the editor shows now comes from a phrase list, `src/stamp_album/locales/en.json` (393 phrases), so the editor can be translated without touching its code. English is the only language so far, and nothing changes in it.
+- **Translation support**: every word the editor shows now comes from a phrase list, `src/stamp_album/locales/en.json` (408 phrases), so the editor can be translated without touching its code. English is the only language so far, and nothing changes in it.
   - `web/i18n.js` looks phrases up: `S.t("msg.page_added")` in the scripts, with `{name}` placeholders and plural forms chosen by the browser's plural rules (`{"one": …, "other": …}`, and `few`/`many` where a language has them); `data-i18n`, `data-i18n-attr` and `data-i18n-html` in `index.html`, which keeps its English for the moment before the script runs. A phrase's markup is limited to `<b>`, `<strong>`, `<i>`, `<em>`, `<kbd>` and `<br>`, built as elements rather than through `innerHTML`; anything else shows as text
   - The language is the one chosen in View › Language, else the computer's language when there is a phrase list for it, else English. A phrase another language hasn't translated shows in English. The Language menu appears only once there is a second language; a choice is remembered on the device and takes effect at once, without reloading
   - `python3 tools/locales.py` turns the phrase lists into `web/locales.js` (a test fails if it is out of date); `python3 tools/i18n_check.py` lists phrases the code uses that are missing, phrases nothing uses, English written straight into a script message, and placeholder mistakes in a translation
