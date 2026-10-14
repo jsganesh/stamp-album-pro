@@ -302,7 +302,8 @@ def test_preview_captions():
     assert all("color:#000000" in c for c in caps.values())
 
 
-def test_a_picture_has_no_captions():
+def test_a_picture_never_prints_its_label():
+    # Its label is the file's name; a picture prints only its own caption (test_image_caption.py).
     el = {
         "t": "image",
         "s": "rectangle",

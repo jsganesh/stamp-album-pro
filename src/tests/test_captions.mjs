@@ -31,8 +31,11 @@ check("captions are black", C.CAPTION.COLOR === "#000000");
 lines = C.captionLayout({ t: "stamp", lbl: "A description that is far too long for one line of the box" }, 40, 60, 40, 30, measure);
 check("long captions wrap to the box width", lines.length > 1 && lines.every((l) => l.width <= 40 + 1e-6), JSON.stringify(lines.map((l) => l.width)));
 check("an empty stamp has no captions", C.captionLayout({ t: "stamp" }, 0, 0, 10, 10, measure).length === 0);
-check("stamps and free shapes have captions; text and pictures do not",
-  C.hasCaptions({ t: "stamp" }) && C.hasCaptions({ t: "freehand" }) && !C.hasCaptions({ t: "text" }) && !C.hasCaptions({ t: "image" }));
+check("stamps, free shapes and pictures have captions; text does not",
+  C.hasCaptions({ t: "stamp" }) && C.hasCaptions({ t: "freehand" }) && C.hasCaptions({ t: "image" }) && !C.hasCaptions({ t: "text" }));
+check("a picture prints only its own caption, never its label",
+  JSON.stringify(C.captionLayout({ t: "image", lbl: "arms.png", hdg: "x", cap: "Arms" }, 0, 0, 40, 30, measure).map(l => [l.kind, l.text, l.fontId])) ===
+  JSON.stringify([["picture", "Arms", "CapI"]]));
 
 // ── Warnings ──
 const item = (id, x, y, el) => ({ id, box: { x, y, w: 40, h: 30 }, lines: el ? C.captionLayout(el, x, y, 40, 30, measure) : [] });

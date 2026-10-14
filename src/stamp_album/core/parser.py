@@ -784,7 +784,8 @@ class AlbumParser:
                 )
             elif (cmd == "STAMP_ADD_IMG" and current_row is None
                   and len(params) >= 6 and _is_number(params[3])):
-                # The editor's placed picture: STAMP_ADD_IMG (x y w h "image" "label" "" "")
+                # The editor's placed picture: STAMP_ADD_IMG (x y w h "image" "label" "caption" "")
+                # The label is the file's name (not printed); the caption prints below it.
                 if current_page is None:
                     raise ParseError(
                         "STAMP_ADD_IMG command outside of PAGE_START block", line_number, line
@@ -797,8 +798,10 @@ class AlbumParser:
                     image_path=unquote(params[4]) or None,
                     description=unquote(params[5]),
                 )
-                stamp.frame = "none"  # pictures have no frame or captions
+                stamp.frame = "none"  # pictures have no frame
                 stamp.is_picture = True
+                if len(params) >= 7:
+                    stamp.picture_caption = unquote(params[6])
                 current_page.absolute_stamps.append(stamp)
                 current_stamp = stamp
             elif cmd == "STAMP_ADD_IMG":

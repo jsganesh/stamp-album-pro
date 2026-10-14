@@ -15,7 +15,7 @@ function _serializeEl(el) {
     var elMM = {
         x: mm(el.x), y: mm(el.y), w: mm(el.w), h: mm(el.h),
         t: el.t, s: el.s,
-        lbl: el.lbl, img: el.img,
+        lbl: el.lbl, img: el.img, cap: el.cap,
         bdr: el.bdr, bdrC: el.bdrC, bdrW: el.bdrW,
         fill: el.fill, fillA: el.fillA,
         font: el.font, fs: el.fs, align: el.align

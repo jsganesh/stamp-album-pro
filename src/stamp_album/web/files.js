@@ -70,8 +70,9 @@ function imageElement(imgUrl, name, natW, natH) {
         if (natW >= natH) { h = Math.round(w * natH / natW); }
         else { h = 100; w = Math.round(h * natW / natH); }
     }
+    // No frame, as the exports draw it: a picture prints as itself (and its caption).
     return { t: "image", s: "rectangle", w: w, h: h, lbl: name, img: imgUrl,
-        bdr: "solid", bdrC: "#999", bdrW: 0.5, fill: "#fff", fillA: 100, font: "HN", fs: 12 };
+        bdr: "none", bdrC: "transparent", bdrW: 0, fill: "transparent", fillA: 0, font: "HN", fs: 12 };
 }
 
 // Place an image from the images folder on the current page, centred and selected.

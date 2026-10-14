@@ -470,7 +470,8 @@ class Stamp:
     is_freehand: bool = False  # a free shape: its outline is the frame, with no clearance
     # STAMP_DETAILS as entered: (denomination, condition, perforation); footer_text joins them
     details: tuple = ("", "", "")
-    is_picture: bool = False  # a placed picture (coat of arms, map): no frame, no captions
+    is_picture: bool = False  # a placed picture (coat of arms, map): no frame
+    picture_caption: str = ""  # a picture's one caption: 8 pt italic below it (caption_layout)
     role: str = ""  # "heading" for text marked as a heading
     text_color: Optional[Color] = None  # Text items: drawn in this colour (theme's, for headings)
 

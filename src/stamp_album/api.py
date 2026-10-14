@@ -454,6 +454,7 @@ class CanvasElementState(BaseModel):
     fill: str = "#fff"
     fillA: int = 100
     img: str = ""
+    cap: str = ""  # a picture's caption, printed below it
     role: str = ""  # "heading" for text marked as a heading
     # Philatelic metadata
     hdg: str = ""
@@ -536,7 +537,7 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
                 abs_y=el.y / SCALE,
                 width=max(1.0, el.w / SCALE),
                 height=max(1.0, el.h / SCALE),
-                # A picture (coat of arms, map) has no captions; stamps and text keep theirs.
+                # A picture's label is its file's name, never printed: its caption is el.cap.
                 description="" if el.t == "image" else (el.lbl or ""),
                 shape=shape_map.get(el.s, StampShape.RECTANGLE),
                 image_path=el.img if el.img else None,
@@ -549,9 +550,11 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
             )
             stamp.catalog_refs = catalog_refs
             # The frame is drawn outside the stamp's own size (engines/frames.py)
-            stamp.frame = "none" if is_text else frame_of(el.bdr, el.bdrW)
+            # Text and pictures have no frame (as when the album is read from its file)
+            stamp.frame = "none" if is_text or el.t == "image" else frame_of(el.bdr, el.bdrW)
             stamp.is_freehand = el.t == "freehand"
             stamp.is_picture = el.t == "image"
+            stamp.picture_caption = el.cap if el.t == "image" else ""
             stamp.details = (el.denom or "", el.cond or "", el.perf or "")
             stamp.heading = heading
             stamp.footer_text = footer

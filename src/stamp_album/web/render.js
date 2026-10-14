@@ -247,6 +247,7 @@ function add(p) {
         fill: p.fill || "#FEFEFE",
         fillA: p.fillA || 100,
         img: p.img || "",
+        cap: p.cap || "",  // a picture's caption, printed below it
         /* Philatelic metadata */
         hdg: p.hdg || "",
         cat: p.cat || "",
@@ -383,14 +384,17 @@ function fillPanel(el, changed) {
     $("pbs").value = S.CORE.frameOf(el);
     // A stamp's caption: Heading and Name (the description line under the stamp;
     // the file still calls it the label). A text item's words are its Text.
-    $("cap-sec").textContent = S.t(isStamp ? "ui.caption" : isText ? "ui.text" : "ui.label");
+    $("cap-sec").textContent = S.t(isStamp || isImg ? "ui.caption" : isText ? "ui.text" : "ui.label");
     $("plbl-name").textContent = S.t(isStamp ? "ui.name" : isText ? "ui.text" : "ui.label");
     show("phil-hdg-row", isStamp);
     show("phead-row", isText);
     show("phead-hint", isText);
-    // An image draws only the picture, so it has no label, font or size to set.
-    show("cap-sec", !isImg);
+    // An image has a caption of its own (below it, 8 pt italic) instead of a label:
+    // its label is the file's name, which is never printed.
     show("lbl-row", !isImg);
+    show("pcap-row", isImg);
+    show("pcap-note", isImg);
+    $("pcap").value = el.cap || "";
     $("phead").checked = el.role === "heading";
     $("pfnt").value = el.font || "HN";
     $("pfs").value = el.fs || 12;
@@ -529,24 +533,25 @@ function drawCaptions(d, el, lines) {
     });
     groups.forEach(function(g) {
         var n = captionNode(el, g, d);
-        if (g[0].kind === "description") {
-            // The stamp's name is edited in place, below the box where it prints.
-            n.classList.add("elbl");
+        // The stamp's name and a picture's caption are edited in place, where they print.
+        var field = g[0].kind === "description" ? "lbl" : g[0].kind === "picture" ? "cap" : null;
+        if (field) {
+            n.classList.add("elbl", "caption-editable");
             n.contentEditable = "true";
             n.spellcheck = false;
             n.style.pointerEvents = "auto";
-            n.setAttribute("aria-label", S.t("ui.name_below_the_stamp"));
+            n.setAttribute("aria-label", S.t(field === "cap" ? "ui.caption_below_the_image" : "ui.name_below_the_stamp"));
             var before = null;
             n.addEventListener("focus", function() {
-                before = el.lbl || "";
+                before = el[field] || "";
                 this.textContent = before;
                 this.style.whiteSpace = "pre-wrap";
                 this.style.height = "auto";
             });
             // Kept as typed, so a re-render (e.g. selecting another item) never loses the edit
-            n.addEventListener("input", function() { el.lbl = this.textContent; });
+            n.addEventListener("input", function() { el[field] = this.textContent; });
             n.addEventListener("blur", function() {
-                var changed = before !== null && (el.lbl || "") !== before;
+                var changed = before !== null && (el[field] || "") !== before;
                 before = null;
                 if (!changed) {  // put the printed lines back without a re-render, so Tab moves on
                     this.textContent = g.map(function(l) { return l.text; }).join("\n");
@@ -591,7 +596,7 @@ function render() {
     // and put focus back on its replacement afterwards.
     var active = document.activeElement;
     var focusedId = active && active.classList && active.classList.contains("cel") && pg.contains(active) ? active.dataset.id : null;
-    var focusedDesc = active && active.classList && active.classList.contains("caption-description") && pg.contains(active)
+    var focusedDesc = active && active.classList && active.classList.contains("caption-editable") && pg.contains(active)
         ? active.closest(".cel").dataset.id : null;
     pg.querySelectorAll(".cel").forEach(function(el) { el.remove(); });
     pg.querySelectorAll(".col-guide").forEach(function(el) { el.remove(); });
@@ -732,13 +737,13 @@ function render() {
 
         d.addEventListener("mousedown", function(e) {
             if (e.target.classList.contains("rh")) return;
-            if (e.target.classList.contains("caption-description")) {
-                // Clicking the description edits it in place; it doesn't drag the stamp.
+            if (e.target.classList.contains("caption-editable")) {
+                // Clicking the name (or a picture's caption) edits it in place; it doesn't drag.
                 e.stopPropagation();
                 if (S.sel === el.id) return;  // already drawn: let the click place the caret
                 e.preventDefault();
                 select(el.id);  // redraws the page, so focus the new description
-                var nd = $("page").querySelector('.cel[data-id="' + el.id + '"] .caption-description');
+                var nd = $("page").querySelector('.cel[data-id="' + el.id + '"] .caption-editable');
                 if (nd) {
                     nd.focus();
                     var r = document.createRange(); r.selectNodeContents(nd); r.collapse(false);
@@ -786,7 +791,7 @@ function render() {
         }
     }
     if (focusedDesc) {
-        var desc = pg.querySelector('.cel[data-id="' + focusedDesc + '"] .caption-description');
+        var desc = pg.querySelector('.cel[data-id="' + focusedDesc + '"] .caption-editable');
         if (desc) desc.focus({ preventScroll: true });
     }
     if (focusedId) {
