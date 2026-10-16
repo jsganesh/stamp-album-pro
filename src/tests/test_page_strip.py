@@ -6,6 +6,19 @@ pictures down the canvas's left edge, one row along the bottom on a phone, each 
 from test_ui_smoke import base_url, page  # noqa: F401  (fixtures)
 from test_zoom_ui import phone  # noqa: F401  (fixture)
 
+# Each drawn shape on page 1's picture: [tag, number of polygon points, dash pattern]
+SHAPES = r"""[...document.querySelectorAll('#pg-list .pg-item[data-idx="0"] .pg-shape')]
+    .map(n => [n.tagName, (n.getAttribute('points') || '').trim().split(/\s+/)
+                              .filter(Boolean).length,
+               n.getAttribute('stroke-dasharray')])"""
+
+# The diamond's top point less the top centre of the stamp (mm), and its frame's outset
+DIAMOND_TOP = r"""(() => { const S = StampAlbum, el = S.E.find(e => e.id === 'd');
+    const pts = document.querySelectorAll('#pg-list .pg-shape')[2].getAttribute('points')
+        .trim().split(/\s+/).map(p => p.split(',').map(Number));
+    const o = S.CORE.frameOutset(el), top = pts.reduce((a, p) => p[1] < a[1] ? p : a);
+    return [top[0] - (el.x + el.w / 2) / S._sc, top[1] - el.y / S._sc, o]; })()"""
+
 
 def _three_pages(pg):
     """An album of three pages: one stamp on page 1, two on page 2, none on page 3; page 1 open."""
@@ -23,9 +36,9 @@ def _pages(pg):
 
 
 def _boxes(pg, idx):
-    """How many item boxes a page's picture draws (its rects less the page and border)."""
+    """How many stamps, shapes and pictures a page's picture draws."""
     return pg.evaluate(f"""document.querySelectorAll(
-        '#pg-list .pg-item[data-idx="{idx}"] svg rect[stroke="#3F3A33"]').length""")
+        '#pg-list .pg-item[data-idx="{idx}"] svg .pg-shape').length""")
 
 
 def _open_menu(pg, idx):
@@ -60,6 +73,22 @@ def test_the_open_pages_picture_follows_changes(page):
     assert _boxes(page, 0) == 2
     page.evaluate("StampAlbum.E.length = 0; StampAlbum.render()")
     assert _boxes(page, 0) == 0
+
+
+def test_each_shape_is_drawn_as_its_own_outline(page):
+    """A diamond is not a box: the picture uses the outline the page and the exports draw."""
+    page.evaluate("""() => { const S = StampAlbum; S.newAlbum();
+        const st = (id, s, x) => ({id, t: 'stamp', s, x, y: 100, w: 100, h: 70,
+                                   bdr: 'solid', bdrW: 0.5});
+        S.E.push(st('r', 'rectangle', 40), st('o', 'oval', 160), st('d', 'diamond', 280),
+                 st('h', 'hexagon', 400), {id: 'f', t: 'freehand', x: 40, y: 300, w: 100, h: 70});
+        S.render(); }""")
+    shapes = page.evaluate(SHAPES)
+    assert shapes == [["rect", 0, None], ["ellipse", 0, None], ["polygon", 4, None],
+                      ["polygon", 6, None], ["rect", 0, "2 1.5"]], shapes
+    # The diamond's top point sits at the frame's outer edge, centred over the stamp
+    top = page.evaluate(DIAMOND_TOP)
+    assert abs(top[0]) < 1e-6 and top[1] < 0 and top[1] >= -top[2] * 1.5, top
 
 
 def test_clicking_a_picture_opens_that_page(page):

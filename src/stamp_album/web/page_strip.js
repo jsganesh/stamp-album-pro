@@ -44,9 +44,19 @@ function drawPage(svg, items) {
             }
             return;
         }
-        var b = S.CORE.frameBox(it, x, y, w, h);
-        svg.appendChild(el("rect", { x: b.x, y: b.y, width: b.w, height: b.h,
-                                     fill: it.t === "image" ? "#E4E0D7" : "#fff", stroke: "#3F3A33", "stroke-width": 0.7 }));
+        // The stamp's own shape at its frame's outer edge, from the outline the page and the
+        // exports draw (shapeOutline); a free shape is a dashed box, as on the page.
+        var look = { fill: it.t === "image" ? "#E4E0D7" : "#fff", stroke: "#3F3A33", "stroke-width": 0.7 };
+        if (it.t === "freehand") look["stroke-dasharray"] = "2 1.5";
+        var o = S.CORE.frameOutset(it);
+        var shape = it.t === "stamp" ? it.s : "rectangle";
+        var g = S.CORE.shapeOutline(shape, x, y, w, h, o), n;
+        if (g.kind === "ellipse") n = el("ellipse", { cx: g.cx, cy: g.cy, rx: g.rx, ry: g.ry });
+        else if (g.kind === "polygon") n = el("polygon", { points: g.points.map(function(p) { return p[0] + "," + p[1]; }).join(" ") });
+        else n = el("rect", { x: g.x, y: g.y, width: g.w, height: g.h });
+        for (var k in look) n.setAttribute(k, look[k]);
+        n.setAttribute("class", "pg-shape pg-shape-" + g.kind);
+        svg.appendChild(n);
     });
 }
 
