@@ -24,13 +24,15 @@ def _xml_escape(s: str) -> str:
 
 
 def _captions_html(stamp: Stamp, x: float, y: float, w: float, h: float,
-                   heading_weight: str = "bold", used: Optional[dict] = None) -> str:
+                   heading_weight: str = "bold", used: Optional[dict] = None,
+                   row_top: Optional[float] = None) -> str:
     """Heading above the box; description, details and catalogue below (see caption_layout).
 
     The characters set in each caption font are added to *used*, for the embedded subsets.
     """
     out = []
-    for line in caption_layout.layout(stamp, x, y, w, h, heading_weight=heading_weight):
+    for line in caption_layout.layout(stamp, x, y, w, h, heading_weight=heading_weight,
+                                      row_top=row_top):
         if used is not None:
             used.setdefault(line.font_id, set()).update(line.text)
         out.append(
@@ -212,6 +214,7 @@ class HTMLRenderer:
 
         # Absolutely positioned stamps (drag-and-drop) — outside page-content
         # so their coordinates are page-absolute (not offset by padding)
+        row_tops = caption_layout.page_row_tops(page.absolute_stamps)
         for stamp in page.absolute_stamps:
             x, y, w, h = stamp.abs_x, stamp.abs_y, stamp.width, stamp.height
             desc = (
@@ -266,7 +269,7 @@ class HTMLRenderer:
                 )
 
                 parts.append(_captions_html(stamp, x, y, w, h, self.album.caption_heading,
-                                            self._caption_chars))
+                                            self._caption_chars, row_tops.get(id(stamp))))
 
         parts.append("</div>")  # close page
         return "\n".join(parts)

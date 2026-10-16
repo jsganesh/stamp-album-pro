@@ -218,7 +218,8 @@ def _draw_shape(draw: ImageDraw.ImageDraw, stamp: Stamp, px_per_mm: float,
         _px_outline(draw, *outline, s, outline=border_rgb, width=width)
 
 
-def _draw_stamp(draw: ImageDraw.ImageDraw, stamp: Stamp, album: Album, px_per_mm: float):
+def _draw_stamp(draw: ImageDraw.ImageDraw, stamp: Stamp, album: Album, px_per_mm: float,
+                row_top: Optional[float] = None):
     """Draw a single stamp on Pillow (stamp geometry already in pixels).
 
     Captions are placed by caption_layout, like every other view.
@@ -255,11 +256,11 @@ def _draw_stamp(draw: ImageDraw.ImageDraw, stamp: Stamp, album: Album, px_per_mm
             except Exception:
                 pass
 
-    _draw_captions(draw, stamp, px_per_mm, album.caption_heading)
+    _draw_captions(draw, stamp, px_per_mm, album.caption_heading, row_top)
 
 
 def _draw_captions(draw: ImageDraw.ImageDraw, stamp: Stamp, px_per_mm: float,
-                   heading_weight: str = "bold"):
+                   heading_weight: str = "bold", row_top: Optional[float] = None):
     """Heading above the box; description, details and catalogue below (see caption_layout).
 
     The stamp geometry is in pixels here; the layout works in mm. The captions are
@@ -271,7 +272,7 @@ def _draw_captions(draw: ImageDraw.ImageDraw, stamp: Stamp, px_per_mm: float,
     rgb = tuple(int(round(v * 255)) for v in caption_layout.COLOR_RGB)
     for line in caption_layout.layout(stamp, stamp.abs_x / s, stamp.abs_y / s,
                                       stamp.width / s, stamp.height / s,
-                                      heading_weight=heading_weight):
+                                      heading_weight=heading_weight, row_top=row_top):
         draw.text((line.x * s, line.baseline * s), line.text, fill=rgb,
                   font=caption_fonts.pillow_font(line.font_id, line.size_pt * pt_px), anchor="ls")
 
@@ -404,6 +405,7 @@ class PNGGenerator:
                     )
 
             # Absolute stamps
+            row_tops = caption_layout.page_row_tops(page_data.absolute_stamps)  # in mm
             for stamp in page_data.absolute_stamps:
                 x = stamp.abs_x * scale
                 y = stamp.abs_y * scale
@@ -416,7 +418,7 @@ class PNGGenerator:
                     if stamp.is_text_element:
                         _draw_text_element(draw, stamp, scale)
                     else:
-                        _draw_stamp(draw, stamp, album, scale)
+                        _draw_stamp(draw, stamp, album, scale, row_tops.get(id(stamp)))
                 finally:
                     stamp.abs_x, stamp.abs_y, stamp.width, stamp.height = (
                         orig_x,

@@ -574,7 +574,7 @@ function fitToPage(pages, width, height, margin, opts) {
 // is GAP_MM from the frame's outer edge; lines are centred and wrapped to the frame's width;
 // captions are black. Positions are mm from the page's top-left corner.
 var CAPTION = { GAP_MM: 2, HEADING_PT: 9, CAPTION_PT: 8, LINE_HEIGHT: 1.3, FIRST_BASELINE: 1,
-                MM_PER_PT: 25.4 / 72, COLOR: "#000000" };
+                MM_PER_PT: 25.4 / 72, COLOR: "#000000", ROW_TOLERANCE_MM: 1 };
 
 // Every caption is set in the bundled Source Serif 4 Caption (web/fonts, SIL OFL), whatever the
 // stamp's own font. Keep in step with stamp_album/engines/caption_fonts.py.
@@ -657,8 +657,48 @@ function captionParts(el, opts) {
 // Which elements carry captions: stamps (any shape), free shapes and pictures.
 function hasCaptions(el) { return !!el && (el.t === "stamp" || el.t === "freehand" || el.t === "image"); }
 
+// Stamps in a row put their headings on one line, above the row's highest frame.
+// items: every item on the page, [{x, y, w, h, heading}] in mm, where the box is the item's
+// outer edge (a stamp's frame) and heading is true for items with a heading.
+// A row: items with a heading whose bottoms are within ROW_TOLERANCE_MM and that are
+// neighbours left to right, with nothing else standing between them. Items in the same line
+// without a heading neither take part nor break the row.
+// Returns, for each item, the top its heading sits above (the row's highest frame top, or its
+// own), or null for items without a heading. Keep in step with caption_layout.heading_rows.
+function captionRows(items) {
+    var tol = CAPTION.ROW_TOLERANCE_MM + 1e-9, eps = 1e-6, n = items.length, parent = [], i, j, k;
+    var bottom = function(b) { return b.y + b.h; };
+    var find = function(a) { while (parent[a] !== a) { parent[a] = parent[parent[a]]; a = parent[a]; } return a; };
+    for (i = 0; i < n; i++) parent.push(i);
+    var cand = [];
+    for (i = 0; i < n; i++) if (items[i].heading) cand.push(i);
+    cand.forEach(function(i) {
+        var a = items[i], ar = a.x + a.w, best = -1;
+        cand.forEach(function(j) {
+            var b = items[j];
+            if (j === i || Math.abs(bottom(b) - bottom(a)) > tol || b.x < ar - eps) return;
+            if (best < 0 || b.x < items[best].x - 1e-9 || (Math.abs(b.x - items[best].x) <= 1e-9 && j < best)) best = j;
+        });
+        if (best < 0) return;
+        var b = items[best], top = Math.min(a.y, b.y), bot = Math.max(bottom(a), bottom(b));
+        for (k = 0; k < n; k++) {
+            if (k === i || k === best) continue;
+            var c = items[k];
+            if (Math.abs(bottom(c) - bottom(a)) <= tol) continue;  // in the same line
+            if (c.x < b.x - eps && c.x + c.w > ar + eps && c.y < bot - eps && c.y + c.h > top + eps) return;
+        }
+        parent[find(i)] = find(best);
+    });
+    var rowTop = {};
+    cand.forEach(function(i) { var r = find(i); rowTop[r] = r in rowTop ? Math.min(rowTop[r], items[i].y) : items[i].y; });
+    var out = [];
+    for (j = 0; j < n; j++) out.push(items[j].heading ? rowTop[find(j)] : null);
+    return out;
+}
+
 // (x, y, w, h) is the stamp's own size; captions are placed around its frame.
-// measure(text, fontId, sizePt) -> mm defaults to captionMeasure; opts as captionParts.
+// measure(text, fontId, sizePt) -> mm defaults to captionMeasure; opts as captionParts, plus
+// opts.rowTop: the top of the row's highest frame (captionRows), which the heading sits above.
 function captionLayout(el, x, y, w, h, measure, opts) {
     measure = measure || captionMeasure;
     var fb = frameBox(el, x, y, w, h);
@@ -681,7 +721,8 @@ function captionLayout(el, x, y, w, h, measure, opts) {
                  italic: CAPTION_FONTS[r.fontId].style === "italic" };
     }
     var out = [], rows = wrapped(parts.above);
-    var top = y - CAPTION.GAP_MM - rows.reduce(function(a, r) { return a + lh(r); }, 0);
+    var headTop = opts && opts.rowTop != null ? Math.min(y, opts.rowTop) : y;
+    var top = headTop - CAPTION.GAP_MM - rows.reduce(function(a, r) { return a + lh(r); }, 0);
     rows.forEach(function(r) { var l = place(r, top); out.push(l); top = l.bottom; });
     top = y + h + CAPTION.GAP_MM;
     wrapped(parts.below).forEach(function(r) { var l = place(r, top); out.push(l); top = l.bottom; });
@@ -739,7 +780,7 @@ var EXPORTS = { THEMES: THEMES, themeColor: themeColor, FRAMES: FRAMES, frameOf:
                 describePageSize: describePageSize, fitToPage: fitToPage, PAPER_MM: PAPER_MM,
                 CAPTION: CAPTION, CAPTION_FONTS: CAPTION_FONTS, HEADING_WEIGHTS: HEADING_WEIGHTS, headingFont: headingFont,
                 captionMeasure: captionMeasure, wrapLines: wrapLines, captionParts: captionParts, hasCaptions: hasCaptions,
-                captionLayout: captionLayout, captionBounds: captionBounds, captionWarnings: captionWarnings };
+                captionLayout: captionLayout, captionRows: captionRows, captionBounds: captionBounds, captionWarnings: captionWarnings };
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = EXPORTS;
 }

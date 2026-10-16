@@ -12,10 +12,12 @@ same way:
   whatever the stamp's own font;
 * the nearest line box is ``GAP_MM`` from the frame's outer edge on each side
   (the frame is drawn outside the stamp: see ``frames.py``);
+* stamps in a row put their headings on one line, ``GAP_MM`` above the row's highest
+  frame (``heading_rows``), so mixed heights line up;
 * lines are centred on the frame and wrapped to its width;
 * captions are black.
 
-Keep in step with ``captionLayout`` in ``web/dsl_core.js``.
+Keep in step with ``captionLayout`` and ``captionRows`` in ``web/dsl_core.js``.
 
 Every view measures with ``caption_fonts.measure`` (the default here), so the
 lines break in the same places everywhere. All positions are returned in
@@ -37,6 +39,7 @@ FIRST_BASELINE = text_layout.FIRST_BASELINE
 MM_PER_PT = 25.4 / 72.0
 COLOR_RGB = (0.0, 0.0, 0.0)  # captions are black
 COLOR_HEX = "#000000"
+ROW_TOLERANCE_MM = 1.0  # frame bottoms this close count as one row
 
 Measure = Callable[[str, str, float], float]
 
@@ -96,13 +99,95 @@ def caption_parts(stamp, heading_weight: Optional[str] = None) -> tuple[list, li
     return above, below
 
 
+def heading_rows(items) -> list[Optional[float]]:
+    """The top each item's heading sits above, for every item on a page.
+
+    *items* are ``(x, y, w, h, has_heading)``: the item's outer edge in mm (a stamp's
+    frame). A row is items with a heading whose bottoms are within ``ROW_TOLERANCE_MM``
+    and that are neighbours left to right, with nothing else standing between them; items
+    in the same line without a heading neither take part nor break the row.
+
+    Returns the row's highest frame top (or the item's own) for items with a heading,
+    None for the rest. Keep in step with ``captionRows`` in ``web/dsl_core.js``.
+    """
+    tol, eps = ROW_TOLERANCE_MM + 1e-9, 1e-6
+    n = len(items)
+    parent = list(range(n))
+
+    def find(a):
+        while parent[a] != a:
+            parent[a] = parent[parent[a]]
+            a = parent[a]
+        return a
+
+    def bottom(i):
+        return items[i][1] + items[i][3]
+
+    cand = [i for i in range(n) if items[i][4]]
+    for i in cand:
+        ax, ay, aw, _ah, _ = items[i]
+        ar = ax + aw
+        best = None
+        for j in cand:
+            bx = items[j][0]
+            if j == i or abs(bottom(j) - bottom(i)) > tol or bx < ar - eps:
+                continue
+            if best is None or bx < items[best][0] - 1e-9 or (
+                abs(bx - items[best][0]) <= 1e-9 and j < best
+            ):
+                best = j
+        if best is None:
+            continue
+        bx, by = items[best][0], items[best][1]
+        top, bot = min(ay, by), max(bottom(i), bottom(best))
+        blocked = False
+        for k in range(n):
+            if k in (i, best) or abs(bottom(k) - bottom(i)) <= tol:  # same line
+                continue
+            cx, cy, cw, ch, _ = items[k]
+            if cx < bx - eps and cx + cw > ar + eps and cy < bot - eps and cy + ch > top + eps:
+                blocked = True
+                break
+        if not blocked:
+            parent[find(i)] = find(best)
+
+    row_top: dict[int, float] = {}
+    for i in cand:
+        r = find(i)
+        row_top[r] = min(row_top.get(r, items[i][1]), items[i][1])
+    return [row_top[find(i)] if items[i][4] else None for i in range(n)]
+
+
+def page_row_tops(stamps) -> dict[int, float]:
+    """``heading_rows`` for a page's absolute stamps, keyed by ``id(stamp)``.
+
+    Text items stand in the way but have no captions; stamps, free shapes and pictures
+    use their frame's outer edge. Positions are the stamps' own, in mm.
+    """
+    from stamp_album.engines import frames
+
+    stamps = list(stamps)
+    items = []
+    for s in stamps:
+        x, y, w, h = s.abs_x, s.abs_y, s.width, s.height
+        if getattr(s, "is_text_element", False):
+            items.append((x, y, w, h, False))
+        else:
+            items.append((*frames.outer_box(s, x, y, w, h), bool(caption_parts(s)[0])))
+    tops = heading_rows(items)
+    return {id(s): t for s, t in zip(stamps, tops) if t is not None}
+
+
 def layout(stamp, x: float, y: float, w: float, h: float,
            measure: Measure = caption_fonts.measure,
-           heading_weight: Optional[str] = None) -> list[CaptionLine]:
+           heading_weight: Optional[str] = None,
+           row_top: Optional[float] = None) -> list[CaptionLine]:
     """Caption lines for a stamp at (x, y, w, h) mm, top to bottom.
 
     (x, y, w, h) is the stamp's own size; the captions are placed around its frame.
     *heading_weight* is the album's choice, "bold" (the default) or "semibold".
+    *row_top* is the top of the row's highest frame (``heading_rows``); the heading sits
+    ``GAP_MM`` above it instead of above the stamp's own frame.
     """
     from stamp_album.engines import frames
 
@@ -134,7 +219,8 @@ def layout(stamp, x: float, y: float, w: float, h: float,
 
     out: list[CaptionLine] = []
     rows = wrapped(above)
-    top = y - GAP_MM - sum(r[3] * LINE_HEIGHT * MM_PER_PT for r in rows)
+    head_top = y if row_top is None else min(y, row_top)
+    top = head_top - GAP_MM - sum(r[3] * LINE_HEIGHT * MM_PER_PT for r in rows)
     for r in rows:
         line = place(*r, top)
         out.append(line)

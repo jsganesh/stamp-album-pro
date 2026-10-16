@@ -4,6 +4,9 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+- **Headings in a row line up**: stamps standing in a row (frame bottoms within 1 mm of each other, with nothing else between them) now put their headings on one line, 2 mm above the row's highest frame, so a 19 × 22 mm stamp beside a 36 × 25 mm one no longer has its heading 3 mm lower. A heading that wraps grows upward from that line. Only stamps with a heading take part: a taller stamp without one doesn't raise the line, and doesn't break the row. Captions below already lined up, since a row shares its frame bottoms. The same in the editor, Preview, PDF, PNG, SVG and HTML, and the "!" warnings use the raised headings. Nothing is stored: albums open unchanged, and a stamp moved out of the row takes its heading back above its own frame (`caption_layout.heading_rows`, `captionRows` in `dsl_core.js`)
+
 ## [0.4.0] - 2026-10-15
 
 A clearer, easier-to-read editor for older collectors: larger text and controls with a Text size choice, plain names for captions, album settings in the right panel, File and Help menus, images that belong to their album, with captions of their own, and translation support.

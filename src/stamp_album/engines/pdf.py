@@ -141,7 +141,8 @@ def _draw_stamp_shape(
 
 
 def _draw_stamp(c: canvas.Canvas, stamp: Stamp, album: Album,
-                pos_x: float | None = None, pos_y: float | None = None):
+                pos_x: float | None = None, pos_y: float | None = None,
+                row_top: float | None = None):
     """Draw a single stamp (shape + image + text).
 
     Uses *pos_x* / *pos_y* when provided (row stamps); falls back to
@@ -178,11 +179,11 @@ def _draw_stamp(c: canvas.Canvas, stamp: Stamp, album: Album,
             except Exception:
                 pass
 
-    _draw_captions(c, stamp, sx, sy, page_h_pt, album.caption_heading)
+    _draw_captions(c, stamp, sx, sy, page_h_pt, album.caption_heading, row_top)
 
 
 def _draw_captions(c: canvas.Canvas, stamp: Stamp, sx: float, sy: float, page_h_pt: float,
-                   heading_weight: str = "bold"):
+                   heading_weight: str = "bold", row_top: float | None = None):
     """Heading above the box; description, details and catalogue below (see caption_layout).
 
     Set in the bundled caption font, embedded in the PDF; ReportLab draws the plain
@@ -190,7 +191,7 @@ def _draw_captions(c: canvas.Canvas, stamp: Stamp, sx: float, sy: float, page_h_
     """
     c.setFillColorRGB(*caption_layout.COLOR_RGB)
     for line in caption_layout.layout(stamp, sx, sy, stamp.width, stamp.height,
-                                      heading_weight=heading_weight):
+                                      heading_weight=heading_weight, row_top=row_top):
         c.setFont(caption_fonts.reportlab_name(line.font_id), line.size_pt)
         c.drawString(_mm_to_pt(line.x), page_h_pt - _mm_to_pt(line.baseline), line.text)
 
@@ -306,11 +307,12 @@ class PDFGenerator:
             _draw_page_border(c, album)
             for x, y, stamp in row_layout[pi]:
                 _draw_stamp(c, stamp, album, pos_x=x, pos_y=y)
+            row_tops = caption_layout.page_row_tops(page_data.absolute_stamps)
             for stamp in page_data.absolute_stamps:
                 if stamp.is_text_element:
                     _draw_text_element(c, stamp, page_h)
                 else:
-                    _draw_stamp(c, stamp, album)
+                    _draw_stamp(c, stamp, album, row_top=row_tops.get(id(stamp)))
             c.showPage()
 
         c.save()

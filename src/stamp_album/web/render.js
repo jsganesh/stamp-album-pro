@@ -502,11 +502,26 @@ function getShapePath(shape, w, h) {
 // Drawn where they print, from the same layout as the preview and exports
 // (S.CORE.captionLayout, mirrored by engines/caption_layout.py). Measured with the bundled
 // caption font's advance widths (caption_metrics.js), so the lines break as in the exports.
-function stampCaptionLines(el) {
+// rowTops (from pageRowTops) puts the headings of stamps in a row on one line.
+function stampCaptionLines(el, rowTops) {
     if (!S.CORE.hasCaptions(el)) return [];
     var sc = S._sc;
     return S.CORE.captionLayout(el, el.x / sc, el.y / sc, el.w / sc, el.h / sc, null,
-                                { headingWeight: S._captionHeading });
+                                { headingWeight: S._captionHeading, rowTop: rowTops ? rowTops[el.id] : null });
+}
+
+// The row top of each page item with a heading, by id (S.CORE.captionRows, mirrored by
+// caption_layout.page_row_tops). Text items stand in the way; the others use their frame.
+function pageRowTops() {
+    var sc = S._sc, out = {};
+    var items = S.E.map(function(el) {
+        var x = el.x / sc, y = el.y / sc, w = el.w / sc, h = el.h / sc;
+        if (!S.CORE.hasCaptions(el)) return { x: x, y: y, w: w, h: h, heading: false };
+        var b = S.CORE.frameBox(el, x, y, w, h);
+        return { x: b.x, y: b.y, w: b.w, h: b.h, heading: S.CORE.captionParts(el).above.length > 0 };
+    });
+    S.CORE.captionRows(items).forEach(function(t, i) { if (t !== null) out[S.E[i].id] = t; });
+    return out;
 }
 
 function captionNode(el, lines, d) {
@@ -600,7 +615,7 @@ function render() {
         ? active.closest(".cel").dataset.id : null;
     pg.querySelectorAll(".cel").forEach(function(el) { el.remove(); });
     pg.querySelectorAll(".col-guide").forEach(function(el) { el.remove(); });
-    var captionItems = [];
+    var captionItems = [], rowTops = pageRowTops();
     S.E.forEach(function(el) {
         var d = document.createElement("div");
         d.className = "cel shape-" + (el.s || "rectangle") + (el.id === S.sel ? " selected" : "");
@@ -760,7 +775,7 @@ function render() {
         });
 
         pg.appendChild(d);
-        var lines = stampCaptionLines(el);
+        var lines = stampCaptionLines(el, rowTops);
         if (lines.length) drawCaptions(d, el, lines);
         // A stamp's outer edge is its frame's
         var box = S.CORE.frameBox(el, el.x / S._sc, el.y / S._sc, el.w / S._sc, el.h / S._sc);

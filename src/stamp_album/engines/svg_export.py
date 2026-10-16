@@ -81,13 +81,15 @@ def _draw_text_element_svg(stamp: Stamp) -> str:
 
 
 def _captions_svg(stamp: Stamp, x: float, y: float, w: float, h: float,
-                  heading_weight: str = "bold", used: Optional[dict] = None) -> str:
+                  heading_weight: str = "bold", used: Optional[dict] = None,
+                  row_top: Optional[float] = None) -> str:
     """Heading above the box; description, details and catalogue below (see caption_layout).
 
     The characters set in each caption font are added to *used*, for the embedded subsets.
     """
     out = []
-    for line in caption_layout.layout(stamp, x, y, w, h, heading_weight=heading_weight):
+    for line in caption_layout.layout(stamp, x, y, w, h, heading_weight=heading_weight,
+                                      row_top=row_top):
         if used is not None:
             used.setdefault(line.font_id, set()).update(line.text)
         style = f' font-weight="{line.weight}"' if line.weight != 400 else ""
@@ -213,6 +215,7 @@ class SVGExporter:
                 parts.append(_captions_svg(stamp, x, y, w, h, album.caption_heading, used))
 
             # Absolute stamps (canvas drag-and-drop)
+            row_tops = caption_layout.page_row_tops(page_data.absolute_stamps)
             for stamp in page_data.absolute_stamps:
                 x, y, w, h = stamp.abs_x, stamp.abs_y, stamp.width, stamp.height
 
@@ -239,7 +242,8 @@ class SVGExporter:
                                 f'href="{fname}" preserveAspectRatio="xMidYMid meet"/>'
                             )
 
-                    parts.append(_captions_svg(stamp, x, y, w, h, album.caption_heading, used))
+                    parts.append(_captions_svg(stamp, x, y, w, h, album.caption_heading, used,
+                                               row_tops.get(id(stamp))))
 
             parts.append('</g>')  # close page group
             y_offset += h_mm + gap

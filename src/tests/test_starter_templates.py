@@ -52,6 +52,7 @@ def layout_problems(t) -> list[str]:
         if page.rows:
             problems.append(f"page {pi}: uses the old row layout")
         boxes = []  # (name, (l, t, r, b))
+        row_tops = caption_layout.page_row_tops(page.absolute_stamps)  # headings in a row
         for s in page.absolute_stamps:
             x, y, w, h = s.abs_x, s.abs_y, s.width, s.height
             name = (s.description or "item").split("\n")[0][:30]
@@ -62,7 +63,7 @@ def layout_problems(t) -> list[str]:
                 continue
             fx, fy, fw, fh = frames.outer_box(s, x, y, w, h)
             boxes.append((f"frame of '{name}'", (fx, fy, fx + fw, fy + fh)))
-            caption = caption_layout.layout(s, x, y, w, h)
+            caption = caption_layout.layout(s, x, y, w, h, row_top=row_tops.get(id(s)))
             cb = caption_layout.bounds(caption)
             if cb:
                 boxes.append((f"captions of '{name}'", cb))
