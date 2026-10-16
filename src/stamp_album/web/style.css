@@ -129,6 +129,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .p-item.wide.tx .lbl { grid-column: 2; min-width: 0; }
 .p-item.wide.tx .lbl-heading { font-weight: 700; font-size: 1.0625rem; }
 .p-item.wide.tx .sz { grid-column: 3; font-size: 0.875rem; color: var(--text2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* "Other shapes": folded under the Stamp tile (palette.js) */
+.p-more { display: flex; align-items: center; gap: 0.5rem; width: calc(100% - 1.75rem); margin: 0 0.875rem 0.75rem; min-height: var(--ctl); padding: 0 0.75rem; background: transparent; border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font: inherit; font-size: 0.9375rem; text-align: left; cursor: pointer; }
+.p-more:hover { border-color: var(--accent); background: var(--accent-soft); }
+.p-more:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.p-more .ic { flex: none; margin-left: auto; transition: transform 0.15s; }
+.p-more[aria-expanded="true"] .ic { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .p-more .ic { transition: none; } }
+#shapes-body[hidden] { display: none; }
 .p-item.wide.tx .hint { grid-column: 2 / span 2; font-size: 0.875rem; line-height: 1.35; color: var(--text2); text-align: left; }
 
 .img-upl-btn { display: flex; align-items: center; gap: 0.625rem; width: 100%; min-height: 2.75rem; padding: 0 0.75rem; background: #fff; border: 1px solid var(--border); color: var(--text); border-radius: var(--radius); cursor: pointer; font: inherit; font-size: 0.9375rem; text-align: left; }

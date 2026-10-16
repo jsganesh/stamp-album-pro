@@ -173,6 +173,8 @@ def _english_left(pg):
 def _states(pg):
     """The editor's screens, one after another; yields each one's name."""
     yield "start"
+    pg.evaluate("document.getElementById('shapes-toggle').click()")  # folded under Stamp
+    yield "other shapes"
     _add_stamp(pg)
     yield "stamp selected"
     pg.click("#more-toggle")

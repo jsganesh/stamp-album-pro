@@ -14,10 +14,74 @@ S.paletteHintIdleMs = 20000;  // idle time on an empty page before the hint retu
 
 // ── Building an element from a palette item ──
 
-// What a palette item describes, read from its data attributes.
+// ── The stamp size used last ──
+// Stamps (the Stamp tile and the other shapes) are added at the size of the stamp
+// the user last sized, by typing W or H or by dragging a handle. It starts at
+// 25 × 30 mm and is remembered on this computer. Opening a file doesn't change it.
+
+var STAMP_SIZE_KEY = "stampalbum-stamp-size";
+var SHAPES_OPEN_KEY = "stampalbum-other-shapes";
+var DEFAULT_STAMP_MM = { w: 25, h: 30 };
+var MIN_MM = 4, MAX_MM = 1000;  // anything outside is a broken stored value
+
+function validSize(v) {
+    return v && typeof v.w === "number" && typeof v.h === "number" &&
+        v.w >= MIN_MM && v.h >= MIN_MM && v.w <= MAX_MM && v.h <= MAX_MM;
+}
+
+function storedSize() {
+    try {
+        var v = JSON.parse(localStorage.getItem(STAMP_SIZE_KEY));
+        if (validSize(v)) return { w: v.w, h: v.h };
+    } catch (_) { /* storage blocked or not JSON: the default */ }
+    return { w: DEFAULT_STAMP_MM.w, h: DEFAULT_STAMP_MM.h };
+}
+
+var _stampMm = storedSize();
+
+// "25 × 30 mm", keeping a typed 19.25 as it is
+function fmt(v) { return String(Math.round(v * 100) / 100); }
+
+function showStampSize() {
+    var n = $("stamp-size");
+    if (n) n.textContent = S.t("ui.stamp_size_mm", { w: fmt(_stampMm.w), h: fmt(_stampMm.h) });
+}
+
+// A stamp was just sized by the user: the next stamp is added at that size.
+// Free shapes, pictures and text don't count.
+function noteStampSize(el) {
+    if (!el || el.t !== "stamp") return;
+    var v = { w: Math.round(el.w / S._sc * 100) / 100, h: Math.round(el.h / S._sc * 100) / 100 };
+    if (!validSize(v)) return;
+    _stampMm = v;
+    try { localStorage.setItem(STAMP_SIZE_KEY, JSON.stringify(v)); } catch (_) { /* not remembered, still used */ }
+    showStampSize();
+}
+
+// ── Other shapes: folded, and opened or shut as the user left them ──
+
+function setShapesOpen(open) {
+    var b = $("shapes-toggle"), body = $("shapes-body");
+    if (!b || !body) return;
+    b.setAttribute("aria-expanded", open ? "true" : "false");
+    body.hidden = !open;
+    try { localStorage.setItem(SHAPES_OPEN_KEY, open ? "open" : "shut"); } catch (_) { /* fine */ }
+}
+
+function storedShapesOpen() {
+    try { return localStorage.getItem(SHAPES_OPEN_KEY) === "open"; } catch (_) { return false; }
+}
+
+// What a palette item describes, read from its data attributes. Stamps take the
+// size used last; other items carry their own.
 function itemSpec(it) {
-    return { t: it.dataset.t, s: it.dataset.s || "rectangle", st: it.dataset.st || "",
+    var d = { t: it.dataset.t, s: it.dataset.s || "rectangle", st: it.dataset.st || "",
         w: parseFloat(it.dataset.w) || 80, h: parseFloat(it.dataset.h) || 60, font: "HN", fs: 12 };
+    if (d.t === "stamp") {
+        d.w = S.px(_stampMm.w);
+        d.h = S.px(_stampMm.h);
+    }
+    return d;
 }
 
 // The element a palette item adds, placed at (x, y). Shared by drag, touch and click.
@@ -135,6 +199,13 @@ function wire() {
     });
     noteActivity();
     if (_hintSeenAdd) hideHint();
+
+    showStampSize();
+    setShapesOpen(storedShapesOpen());
+    var tg = $("shapes-toggle");
+    if (tg) tg.addEventListener("click", function() {
+        setShapesOpen(this.getAttribute("aria-expanded") !== "true");
+    });
 }
 
 // Any add (palette, drop, image, duplicate) hides the hint; it only comes back
@@ -151,4 +222,8 @@ S.paletteItemSpec = itemSpec;
 S.addAtCentre = addAtCentre;
 S.showPaletteHint = showHint;
 S.wirePalette = wire;
+S.noteStampSize = noteStampSize;
+S.showStampSize = showStampSize;
+S.setShapesOpen = setShapesOpen;
+Object.defineProperty(S, "stampSizeMm", { get: function() { return { w: _stampMm.w, h: _stampMm.h }; } });
 })();

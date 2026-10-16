@@ -101,7 +101,8 @@ def test_text_size_scales_the_editor_but_not_the_page(page, item, scale, root_px
     assert page.evaluate("StampAlbum.textSize") == scale
     root = "parseFloat(getComputedStyle(document.documentElement).fontSize)"
     assert page.evaluate(root) == root_px
-    tile = "parseFloat(getComputedStyle(document.querySelector('.p-item .lbl')).fontSize)"
+    tile = ("parseFloat(getComputedStyle("
+            "document.querySelector('.p-item[data-st=label] .lbl')).fontSize)")
     assert page.evaluate(tile) == pytest.approx(15 * scale)
     after = page.evaluate(
         "[document.getElementById('page').offsetWidth,"
