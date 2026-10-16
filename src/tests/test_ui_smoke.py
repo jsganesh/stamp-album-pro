@@ -677,8 +677,15 @@ def _page_px(page):
     return page.evaluate("[StampAlbum._pw, StampAlbum._ph]")
 
 
+def _other_shapes(page):
+    """Unfold "Other shapes" under the Stamp tile (it starts folded)."""
+    if page.get_attribute("#shapes-toggle", "aria-expanded") != "true":
+        page.click("#shapes-toggle")
+
+
 def test_clicking_a_palette_item_adds_it_at_the_page_centre(page):
     _empty_album(page)
+    _other_shapes(page)
     page.click(".p-item[data-s='oval']")
     els = _els(page)
     assert len(els) == 1 and els[0]["s"] == "oval", els
@@ -709,6 +716,7 @@ def test_a_different_item_is_also_offset_from_one_already_at_the_centre(page):
 
 def test_palette_add_follows_the_grid(page):
     _empty_album(page, grid="5")
+    _other_shapes(page)
     page.click(".p-item[data-s='hexagon']")
     page.click(".p-item[data-s='hexagon']")
     els = _els(page)
@@ -734,6 +742,7 @@ def test_clicked_items_stay_inside_a_small_landscape_page(page):
 
 def test_palette_add_is_one_undo_step(page):
     _empty_album(page)
+    _other_shapes(page)
     page.click(".p-item[data-s='diamond']")
     page.click(".p-item[data-s='diamond']")
     page.evaluate("StampAlbum.undo()")
@@ -753,6 +762,7 @@ def test_palette_items_are_named_buttons_reachable_by_keyboard(page):
 
 def test_enter_and_space_on_a_palette_item_add_it(page):
     _empty_album(page)
+    _other_shapes(page)
     page.focus(".p-item[data-s='triangle']")
     page.keyboard.press("Enter")
     page.keyboard.press("Space")
@@ -776,6 +786,7 @@ def _touch(page, selector, end_x=None, end_y=None):
 
 def test_tapping_a_palette_item_adds_it_at_the_centre(page):
     _empty_album(page)
+    _other_shapes(page)
     _touch(page, ".p-item[data-s='pentagon']")
     els = _els(page)
     assert len(els) == 1 and els[0]["s"] == "pentagon", els

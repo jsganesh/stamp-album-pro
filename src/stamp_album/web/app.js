@@ -609,6 +609,7 @@ function refreshLanguage() {
     if (S.syncPanelLabels) S.syncPanelLabels();
     if (S.applyZoom) S.applyZoom();
     if (S.loadImageList) S.loadImageList();
+    if (S.showStampSize) S.showStampSize();  // the Stamp tile's "25 × 30 mm"
     loadTemplateList();
 }
 

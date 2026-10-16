@@ -119,7 +119,10 @@ function init() {
 
     document.addEventListener("mouseup", function() {
         S.gridMoving(false);
-        if (S._drg && S._dragEl) { pushUndo(); }
+        if (S._drg && S._dragEl) {
+            if (S._dragEl.w !== S._ds.ow || S._dragEl.h !== S._ds.oh) S.noteStampSize(S._dragEl);  // resized: the next stamp is this size
+            pushUndo();
+        }
         S._drg = false;
         S._dragEl = null;
         S._dragH = null;
@@ -133,6 +136,7 @@ function init() {
             if (!el) return;
             // The field is in mm; elements are stored in canvas px
             el[key] = transform ? transform(this.value) : S.px(parseFloat(this.value) || 0);
+            if (key === "w" || key === "h") S.noteStampSize(el);  // the next stamp is this size
             pushUndo();
             render();
         });
@@ -673,7 +677,10 @@ function init() {
             touchEl = null;
         }
         S.gridMoving(false);
-        if (S._drg && S._dragEl) { pushUndo(); }
+        if (S._drg && S._dragEl) {
+            if (S._dragEl.w !== S._ds.ow || S._dragEl.h !== S._ds.oh) S.noteStampSize(S._dragEl);  // resized: the next stamp is this size
+            pushUndo();
+        }
         S._drg = false;
         S._dragEl = null;
         S._dragH = null;

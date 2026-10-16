@@ -137,7 +137,9 @@ def main():
         page.evaluate("""() => {
             StampAlbum.newAlbum();
             StampAlbum.loadSampleAlbum();
-            StampAlbum.select(StampAlbum.E.find(e => e.lbl === 'Penny Black').id);
+            const pb = StampAlbum.E.find(e => e.lbl === 'Penny Black');
+            StampAlbum.noteStampSize(pb);  // the Stamp tile shows the sample stamp's size
+            StampAlbum.select(pb.id);
             document.activeElement && document.activeElement.blur();
         }""")
         # No hover outlines or size labels in the pictures
@@ -146,7 +148,8 @@ def main():
         page.wait_for_timeout(400)
         full = _shot(page)
 
-        # 1. A stamp at its catalogue size, and the sizes in Properties
+        # 1. The Stamp tile, a stamp at its catalogue size, and the sizes in Properties
+        tile = _crop(full, _box(page, "#p-stamp"), pad=6)
         stamp = _crop(full, _page_mm(page, 40, 40, 82, 104))
         props_top = _box(page, "#rp-content .rp-sec")[1]
         props = _crop(
@@ -158,7 +161,7 @@ def main():
                 _box(page, "#pframe-size")[3] + 4,
             ),
         )
-        _save(_fit([stamp, props]), WEB / "tutorial-1-add.png")
+        _save(_fit([tile, stamp, props]), WEB / "tutorial-1-add.png")
 
         # 2. Frames and captions on the sample page
         page.evaluate("StampAlbum.select(null)")
