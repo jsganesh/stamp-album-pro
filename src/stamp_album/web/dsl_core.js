@@ -58,14 +58,30 @@ function applyFrame(el, frame) {
     return el;
 }
 // The frame is drawn outside the stamp: a stamp's w and h are its own size, as in the catalogue.
-// FRAME_CLEARANCE_MM of clear space all round, then the line or lines (points, inside out).
-// Free shapes have no clearance: their outline is the frame. Keep in step with engines/frames.py.
-var FRAME_CLEARANCE_MM = 1;
+// Clear space all round (the album's mount overhang plus its gap to the frame), then the line
+// or lines (points, inside out). Free shapes have no clearance: their outline is the frame.
+// Keep in step with engines/frames.py.
+var FRAME_CLEARANCE_MM = 1;  // an album from before mounts: 0 + 1 mm
+var MOUNT_OVERHANG_CHOICES = [0, 1, 1.5, 2, 2.5, 3], MOUNT_GAP_CHOICES = [1, 1.5, 2, 2.5, 3];
+var NEW_ALBUM_MOUNT = { overhang: 1.5, gap: 1 }, OLD_ALBUM_MOUNT = { overhang: 0, gap: 1 };
+var MOUNT_MAX_MM = 10;
+// The open album's mounts; until an album sets them, as albums were before mounts (0 + 1 mm).
+var _mount = { overhang: OLD_ALBUM_MOUNT.overhang, gap: OLD_ALBUM_MOUNT.gap };
+function validMount(o, g) {
+    o = Number(o); g = Number(g);
+    return isFinite(o) && isFinite(g) && o >= 0 && o <= MOUNT_MAX_MM && g > 0 && g <= MOUNT_MAX_MM;
+}
+function setMount(o, g) {
+    if (!validMount(o, g)) return false;
+    _mount = { overhang: Number(o), gap: Number(g) };
+    return true;
+}
+function getMount() { return { overhang: _mount.overhang, gap: _mount.gap }; }
 var FRAME_LINES_PT = { none: [], thin: [0.5], medium: [1], double: [0.5, 0.5] };
 var FRAME_DOUBLE_GAP_PT = 1;
 var MM_PER_PT = 25.4 / 72;
 function frameClearance(el) {
-    return frameOf(el) === "none" || el.t === "freehand" ? 0 : FRAME_CLEARANCE_MM;
+    return frameOf(el) === "none" || el.t === "freehand" ? 0 : _mount.overhang + _mount.gap;
 }
 // [{ offset, width }] in mm, inside out: offset runs from the stamp edge to the line's centre.
 function frameLines(el) {
@@ -192,6 +208,8 @@ function buildDSL(state) {
         lines.push('COLOUR_ALBUM_BORDER("' + themeColor(state) + '")');
     }
     if (state.theme && state.theme !== "custom") lines.push('ALBUM_THEME("' + state.theme + '")');
+    var mount = state.mount || getMount();
+    lines.push("ALBUM_MOUNT(" + mount.overhang + " " + mount.gap + ")");
     if (state.captionHeading === "semibold") lines.push('CAPTION_HEADING("semibold")');  // bold is the default
     // The header is written even for an empty album, so a new landscape or
     // non-A4 album keeps its page size before anything is placed on it.
@@ -225,6 +243,7 @@ function parseDSL(dsl) {
         pageBorder: null,
         pageBorderC: null,
         captionHeading: "bold",  // stamp caption headings: "bold" or "semibold"
+        mount: { overhang: OLD_ALBUM_MOUNT.overhang, gap: OLD_ALBUM_MOUNT.gap },  // ALBUM_MOUNT, else as before
         colMode: 1,
         colGap: 10.0,
         currentFile: ""
@@ -266,6 +285,11 @@ function parseDSL(dsl) {
             continue;
         }
 
+        var mMount = matchDSL(t, /^ALBUM_MOUNT\(\s*([\d.]+)\s+([\d.]+)\s*\)/);
+        if (mMount) {
+            if (validMount(mMount[1], mMount[2])) state.mount = { overhang: Number(mMount[1]), gap: Number(mMount[2]) };
+            continue;
+        }
         var mHeading = matchDSL(t, /^CAPTION_HEADING\(\s*"(\w+)"\s*\)/);
         if (mHeading) {
             var hw = mHeading[1].toLowerCase();
@@ -432,7 +456,11 @@ function parseDSL(dsl) {
 }
 
 // ── Page sizes (mm) ──
-var PAPER_MM = { a4: [210, 297], a5: [148, 210], a3: [297, 420], letter: [215.9, 279.4], legal: [215.9, 355.6] };
+var PAPER_MM = { a4: [210, 297], a5: [148, 210], a3: [297, 420], letter: [215.9, 279.4], legal: [215.9, 355.6],
+                 // FIP exhibit sheets (GREX 2026 Art. 6.1), width × height as listed: a frame holds 16 of the first
+                 fip23: [230, 297], fip31: [310, 297], fip46: [460, 297] };
+// Sheets used only as listed: no portrait or landscape
+var FIXED_PAPERS = { fip23: true, fip31: true, fip46: true };
 // Up to v0.2.0 the editor treated PDF points as pixels at 2.5 px/mm, so albums saved
 // from it carry (points / 2.5) instead of millimetres.
 var LEGACY_PAGE_MM = { a4: [238.0, 336.8], a5: [168.0, 238.0], a3: [336.8, 476.4], letter: [244.8, 316.8], legal: [244.8, 403.6] };
@@ -480,11 +508,16 @@ function findOutside(pages, width, height) {
 }
 
 // Name a page size for people: "A4 · Landscape", or "200 × 150 mm" for a custom size.
-var PAPER_LABEL = { a4: "A4", a5: "A5", a3: "A3", letter: "Letter", legal: "Legal" };
+var PAPER_LABEL = { a4: "A4", a5: "A5", a3: "A3", letter: "Letter", legal: "Legal",
+                    fip23: "FIP sheet 23 × 29.7 cm", fip31: "FIP sheet 31 × 29.7 cm", fip46: "FIP sheet 46 × 29.7 cm" };
 function describePageSize(pw, ph) {
     var names = Object.keys(PAPER_MM);
     for (var i = 0; i < names.length; i++) {
         var size = PAPER_MM[names[i]];
+        if (FIXED_PAPERS[names[i]]) {
+            if (sizeNear(pw, ph, size)) return { name: names[i], landscape: false, fixed: true, label: PAPER_LABEL[names[i]] };
+            continue;  // turned on its side it is just a custom size
+        }
         if (sizeNear(pw, ph, size)) return { name: names[i], landscape: false, label: PAPER_LABEL[names[i]] + " · Portrait" };
         if (sizeNear(pw, ph, [size[1], size[0]])) return { name: names[i], landscape: true, label: PAPER_LABEL[names[i]] + " · Landscape" };
     }
@@ -733,10 +766,12 @@ function captionWarnings(items, area) {
 
 // ── Exports ──
 var EXPORTS = { THEMES: THEMES, themeColor: themeColor, FRAMES: FRAMES, frameOf: frameOf, applyFrame: applyFrame,
-                FRAME_CLEARANCE_MM: FRAME_CLEARANCE_MM, frameLines: frameLines, frameOutset: frameOutset,
+                FRAME_CLEARANCE_MM: FRAME_CLEARANCE_MM, MOUNT_OVERHANG_CHOICES: MOUNT_OVERHANG_CHOICES,
+                MOUNT_GAP_CHOICES: MOUNT_GAP_CHOICES, NEW_ALBUM_MOUNT: NEW_ALBUM_MOUNT, OLD_ALBUM_MOUNT: OLD_ALBUM_MOUNT,
+                validMount: validMount, setMount: setMount, getMount: getMount, frameClearance: frameClearance, frameLines: frameLines, frameOutset: frameOutset,
                 frameBox: frameBox, SHAPE_POLYGONS: SHAPE_POLYGONS, shapeOutline: shapeOutline,
                 normalizeStamp: normalizeStamp, PLAIN_BORDERS: PLAIN_BORDERS, escapeDSL: escapeDSL, unescapeDSL: unescapeDSL, serializeEl: serializeEl, buildDSL: buildDSL, parseDSL: parseDSL, normalizePageSize: normalizePageSize, findOutside: findOutside,
-                describePageSize: describePageSize, fitToPage: fitToPage, PAPER_MM: PAPER_MM,
+                describePageSize: describePageSize, fitToPage: fitToPage, PAPER_MM: PAPER_MM, FIXED_PAPERS: FIXED_PAPERS,
                 CAPTION: CAPTION, CAPTION_FONTS: CAPTION_FONTS, HEADING_WEIGHTS: HEADING_WEIGHTS, headingFont: headingFont,
                 captionMeasure: captionMeasure, wrapLines: wrapLines, captionParts: captionParts, hasCaptions: hasCaptions,
                 captionLayout: captionLayout, captionBounds: captionBounds, captionWarnings: captionWarnings };

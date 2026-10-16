@@ -13,6 +13,10 @@ from stamp_album.core.models import (
 from stamp_album.core.parser import AlbumParser
 
 
+def _mm(v: float) -> str:
+    """A length in mm as the editor writes it: 1.5, 1, 0."""
+    return f"{float(v):g}"
+
 class AlbumSerializer:
     def __init__(self):
         self.parser = AlbumParser()
@@ -121,6 +125,7 @@ class AlbumSerializer:
                 lines.append(f'ALBUM_PAGES_BORDER_STYLE("{self._escape_string(ps.border_style)}")')
         if getattr(album, "theme", ""):
             lines.append(f'ALBUM_THEME("{self._escape_string(album.theme)}")')
+        lines.append(f"ALBUM_MOUNT({_mm(album.mount_overhang)} {_mm(album.mount_gap)})")
         if getattr(album, "caption_heading", "bold") == "semibold":  # bold is the default
             lines.append('CAPTION_HEADING("semibold")')
 

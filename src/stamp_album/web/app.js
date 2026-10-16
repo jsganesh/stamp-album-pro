@@ -29,6 +29,7 @@ function countElements(n, pages, usedPages) {
 // "A4 · Portrait", or "200 × 150 mm" for a custom size (dsl_core.js describePageSize).
 function pageSizeLabel(d) {
     if (!d.name) return d.label;
+    if (d.fixed) return tr("msg.paper_" + d.name);  // an FIP sheet, used as listed
     return tr("msg.paper_orientation", { paper: tr("msg.paper_" + d.name),
               orientation: tr(d.landscape ? "ui.landscape" : "ui.portrait") });
 }
@@ -45,7 +46,7 @@ function saveDraft() {
         pages[_currentPage] = E;
         var state = { v: 1, pages: pages, currentPage: _currentPage, elements: E, pw: _pw / _sc, ph: _ph / _sc,
                       pageBorder: _pageBorder || "", pageBorderC: _pageBorderC || "", theme: _theme,
-                      captionHeading: _captionHeading };
+                      captionHeading: _captionHeading, mount: S.CORE.getMount() };
         localStorage.setItem(_draftKey, JSON.stringify(state));
         if (_currentFile) localStorage.setItem(_draftFileKey, _currentFile);
         else localStorage.removeItem(_draftFileKey);
@@ -73,6 +74,9 @@ function loadDraft() {
         // Drafts from before themes: an own border colour is "custom", otherwise Exhibition.
         _theme = state.theme || (_pageBorderC ? "custom" : "exhibition");
         _captionHeading = state.captionHeading === "semibold" ? "semibold" : "bold";
+        // Drafts from before mounts are drawn as they were (0 + 1 mm)
+        var m = state.mount && S.CORE.validMount(state.mount.overhang, state.mount.gap) ? state.mount : S.CORE.OLD_ALBUM_MOUNT;
+        S.CORE.setMount(m.overhang, m.gap);
         // ...and their stamps get black frames and no fill, as an opened file's do.
         _pages.forEach(function(p) { (p || []).forEach(S.CORE.normalizeStamp); });
         syncNid();
@@ -309,6 +313,8 @@ function newAlbum() {
     _currentFile = null;
     _currentPage = 0;
     _pages = [[]];
+    S.CORE.setMount(S.CORE.NEW_ALBUM_MOUNT.overhang, S.CORE.NEW_ALBUM_MOUNT.gap);
+    syncPageBar();
     _dirty = false;
     S.resetUndo();
     render();
@@ -316,6 +322,32 @@ function newAlbum() {
     renderPageDots();
     updateTitle();
     showToast(tr("msg.new_album_created"), "success");
+}
+
+// The album's stamp mounts in the panel: the choices (and an album's own value, if it has
+// one not in the list), the current values and the note giving the total.
+function syncMount() {
+    var over = $("def-mount-over"), gap = $("def-mount-gap"), note = $("mount-note");
+    if (!over || !gap) return;
+    var m = S.CORE.getMount();
+    var fill = function(sel, choices, value) {
+        var vals = choices.slice();
+        if (vals.indexOf(value) === -1) { vals.push(value); vals.sort(function(a, b) { return a - b; }); }
+        sel.innerHTML = "";
+        vals.forEach(function(v) {
+            var o = document.createElement("option");
+            o.value = String(v);
+            o.textContent = v === 0 ? tr("msg.mount_none") : tr("msg.mm_value", { n: String(v) });
+            sel.appendChild(o);
+        });
+        sel.value = String(value);
+    };
+    fill(over, S.CORE.MOUNT_OVERHANG_CHOICES, m.overhang);
+    fill(gap, S.CORE.MOUNT_GAP_CHOICES, m.gap);
+    if (note) {
+        var total = String(Math.round((m.overhang + m.gap) * 100) / 100);
+        note.textContent = tr(m.overhang > 0 ? "msg.mount_note" : "msg.mount_note_none", { total: total });
+    }
 }
 
 // ── File/image management functions defined in files.js ──
@@ -345,7 +377,9 @@ function buildCanvasState(format) {
         border_style: _pageBorder || "",
         border_color: themeColor(),
         theme_color: themeColor(),  // marked headings
-        caption_heading: _captionHeading
+        caption_heading: _captionHeading,
+        mount_overhang: S.CORE.getMount().overhang,
+        mount_gap: S.CORE.getMount().gap
     };
 }
 
@@ -367,6 +401,7 @@ function syncPageBar() {
     }
     var hw = $("def-heading");
     if (hw) hw.value = _captionHeading;
+    syncMount();
     var bdr = $("def-bdr");
     if (bdr) bdr.value = _pageBorder || "none";
     var note = $("bdr-note");
@@ -604,7 +639,7 @@ Object.defineProperties(S, {
     _pageBorderC: { get: function(){ return _pageBorderC; }, set: function(v){ _pageBorderC = v; } },
     _theme: { get: function(){ return _theme; }, set: function(v){ _theme = v; } },
     _captionHeading: { get: function(){ return _captionHeading; }, set: function(v){ _captionHeading = v === "semibold" ? "semibold" : "bold"; } },
-    themeColor: { value: themeColor }, syncPageBar: { value: syncPageBar },
+    themeColor: { value: themeColor }, syncPageBar: { value: syncPageBar }, syncMount: { value: syncMount },
     frameOf: { get: function(){ return window.StampAlbumDSL.frameOf; } },
     CORE: { get: function(){ return window.StampAlbumDSL; } },
     _undoStack: { get: function(){ return _undoStack; }, set: function(v){ _undoStack = v; } },

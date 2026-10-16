@@ -467,6 +467,9 @@ class Stamp:
     # Frame drawn outside the stamp (see engines/frames.py): "none", "thin", "medium" or "double".
     # width/height are the stamp's own size; the frame adds clearance and its lines around it.
     frame: str = "thin"
+    # Clear space between the stamp and its frame line (mm): the album's mount overhang plus
+    # its gap to the frame, set by frames.apply_mount; None means frames.CLEARANCE_MM.
+    clearance_mm: Optional[float] = None
     is_freehand: bool = False  # a free shape: its outline is the frame, with no clearance
     # STAMP_DETAILS as entered: (denomination, condition, perforation); footer_text joins them
     details: tuple = ("", "", "")
@@ -645,6 +648,11 @@ class Album:
     margin_texts: list[MarginTextItem] = field(default_factory=list)
     # Stamp caption headings: "bold" (the default) or "semibold" (CAPTION_HEADING in the DSL)
     caption_heading: str = "bold"
+    # Stamp mounts (ALBUM_MOUNT in the DSL): how far a mount shows beyond the stamp, then the
+    # space to the frame line, in mm. An album that doesn't say is 0 + 1 mm, as before; new
+    # albums start at 1.5 + 1 (frames.NEW_ALBUM_MOUNT).
+    mount_overhang: float = 0.0
+    mount_gap: float = 1.0
 
     # Color settings
     color_album_border: Optional[Color] = None

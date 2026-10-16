@@ -20,6 +20,7 @@ NODE = shutil.which("node")
         "test_save_details.mjs",
         "test_themes.mjs",
         "test_captions.mjs",
+        "test_mount.mjs",
         "test_zoom.mjs",
         "test_i18n.mjs",
     ],

@@ -30,6 +30,7 @@ from stamp_album.core.models import (
     TextAlignment,
 )
 from stamp_album.core.themes import THEMES
+from stamp_album.engines import frames
 from stamp_album.engines.frames import frame_of
 
 # ---------------------------------------------------------------------------
@@ -891,6 +892,11 @@ class AlbumParser:
                 name = unquote(params[0]) if params else ""
                 if name in THEMES:
                     theme = name
+            elif cmd == "ALBUM_MOUNT":
+                # ALBUM_MOUNT (overhang gap): the stamp mounts, in mm (frames.py)
+                if len(params) >= 2 and frames.valid_mount(params[0], params[1]):
+                    album.mount_overhang = float(params[0])
+                    album.mount_gap = float(params[1])
             elif cmd == "CAPTION_HEADING":
                 # CAPTION_HEADING ("semibold"): the weight of stamp caption headings
                 weight = (unquote(params[0]) if params else "").lower()
@@ -1084,6 +1090,7 @@ class AlbumParser:
                 paragraph.lines.append(content)
 
         _apply_theme(album, theme)
+        frames.apply_mount(album)
         return album
 
     def parse_file(self, file_path: str) -> Album:

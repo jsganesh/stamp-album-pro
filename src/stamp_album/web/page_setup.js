@@ -20,7 +20,7 @@ function allPages() {
 // The size the dialog's controls describe, in mm.
 function chosenSize() {
     var key = $("ps-size").value;
-    var landscape = $("ps-orient-landscape").checked;
+    var landscape = $("ps-orient-landscape").checked && !CORE.FIXED_PAPERS[key];
     var w, h;
     if (key === "custom") {
         w = parseFloat($("ps-size").dataset.w); h = parseFloat($("ps-size").dataset.h);
@@ -32,7 +32,13 @@ function chosenSize() {
     return { w: w, h: h };
 }
 
+// FIP sheets are used as listed, so the orientation choice hides for them.
+function syncOrientation() {
+    $("ps-orient").hidden = !!CORE.FIXED_PAPERS[$("ps-size").value];
+}
+
 function updateNote() {
+    syncOrientation();
     var size = chosenSize();
     var pages = allPages();
     var r = CORE.fitToPage(pages, size.w * S._sc, size.h * S._sc, MARGIN_MM * S._sc, { dryRun: true });
