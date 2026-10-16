@@ -69,7 +69,7 @@ A modern web application for creating professional stamp album pages for display
 
 ### 2.1 Web Interface
 - **Split view**: Editor and live preview panels
-- **Toolbar**: File, Edit, View and Help menus; Undo, Redo, Preview and Export on the bar; align, duplicate, grid fill and delete appear in the page bar when a stamp is selected. Fits narrow windows (icons, then menus, at phone width)
+- **Toolbar**: File, Edit, View and Help menus; Undo, Redo, Print preview and Export on the bar; align, duplicate, grid fill and delete appear in the page bar when a stamp is selected. Fits narrow windows (icons, then menus, at phone width)
 - **Status bar**: File name, save status, operation feedback
 - **Keyboard shortcuts**: Ctrl+S (save), Ctrl+O (open), Ctrl+N (new), Ctrl+E (export)
 
@@ -79,11 +79,11 @@ A modern web application for creating professional stamp album pages for display
 - **Undo/Redo**: Full edit history
 - **File change detection**: Modified indicator
 
-### 2.3 Live Preview
-- **Auto-refresh**: Debounced preview update (400ms after last edit)
-- **HTML rendering**: Accurate preview matching PDF output
-- **Error display**: Parse errors shown inline in preview panel
-- **Toggle**: Show/hide preview panel
+### 2.3 Print preview
+- **Same drawing as the exports**: the pages come from the HTML renderer that matches the PDF, PNG and SVG
+- **One page at a time**: fitted whole to the window (up to 200%), opening on the page being edited; page arrows and ← → / Home / End go through the pages
+- **Always current**: drawn fresh on opening and after a paper-size change; no Refresh button
+- **Export** is the window's main button; Escape or Close returns to the editor
 
 ### 2.4 File Management
 - **Open recent**: File › Open recent lists the ten newest saved albums

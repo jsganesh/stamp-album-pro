@@ -115,7 +115,7 @@ def test_shortcuts_dialog_lists_only_keys_that_work(page):
     for dead in ("Ctrl+P", "Ctrl+N", "Ctrl+L", "Ctrl+E", "Ctrl+R"):
         assert dead not in keys, f"{dead} is listed but nothing handles it"
     assert keys.count("F5") == 1
-    assert ["F5", "Preview"] in _listed(page)
+    assert ["F5", "Print preview"] in _listed(page)
     assert ["Ctrl+D", "Duplicate"] in _listed(page)
 
 

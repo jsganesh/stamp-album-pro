@@ -6,7 +6,7 @@ var pushUndo = S.pushUndo, render = S.render, updateProps = S.updateProps;
 var select = S.select, add = S.add, undo = S.undo, redo = S.redo;
 var newAlbum = S.newAlbum, saveFile = S.saveFile;
 var loadImageList = S.loadImageList, uploadImageFile = S.uploadImageFile;
-var openPreview = S.openPreview, exportPDF = S.exportPDF;
+var exportPDF = S.exportPDF;
 var applyWizard = S.applyWizard, loadTemplateList = S.loadTemplateList, loadDraft = S.loadDraft;
 var buildDSL = S.buildDSL, parseDSL = S.parseDSL;
 var initTutorial = S.initTutorial, _wireTutorialEvents = S._wireTutorialEvents;
@@ -325,9 +325,7 @@ function init() {
     }
 
     // ── Preview ──
-    $("btn-preview").addEventListener("click", openPreview);
-    $("btn-preview-close").addEventListener("click", function() { $("preview-overlay").classList.remove("open"); });
-    $("btn-preview-refresh").addEventListener("click", openPreview);
+    $("btn-preview").addEventListener("click", function() { S.openPreview(); });
 
     // ── Export Dropdown ──
     document.querySelectorAll(".export-dd-item").forEach(function(el) {
@@ -474,6 +472,7 @@ function init() {
 
     // ── Keyboard shortcuts ──
     document.addEventListener("keydown", function(e) {
+        if (S.previewOpen()) { S.previewKey(e); return; }  // Print preview covers the editor
         if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
         if (e.target.isContentEditable) return;  // typing in a label on the page
         if ($("page-setup-overlay").classList.contains("open") || S.fitPromptOpen() || S.albumsDialogOpen()) return;  // dialogs handle their own keys
@@ -490,7 +489,7 @@ function init() {
             e.preventDefault();
             var el = S.E.find(function(x) { return x.id === S.sel; }); if (el) add(Object.assign({}, el, { id: "el" + (S.nid++), x: el.x + 20, y: el.y + 20 }));
         }
-        if (e.key === "F5") { e.preventDefault(); openPreview(); }
+        if (e.key === "F5") { e.preventDefault(); S.openPreview(); }
         if (e.key === "?") { e.preventDefault(); $("help-overlay").classList.toggle("open"); }
     });
 
