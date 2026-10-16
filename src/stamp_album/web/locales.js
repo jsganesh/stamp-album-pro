@@ -244,7 +244,6 @@ var LOCALES = {
   "msg.cannot_delete_last_page": "Cannot delete last page",
   "msg.page_deleted": "Page deleted",
   "msg.page_n": "Page {n}",
-  "msg.delete_current_page": "Delete current page",
   "msg.discard_unsaved": "Discard unsaved changes?",
   "msg.new_album_created": "New album created",
   "msg.theme_custom": "Custom",
@@ -426,7 +425,12 @@ var LOCALES = {
   "ui.a_heading_takes_the_theme": "A heading is drawn in the album's theme colour.",
   "msg.image_file": "File: {name}",
   "ui.a_picture_caption_prints": "Printed below the image in small italics, wrapped to its width. Leave it empty for none.",
-  "ui.caption_below_the_image": "Caption below the image"
+  "ui.caption_below_the_image": "Caption below the image",
+  "ui.move_earlier": "Move earlier",
+  "ui.move_later": "Move later",
+  "msg.page_n_options": "Page {n}: move or delete",
+  "msg.delete_page_confirm": "Delete page {n} and everything on it? You can undo this with Edit › Undo.",
+  "msg.page_moved": "Moved to page {n}"
  }
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = LOCALES;

@@ -217,57 +217,42 @@ function addPage() {
     switchPage(_pages.length - 1, true);
     showToast(tr("msg.page_added"), "success");
 }
-function deletePage() {
-    if (_pages.length <= 1) { showToast(tr("msg.cannot_delete_last_page"), "error"); return; }
+// Delete a page (the current one when idx is left out). A page with items on it asks first.
+function deletePage(idx) {
+    if (_pages.length <= 1) { showToast(tr("msg.cannot_delete_last_page"), "error"); return false; }
+    if (idx === undefined || idx === null) idx = _currentPage;
+    if (idx < 0 || idx >= _pages.length) return false;
+    var items = idx === _currentPage ? E : (_pages[idx] || []);
+    if (items.length && !confirm(tr("msg.delete_page_confirm", { n: idx + 1 }))) return false;
     S.pushUndo();
-    _pages.splice(_currentPage, 1);
-    if (_currentPage >= _pages.length) _currentPage = _pages.length - 1;
+    _pages[_currentPage] = JSON.parse(JSON.stringify(E));
+    _pages.splice(idx, 1);
+    if (idx < _currentPage || _currentPage >= _pages.length) _currentPage = Math.max(0, _currentPage - 1);
     E = JSON.parse(JSON.stringify(_pages[_currentPage]));
     sel = null;
     renderPageDots();
     render();
     updateProps();
     showToast(tr("msg.page_deleted"), "success");
+    return true;
 }
+// Move page idx to position to (0-based), keeping the same page open.
+function movePage(idx, to) {
+    if (idx < 0 || idx >= _pages.length || to < 0 || to >= _pages.length || to === idx) return false;
+    S.pushUndo();
+    _pages[_currentPage] = JSON.parse(JSON.stringify(E));
+    var open = _pages[_currentPage];
+    var moved = _pages.splice(idx, 1)[0];
+    _pages.splice(to, 0, moved);
+    _currentPage = _pages.indexOf(open);
+    renderPageDots();
+    render();
+    showToast(tr("msg.page_moved", { n: to + 1 }), "success");
+    return true;
+}
+// The pages beside the page (page_strip.js draws them).
 function renderPageDots() {
-    var c = $("pg-dots");
-    if (!c) return;
-    // Page dots are real buttons, so they take Tab focus and work with Enter/Space.
-    // Focus is put back on the matching dot after the row is rebuilt.
-    var hadFocus = c.contains(document.activeElement) ? document.activeElement.dataset.dot : null;
-    c.innerHTML = "";
-    function dotButton(cls, text, name, onClick, key) {
-        var b = document.createElement("button");
-        b.type = "button";
-        b.className = "pg-dot" + cls;
-        b.textContent = text;
-        b.title = name;
-        b.setAttribute("aria-label", name);
-        b.dataset.dot = key;
-        b.addEventListener("click", onClick);
-        c.appendChild(b);
-        return b;
-    }
-    for (var i = 0; i < _pages.length; i++) {
-        (function(idx) {
-            var dot = dotButton(idx === _currentPage ? " active" : "", String(idx + 1), tr("msg.page_n", { n: idx + 1 }),
-                                function() { switchPage(idx); }, "p" + idx);
-            if (idx === _currentPage) dot.setAttribute("aria-current", "page");
-        })(i);
-    }
-    // Add page in words beside a plus (the words hide on a phone, where the button keeps its name)
-    var add = dotButton(" add", "", tr("ui.add_page"), addPage, "add");
-    add.appendChild(icon("plus"));
-    var addLbl = document.createElement("span");
-    addLbl.className = "lbl";
-    addLbl.textContent = tr("ui.add_page");
-    add.appendChild(addLbl);
-    add.removeAttribute("title");
-    if (_pages.length > 1) dotButton(" del", "−", tr("msg.delete_current_page"), deletePage, "del");
-    if (hadFocus) {
-        var back = c.querySelector('[data-dot="' + hadFocus + '"]') || c.querySelector('[aria-current="page"]');
-        if (back) back.focus();
-    }
+    if (S.renderPageStrip) S.renderPageStrip();
 }
 
 // ── Grid ──
@@ -633,7 +618,7 @@ Object.defineProperties(S, {
     saveDraft: { value: saveDraft }, scheduleDraftSave: { value: scheduleDraftSave },
     loadDraft: { value: loadDraft }, clearDraft: { value: clearDraft }, syncNid: { value: syncNid },
     updateTitle: { value: updateTitle }, switchPage: { value: switchPage },
-    addPage: { value: addPage }, deletePage: { value: deletePage },
+    addPage: { value: addPage }, deletePage: { value: deletePage }, movePage: { value: movePage },
     renderPageDots: { value: renderPageDots }, updateGrid: { value: updateGrid },
     gridMoving: { value: gridMoving },
     newAlbum: { value: newAlbum },     // saveFile/uploadImageFile/loadImageList defined in files.js

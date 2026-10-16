@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+- **Pages as pictures beside the page**: the numbered page buttons above the page are replaced by a column down the left edge of the canvas, with a small picture of each page (its border, a box for each stamp and picture, grey lines where text sits) and its number underneath. The open page is outlined in red and its picture changes as you work. Click a picture to open that page, or use the arrow keys (Home and End for the first and last); **Add page** is at the end of the column. The column sits beside the page, so the page keeps its size when it fits the window. On a phone the pictures are one row along the bottom, scrolling sideways.
+- **Moving and deleting pages**: each picture has a **⋯** button with **Move earlier**, **Move later** and **Delete page**; all can be undone. Deleting a page that has anything on it now asks first, from this menu and from Edit › Delete page; an empty page is deleted straight away
+
 ## [0.4.0] - 2026-10-15
 
 A clearer, easier-to-read editor for older collectors: larger text and controls with a Text size choice, plain names for captions, album settings in the right panel, File and Help menus, images that belong to their album, with captions of their own, and translation support.

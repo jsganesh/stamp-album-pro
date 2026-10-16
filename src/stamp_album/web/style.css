@@ -275,13 +275,26 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .stamp-mount:hover { outline: 2px dashed var(--accent); outline-offset: 3px; }
 
 /* Pages: a numbered button for each page, the current one in red, then Add page */
-#pg-dots { display: flex; gap: 0.375rem; align-items: center; flex-wrap: wrap; }
-#ca-toolbar .pg-dot { min-width: var(--ctl); min-height: var(--ctl); padding: 0 0.5rem; border-radius: var(--radius); background: #fff; border: 1px solid var(--border); color: var(--text); font: inherit; font-size: 0.9375rem; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
-#ca-toolbar .pg-dot.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-#ca-toolbar .pg-dot:hover:not(.active) { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
-#ca-toolbar .pg-dot.add { gap: 0.375rem; padding: 0 0.75rem; font-weight: 400; }
-#ca-toolbar .pg-dot.del { font-weight: 400; font-size: 1.25rem; color: var(--text2); }
-#ca-toolbar .pg-dot.del:hover { color: var(--accent); }
+/* The pages: a column of pictures down the canvas's left edge (one row on a phone) */
+#ca-body { flex: 1; display: flex; min-height: 0; }
+#ca-main { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+#pg-strip { flex: 0 0 auto; width: 8.5rem; display: flex; flex-direction: column; align-items: stretch; gap: 0.5rem; padding: 0.75rem 0.5rem; background: var(--bg2); border-right: 1px solid var(--border); overflow-y: auto; overflow-x: hidden; }
+#pg-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+.pg-item { position: relative; display: flex; flex-direction: column; align-items: center; }
+.pg-thumb { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; width: 100%; padding: 0.375rem 0.375rem 0.25rem; background: transparent; border: 2px solid transparent; border-radius: var(--radius); color: var(--text); font: inherit; font-size: 0.9375rem; cursor: pointer; }
+.pg-thumb .pg-pic { display: block; width: 5.5rem; height: 7.75rem; background: #fff; box-shadow: 0 1px 3px var(--page-shadow); outline: 1px solid var(--border); }
+.pg-thumb:hover:not([aria-current]) { background: var(--bg3); }
+.pg-thumb[aria-current="page"] { border-color: var(--accent); background: var(--accent-soft); }
+.pg-thumb[aria-current="page"] .pg-num { font-weight: 700; }
+.pg-thumb:focus-visible, .pg-more:focus-visible, #pg-add:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.pg-more { position: absolute; top: 0.25rem; right: 0.125rem; width: var(--ctl); height: var(--ctl); display: inline-flex; align-items: center; justify-content: center; padding: 0; background: #fff; border: 1px solid var(--border); border-radius: 50%; color: var(--text2); cursor: pointer; }
+.pg-more .ic { width: 1.25rem; height: 1.25rem; fill: currentColor; stroke: none; }
+.pg-more:hover, .pg-more[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); }
+#pg-add { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem; min-height: 4.5rem; padding: 0.5rem 0.25rem; background: #fff; border: 1px dashed var(--muted); border-radius: var(--radius); color: var(--text); font: inherit; font-size: 0.9375rem; cursor: pointer; text-align: center; }
+#pg-add:hover { border-color: var(--accent); background: var(--accent-soft); }
+.pg-menu { position: fixed; z-index: 1500; min-width: 13rem; background: #fff; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 8px 28px rgba(0,0,0,0.16); padding: 0.375rem 0; display: flex; flex-direction: column; }
+.pg-menu[hidden] { display: none; }
+.pg-menu .mi { padding-left: 1rem; }
 
 /* Right panel (properties) */
 #rp { width: var(--props); background: var(--bg1); border-left: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; transition: width 0.2s; }
@@ -429,15 +442,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 /* ── Responsive / small-screen tweaks ── */
 /* The page bar stays one row, so selecting an item never shrinks the page: where the bar
    is too narrow for the words, the selected item's actions are icons (named by aria-label). */
-#ca { container-type: inline-size; container-name: canvas; }
+/* The bar above the page sizes its tools by the room beside the page strip */
+#ca-main { container-type: inline-size; container-name: canvas; }
 @container canvas (max-width: 63rem) {
     #sel-tools .ca-btn .lbl { display: none; }
     #sel-tools .ca-btn { width: var(--ctl); padding: 0; justify-content: center; }
 }
 @container canvas (max-width: 46rem) {
     #sel-tools .sel-lbl { display: none; }
-    #ca-toolbar .pg-dot.add .lbl { display: none; }
-    #ca-toolbar .pg-dot.add { padding: 0; }
 }
 /* Narrower windows: Undo/Redo become icon buttons (named by aria-label) */
 @media (max-width: 1180px) {
@@ -479,8 +491,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     #ca-toolbar .ca-sep { display: none; }
     #ca-toolbar label { font-size: 0.875rem; }
     #ca-toolbar select, #btn-page-setup { padding: 0 0.375rem; }
-    #ca-toolbar .pg-dot.add .lbl { display: none; }
-    #ca-toolbar .pg-dot.add { padding: 0; }
+    /* The pages: one row along the bottom, scrolling sideways */
+    #ca-body { flex-direction: column; }
+    #ca-main { flex: 1; }
+    #pg-strip { order: 2; width: auto; flex-direction: row; align-items: center; padding: 0.375rem 0.5rem; border-right: none; border-top: 1px solid var(--border); overflow-x: auto; overflow-y: hidden; }
+    #pg-list { flex-direction: row; gap: 0.25rem; }
+    .pg-item { flex-direction: row; align-items: center; gap: 0.125rem; }
+    .pg-thumb { flex-direction: row; width: auto; padding: 0.25rem; }
+    .pg-thumb .pg-pic { width: 2.5rem; height: 3.5rem; }
+    .pg-more { position: static; }
+    #pg-add { flex-direction: row; min-height: var(--ctl); flex-shrink: 0; white-space: nowrap; padding: 0 0.75rem; }
     #sidebar.collapsible { width: 100%; position: fixed; z-index: 900; height: 100%; top: 0; left: 0; }
     .palette { grid-template-columns: 1fr 1fr; }
     /* The narrow right panel puts each name above its field, so choices aren't cut off */

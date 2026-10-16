@@ -335,7 +335,8 @@ def test_a_stored_choice_beats_the_desktop_default(base_url):
         browser, pg = _desktop(p, {"width": 1512, "height": 982})
         _open(pg, base_url, stored="fit-width")
         g = _geometry(pg)
-        assert g["mode"] == "fit-width" and g["zoom"] > 1.5, g  # the width, enlarged
+        # the width, enlarged (beside the page strip, which takes 8.5rem of it)
+        assert g["mode"] == "fit-width" and g["zoom"] > 1.3, g
         browser.close()
 
 
