@@ -83,7 +83,7 @@ def test_every_toolbar_button_has_a_word_at_1440(page):
         """['btn-undo', 'btn-redo', 'btn-preview', 'btn-export', 'menu-help-btn'].map(id =>
            document.getElementById(id).innerText.trim())"""
     )
-    assert words == ["Undo", "Redo", "Preview", "Export", "Help"]
+    assert words == ["Undo", "Redo", "Print preview", "Export", "Help"]
 
 
 @pytest.mark.parametrize(("item", "scale", "root_px"), [

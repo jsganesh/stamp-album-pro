@@ -226,17 +226,26 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .guide-line.guide-page { background: var(--accent, #8B0000); opacity: 0.25; border-style: dashed; }
 .guide-label { position: absolute; pointer-events: none; z-index: 51; background: var(--accent, #8B0000); color: #fff; font-size: 11px; padding: 2px 6px; border-radius: 3px; font-family: monospace; white-space: nowrap; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
 
-/* Preview overlay */
-#preview-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; display: none; flex-direction: column; }
+/* Print preview: one page at a time, fitted to the window (print_preview.js) */
+#preview-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--canvas); z-index: 1000; display: none; flex-direction: column; }
 #preview-overlay.open { display: flex; }
-#preview-overlay .preview-hdr { display: flex; align-items: center; padding: 0.625rem 1.125rem; background: #fff; border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 0.5rem; flex-wrap: wrap; }
+#preview-overlay .preview-hdr { display: flex; align-items: center; padding: 0.625rem 1.125rem; background: var(--bg1); border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 0.5rem; flex-wrap: wrap; }
 #preview-overlay .preview-hdr h2 { font-family: var(--serif); font-size: 1.25rem; font-weight: 600; color: var(--text); }
 #preview-overlay .preview-hdr .spacer { flex: 1; }
-#preview-overlay .preview-hdr button { display: inline-flex; align-items: center; gap: 0.5rem; min-height: var(--ctl); background: #fff; border: 1px solid var(--border); color: var(--text); padding: 0 0.875rem; border-radius: var(--radius); cursor: pointer; font: inherit; font-size: 1rem; }
-#preview-overlay .preview-hdr button:hover { border-color: var(--accent); background: var(--accent-soft); }
-#preview-body { flex: 1; overflow: auto; display: flex; justify-content: center; padding: 20px; }
-#preview-body iframe { background: #fff; box-shadow: 0 4px 30px rgba(0,0,0,0.3); border: none; }
-#preview-loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 1rem; z-index: 1001; }
+#preview-overlay .pv-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+#preview-overlay button { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: var(--ctl); min-width: var(--ctl); background: #fff; border: 1px solid var(--border); color: var(--text); padding: 0 0.875rem; border-radius: var(--radius); cursor: pointer; font: inherit; font-size: 1rem; }
+#preview-overlay button:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+#preview-overlay button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+#preview-overlay button.primary:hover { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+#preview-overlay button:disabled { color: var(--muted); border-style: dashed; cursor: default; }
+#preview-body { flex: 1; min-height: 0; overflow: auto; display: flex; align-items: center; justify-content: center; padding: 1.25rem; position: relative; }
+#pv-box { flex-shrink: 0; position: relative; margin: auto; overflow: hidden; box-shadow: 0 4px 24px var(--page-shadow); }
+#pv-box iframe { display: block; background: #fff; border: none; transform-origin: 0 0; }
+#pv-loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; margin: 0; color: var(--text2); font-size: 1rem; }
+#pv-loading[hidden] { display: none; }
+#pv-pager { display: flex; align-items: center; justify-content: center; gap: 1rem; padding: 0.5rem 1rem 0.75rem; flex-shrink: 0; background: var(--canvas); }
+#pv-pager[hidden] { display: none; }
+#pv-count { font-size: 1rem; color: var(--text); min-width: 8rem; text-align: center; }
 
 /* Canvas elements */
 .cel { position: absolute; cursor: move; display: flex; align-items: center; justify-content: center; overflow: hidden; }

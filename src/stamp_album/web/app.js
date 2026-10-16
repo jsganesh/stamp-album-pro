@@ -414,62 +414,6 @@ function themeColor() {
     return S.CORE.themeColor({ theme: _theme, pageBorderC: _pageBorderC });
 }
 
-// ── Preview (direct — no DSL parser) ──
-var _previewTimer = null;
-function refreshPreview() {
-    var frame = $("preview-frame");
-    if (!frame) return;
-    var overlay = $("preview-overlay");
-    if (!overlay || !overlay.classList.contains("open")) return;
-    showToast(tr("msg.generating_preview"), "info");
-    var state = buildCanvasState("html");
-    fetch("/render-from-state", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(state)
-    })
-    .then(function(r) {
-        if (!r.ok) throw new Error(tr("msg.render_failed_status", { status: r.status }));
-        return r.text();
-    })
-    .then(function(html) {
-        frame.srcdoc = html;
-        frame.onload = function() {
-            frame.onload = null;
-            try {
-                var doc = frame.contentDocument;
-                if (!doc) return;
-                var page = doc.querySelector(".page");
-                if (!page) return;
-                var w = page.offsetWidth, h = page.offsetHeight;
-                if (w > 0 && h > 0) {
-                    frame.style.width = w + "px";
-                    frame.style.height = h + "px";
-                }
-            } catch(_) {}
-        };
-        showToast(tr("msg.preview_ready"), "success");
-    })
-    .catch(function(err) {
-        var msg = err.message || String(err);
-        if (msg.indexOf("NetworkError") !== -1 || msg.indexOf("Load failed") !== -1 || msg.indexOf("Failed to fetch") !== -1) {
-            showToast(tr("msg.preview_failed_network"), "error");
-        } else {
-            showToast(tr("msg.preview_failed", { msg: msg }), "error");
-        }
-    });
-}
-function schedulePreviewRefresh() {
-    if (_previewTimer) clearTimeout(_previewTimer);
-    _previewTimer = setTimeout(refreshPreview, 400);
-}
-function openPreview() {
-    var overlay = $("preview-overlay");
-    if (!overlay) return;
-    overlay.classList.add("open");
-    refreshPreview();
-}
-
 // ── Export PDF (direct — no DSL parser) ──
 function exportPDF() {
     showToast(tr("msg.generating_format", { format: "PDF" }), "info");
@@ -658,8 +602,7 @@ Object.defineProperties(S, {
     renderPageDots: { value: renderPageDots }, updateGrid: { value: updateGrid },
     gridMoving: { value: gridMoving },
     newAlbum: { value: newAlbum },     // saveFile/uploadImageFile/loadImageList defined in files.js
-    buildCanvasState: { value: buildCanvasState }, openPreview: { value: openPreview },
-    schedulePreviewRefresh: { value: schedulePreviewRefresh }, refreshPreview: { value: refreshPreview },
+    buildCanvasState: { value: buildCanvasState },  // Print preview: print_preview.js
     exportPDF: { value: exportPDF }, loadTemplateList: { value: loadTemplateList },
     applyPageSize: { value: applyPageSize }, snapPageToPixels: { value: snapPageToPixels },
     // ── Alignment functions ──
