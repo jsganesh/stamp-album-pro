@@ -767,6 +767,7 @@ function render() {
         captionItems.push({ id: el.id, box: box, lines: lines, node: d, framed: el.t === "stamp" && box.w > el.w / S._sc });
     });
     markCaptionWarnings(captionItems);
+    if (S.updateThumb) S.updateThumb();  // the open page's picture beside the page
     updateFrameNote();
     syncPanel();
     if (S.syncImageList) S.syncImageList();  // the Images section lists the album's images

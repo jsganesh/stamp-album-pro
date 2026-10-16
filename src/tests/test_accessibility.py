@@ -217,10 +217,9 @@ def test_collapsed_sidebar_can_be_reopened_by_keyboard(page):
     assert page.get_by_role("button", name="Hide the sidebar", exact=True).count() >= 1
 
 
-def test_page_dots_are_named_buttons(page):
+def test_page_thumbnails_are_named_buttons(page):
     _stamp_album(page)
-    dots = page.locator("#pg-dots button")
-    assert dots.count() == 2
+    assert page.locator("#pg-list .pg-thumb").count() == 1
     p1 = page.get_by_role("button", name="Page 1", exact=True)
     assert p1.get_attribute("aria-current") == "page"
     page.get_by_role("button", name="Add page", exact=True).focus()
@@ -233,7 +232,7 @@ def test_page_dots_are_named_buttons(page):
     page.get_by_role("button", name="Page 1", exact=True).focus()
     page.keyboard.press("Enter")
     assert page.evaluate("StampAlbum._currentPage") == 0
-    assert page.get_by_role("button", name="Delete current page", exact=True).count() == 1
+    assert page.get_by_role("button", name="Page 2: move or delete", exact=True).count() == 1
 
 
 def test_template_cards_open_by_keyboard(page):
@@ -417,7 +416,9 @@ def test_focus_is_visible_on_keyboard_targets(page):
         ".p-item",
         ".cel[data-id='s1']",
         ".img-add",
-        "#pg-dots button",
+        "#pg-list .pg-thumb",
+        "#pg-list .pg-more",
+        "#pg-add",
         "#img-toggle",
         "#img-upl-btn",
     ]:
