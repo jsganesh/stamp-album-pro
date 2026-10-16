@@ -4,8 +4,14 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+- **Stamp mounts**: under **Album and page**, **Mount overhang** (how far the mount shows beyond each stamp: None, 1, 1.5, 2, 2.5 or 3 mm) and **Gap to frame** (the space from the mount's edge to the frame line: 1 to 3 mm). Every stamp's frame is drawn their sum out from the stamp, the same in the editor, Preview, PDF, PNG and SVG; a note gives the total in words, and a selected stamp's panel says "mount 1.5 mm, then 1 mm to the frame line". In the editor the mount's edge shows as a faint dotted line between the stamp's dashed outline and its frame; it is never printed. Changing either moves every frame at once and can be undone. Free shapes and pictures are unchanged.
+  - **New albums start at 1.5 + 1 = 2.5 mm** (File › New album, the new-album wizard, the templates and the tutorial's sample). **Albums made before this open at None + 1 mm**, so they print exactly as they did; choose a mount under Album and page to change one.
+  - Stored as `ALBUM_MOUNT(overhang gap)` in the album file. Older versions of the app skip the line and draw 1 mm frames.
+- **FIP exhibit sheets** in Page setup and the new-album wizard: 23 × 29.7 cm (an FIP frame holds 16), 31 × 29.7 cm and 46 × 29.7 cm (GREX 2026, Art. 6.1). They are used as listed, so Page setup hides Portrait and Landscape for them.
+
 ### Changed
-- **Pages as pictures beside the page**: the numbered page buttons above the page are replaced by a column down the left edge of the canvas, with a small picture of each page (its border, a box for each stamp and picture, grey lines where text sits) and its number underneath. The open page is outlined in red and its picture changes as you work. Click a picture to open that page, or use the arrow keys (Home and End for the first and last); **Add page** is at the end of the column. The column sits beside the page, so the page keeps its size when it fits the window. On a phone the pictures are one row along the bottom, scrolling sideways.
+- **Pages as pictures beside the page**: the numbered page buttons above the page are replaced by a column down the left edge of the canvas, with a small picture of each page (its border, each stamp drawn in its own shape, a box for each picture, grey lines where text sits) and its number underneath. The open page is outlined in red and its picture changes as you work. Click a picture to open that page, or use the arrow keys (Home and End for the first and last); **Add page** is at the end of the column. The column sits beside the page, so the page keeps its size when it fits the window. On a phone the pictures are one row along the bottom, scrolling sideways.
 - **Moving and deleting pages**: each picture has a **⋯** button with **Move earlier**, **Move later** and **Delete page**; all can be undone. Deleting a page that has anything on it now asks first, from this menu and from Edit › Delete page; an empty page is deleted straight away
 
 ## [0.4.0] - 2026-10-15

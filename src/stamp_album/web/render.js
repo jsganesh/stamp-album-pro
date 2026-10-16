@@ -266,7 +266,7 @@ function add(p) {
 // On screen the page is drawn at under one pixel per point, so 0.5 pt and 1 pt frames would
 // both round to one pixel. Each frame line gets a fixed screen width instead, so they look
 // different; the exports draw the true point widths. Lines sit where they print (see
-// S.CORE.frameLines): the frame is outside the stamp, with 1 mm clear all round.
+// S.CORE.frameLines): the frame is outside the stamp, past the album's mount and gap.
 var FRAME_PX = { thin: 1, medium: 2, double: 1 };
 var FRAME_DOUBLE_STEP_PX = 2;  // centre to centre, so the two lines of a double frame stay apart
 var SVG_NS = "http://www.w3.org/2000/svg";
@@ -303,6 +303,12 @@ function stampFrameSVG(el) {
     // The stamp's own size (from the catalogue): a faint dashed line, never printed
     svg.appendChild(outlineNode(own, { "class": "stamp-size-guide", fill: "none", stroke: "#8a8a8a",
         "stroke-width": 1, "stroke-dasharray": "3 2", "vector-effect": "non-scaling-stroke" }));
+    // The mount's edge (the album's overhang), a fainter dotted line, never printed
+    var over = S.CORE.getMount().overhang;
+    if (lines.length && over > 0) {
+        svg.appendChild(outlineNode(S.CORE.shapeOutline(el.s, 0, 0, el.w, el.h, over * sc), { "class": "mount-edge",
+            fill: "none", stroke: "#a39b8e", "stroke-width": 1, "stroke-dasharray": "1 2", "vector-effect": "non-scaling-stroke" }));
+    }
     lines.forEach(function(l) {
         svg.appendChild(outlineNode(S.CORE.shapeOutline(el.s, 0, 0, el.w, el.h, l.offset),
             { "class": "frame-line", fill: "none", stroke: colour, "stroke-width": l.width, "stroke-linejoin": "miter" }));
@@ -310,14 +316,18 @@ function stampFrameSVG(el) {
     return svg;
 }
 
-// "Frame 32.4 × 42.4 mm (1 mm clear all round)" for the selected stamp, under the Frame choice.
+// "Frame 24.4 × 27.4 mm: mount 1.5 mm, then 1 mm to the frame line" for the selected stamp.
 function frameNote(el) {
     if (!el || el.t !== "stamp") return "";
     var sc = S._sc, o = S.CORE.frameOutset(el);
     var w = el.w / sc, h = el.h / sc;
     var f = function(v) { return (Math.round(v * 10) / 10).toString(); };
     if (!o) return S.t("msg.no_frame_note", { w: f(w), h: f(h) });
-    return S.t("msg.frame_note", { fw: f(w + 2 * o), fh: f(h + 2 * o), clear: S.CORE.FRAME_CLEARANCE_MM, w: f(w), h: f(h) });
+    var m = S.CORE.getMount();
+    if (m.overhang > 0) {
+        return S.t("msg.frame_note_mount", { fw: f(w + 2 * o), fh: f(h + 2 * o), over: f(m.overhang), gap: f(m.gap), w: f(w), h: f(h) });
+    }
+    return S.t("msg.frame_note", { fw: f(w + 2 * o), fh: f(h + 2 * o), clear: f(m.gap), w: f(w), h: f(h) });
 }
 function updateFrameNote() {
     var n = $("pframe-size");

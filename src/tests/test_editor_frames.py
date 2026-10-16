@@ -47,6 +47,7 @@ def _show(page, els, border="none", select=None):
     page.evaluate(
         """([els, border, sel]) => {
         StampAlbum.newAlbum();
+        StampAlbum.CORE.setMount(0, 1);  // 1 mm frames, as these sizes assume
         StampAlbum.E.length = 0;
         els.forEach(e => StampAlbum.E.push(e));
         StampAlbum._pageBorder = border;

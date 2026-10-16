@@ -394,6 +394,17 @@ function init() {
         S.schedulePreviewRefresh();
     });
 
+    // The album's stamp mounts: every frame moves out or in
+    ["def-mount-over", "def-mount-gap"].forEach(function(id) {
+        $(id).addEventListener("change", function() {
+            S.CORE.setMount(Number($("def-mount-over").value), Number($("def-mount-gap").value));
+            S.syncMount();
+            render();
+            pushUndo();
+            S.schedulePreviewRefresh();
+        });
+    });
+
     $("def-heading").addEventListener("change", function() {
         S._captionHeading = this.value;
         render();  // caption headings take the new weight
@@ -710,6 +721,8 @@ function init() {
     // until something was added), marked Not saved, and a note says where it came from.
     var _restored = false;
     if (loadDraft) _restored = loadDraft();
+    // A fresh start is a new album: its stamp mounts start at the new album's
+    if (!_restored) S.CORE.setMount(S.CORE.NEW_ALBUM_MOUNT.overhang, S.CORE.NEW_ALBUM_MOUNT.gap);
     if (_restored) {
         S._dirty = true;
         var hasItems = S._pages.some(function(p, i) {

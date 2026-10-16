@@ -168,6 +168,10 @@
             <p data-i18n="ui.colours_the_page_border_and" id="theme-note" class="rp-note">Colours the page border and headings. Stamp frames stay black.</p>
             <div class="rp-row"><label data-i18n="ui.headings" for="def-heading">Headings</label><select id="def-heading" aria-describedby="heading-note"><option data-i18n="ui.bold" value="bold">Bold</option><option data-i18n="ui.semibold" value="semibold">Semibold</option></select></div>
             <p data-i18n="ui.weight_of_the_headings_above" id="heading-note" class="rp-note">Weight of the headings above stamps.</p>
+            <h3 data-i18n="ui.stamp_mounts" class="rp-sec">Stamp mounts</h3>
+            <div class="rp-row"><label data-i18n="ui.mount_overhang" for="def-mount-over">Mount overhang</label><select id="def-mount-over" aria-describedby="mount-note"></select></div>
+            <div class="rp-row"><label data-i18n="ui.gap_to_frame" for="def-mount-gap">Gap to frame</label><select id="def-mount-gap" aria-describedby="mount-note"></select></div>
+            <p id="mount-note" class="rp-note"></p>
             <h3 data-i18n="ui.placing_items" class="rp-sec">Placing items</h3>
             <div class="rp-row"><label data-i18n="ui.snap" for="grid">Snap</label><select id="grid" aria-describedby="snap-note"><option data-i18n="ui.off" value="0">Off</option><option data-i18n="ui.5_mm_grid" value="5" selected>5 mm grid</option><option data-i18n="ui.10_mm_grid" value="10">10 mm grid</option></select></div>
             <p data-i18n="ui.snap_moves_to_a_grid" id="snap-note" class="rp-note">Items you move jump to the nearest grid point.</p>
@@ -223,7 +227,7 @@
         </div>
         <div class="wiz-group">
             <label data-i18n="ui.page_size" for="wiz-pg-size">Page size</label>
-            <select id="wiz-pg-size"><option data-i18n="ui.a4_210_297mm" value="a4">A4 (210×297mm)</option><option data-i18n="ui.a5_148_210mm" value="a5">A5 (148×210mm)</option><option data-i18n="ui.a3_297_420mm" value="a3">A3 (297×420mm)</option><option data-i18n="ui.letter_216_279mm" value="letter">Letter (216×279mm)</option><option data-i18n="ui.legal_216_356mm" value="legal">Legal (216×356mm)</option></select>
+            <select id="wiz-pg-size"><option data-i18n="ui.a4_210_297mm" value="a4">A4 (210×297mm)</option><option data-i18n="ui.a5_148_210mm" value="a5">A5 (148×210mm)</option><option data-i18n="ui.a3_297_420mm" value="a3">A3 (297×420mm)</option><option data-i18n="ui.letter_216_279mm" value="letter">Letter (216×279mm)</option><option data-i18n="ui.legal_216_356mm" value="legal">Legal (216×356mm)</option><optgroup data-i18n-attr="label:ui.fip_exhibit_sheets" label="FIP exhibit sheets"><option data-i18n="ui.fip_23" value="fip23">FIP sheet 23 × 29.7 cm</option><option data-i18n="ui.fip_31" value="fip31">FIP sheet 31 × 29.7 cm</option><option data-i18n="ui.fip_46" value="fip46">FIP sheet 46 × 29.7 cm</option></optgroup></select>
             <label data-i18n="ui.orientation" for="wiz-orient">Orientation</label>
             <select id="wiz-orient"><option data-i18n="ui.portrait" value="portrait">Portrait</option><option data-i18n="ui.landscape" value="landscape">Landscape</option></select>
         </div>
@@ -257,8 +261,8 @@
         <div class="ps-hdr"><h2 data-i18n="ui.page_setup_2" id="ps-title">Page setup</h2><span class="spacer"></span><button data-i18n-attr="aria-label:ui.close_page_setup" id="ps-close" aria-label="Close page setup"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div>
         <div class="ps-body">
             <label data-i18n="ui.paper_size" for="ps-size">Paper size</label>
-            <select id="ps-size"><option data-i18n="ui.a4_210_297_mm" value="a4">A4 (210 × 297 mm)</option><option data-i18n="ui.a5_148_210_mm" value="a5">A5 (148 × 210 mm)</option><option data-i18n="ui.a3_297_420_mm" value="a3">A3 (297 × 420 mm)</option><option data-i18n="ui.letter_216_279_mm" value="letter">Letter (216 × 279 mm)</option><option data-i18n="ui.legal_216_356_mm" value="legal">Legal (216 × 356 mm)</option></select>
-            <fieldset class="ps-orient">
+            <select id="ps-size"><option data-i18n="ui.a4_210_297_mm" value="a4">A4 (210 × 297 mm)</option><option data-i18n="ui.a5_148_210_mm" value="a5">A5 (148 × 210 mm)</option><option data-i18n="ui.a3_297_420_mm" value="a3">A3 (297 × 420 mm)</option><option data-i18n="ui.letter_216_279_mm" value="letter">Letter (216 × 279 mm)</option><option data-i18n="ui.legal_216_356_mm" value="legal">Legal (216 × 356 mm)</option><optgroup data-i18n-attr="label:ui.fip_exhibit_sheets" label="FIP exhibit sheets"><option data-i18n="ui.fip_23" value="fip23">FIP sheet 23 × 29.7 cm</option><option data-i18n="ui.fip_31" value="fip31">FIP sheet 31 × 29.7 cm</option><option data-i18n="ui.fip_46" value="fip46">FIP sheet 46 × 29.7 cm</option></optgroup></select>
+            <fieldset class="ps-orient" id="ps-orient">
                 <legend data-i18n="ui.orientation">Orientation</legend>
                 <label data-i18n="ui.portrait"><input type="radio" name="ps-orient" id="ps-orient-portrait" value="portrait"> Portrait</label>
                 <label data-i18n="ui.landscape"><input type="radio" name="ps-orient" id="ps-orient-landscape" value="landscape"> Landscape</label>

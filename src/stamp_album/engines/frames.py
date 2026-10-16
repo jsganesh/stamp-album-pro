@@ -3,8 +3,9 @@
 A stamp's stored width and height are the stamp's own size, as given in the
 catalogue. The frame is drawn outside it:
 
-* ``CLEARANCE_MM`` of clear space all round between the stamp and the inside
-  of the frame line (free shapes have none: their outline is the frame);
+* clear space all round between the stamp and the inside of the frame line: the
+  album's mount overhang plus its gap to the frame (``apply_mount``), ``CLEARANCE_MM``
+  when nothing set it (free shapes have none: their outline is the frame);
 * then the line or lines: thin 0.5 pt, medium 1 pt, double two 0.5 pt lines
   ``DOUBLE_GAP_PT`` apart;
 * stamps are framed in black.
@@ -22,7 +23,13 @@ from dataclasses import dataclass
 
 from stamp_album.engines.borders import polygon_points
 
-CLEARANCE_MM = 1.0  # clear space between the stamp and the inside of its frame line
+CLEARANCE_MM = 1.0  # clear space when no album set it: albums from before mounts (0 + 1 mm)
+# Mount overhang and gap to the frame (mm): the choices offered, and a new album's
+MOUNT_OVERHANG_CHOICES = (0.0, 1.0, 1.5, 2.0, 2.5, 3.0)
+MOUNT_GAP_CHOICES = (1.0, 1.5, 2.0, 2.5, 3.0)
+NEW_ALBUM_MOUNT = (1.5, 1.0)
+OLD_ALBUM_MOUNT = (0.0, 1.0)  # an album that doesn't say
+MOUNT_MAX_MM = 10.0  # larger values in a file are ignored
 MM_PER_PT = 25.4 / 72.0
 DOUBLE_GAP_PT = 1.0  # space between the two lines of a double frame
 # Line widths in points, from the inside out
@@ -58,7 +65,28 @@ def clearance(stamp) -> float:
     """Clear space between the stamp and its frame line (mm)."""
     if _frame(stamp) == "none" or getattr(stamp, "is_freehand", False):
         return 0.0
-    return CLEARANCE_MM
+    c = getattr(stamp, "clearance_mm", None)
+    return CLEARANCE_MM if c is None else c
+
+
+def valid_mount(overhang, gap) -> bool:
+    """Whether a mount read from a file or a request can be used."""
+    try:
+        o, g = float(overhang), float(gap)
+    except (TypeError, ValueError):
+        return False
+    return 0 <= o <= MOUNT_MAX_MM and 0 < g <= MOUNT_MAX_MM
+
+
+def apply_mount(album) -> None:
+    """Give every stamp in *album* the album's clearance (mount overhang + gap)."""
+    total = float(getattr(album, "mount_overhang", 0.0)) + float(getattr(album, "mount_gap", 1.0))
+    for page in getattr(album, "pages", []):
+        for s in page.absolute_stamps:
+            s.clearance_mm = total
+        for row in page.rows:
+            for s in row.stamps:
+                s.clearance_mm = total
 
 
 def lines(stamp) -> list[FrameLine]:

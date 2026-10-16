@@ -426,5 +426,20 @@
   "ui.move_later": "Move later",
   "msg.page_n_options": "Page {n}: move or delete",
   "msg.delete_page_confirm": "Delete page {n} and everything on it? You can undo this with Edit › Undo.",
-  "msg.page_moved": "Moved to page {n}"
+  "msg.page_moved": "Moved to page {n}",
+  "ui.stamp_mounts": "Stamp mounts",
+  "ui.mount_overhang": "Mount overhang",
+  "ui.gap_to_frame": "Gap to frame",
+  "msg.mount_none": "None",
+  "msg.mm_value": "{n} mm",
+  "msg.mount_note": "How far each mount shows beyond its stamp, then the space to the frame line. Frames are drawn {total} mm out from the stamp; the mount's edge shows as a dotted line that is never printed.",
+  "msg.mount_note_none": "No mount shows beyond the stamps. Frames are drawn {total} mm out from the stamp.",
+  "msg.frame_note_mount": "Frame {fw} × {fh} mm: mount {over} mm, then {gap} mm to the frame line (stamp {w} × {h} mm, dashed).",
+  "ui.fip_exhibit_sheets": "FIP exhibit sheets",
+  "ui.fip_23": "FIP sheet 23 × 29.7 cm",
+  "msg.paper_fip23": "FIP sheet 23 × 29.7 cm",
+  "ui.fip_31": "FIP sheet 31 × 29.7 cm",
+  "msg.paper_fip31": "FIP sheet 31 × 29.7 cm",
+  "ui.fip_46": "FIP sheet 46 × 29.7 cm",
+  "msg.paper_fip46": "FIP sheet 46 × 29.7 cm"
 }

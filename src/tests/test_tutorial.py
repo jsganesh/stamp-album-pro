@@ -80,6 +80,6 @@ def test_sample_captions_give_year_name_and_condition_only(page):
     )
     assert caps == [
         "1840 | Penny Black | Used",
-        "1840 | Twopence\nBlue | Used",
+        "1840 | Twopence Blue | Used",  # fits on one line inside the sample's 2.5 mm frames
         "1841 | Penny Red | Used",
     ], caps

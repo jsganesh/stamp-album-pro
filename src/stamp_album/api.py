@@ -34,7 +34,7 @@ from stamp_album.cloud_sync import (
 from stamp_album.core.models import Album
 from stamp_album.core.parser import AlbumParser, ParseError
 from stamp_album.core.serializer import AlbumSerializer
-from stamp_album.engines import calibration
+from stamp_album.engines import calibration, frames
 from stamp_album.engines.html_renderer import HTMLRenderer
 from stamp_album.engines.pdf import PDFGenerator
 from stamp_album.engines.raster import PNGGenerator
@@ -478,6 +478,10 @@ class CanvasStateRequest(BaseModel):
     border_color: str = ""
     theme_color: str = ""  # the album theme's colour, for marked headings
     caption_heading: str = "bold"  # stamp caption headings: "bold" or "semibold"
+    # The album's stamp mounts (mm): overhang beyond the stamp, then the gap to the frame.
+    # A request without them is drawn as albums were before mounts (0 + 1).
+    mount_overhang: float = 0.0
+    mount_gap: float = 1.0
 
 
 def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
@@ -576,6 +580,9 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
         pages=pages,
         caption_heading="semibold" if req.caption_heading == "semibold" else "bold",
     )
+    if frames.valid_mount(req.mount_overhang, req.mount_gap):
+        album.mount_overhang, album.mount_gap = float(req.mount_overhang), float(req.mount_gap)
+    frames.apply_mount(album)
     album.color_stamp_border = Color(r=0.5, g=0.5, b=0.5)
     album.color_stamp_background = Color(r=1.0, g=1.0, b=1.0)
 

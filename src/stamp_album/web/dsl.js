@@ -46,6 +46,7 @@ function buildDSL() {
         pageBorderC: S._pageBorderC,
         theme: S._theme,
         captionHeading: S._captionHeading,
+        mount: S.CORE.getMount(),
         colMode: S._colMode || 1,
         colGap: S._colGap || 10,
         currentFile: S._currentFile || ""
@@ -72,6 +73,7 @@ function parseDSL(dsl) {
         S._pageBorderC = state.pageBorderC;
         S._theme = state.theme;
         S._captionHeading = state.captionHeading;
+        S.CORE.setMount(state.mount.overhang, state.mount.gap);  // as stored, else 0 + 1 mm as before
         S._colMode = state.colMode;
         S._colGap = state.colGap;
         S._pages = JSON.parse(JSON.stringify(state.pages));

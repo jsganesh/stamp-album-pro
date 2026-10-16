@@ -30,7 +30,9 @@ function buildCanvasState(format) {
         border_style: S._pageBorder || "",
         border_color: S.themeColor(),
         theme_color: S.themeColor(),  // marked headings
-        caption_heading: S._captionHeading
+        caption_heading: S._captionHeading,
+        mount_overhang: S.CORE.getMount().overhang,
+        mount_gap: S.CORE.getMount().gap
     };
 }
 
