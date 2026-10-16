@@ -38,7 +38,9 @@ def test_dsl_core_paper_table():
 
 
 def test_wizard_paper_table():
-    _check(_js_table("wizard.js"), scale=1)
+    # The wizard uses the shared table (with the FIP sheets) rather than a copy of its own
+    text = (WEB / "wizard.js").read_text(encoding="utf-8")
+    assert "S.CORE.PAPER_MM" in text and not _js_table("wizard.js")
 
 
 def test_css_page_sizes():
