@@ -31,31 +31,63 @@ function startAlbum(content) {
     S.scheduleDraftSave();
 }
 
-function saveFile() {
+// Albums are saved as .slbum files in the app's albums folder. An album opened from a .txt (an
+// older album, or an AlbumEasy file) is never saved over: Save asks for a name, suggesting the
+// same name as .slbum. A name already used by another saved album is replaced only when the
+// person says so.
+function albumFileName(name) {
+    name = String(name || "").trim().replace(/[\\/:]/g, "-");
+    if (/\.txt$/i.test(name)) name = name.slice(0, -4);
+    name = name.replace(/^\.+/, "");
+    if (!/\.slbum$/i.test(name)) name += ".slbum";
+    return name === ".slbum" ? "" : name;
+}
+
+function suggestedName() {
+    return S._currentFile ? albumFileName(S._currentFile) : "album.slbum";
+}
+
+// Ask for a file name until one is free or may be replaced; resolves to null on Cancel.
+function chooseName(suggestion) {
+    var typed = prompt(S.t("msg.file_name"), suggestion);
+    if (typed === null) return Promise.resolve(null);
+    var name = albumFileName(typed);
+    if (!name) return chooseName(suggestion);
+    return fetch("/files").then(function(r) { return r.ok ? r.json() : []; }, function() { return []; })
+        .then(function(saved) {
+            if (saved.indexOf(name) === -1 || name === S._currentFile) return name;
+            if (confirm(S.t("msg.replace_album", { name: name.replace(/\.slbum$/i, "") }))) return name;
+            return chooseName(name);
+        });
+}
+
+function writeFile(name) {
     var dsl = S.buildDSL();
-    if (S._currentFile) {
-        fetch("/files/" + encodeURIComponent(S._currentFile), {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ content: dsl })
-        }).then(function(r) {
-            if (r.ok) { return r.json(); }
-            throw new Error(S.t("msg.save_failed"));
-        }).then(function(data) {
-            S._dirty = false;
-            if (S.hideRestoreNote) S.hideRestoreNote();
-            S.clearDraft();
-            updateTitle();
-            if (S.updateStatusBar) S.updateStatusBar();
-            showToast(S.t("msg.saved_to", { path: data.path || S._currentFile }), "success");
-        }).catch(function() { showToast(S.t("msg.save_failed"), "error"); });
-    } else {
-        var name = prompt(S.t("msg.file_name"), "album.slbum");
-        if (!name) return;
-        if (!name.endsWith(".slbum") && !name.endsWith(".txt")) name += ".slbum";
+    return fetch("/files/" + encodeURIComponent(name), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: dsl })
+    }).then(function(r) {
+        if (r.ok) { return r.json(); }
+        throw new Error(S.t("msg.save_failed"));
+    }).then(function(data) {
         S._currentFile = name;
-        saveFile();
-    }
+        S._dirty = false;
+        if (S.hideRestoreNote) S.hideRestoreNote();
+        S.clearDraft();
+        updateTitle();
+        if (S.updateStatusBar) S.updateStatusBar();
+        showToast(S.t("msg.saved_to", { path: data.path || name }), "success");
+        return true;
+    }).catch(function() { showToast(S.t("msg.save_failed"), "error"); return false; });
+}
+
+// Save: to the album's own .slbum file, else to a name chosen now. Resolves to true once saved.
+function saveFile() {
+    if (S._currentFile && /\.slbum$/i.test(S._currentFile)) return writeFile(S._currentFile);
+    return chooseName(suggestedName()).then(function(name) {
+        return name ? writeFile(name) : false;
+    });
 }
 
 // ── Image management ──
@@ -169,6 +201,7 @@ function loadImageList() { syncImageList(true); }
 S.openAlbum = openAlbum;
 S.startAlbum = startAlbum;
 S.saveFile = saveFile;
+S.albumFileName = albumFileName;
 S.uploadImageFile = uploadImageFile;
 S.loadImageList = loadImageList;
 S.syncImageList = syncImageList;
