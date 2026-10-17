@@ -551,6 +551,68 @@ function init() {
         $("template-gallery-panel").classList.remove("open");
     });
 
+    // A template's first page, drawn as on the page strip (S.drawPageThumb) at its own paper
+    // size, border, theme and mounts. Items from the parser are in mm.
+    function drawTemplate(svg, dsl) {
+        var core = S.CORE, state = core.parseDSL(dsl);
+        var size = core.normalizePageSize(state.pw, state.ph);
+        S.drawPageThumb(svg, state.pages[0] || [], {
+            pw: size.pw, ph: size.ph, border: state.pageBorder, color: core.themeColor(state),
+            mount: state.mount, unit: 1
+        });
+        svg.style.aspectRatio = size.pw + " / " + size.ph;  // the picture keeps the paper's shape
+    }
+
+    // Picking a template starts a new, unnamed album from it (after asking about unsaved work).
+    function useTemplate(name, dsl) {
+        if (!dsl || !S.okToDiscard()) return;
+        S.startAlbum(dsl);
+        showToast(S.t("msg.template_loaded", { name: name }), "success");
+        $("template-gallery-panel").classList.remove("open");
+        $("wizard-panel").classList.remove("open");
+    }
+
+    function templateCard(t, i) {
+        var card = document.createElement("button");
+        card.type = "button";
+        card.className = "tg-card";
+        card.dataset.id = t.id;
+        var pic = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        pic.setAttribute("class", "tg-pic");
+        pic.setAttribute("aria-hidden", "true");
+        pic.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        var frame = document.createElement("span");
+        frame.className = "tg-pic-wrap";
+        frame.appendChild(pic);
+        card.appendChild(frame);
+        var title = document.createElement("span");
+        title.className = "tg-card-title";
+        title.id = "tg-title-" + i;
+        title.textContent = t.name;
+        card.appendChild(title);
+        card.setAttribute("aria-labelledby", title.id);
+        if (t.description) {
+            var desc = document.createElement("span");
+            desc.className = "tg-card-desc";
+            desc.id = "tg-desc-" + i;
+            desc.textContent = t.description;
+            card.appendChild(desc);
+            card.setAttribute("aria-describedby", desc.id);
+        }
+        // The list carries each template's contents; else (an older server) fetch them.
+        var got = t.dsl ? Promise.resolve(t.dsl) : fetch("/api/templates/" + encodeURIComponent(t.id))
+            .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+            .then(function(data) { return data.dsl; });
+        got.then(function(dsl) {
+            if (dsl) drawTemplate(pic, dsl);
+        }).catch(function() { /* the card still works by its name */ });
+        card.addEventListener("click", function() {
+            got.then(function(dsl) { useTemplate(t.name, dsl); })
+                .catch(function(err) { showToast(S.t("msg.failed_to_load", { msg: err }), "error"); });
+        });
+        return card;
+    }
+
     function openTemplateGallery() {
         var grid = $("template-grid");
         if (!grid) return;
@@ -564,34 +626,7 @@ function init() {
             .then(function(r) { return r.json(); })
             .then(function(templates) {
                 grid.innerHTML = "";
-                templates.forEach(function(t) {
-                    var card = document.createElement("button");
-                    card.type = "button";
-                    card.className = "tg-card";
-                    [["tg-card-title", t.name], ["tg-card-desc", t.description || ""], ["tg-card-cat", t.category || ""]].forEach(function(part) {
-                        var d = document.createElement("span");
-                        d.className = part[0];
-                        d.style.display = "block";
-                        d.textContent = part[1];
-                        card.appendChild(d);
-                    });
-                    card.addEventListener("click", function() {
-                        fetch("/api/templates/" + t.id)
-                            .then(function(r) { return r.json(); })
-                            .then(function(data) {
-                                if (data.dsl) {
-                                    parseDSL(data.dsl);
-                                    pushUndo();
-                                    render();
-                                    showToast(S.t("msg.template_loaded", { name: data.name }), "success");
-                                    $("template-gallery-panel").classList.remove("open");
-                                    $("wizard-panel").classList.remove("open");
-                                }
-                            })
-                            .catch(function(err) { showToast(S.t("msg.failed_to_load", { msg: err }), "error"); });
-                    });
-                    grid.appendChild(card);
-                });
+                templates.forEach(function(t, i) { grid.appendChild(templateCard(t, i)); });
             })
             .catch(function() {
                 grid.innerHTML = "";

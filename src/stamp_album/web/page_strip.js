@@ -19,16 +19,38 @@ function el(name, attrs) {
     return n;
 }
 
-// The drawing of one page's items, in mm.
-function drawPage(svg, items) {
-    var sc = S._sc, pw = S._pw / sc, ph = S._ph / sc;
+// The open album's page, as drawPage takes it: items in canvas px.
+function openAlbumPage() {
+    return { pw: S._pw / S._sc, ph: S._ph / S._sc, border: S._pageBorder, color: S.themeColor(),
+             mount: null, unit: S._sc };
+}
+
+// The drawing of one page's items, in mm. `page` gives the paper ({pw, ph} in mm), the
+// border style, the theme colour, the mounts (null: the open album's) and `unit`, the items'
+// units per mm (2.5 for the editor's px, 1 for a parsed file's mm). Without it, the open album.
+// Used by the page strip and the template gallery (S.drawPageThumb).
+function drawPage(svg, items, page) {
+    var pg = page || openAlbumPage();
+    var sc = pg.unit || 1, pw = pg.pw, ph = pg.ph, color = pg.color;
+    var before = pg.mount ? S.CORE.getMount() : null;
+    if (before) S.CORE.setMount(pg.mount.overhang, pg.mount.gap);  // frame outsets for this page
+    try {
+        drawItems(svg, items, sc, pw, ph, pg.border, color);
+    } finally {
+        if (before) S.CORE.setMount(before.overhang, before.gap);
+    }
+}
+
+function drawItems(svg, items, sc, pw, ph, border, color) {
     while (svg.firstChild) svg.removeChild(svg.firstChild);
     svg.setAttribute("viewBox", "0 0 " + pw + " " + ph);
     svg.appendChild(el("rect", { x: 0, y: 0, width: pw, height: ph, fill: "#fff" }));
-    if (S._pageBorder && S._pageBorder !== "none") {
-        var m = 12 / sc;  // where borders.js draws the border
-        svg.appendChild(el("rect", { x: m, y: m, width: pw - 2 * m, height: ph - 2 * m, fill: "none",
-                                     stroke: S.themeColor(), "stroke-width": 0.8 }));
+    if (border && border !== "none") {
+        var m = 12 / S._sc;  // where borders.js draws the border (12 canvas px)
+        var frame = el("rect", { x: m, y: m, width: pw - 2 * m, height: ph - 2 * m, fill: "none",
+                                 stroke: color, "stroke-width": 0.8 });
+        frame.setAttribute("class", "pg-border");
+        svg.appendChild(frame);
     }
     (items || []).forEach(function(it) {
         var x = it.x / sc, y = it.y / sc, w = it.w / sc, h = it.h / sc;
@@ -36,11 +58,13 @@ function drawPage(svg, items) {
             // Grey bars where the lines of text sit; a heading darker
             var lh = Math.max(1.5, (it.fs || 12) * 25.4 / 72 * 1.3);
             var n = Math.max(1, Math.min(12, Math.floor(h / lh)));
-            var bar = Math.max(1, lh * 0.55), fill = it.role === "heading" ? S.themeColor() : "#B8B2A7";
+            var bar = Math.max(1, lh * 0.55), fill = it.role === "heading" ? color : "#B8B2A7";
             for (var i = 0; i < n; i++) {
                 var bw = (i === n - 1 && n > 1) ? w * 0.6 : w * 0.92;
                 var bx = it.align === "center" ? x + (w - bw) / 2 : it.align === "right" ? x + w - bw : x;
-                svg.appendChild(el("rect", { x: bx, y: y + i * lh + (lh - bar) / 2, width: bw, height: bar, fill: fill, rx: bar / 3 }));
+                var line = el("rect", { x: bx, y: y + i * lh + (lh - bar) / 2, width: bw, height: bar, fill: fill, rx: bar / 3 });
+                line.setAttribute("class", "pg-text" + (it.role === "heading" ? " pg-heading" : ""));
+                svg.appendChild(line);
             }
             return;
         }

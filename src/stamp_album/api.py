@@ -1021,13 +1021,14 @@ async def api_revoke_share(share_id: str, request: Request):
 # ── Templates API ──
 @app.get("/api/templates")
 async def list_templates():
-    """List all available album templates."""
+    """List all available album templates, with their contents (the gallery draws each page)."""
     return [
         {
             "id": t["id"],
             "name": t["name"],
             "description": t["description"],
             "category": t.get("category", "General"),
+            "dsl": t["content"],
         }
         for t in TEMPLATES
     ]
