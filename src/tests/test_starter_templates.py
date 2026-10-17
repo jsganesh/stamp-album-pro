@@ -17,7 +17,11 @@ from stamp_album.core.parser import AlbumParser
 from stamp_album.engines import caption_layout, frames, text_layout
 from stamp_album.templates import TEMPLATES
 
-EXPECTED_IDS = ["single_stamp", "set_row", "title_page", "exhibition_page"]
+EXPECTED_IDS = ["single_stamp", "set_row", "title_page", "exhibition_page",
+                "introduction_page", "long_set", "stamps_with_illustrations",
+                "normal_and_varieties"]
+# From the owner's AlbumEasy layouts (2026-10-17); their picture spaces are free shapes
+ALBUMEASY_IDS = EXPECTED_IDS[4:]
 IDS = [t["id"] for t in TEMPLATES]
 EPS = 1e-6
 
@@ -78,7 +82,7 @@ def layout_problems(t) -> list[str]:
     return problems
 
 
-def test_the_four_starter_templates():
+def test_the_starter_templates():
     assert IDS == EXPECTED_IDS
     for t in TEMPLATES:
         assert t["name"] and t["description"] and t["category"] and t["content"]
@@ -96,8 +100,11 @@ def test_template_is_exhibition_style(tid):
     if tid != "title_page":
         assert stamps
     for s in stamps:
+        assert s.description.strip(), "every stamp and picture space is named"
+        if s.is_freehand:
+            continue  # a picture space: labelled, no frame or catalogue number
         assert s.frame != "none"
-        assert s.description.strip() and s.catalog_refs, "every stamp shows how to caption it"
+        assert s.catalog_refs, "every stamp shows how to caption it"
 
 
 @pytest.mark.parametrize("tid", IDS)
@@ -204,3 +211,34 @@ def test_stamp_placeholders_never_say_description():
     names = {s.description for s in _stamps(next(t for t in TEMPLATES
                                                     if t["id"] == "exhibition_page"))}
     assert names == {"Name"}
+
+
+@pytest.mark.parametrize("tid", ALBUMEASY_IDS)
+def test_albumeasy_layouts_carry_nothing_of_the_owners_albums(tid):
+    """Layouts only: no country, write-up, colour name or catalogue number from the albums."""
+    import re
+
+    content = next(t for t in TEMPLATES if t["id"] == tid)["content"]
+    for word in ("Pakistan", "Qatar", "Bahawalpur", "Nigeria", "Bahrain", "Tristan", "India",
+                 "SG#", "SC#", "Scott", "Gibbons", "carmine", "Elizabeth", "George"):
+        assert word.lower() not in content.lower(), word
+    assert not re.search(r"\b(SG|SC|SW)\s*\d", content)
+
+
+PICTURE_SPACES = {
+    "introduction_page": ["Map", "Coat of arms", "Flag"],
+    "stamps_with_illustrations": ["Overprint type 1", "Overprint type 2", "Overprint detail"],
+}
+
+
+@pytest.mark.parametrize("tid", list(PICTURE_SPACES))
+def test_picture_spaces_are_labelled_free_shapes(tid):
+    pics = [s for s in _stamps(next(t for t in TEMPLATES if t["id"] == tid))
+            if s.is_freehand]
+    assert [s.description for s in pics] == PICTURE_SPACES[tid]
+
+
+def test_varieties_are_named_above_each_stamp():
+    stamps = _stamps(next(t for t in TEMPLATES if t["id"] == "normal_and_varieties"))
+    heads = [s.heading.text for s in stamps]
+    assert heads == ["Normal", "Shade", "Paper", "Watermark", "Perforation"] * 3

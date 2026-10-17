@@ -16,7 +16,7 @@ Design and print stamp album pages. StampAlbum Pro pairs a drag-and-drop page ca
 - **Pages:** add and delete pages; page sizes include A5 and Legal
 - **Layout tools:** grid fill and undo/redo
 - **Images:** attach an image to place it on the page; the Images section lists the ones the open album uses
-- **Starter templates:** four exhibition-style pages in the wizard's Template Gallery: Single stamp, Set row, Title page and Exhibition page
+- **Starter templates:** eight pages in the Template Gallery, each shown as a picture: four exhibition-style pages (Single stamp, Set row, Title page, Exhibition page) and four album pages (Introduction page, Long set, Stamps with illustrations, Normal and varieties)
 - **DSL mode:** an advanced text view of the same page, for precise or bulk editing
 - **Export:** PDF, PNG and SVG
 - **Print calibration page:** a PDF with rulers, a measured square and sample frames, to check your printer prints 1 mm as 1 mm (Help › Print calibration page…)
