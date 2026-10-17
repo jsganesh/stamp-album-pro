@@ -75,7 +75,7 @@ def test_every_card_draws_its_own_page(page):
         assert shapes == want_shapes, tid
         assert texts >= want_texts > 0, tid  # a text item draws one bar per line
         assert border == int(want_border), tid
-    # The four pages look different
+    # The pages look different
     assert len({tuple(d[1:]) for d in drawn}) == len(TEMPLATES)
     assert page.js_errors == []
 
