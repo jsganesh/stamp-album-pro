@@ -1,13 +1,11 @@
 "use strict";
 (function(){
 var S = window.StampAlbum;
-var $ = S.$, showToast = S.showToast, pushUndo = S.pushUndo, render = S.render;
-var parseDSL = S.parseDSL, escapeDSL = S.escapeDSL;
+var $ = S.$, showToast = S.showToast, escapeDSL = S.escapeDSL;
 
 // ── Wizard ──
 // The wizard always starts a new album; to change the open album's page use Page setup.
 function applyWizard() {
-    if (S._dirty && !confirm(S.t("msg.discard_unsaved"))) return;
     var title = $("wiz-title").value || "";
     var author = $("wiz-author").value || "";
     var pgSize = $("wiz-pg-size").value || "a4";
@@ -15,9 +13,10 @@ function applyWizard() {
     var tpl = $("wiz-template").value;
 
     if (tpl && tpl !== "blank") {
-        $("btn-wiz-template").click();
+        $("btn-wiz-template").click();  // the gallery asks about unsaved work when one is picked
         return;
     }
+    if (!S.okToDiscard()) return;
 
     var lines = [];
     lines.push('ALBUM_TITLE("' + escapeDSL(title) + '")');
@@ -33,9 +32,7 @@ function applyWizard() {
 
     if (title) lines.push('PAGE_TEXT_CENTRE("HB" 16 "' + escapeDSL(title) + '")');
 
-    parseDSL(lines.join("\n"));
-    pushUndo();
-    render();
+    S.startAlbum(lines.join("\n"));
     $("wizard-panel").classList.remove("open");
     showToast(S.t("msg.album_from_wizard"), "success");
 }

@@ -18,6 +18,19 @@ function openAlbum(name, content) {
     if (S.checkFitOnOpen) S.checkFitOnOpen();
 }
 
+// Start a new, unnamed album from a template or the wizard. It has no file yet, so Save asks
+// for a name rather than writing over the album that was open; it is Not saved until then.
+// The caller has already asked about unsaved work (S.okToDiscard).
+function startAlbum(content) {
+    if (S.hideRestoreNote) S.hideRestoreNote();
+    S._currentFile = null;
+    parseDSL(content);
+    S.resetUndo();
+    S._dirty = true;
+    updateTitle();
+    S.scheduleDraftSave();
+}
+
 function saveFile() {
     var dsl = S.buildDSL();
     if (S._currentFile) {
@@ -154,6 +167,7 @@ function loadImageList() { syncImageList(true); }
 
 // ── Exports ──
 S.openAlbum = openAlbum;
+S.startAlbum = startAlbum;
 S.saveFile = saveFile;
 S.uploadImageFile = uploadImageFile;
 S.loadImageList = loadImageList;
