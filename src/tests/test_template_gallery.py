@@ -4,10 +4,21 @@ shows a simple drawing of its page, in the page strip's style, drawn from the te
 Picking a template starts a new, unnamed album: it asks first when there is unsaved work, and a
 later Save never writes over the album that was open. The wizard starts albums the same way."""
 
+import pytest
 from test_ui_smoke import base_url, page  # noqa: F401  (fixtures)
 from test_zoom_ui import phone  # noqa: F401  (fixture)
 
+from stamp_album import api
 from stamp_album.templates import TEMPLATES
+
+
+@pytest.fixture(autouse=True)
+def albums(tmp_path, monkeypatch):
+    """Saves go to a folder of their own, never the albums folder on this computer."""
+    files = tmp_path / "albums"
+    files.mkdir()
+    monkeypatch.setattr(api, "FILES_DIR", files)
+    return files
 
 OPEN = "document.getElementById('btn-wiz-template').click()"
 

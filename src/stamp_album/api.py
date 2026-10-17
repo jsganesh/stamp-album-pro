@@ -143,9 +143,28 @@ async def list_files(sort: str = "name", limit: int = 0):
     return names[:limit] if limit > 0 else names
 
 
+# Album files are named plainly inside FILES_DIR. Albums are saved only as .slbum: a .txt
+# (an older album, or an AlbumEasy file the editor can't read yet) is opened but never written,
+# so a blank page saved by mistake can't replace it.
+ALBUM_SUFFIXES = (".slbum", ".txt")
+
+
+def _album_path(filename: str, saving: bool = False) -> Path:
+    bad = (
+        not filename
+        or filename.startswith(".")
+        or any(c in filename for c in "/\\:\0")
+        or Path(filename).suffix.lower() not in ((".slbum",) if saving else ALBUM_SUFFIXES)
+    )
+    if bad:
+        detail = "Albums are saved as .slbum files" if saving else "Not an album file name"
+        raise HTTPException(status_code=400, detail=detail)
+    return FILES_DIR / filename
+
+
 @app.get("/files/{filename}")
 async def get_file(filename: str):
-    filepath = FILES_DIR / filename
+    filepath = _album_path(filename)
     if not filepath.exists():
         raise HTTPException(status_code=404, detail="File not found")
     return PlainTextResponse(filepath.read_text(encoding="utf-8"))
@@ -153,14 +172,14 @@ async def get_file(filename: str):
 
 @app.post("/files/{filename}")
 async def save_file(filename: str, request: FileContent):
-    filepath = FILES_DIR / filename
+    filepath = _album_path(filename, saving=True)
     filepath.write_text(request.content, encoding="utf-8")
     return {"status": "saved", "path": str(filepath)}
 
 
 @app.delete("/files/{filename}")
 async def delete_file(filename: str):
-    filepath = FILES_DIR / filename
+    filepath = _album_path(filename)
     if not filepath.exists():
         raise HTTPException(status_code=404, detail="File not found")
     filepath.unlink()

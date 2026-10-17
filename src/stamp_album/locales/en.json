@@ -370,6 +370,7 @@
   "msg.save_failed": "Save failed",
   "msg.saved_to": "Saved to {path}",
   "msg.file_name": "File name:",
+  "msg.replace_album": "An album called “{name}” is already saved. Replace it?",
   "msg.upload_failed_plain": "Could not attach the image",
   "msg.upload_failed": "Could not attach the image: {msg}",
   "msg.add_image": "Add image {name}",
