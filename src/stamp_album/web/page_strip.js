@@ -93,6 +93,7 @@ function updateThumb() {
 }
 
 function renderPageStrip() {
+    if (S.syncPhoneBar) S.syncPhoneBar();  // the phone's Page button and pager
     var list = $("pg-list");
     if (!list) return;
     closeMenu();

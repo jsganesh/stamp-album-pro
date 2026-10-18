@@ -37,6 +37,10 @@
         <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M5 20h14"/></symbol>
         <symbol id="i-sheet" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6"/><path d="M9 17h6"/></symbol>
         <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></symbol>
+        <symbol id="i-plus-box" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><path d="M12 8v8"/><path d="M8 12h8"/></symbol>
+        <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 010 10h-3"/></symbol>
+        <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h10"/><path d="M18 7h2"/><circle cx="16" cy="7" r="2"/><path d="M4 17h2"/><path d="M10 17h10"/><circle cx="8" cy="17" r="2"/></symbol>
+        <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/></symbol>
         <symbol id="i-album" viewBox="0 0 24 24"><path d="M4 4h12a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3z"/><path d="M4 17a3 3 0 0 1 3-3h12"/></symbol>
         <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
         <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></symbol>
@@ -51,7 +55,7 @@
 </svg>
 
 <header id="tb">
-    <h1 class="logo"><span class="logo-long">StampAlbum Pro</span><span class="logo-short" aria-hidden="true">StampAlbum</span></h1>
+    <h1 class="logo"><span class="logo-long">StampAlbum Pro</span><span class="logo-short">StampAlbum</span></h1>
     <nav data-i18n-attr="aria-label:ui.main_menu" class="tb-menus" aria-label="Main menu">
         <div class="tb-menu"><button data-i18n="ui.file" class="tb-mbtn" id="menu-file-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-file">File <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div data-i18n-attr="aria-label:ui.file" class="tb-menu-list" id="menu-file" role="menu" aria-label="File" hidden><button data-i18n="ui.new_album" class="mi" role="menuitem" id="btn-new">New album</button><button data-i18n="ui.new_from_wizard" class="mi" role="menuitem" id="btn-wizard">New from wizard…</button><button data-i18n="ui.new_from_template" class="mi" role="menuitem" id="menu-template">New from template…</button><div class="msep" role="separator"></div><button data-i18n="ui.open" class="mi" role="menuitem" id="btn-open" aria-keyshortcuts="Meta+O">Open…<span class="mk" aria-hidden="true">⌘O</span></button><div class="msubmenu"><button data-i18n="ui.open_recent" class="mi" role="menuitem" id="menu-recent" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-recent-list">Open recent</button><div data-i18n-attr="aria-label:ui.open_recent" class="tb-menu-list tb-submenu" id="menu-recent-list" role="menu" aria-label="Open recent" hidden></div></div><button data-i18n="ui.manage_saved_albums" class="mi" role="menuitem" id="menu-manage">Manage saved albums…</button><button data-i18n="ui.save" class="mi" role="menuitem" id="btn-save" aria-keyshortcuts="Meta+S">Save<span class="mk" aria-hidden="true">⌘S</span></button><div class="msep" role="separator"></div><button data-i18n="ui.page_setup" class="mi" role="menuitem" id="menu-page-setup">Page setup…</button><div class="msep" role="separator"></div><button data-i18n="ui.export_as_pdf" class="mi" role="menuitem" id="menu-export-pdf" data-fmt="pdf">Export as PDF</button><button data-i18n="ui.export_as_png" class="mi" role="menuitem" id="menu-export-png" data-fmt="png">Export as PNG</button><button data-i18n="ui.export_as_svg" class="mi" role="menuitem" id="menu-export-svg" data-fmt="svg">Export as SVG</button><button data-i18n="ui.export_as_html" class="mi" role="menuitem" id="menu-export-html" data-fmt="html">Export as HTML</button></div></div>
         <div class="tb-menu"><button data-i18n="ui.edit" class="tb-mbtn" id="menu-edit-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-edit">Edit <svg class="chev" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div data-i18n-attr="aria-label:ui.edit" class="tb-menu-list" id="menu-edit" role="menu" aria-label="Edit" hidden><button data-i18n="ui.undo" class="mi" role="menuitem" id="menu-undo" aria-keyshortcuts="Meta+Z">Undo<span class="mk" aria-hidden="true">⌘Z</span></button><button data-i18n="ui.redo" class="mi" role="menuitem" id="menu-redo" aria-keyshortcuts="Shift+Meta+Z">Redo<span class="mk" aria-hidden="true">⇧⌘Z</span></button><div class="msep" role="separator"></div><button data-i18n="ui.duplicate" class="mi" role="menuitem" id="menu-dup" aria-keyshortcuts="Meta+D">Duplicate<span class="mk" aria-hidden="true">⌘D</span></button><button data-i18n="ui.grid_fill" class="mi" role="menuitem" id="menu-grid">Grid fill…</button><button data-i18n="ui.delete" class="mi" role="menuitem" id="menu-del" aria-keyshortcuts="Delete">Delete<span class="mk" aria-hidden="true">Del</span></button><div class="msep" role="separator"></div><button data-i18n="ui.add_page" class="mi" role="menuitem" id="menu-add-page">Add page</button><button data-i18n="ui.delete_page" class="mi" role="menuitem" id="menu-del-page">Delete page</button></div></div>
@@ -145,6 +149,12 @@
                 <p data-i18n="ui.tab_moves_between_items_on" id="page-keys" class="sr-only">Tab moves between items on the page. Arrow keys move the selected item one grid step, Shift with an arrow moves it 10 millimetres. Enter edits its properties, Delete removes it.</p><svg id="grid-overlay" aria-hidden="true"><defs><pattern id="grid-dots" patternUnits="userSpaceOnUse"><circle cx="0" cy="0" r="1" fill="#8a847a"/></pattern><pattern id="grid-pattern" patternUnits="userSpaceOnUse"><path d="M 0 0 L 0 0" fill="none" stroke="#aaa" stroke-width="1" opacity="0.6"/></pattern></defs><rect class="grid-dots" width="100%" height="100%" fill="url(#grid-dots)"/><rect class="grid-lines" width="100%" height="100%" fill="url(#grid-pattern)"/></svg>
             </div>
           </div>
+        </div>
+        <!-- Phone width, more than one page: change page without opening the Page sheet -->
+        <div id="pg-pager" hidden>
+            <button data-i18n-attr="aria-label:ui.previous_page" type="button" id="pg-pager-prev" aria-label="Previous page"><svg class="ic" aria-hidden="true"><use href="#i-chev-left"/></svg></button>
+            <span id="pg-pager-label" aria-live="polite"></span>
+            <button data-i18n-attr="aria-label:ui.next_page" type="button" id="pg-pager-next" aria-label="Next page"><svg class="ic" aria-hidden="true"><use href="#i-chev-right"/></svg></button>
         </div>
         </div>
         </div>
@@ -355,6 +365,25 @@
     </div>
 </div>
 
+<!-- Phone width: four tools along the bottom. Add, Properties and Page open a sheet
+     holding the panel they stand for; Undo acts at once (phone_bar.js). -->
+<nav data-i18n-attr="aria-label:ui.tools" id="phone-bar" aria-label="Tools">
+    <button type="button" class="pb" id="pb-add" aria-expanded="false" aria-controls="sheet"><svg class="ic" aria-hidden="true"><use href="#i-plus-box"/></svg><span data-i18n="ui.add">Add</span></button>
+    <button type="button" class="pb" id="pb-undo" aria-disabled="true"><svg class="ic" aria-hidden="true"><use href="#i-undo"/></svg><span data-i18n="ui.undo">Undo</span></button>
+    <button type="button" class="pb" id="pb-props" aria-expanded="false" aria-controls="sheet" aria-disabled="true"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg><span data-i18n="ui.properties">Properties</span></button>
+    <button type="button" class="pb" id="pb-page" aria-expanded="false" aria-controls="sheet"><svg class="ic" aria-hidden="true"><use href="#i-file"/></svg><span id="pb-page-lbl">Page</span></button>
+</nav>
+<div id="sheet-scrim" hidden></div>
+<section id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
+    <div class="sheet-hdr"><h2 id="sheet-title" tabindex="-1"></h2><button data-i18n="ui.close" type="button" id="sheet-close">Close</button></div>
+    <div class="sheet-body" id="sheet-body">
+        <div class="sheet-acts" id="sheet-acts" hidden>
+            <button type="button" id="sheet-dup"><svg class="ic" aria-hidden="true"><use href="#i-copy"/></svg><span data-i18n="ui.duplicate">Duplicate</span></button>
+            <button type="button" id="sheet-del" class="danger"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg><span data-i18n="ui.delete">Delete</span></button>
+        </div>
+    </div>
+</section>
+
 <!-- Status Bar -->
 <footer id="status-bar">
     <span id="sb-page">Page 1 of 1</span>
@@ -446,6 +475,7 @@
 <script src="zoom.js?v={{{VERSION}}}"></script>
 <script src="toolbar.js?v={{{VERSION}}}"></script>
 <script src="palette.js?v={{{VERSION}}}"></script>
+<script src="phone_bar.js?v={{{VERSION}}}"></script>
 <script src="page_keys.js?v={{{VERSION}}}"></script>
 <script src="init.js?v={{{VERSION}}}"></script>
 <script>

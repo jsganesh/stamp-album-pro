@@ -445,5 +445,12 @@
   "ui.fip_31": "FIP sheet 31 × 29.7 cm",
   "msg.paper_fip31": "FIP sheet 31 × 29.7 cm",
   "ui.fip_46": "FIP sheet 46 × 29.7 cm",
-  "msg.paper_fip46": "FIP sheet 46 × 29.7 cm"
+  "msg.paper_fip46": "FIP sheet 46 × 29.7 cm",
+  "ui.add": "Add",
+  "ui.tools": "Tools",
+  "ui.page_n": "Page {n}",
+  "ui.pages_and_album": "Pages and album",
+  "msg.added_drag_it": "Added. Drag it into place.",
+  "msg.tap_an_item_first": "Tap a stamp or some text on the page first.",
+  "msg.nothing_to_undo": "Nothing to undo yet."
 }
