@@ -458,6 +458,43 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 :is(#btn-tg-close, #btn-help-close, #ps-close, #cal-close, #alb-close) { display: inline-flex; align-items: center; justify-content: center; width: var(--ctl); height: var(--ctl); background: none; border: 1px solid transparent; border-radius: var(--radius); color: var(--text2); cursor: pointer; font-size: 1.15rem; }
 :is(#btn-tg-close, #btn-help-close, #ps-close, #cal-close, #alb-close):hover { color: var(--accent); border-color: var(--border); }
 
+
+/* Phone width: the bar along the bottom, its sheets and the page pager (phone_bar.js).
+   Hidden on a computer; the phone rules below show them. */
+#phone-bar, #pg-pager { display: none; }
+#phone-bar { grid-template-columns: repeat(4, 1fr); background: var(--bg2); border-top: 1px solid var(--border); flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom, 0px); }
+.pb { min-height: 3.75rem; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.125rem; padding: 0.25rem 0.125rem; border: none; border-top: 3px solid transparent; background: none; color: var(--text); font: inherit; font-size: 1rem; cursor: pointer; overflow-wrap: anywhere; text-align: center; }
+.pb .ic { width: 1.5rem; height: 1.5rem; }
+.pb:hover { background: var(--bg3); }
+.pb[aria-expanded="true"] { color: var(--accent); border-top-color: var(--accent); background: var(--accent-soft); }
+.pb[aria-disabled="true"] { color: var(--muted); }
+.pb[aria-disabled="true"] .ic { opacity: 0.6; }
+.pb:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+#sheet-scrim { position: fixed; inset: 0; background: rgba(28, 25, 20, 0.35); z-index: 940; }
+#sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 950; max-height: 66%; display: flex; flex-direction: column; background: var(--bg1); color: var(--text); border-radius: 1rem 1rem 0 0; box-shadow: 0 -6px 30px rgba(0, 0, 0, 0.2); animation: sheet-rise 0.2s ease-out; }
+#sheet[hidden], #sheet-scrim[hidden] { display: none; }
+@keyframes sheet-rise { from { transform: translateY(30%); opacity: 0.4; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { #sheet { animation: none; } }
+.sheet-hdr { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.5rem 0.5rem 1rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+#sheet-title { flex: 1; min-width: 0; font-family: var(--serif); font-weight: 600; font-size: 1.25rem; }
+#sheet-title:focus { outline: none; }
+#sheet-close, .sheet-acts button { min-height: 2.75rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0 0.875rem; background: #fff; border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font: inherit; font-size: 1rem; cursor: pointer; }
+#sheet-close:hover, .sheet-acts button:hover { border-color: var(--accent); }
+.sheet-acts button.danger { color: var(--accent); }
+.sheet-body { overflow-y: auto; overscroll-behavior: contain; padding: 0.5rem 0 calc(1rem + env(safe-area-inset-bottom, 0px)); }
+.sheet-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; padding: 0.5rem 1rem; }
+.sheet-acts[hidden] { display: none; }
+/* In the Page sheet the album settings show whatever is selected; its lead note is about clicking */
+#sheet[data-kind="page"] #rp-none { display: block; }
+#sheet #rp-none .rp-lead { display: none; }
+#sheet #pg-strip { border-right: none; border-bottom: 1px solid var(--border); background: none; }
+#pg-pager { position: absolute; left: 50%; bottom: 0.75rem; transform: translateX(-50%); z-index: 20; align-items: center; gap: 0.125rem; padding: 0.125rem; background: var(--bg1); border: 1px solid var(--border); border-radius: 999px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); font-variant-numeric: tabular-nums; white-space: nowrap; }
+#pg-pager button { width: 2.75rem; height: 2.75rem; display: grid; place-items: center; border: none; border-radius: 999px; background: none; color: var(--text); cursor: pointer; }
+#pg-pager button:disabled { color: var(--border); cursor: default; }
+#pg-pager button:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+#pg-pager-label { padding: 0 0.25rem; font-size: 1rem; }
+#ca-main { position: relative; }
+
 /* ── Responsive / small-screen tweaks ── */
 /* The page bar stays one row, so selecting an item never shrinks the page: where the bar
    is too narrow for the words, the selected item's actions are icons (named by aria-label). */
@@ -520,7 +557,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     .pg-thumb .pg-pic { width: 2.5rem; height: 3.5rem; }
     .pg-more { position: static; }
     #pg-add { flex-direction: row; min-height: var(--ctl); flex-shrink: 0; white-space: nowrap; padding: 0 0.75rem; }
-    #sidebar.collapsible { width: 100%; position: fixed; z-index: 900; height: 100%; top: 0; left: 0; }
+    /* The phone layout (UI review item 7): the bar along the bottom and its sheets stand in
+       for the side panels, their handles, the bar above the page, the page strip and the
+       status bar, so the page has the room. Not saved takes the app name's place. */
+    #sidebar, #rp, .panel-handle, #ca-toolbar, #status-bar, #ca-body > #pg-strip { display: none; }
+    #phone-bar { display: grid; }
+    /* Messages show under the top bar, clear of the bottom bar, the pager and the sheets */
+    #toast-container { top: calc(var(--toolbar) + 0.5rem); bottom: auto; left: 1rem; right: 1rem; align-items: center; pointer-events: none; }
+    #pg-pager:not([hidden]) { display: flex; }
+    #tb #tb-dirty:not([hidden]) { display: inline-block; flex-shrink: 1; min-width: 0; margin-right: auto; white-space: normal; overflow-wrap: anywhere; text-align: center; line-height: 1.2; }  /* longer words wrap to two lines */
+    #tb:has(#tb-dirty:not([hidden])) .logo { display: none; }
     .palette { grid-template-columns: 1fr 1fr; }
     /* The narrow right panel puts each name above its field, so choices aren't cut off */
     #rp .rp-row:has(> select, > input[type="text"], > .rp-field-btn) { flex-wrap: wrap; row-gap: 0.25rem; }

@@ -244,7 +244,8 @@ OVERFLOW = """() => {
   const vw = document.documentElement.clientWidth, out = [];
   const sw = document.documentElement.scrollWidth;
   if (sw > vw) out.push('page scrolls sideways: ' + sw + ' > ' + vw);
-  const parts = '#tb *, #ca-toolbar *, #rp *, #sidebar *, #status-bar *, .tb-menu-list *';
+  const parts = '#tb *, #ca-toolbar *, #rp *, #sidebar *, #status-bar *, .tb-menu-list *, ' +
+    '#phone-bar *, #sheet *, #pg-pager *';
   for (const el of document.querySelectorAll(parts)) {
     const cs = getComputedStyle(el);
     if (cs.display === 'none' || cs.visibility === 'hidden') continue;
@@ -270,10 +271,10 @@ def test_pseudo_fits(browser, base_url, where):
     problems = {}
     for state in ("start", "stamp selected", "file menu", "view menu"):
         if state == "stamp selected":
-            if where == "phone":
-                pg.click("#rp-handle")
-                pg.wait_for_timeout(300)
             _add_stamp(pg)
+            if where == "phone":  # the selected stamp's settings, in the Properties sheet
+                pg.click("#pb-props")
+                pg.wait_for_timeout(300)
         elif state.endswith("menu"):
             pg.keyboard.press("Escape")
             pg.click(f"#menu-{state.split()[0]}-btn")

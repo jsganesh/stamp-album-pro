@@ -233,11 +233,13 @@ def test_edit_menu_delete_page_asks_too(page):
 # ── Phone ──
 
 
-def test_on_a_phone_the_strip_is_one_row_under_the_page(phone):
+def test_on_a_phone_the_strip_is_one_row_in_the_page_sheet(phone):
+    # UI review item 7: on a phone the pages are in the Page sheet (test_phone_bar.py)
     _three_pages(phone)
-    strip = phone.locator("#pg-strip").bounding_box()
-    wrap = phone.locator("#page-wrap").bounding_box()
-    assert strip["y"] >= wrap["y"] + wrap["height"] - 0.5
+    assert not phone.locator("#pg-strip").is_visible()
+    phone.click("#pb-page")
+    assert phone.evaluate("document.getElementById('sheet').contains("
+                          "document.getElementById('pg-strip'))")
     tops = phone.evaluate("""[...document.querySelectorAll('#pg-list .pg-thumb')]
         .map(b => Math.round(b.getBoundingClientRect().top))""")
     assert len(tops) == 3 and len(set(tops)) == 1
