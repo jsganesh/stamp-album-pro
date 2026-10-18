@@ -121,7 +121,7 @@ def _run_cli(args: list[str]):
     parser.add_argument(
         "--version",
         action="version",
-        version="StampAlbum Pro v0.4.0",
+        version="StampAlbum Pro v0.5.0",
     )
     parser.add_argument(
         "-v", "--verbose",
