@@ -136,7 +136,8 @@ def test_phone_fits_the_page_width(phone):
 
 
 def test_actual_size_keeps_the_left_edge_reachable(phone):
-    phone.locator("#sb-zoom").click()  # Fit width -> Actual size
+    phone.click("#menu-view-btn")  # the status bar's zoom button isn't on a phone
+    phone.click("#menu-zoom-actual")
     _settle(phone)
     g = _geometry(phone)
     assert g["mode"] == "actual" and g["zoom"] == 1
@@ -148,7 +149,8 @@ def test_actual_size_keeps_the_left_edge_reachable(phone):
     phone.evaluate("document.getElementById('page-wrap').scrollLeft = 1e6")
     g = _geometry(phone)
     assert g["left"] + g["width"] <= g["visibleRight"] + 0.5, g  # and the right edge
-    phone.locator("#sb-zoom").click()  # back to Fit width
+    phone.click("#menu-view-btn")  # back to Fit width
+    phone.click("#menu-zoom-fit-width")
     _settle(phone)
     assert _geometry(phone)["mode"] == "fit-width"
 

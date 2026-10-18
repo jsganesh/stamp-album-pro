@@ -565,7 +565,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     /* Messages show under the top bar, clear of the bottom bar, the pager and the sheets */
     #toast-container { top: calc(var(--toolbar) + 0.5rem); bottom: auto; left: 1rem; right: 1rem; align-items: center; pointer-events: none; }
     #pg-pager:not([hidden]) { display: flex; }
-    #tb #tb-dirty:not([hidden]) { display: inline-block; flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-right: auto; }
+    #tb #tb-dirty:not([hidden]) { display: inline-block; flex-shrink: 1; min-width: 0; margin-right: auto; white-space: normal; overflow-wrap: anywhere; text-align: center; line-height: 1.2; }  /* longer words wrap to two lines */
     #tb:has(#tb-dirty:not([hidden])) .logo { display: none; }
     .palette { grid-template-columns: 1fr 1fr; }
     /* The narrow right panel puts each name above its field, so choices aren't cut off */
