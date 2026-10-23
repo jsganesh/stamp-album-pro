@@ -34,7 +34,7 @@ from stamp_album.cloud_sync import (
 from stamp_album.core.models import Album
 from stamp_album.core.parser import AlbumParser, ParseError
 from stamp_album.core.serializer import AlbumSerializer
-from stamp_album.engines import calibration, frames
+from stamp_album.engines import calibration, frames, page_border
 from stamp_album.engines.html_renderer import HTMLRenderer
 from stamp_album.engines.pdf import PDFGenerator
 from stamp_album.engines.raster import PNGGenerator
@@ -501,6 +501,8 @@ class CanvasStateRequest(BaseModel):
     # A request without them is drawn as albums were before mounts (0 + 1).
     mount_overhang: float = 0.0
     mount_gap: float = 1.0
+    # The page border's distance from the paper's edge (mm); a request without it is 4.8 as before
+    border_inset: float = 4.8
 
 
 def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
@@ -602,6 +604,8 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
     if frames.valid_mount(req.mount_overhang, req.mount_gap):
         album.mount_overhang, album.mount_gap = float(req.mount_overhang), float(req.mount_gap)
     frames.apply_mount(album)
+    if page_border.valid_inset(req.border_inset):
+        album.border_inset = float(req.border_inset)
     album.color_stamp_border = Color(r=0.5, g=0.5, b=0.5)
     album.color_stamp_background = Color(r=1.0, g=1.0, b=1.0)
 

@@ -33,7 +33,9 @@ function exportFormat(fmt) {
             a.click();
             setTimeout(function() { URL.revokeObjectURL(a.href); }, 100);
         }
-        showToast(S.t("msg.saved_to_downloads", { format: labels[fmt] || fmt, name: filename }) + S.missingFontsNote(), "success");
+        // A PDF is for printing: at 100%, or the stamp boxes shrink with the page
+        showToast(S.t("msg.saved_to_downloads", { format: labels[fmt] || fmt, name: filename }) +
+                  (fmt === "pdf" ? " " + S.t("msg.print_at_100") : "") + S.missingFontsNote(), "success");
     })
     .catch(function(err) { showToast(S.t("msg.export_failed", { msg: err }), "error"); });
 }

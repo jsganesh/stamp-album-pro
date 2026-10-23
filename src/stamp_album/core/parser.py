@@ -31,7 +31,7 @@ from stamp_album.core.models import (
     TextAlignment,
 )
 from stamp_album.core.themes import THEMES
-from stamp_album.engines import frames
+from stamp_album.engines import frames, page_border
 from stamp_album.engines.frames import frame_of
 
 # ---------------------------------------------------------------------------
@@ -903,6 +903,10 @@ class AlbumParser:
                 if len(params) >= 2 and frames.valid_mount(params[0], params[1]):
                     album.mount_overhang = float(params[0])
                     album.mount_gap = float(params[1])
+            elif cmd == "ALBUM_BORDER_INSET":
+                # ALBUM_BORDER_INSET (mm): the page border's distance from the paper's edge
+                if params and page_border.valid_inset(params[0]):
+                    album.border_inset = float(params[0])
             elif cmd == "CAPTION_HEADING":
                 # CAPTION_HEADING ("semibold"): the weight of stamp caption headings
                 weight = (unquote(params[0]) if params else "").lower()

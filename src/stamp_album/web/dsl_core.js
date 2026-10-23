@@ -77,6 +77,23 @@ function setMount(o, g) {
     return true;
 }
 function getMount() { return { overhang: _mount.overhang, gap: _mount.gap }; }
+
+// ── Page border distance ──
+// How far the page border sits from the paper's edge, in mm (ALBUM_BORDER_INSET). Printers can't
+// print right up to the edge (often 10 to 13 mm at the top and bottom), so a border too close is
+// cut off or the page gets shrunk to fit, shrinking every stamp box with it. New albums start at
+// 13 mm; an album that doesn't say keeps 4.8 mm, as albums were drawn before.
+// Keep in step with engines/page_border.py.
+var BORDER_INSET_CHOICES = [4.8, 8, 10, 12, 13], NEW_ALBUM_BORDER_INSET = 13, OLD_ALBUM_BORDER_INSET = 4.8;
+var BORDER_INSET_MAX_MM = 30;
+var _borderInset = OLD_ALBUM_BORDER_INSET;
+function validBorderInset(v) { v = Number(v); return isFinite(v) && v >= 0 && v <= BORDER_INSET_MAX_MM; }
+function setBorderInset(v) {
+    if (!validBorderInset(v)) return false;
+    _borderInset = Number(v);
+    return true;
+}
+function getBorderInset() { return _borderInset; }
 var FRAME_LINES_PT = { none: [], thin: [0.5], medium: [1], double: [0.5, 0.5] };
 var FRAME_DOUBLE_GAP_PT = 1;
 var MM_PER_PT = 25.4 / 72;
@@ -213,6 +230,7 @@ function buildDSL(state) {
     if (state.theme && state.theme !== "custom") lines.push('ALBUM_THEME("' + state.theme + '")');
     var mount = state.mount || getMount();
     lines.push("ALBUM_MOUNT(" + mount.overhang + " " + mount.gap + ")");
+    lines.push("ALBUM_BORDER_INSET(" + (state.borderInset != null ? state.borderInset : getBorderInset()) + ")");
     if (state.captionHeading === "semibold") lines.push('CAPTION_HEADING("semibold")');  // bold is the default
     // The header is written even for an empty album, so a new landscape or
     // non-A4 album keeps its page size before anything is placed on it.
@@ -247,6 +265,7 @@ function parseDSL(dsl) {
         pageBorderC: null,
         captionHeading: "bold",  // stamp caption headings: "bold" or "semibold"
         mount: { overhang: OLD_ALBUM_MOUNT.overhang, gap: OLD_ALBUM_MOUNT.gap },  // ALBUM_MOUNT, else as before
+        borderInset: OLD_ALBUM_BORDER_INSET,  // ALBUM_BORDER_INSET, else 4.8 mm as before
         colMode: 1,
         colGap: 10.0,
         currentFile: ""
@@ -291,6 +310,11 @@ function parseDSL(dsl) {
         var mMount = matchDSL(t, /^ALBUM_MOUNT\(\s*([\d.]+)\s+([\d.]+)\s*\)/);
         if (mMount) {
             if (validMount(mMount[1], mMount[2])) state.mount = { overhang: Number(mMount[1]), gap: Number(mMount[2]) };
+            continue;
+        }
+        var mInset = matchDSL(t, /^ALBUM_BORDER_INSET\(\s*([\d.]+)\s*\)/);
+        if (mInset) {
+            if (validBorderInset(mInset[1])) state.borderInset = Number(mInset[1]);
             continue;
         }
         var mHeading = matchDSL(t, /^CAPTION_HEADING\(\s*"(\w+)"\s*\)/);
@@ -864,7 +888,10 @@ function exhibitPlanLayout(answers, labels, pw, ph, measure) {
 var EXPORTS = { THEMES: THEMES, themeColor: themeColor, FRAMES: FRAMES, frameOf: frameOf, applyFrame: applyFrame,
                 FRAME_CLEARANCE_MM: FRAME_CLEARANCE_MM, MOUNT_OVERHANG_CHOICES: MOUNT_OVERHANG_CHOICES,
                 MOUNT_GAP_CHOICES: MOUNT_GAP_CHOICES, NEW_ALBUM_MOUNT: NEW_ALBUM_MOUNT, OLD_ALBUM_MOUNT: OLD_ALBUM_MOUNT,
-                validMount: validMount, setMount: setMount, getMount: getMount, frameClearance: frameClearance, frameLines: frameLines, frameOutset: frameOutset,
+                validMount: validMount, setMount: setMount, getMount: getMount,
+                BORDER_INSET_CHOICES: BORDER_INSET_CHOICES, NEW_ALBUM_BORDER_INSET: NEW_ALBUM_BORDER_INSET,
+                OLD_ALBUM_BORDER_INSET: OLD_ALBUM_BORDER_INSET, validBorderInset: validBorderInset,
+                setBorderInset: setBorderInset, getBorderInset: getBorderInset, frameClearance: frameClearance, frameLines: frameLines, frameOutset: frameOutset,
                 frameBox: frameBox, SHAPE_POLYGONS: SHAPE_POLYGONS, shapeOutline: shapeOutline,
                 normalizeStamp: normalizeStamp, PLAIN_BORDERS: PLAIN_BORDERS, escapeDSL: escapeDSL, unescapeDSL: unescapeDSL, serializeEl: serializeEl, buildDSL: buildDSL, parseDSL: parseDSL, normalizePageSize: normalizePageSize, findOutside: findOutside,
                 describePageSize: describePageSize, fitToPage: fitToPage, PAPER_MM: PAPER_MM, FIXED_PAPERS: FIXED_PAPERS,

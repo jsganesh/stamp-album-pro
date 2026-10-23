@@ -205,7 +205,7 @@ function renderPageBorder(style) {
 
     var w = S._pw || 595;
     var h = S._ph || 842;
-    var margin = 12;
+    var margin = S.CORE.getBorderInset() * S._sc;  // the album's border distance (mm), in canvas px
     // The album theme's colour, the same one the exports use (styles no longer bring their own)
     var color = S.themeColor();
 
@@ -268,7 +268,7 @@ function renderPageBorder(style) {
 // Stamp captions should stay inside this area.
 function borderInsetPx(style) {
     if (!style || style === "none") return 0;
-    var margin = 12;  // as renderPageBorder (and the exports, which use 12 px / scale)
+    var margin = S.CORE.getBorderInset() * S._sc;  // as renderPageBorder and the exports
     if (style === "double" || style === "greek_key" || style === "rope" ||
         (BORDER_STYLES[style] && BORDER_STYLES[style].corners)) return margin + 4;
     return margin;

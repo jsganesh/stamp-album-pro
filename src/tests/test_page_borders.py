@@ -73,15 +73,18 @@ def test_every_style_draws_something_inside_the_page():
         )
 
 
-def _editor_markup(page, style, theme="exhibition"):
+def _editor_markup(page, style, theme="exhibition", inset=None):
     page.evaluate("document.getElementById('tutorial-overlay').classList.remove('open')")
     page.evaluate("StampAlbum.newAlbum()")
+    if inset is not None:
+        page.evaluate(f"StampAlbum.CORE.setBorderInset({inset})")
     page.select_option("#def-theme", theme)
     page.select_option("#def-bdr", style)
     return page.evaluate(
         "(() => { const b = document.getElementById('page-border');"
         " const s = StampAlbum._sc;"
-        " return {html: b.innerHTML, w: StampAlbum._pw / s, h: StampAlbum._ph / s}; })()"
+        " return {html: b.innerHTML, w: StampAlbum._pw / s, h: StampAlbum._ph / s,"
+        " inset: StampAlbum.CORE.getBorderInset()}; })()"
     )
 
 
@@ -90,7 +93,7 @@ def test_exports_draw_the_editors_border(page, style):
     """page_border.py builds the same picture as renderPageBorder in borders.js."""
     got = _editor_markup(page, style)
     editor = pb.markup_primitives(got["html"])
-    ours = pb.primitives(style, got["w"], got["h"])
+    ours = pb.primitives(style, got["w"], got["h"], got["inset"])
     assert [type(p).__name__ for p in editor] == [type(p).__name__ for p in ours]
     for e, o in zip(editor, ours):
         assert e.points == [pytest.approx(pt, abs=1e-3) for pt in o.points]
@@ -100,6 +103,20 @@ def test_exports_draw_the_editors_border(page, style):
                 o.closed,
                 pytest.approx(o.dash),
             )
+
+
+@pytest.mark.parametrize("inset", [4.8, 10, 13])
+@pytest.mark.parametrize("style", ["solid", "double", "classic", "rope"])
+def test_the_border_distance_is_the_same_in_the_editor_and_the_exports(page, style, inset):
+    got = _editor_markup(page, style, inset=inset)
+    assert got["inset"] == inset
+    editor = pb.markup_primitives(got["html"])
+    ours = pb.primitives(style, got["w"], got["h"], inset)
+    assert len(editor) == len(ours)
+    for e, o in zip(editor, ours):
+        assert e.points == [pytest.approx(pt, abs=1e-3) for pt in o.points]
+    xs = [x for p in ours for x, _ in p.points]
+    assert min(xs) == pytest.approx(inset, abs=0.6)  # the outer line, ornaments aside
 
 
 @pytest.mark.parametrize("style", ["greek_key", "rope"])
@@ -140,7 +157,7 @@ def _editor_img(base_url, page, style):
         pg.goto(base_url + "/")
         wait_for_app(pg)
         pg.evaluate("StampAlbum.setZoomMode('actual')")  # compared with the exports at 100%
-        _editor_markup(pg, style)
+        _editor_markup(pg, style, inset=4.8)  # as the exports here (no border_inset sent)
         pg.evaluate(
             "(() => { const p = document.getElementById('page'); p.style.background = '#fff';"
             " p.style.backgroundImage = 'none';"
