@@ -8,4 +8,5 @@
 | system-fonts | fix/system-fonts | Verification done | Owner's report: system fonts not exported. ADR-001 (owner's choice: fix the exports). |
 
 Both branches: committed locally, **not pushed** (owner pushes / approves push).
+Full suite on both together: all pass after two fixes (see `decisions/qa/system-fonts.md`).
 The two CHANGELOG "### Fixed" sections will conflict when the second PR is updated: keep both entries.

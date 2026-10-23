@@ -210,7 +210,7 @@ def test_png_captions_do_not_depend_on_system_fonts(monkeypatch):
     """The PNG draws captions from the bundled files, so a machine's fonts make no difference."""
     from PIL import ImageFont
 
-    from stamp_album.engines import raster
+    from stamp_album.engines import system_fonts
 
     caption_fonts._pillow_font.cache_clear()
     normal = Image.open(io.BytesIO(_export("png"))).convert("L")
@@ -223,12 +223,14 @@ def test_png_captions_do_not_depend_on_system_fonts(monkeypatch):
         return real(font, *a, **k)
 
     monkeypatch.setattr(ImageFont, "truetype", only_bundled)
-    monkeypatch.setattr(raster, "_get_system_font_dirs", lambda: [])
+    monkeypatch.setattr(system_fonts, "font_dirs", lambda: [])
+    system_fonts.clear_cache()
     caption_fonts._pillow_font.cache_clear()
     try:
         bare = Image.open(io.BytesIO(_export("png"))).convert("L")
     finally:
         caption_fonts._pillow_font.cache_clear()
+        system_fonts.clear_cache()
     ppm = normal.width / 210
     # The stamp and its captions
     band = (int(15 * ppm), int(45 * ppm), int(85 * ppm), int(105 * ppm))
