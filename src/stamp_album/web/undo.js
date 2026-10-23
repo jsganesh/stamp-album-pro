@@ -32,6 +32,7 @@ function resetUndo() {
     if (S.updateSelectionUI) S.updateSelectionUI();
 }
 function undo() {
+    if (S.commitPanelEdit) S.commitPanelEdit();  // a field still being typed in counts first
     if (S._undoStack.length < 2) return;
     S._redoStack.push(S._undoStack.pop());
     restore(S._undoStack[S._undoStack.length - 1]);
@@ -40,6 +41,7 @@ function undo() {
     S.scheduleDraftSave();
 }
 function redo() {
+    if (S.commitPanelEdit) S.commitPanelEdit();  // a field still being typed in counts first
     if (S._redoStack.length === 0) return;
     var state = S._redoStack.pop();
     S._undoStack.push(state);

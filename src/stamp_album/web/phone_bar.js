@@ -51,6 +51,7 @@ function openSheet(kind) {
 // Put the panels back where they live. quiet: leave the focus where it is.
 function closeSheet(quiet) {
     if (!_kind) return;
+    if (S.commitPanelEdit) S.commitPanelEdit();  // the Properties sheet's edit, before it closes
     _homes.forEach(function(h) { h[1].parentNode.insertBefore(h[0], h[1]); h[1].remove(); });
     _homes = [];
     $("sheet").hidden = true;

@@ -84,6 +84,7 @@ function writeFile(name) {
 
 // Save: to the album's own .slbum file, else to a name chosen now. Resolves to true once saved.
 function saveFile() {
+    if (S.commitPanelEdit) S.commitPanelEdit();  // a field still being typed in counts first
     if (S._currentFile && /\.slbum$/i.test(S._currentFile)) return writeFile(S._currentFile);
     return chooseName(suggestedName()).then(function(name) {
         return name ? writeFile(name) : false;
