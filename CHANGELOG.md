@@ -10,6 +10,9 @@ All notable changes to this project are documented here. The format follows [Kee
 - Pictures are found in the open album's folder first, then the old shared folder, so older albums keep printing
 
 ### Fixed
+- A test of picture captions could fail on slower machines (CI on macOS and Linux): typing redraws the page on the next frame, and the test read the caption's style from the line just replaced. It now reads it in one step. CI also runs on pull requests stacked on another branch
+
+### Fixed
 - The page border could be cut off when printing, or the whole page shrunk to fit (about 93% on A4, with every stamp box shrunk too): it sat 4.8 mm from the paper's edge, closer than most printers can print. New albums, templates and the wizard now put it 13 mm in, and the right panel has **Border from edge** (4.8, 8, 10, 12 or 13 mm) for any album with a border. Albums saved before keep 4.8 mm until it is changed. Saved as `ALBUM_BORDER_INSET(13)`
 - After exporting a PDF, a reminder to print it at 100% (Actual size), not Fit to page
 
