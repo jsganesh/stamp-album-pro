@@ -1,7 +1,8 @@
 name: CI
 on:
   push: { branches: [main] }
-  pull_request: { branches: [main] }
+  # Every pull request, including ones stacked on another branch (their base is not main)
+  pull_request:
 
 jobs:
   test:
