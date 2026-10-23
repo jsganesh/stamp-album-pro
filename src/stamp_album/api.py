@@ -168,6 +168,45 @@ def _album_path(filename: str, saving: bool = False) -> Path:
     return storage.album_path(filename)
 
 
+def _is_this_computer(request: Request) -> bool:
+    """Whether the request comes from the computer the app runs on (not a phone on the Wi-Fi)."""
+    host = request.client.host if request.client else ""
+    return host in ("127.0.0.1", "::1", "localhost")
+
+
+class RevealRequest(BaseModel):
+    album: str
+    format: str
+
+
+@app.post("/exports/reveal")
+async def reveal_export(req: RevealRequest, request: Request):
+    """Show an album's export in Finder (Explorer on Windows): only on this computer, and only
+    a file the app wrote, named by album and kind."""
+    if not _is_this_computer(request):
+        raise HTTPException(status_code=403, detail="Only on the computer the app runs on")
+    if not storage.valid_album_name(req.album) or req.format not in ("pdf", "png", "svg", "html"):
+        raise HTTPException(status_code=400, detail="Not an export")
+    path = storage.export_path(req.album, req.format)
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="Export not found")
+    _reveal(path)
+    return {"status": "shown", "path": str(path)}
+
+
+def _reveal(path: Path) -> None:
+    import subprocess
+    import sys
+
+    if sys.platform == "darwin":
+        cmd = ["open", "-R", str(path)]
+    elif sys.platform.startswith("win"):
+        cmd = ["explorer", "/select,", str(path)]
+    else:
+        cmd = ["xdg-open", str(path.parent)]
+    subprocess.Popen(cmd)
+
+
 @app.get("/albums/moved")
 async def albums_moved():
     """The albums moved into folders of their own when the app started, said once."""
@@ -524,6 +563,9 @@ class CanvasStateRequest(BaseModel):
     mount_gap: float = 1.0
     # The page border's distance from the paper's edge (mm); a request without it is 4.8 as before
     border_inset: float = 4.8
+    # Write the export into the album's exports folder (source_path names the album) instead
+    # of sending it back to download
+    save: bool = False
 
 
 def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
@@ -695,14 +737,46 @@ async def render_from_state(req: CanvasStateRequest):
         raise HTTPException(status_code=500, detail=f"Render error: {e}")
 
 
+def _write_export(album: "Album", fmt: str, path: Path) -> None:
+    """Write the album as *fmt* to *path* (the album's exports folder)."""
+    import re
+
+    if fmt == "pdf":
+        PDFGenerator().generate(album, str(path), base_url="http://localhost:8080")
+    elif fmt == "png":
+        path.write_bytes(PNGGenerator().generate_to_bytes(album, dpi=200))
+    elif fmt == "svg":
+        path.write_text(SVGExporter().generate_to_string(album), encoding="utf-8")
+    else:  # html: its pictures are in the album's images folder, next to exports
+        html = HTMLRenderer(album, None).render()
+        html = re.sub(r'src="(?:/images/)?([^\/"][^"]*\.(?:png|jpg|jpeg|gif|bmp|tiff|tif|webp))"',
+                      r'src="../images/\1"', html)
+        path.write_text(html, encoding="utf-8")
+
+
 @app.post("/export-from-state")
 async def export_from_state(req: CanvasStateRequest):
-    """Export canvas state directly to PDF, PNG, SVG, or HTML (bypasses DSL)."""
+    """Export canvas state directly to PDF, PNG, SVG, or HTML (bypasses DSL). With save, the
+    file goes into the album's exports folder (replacing the last export of that kind)."""
     from starlette.background import BackgroundTask
 
     fmt = req.format.lower()
     if fmt not in ("pdf", "png", "svg", "html"):
         raise HTTPException(status_code=400, detail=f"Unsupported format: {fmt}")
+
+    if req.save:
+        name = Path(req.source_path or "").name
+        saved = storage.valid_album_name(name, saving=True) and storage.album_path(name).is_file()
+        if not saved:
+            raise HTTPException(status_code=409, detail="Save the album first")
+        path = storage.export_path(name, fmt)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            _write_export(_canvas_state_to_album(req), fmt, path)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Export error: {e}")
+        return {"status": "saved", "path": str(path), "name": path.name,
+                "folder": str(path.parent)}
 
     def _cleanup(path: str):
         try:

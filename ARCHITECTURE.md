@@ -728,6 +728,7 @@ The JS load order means `events.js` and `canvas.js` are loaded but their code ne
 
 **Storage locations:**
 - Albums: `~/StampAlbum/<album>/<album>.slbum`, one folder each (`storage.py`); loose albums from before move in when the app starts
+- Exports: `~/StampAlbum/<album>/exports/<album>.pdf|png|svg|html`, the latest of each kind (`POST /export-from-state` with `save`); `POST /exports/reveal` shows one in Finder/Explorer, only from this computer
 - Images: `~/StampAlbum/<album>/images/*`; before an album's first save, `~/StampAlbum/.unsaved-images/`; older albums' shared `~/StampAlbum/images/` is still searched
 - Auth/sharing: `~/StampAlbum/.users.json`, `.sessions.json`, `.shares.json`
 - Version history: `~/StampAlbum/.versions/{hash}_{name}/*`

@@ -5,6 +5,7 @@ All notable changes to this project are documented here. The format follows [Kee
 ## [Unreleased]
 
 ### Changed
+- Exports go into the album's own folder: Export as PDF, PNG, SVG or HTML saves `StampAlbum/<album>/exports/<album>.pdf` (and so on), replacing the last export of that kind, and the message has a **Show in Finder** button (**Show in Explorer** on Windows). An album not saved yet is offered a save first; Cancel downloads it as before. On a phone or tablet on the Wi-Fi, exports still download. A saved HTML page finds its pictures in the album's images folder
 - Each album has a folder of its own in StampAlbum, holding the album and the pictures it uses (`StampAlbum/<album>/<album>.slbum` and `images/`). Saving copies in the pictures the album uses; pictures attached before the first save wait in a hidden holding folder until then. Deleting an album in Manage saved albums deletes its folder, and the question says so
 - When the app starts, albums still loose in StampAlbum move into folders of their own, with copies of their pictures; the shared images folder is kept and nothing else is deleted. A message says so once, and `Albums moved into folders.txt` lists what moved
 - Pictures are found in the open album's folder first, then the old shared folder, so older albums keep printing
