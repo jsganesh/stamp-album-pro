@@ -167,7 +167,10 @@ function serializeEl(el) {
     } else if (el.t === "text") {
         var text = 'PAGE_TEXT_AT(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + E(el.font || "HN") + '" ' + (el.fs || 12) + ' "' + E(el.lbl || "Text") + '" "' + E(el.align || "left") + '")';
         // A heading mark is its own line, which older versions skip.
-        return el.role === "heading" ? text + '\nPAGE_TEXT_ROLE("heading")' : text;
+        if (el.role === "heading") text += '\nPAGE_TEXT_ROLE("heading")';
+        // So is the part of the title and plan page the text is (exhibitPlanLayout).
+        if (el.part && PLAN_PART_NAMES.indexOf(el.part) !== -1) text += '\nPAGE_TEXT_PART("' + el.part + '")';
+        return text;
     } else {
         // Every stamp, rectangles included, is written in the extended format so its border
         // and fill are kept. The first catalogue field holds the catalogue number.
@@ -426,6 +429,12 @@ function parseDSL(dsl) {
         // A heading mark belongs to the text just before it.
         if (matchDSL(t, /^PAGE_TEXT_ROLE\(\s*"heading"\s*\)/)) {
             if (lastText) lastText.role = "heading";
+            continue;
+        }
+        // So does the part of the title and plan page it is.
+        var mPart = matchDSL(t, /^PAGE_TEXT_PART\(\s*"(\w+)"\s*\)/);
+        if (mPart) {
+            if (lastText && PLAN_PART_NAMES.indexOf(mPart[1]) !== -1) lastText.part = mPart[1];
             continue;
         }
 
@@ -766,6 +775,91 @@ function captionWarnings(items, area) {
     return res;
 }
 
+// ── Title and plan page ──
+// An exhibit's first page, as FIP guidelines ask (GREV 3.3 and the class guidelines): the title,
+// a line under it, then Purpose, Scope, the Plan in numbered chapters and sections, Important
+// items, Research and References. The form (exhibit_plan.js) makes these as ordinary text items,
+// each marked with its part (PAGE_TEXT_PART in the file), and reads its answers back from them,
+// so the page is the only record and an edit made on the page shows in the form.
+// Keep the section names in step with stamp_album/core/models.py PLAN_PARTS.
+var PLAN_SECTIONS = ["purpose", "scope", "plan", "important", "research", "references"];
+var PLAN_PART_NAMES = ["title", "by"].concat(PLAN_SECTIONS, PLAN_SECTIONS.map(function(n) { return n + "_label"; }));
+var PLAN = { TOP_MM: 40, TOP_TIGHT_MM: 25, SIDE_MM: 20, BOTTOM_MM: 20, PAD_MM: 1, LINE_HEIGHT: 1.3,
+             TITLE_PT: 22, BY_PT: 11, LABEL_PT: 11, BODY_PT: 10,
+             TITLE_GAP_MM: 1, AFTER_HEAD_MM: 12, LABEL_H_MM: 8, LABEL_GAP_MM: 1, SECTION_GAP_MM: 6 };
+
+// Chapters [{ level: 1 | 2, text }] numbered as a decimal plan: "1. Chapter", "1.1 Section".
+// A section before any chapter is numbered as a chapter.
+function planText(chapters) {
+    var ch = 0, sec = 0, out = [];
+    (chapters || []).forEach(function(c) {
+        var text = String(c.text || "").trim();
+        if (!text) return;
+        if (c.level === 2 && ch > 0) { sec++; out.push(ch + "." + sec + " " + text); }
+        else { ch++; sec = 0; out.push(ch + ". " + text); }
+    });
+    return out.join("\n");
+}
+// The reverse: a plan's lines back into chapters and sections; other lines are chapters.
+function planChapters(text) {
+    var out = [];
+    String(text || "").split("\n").forEach(function(line) {
+        line = line.trim();
+        if (!line) return;
+        var m = /^\d+\.\d+\.?\s+(.*)$/.exec(line);
+        if (m) { out.push({ level: 2, text: m[1].trim() }); return; }
+        m = /^\d+\.\s*(.*)$/.exec(line);
+        out.push({ level: 1, text: (m ? m[1] : line).trim() });
+    });
+    return out;
+}
+
+// The page's text items, in mm: [{ part, x, y, w, h, font, fs, lbl, align, role }].
+// answers: { title, by, purpose, scope, chapters, important, research, references };
+// labels: the section names as printed ({ purpose: "Purpose", … }).
+// measure(text, font, sizePt) -> width in mm. Empty sections are left out.
+// Returns { items, bottom, limit, fits }; the page starts higher if that makes it fit.
+function exhibitPlanLayout(answers, labels, pw, ph, measure) {
+    answers = answers || {};
+    var limit = ph - PLAN.BOTTOM_MM, w = pw - 2 * PLAN.SIDE_MM;
+    var lineMm = function(pt) { return pt * PLAN.LINE_HEIGHT * 25.4 / 72; };
+    var boxH = function(text, font, pt) {
+        var lines = wrapLines(text, w - 2 * PLAN.PAD_MM, function(s) { return measure(s, font, pt); });
+        return Math.ceil((lines.length * lineMm(pt) + 2 * PLAN.PAD_MM) * 10) / 10;
+    };
+    var body = function(name) {
+        return name === "plan" ? planText(answers.chapters) : String(answers[name] || "").trim();
+    };
+    function build(top) {
+        var items = [], y = top;
+        var put = function(part, text, font, pt, align, minH, role) {
+            var h = Math.max(minH || 0, boxH(text, font, pt));
+            var it = { part: part, x: PLAN.SIDE_MM, y: Math.round(y * 10) / 10, w: w, h: h, font: font, fs: pt, lbl: text, align: align };
+            if (role) it.role = role;
+            items.push(it);
+            y += h;
+            return it;
+        };
+        var title = String(answers.title || "").trim(), by = String(answers.by || "").trim();
+        if (title) { put("title", title, "HB", PLAN.TITLE_PT, "center", 13, "heading"); y += PLAN.TITLE_GAP_MM; }
+        if (by) put("by", by, "HN", PLAN.BY_PT, "center", PLAN.LABEL_H_MM);
+        if (title || by) y += PLAN.AFTER_HEAD_MM;
+        PLAN_SECTIONS.forEach(function(name) {
+            var text = body(name);
+            if (!text) return;
+            put(name + "_label", labels[name] || name, "HB", PLAN.LABEL_PT, "left", PLAN.LABEL_H_MM);
+            y += PLAN.LABEL_GAP_MM;
+            put(name, text, "HN", PLAN.BODY_PT, "left");
+            y += PLAN.SECTION_GAP_MM;
+        });
+        var bottom = items.length ? Math.max.apply(null, items.map(function(it) { return it.y + it.h; })) : top;
+        return { items: items, bottom: bottom, limit: limit, fits: bottom <= limit + 1e-6 };
+    }
+    var r = build(PLAN.TOP_MM);
+    if (!r.fits) r = build(Math.min(PLAN.TOP_MM, PLAN.TOP_TIGHT_MM));
+    return r;
+}
+
 // ── Exports ──
 var EXPORTS = { THEMES: THEMES, themeColor: themeColor, FRAMES: FRAMES, frameOf: frameOf, applyFrame: applyFrame,
                 FRAME_CLEARANCE_MM: FRAME_CLEARANCE_MM, MOUNT_OVERHANG_CHOICES: MOUNT_OVERHANG_CHOICES,
@@ -777,7 +871,9 @@ var EXPORTS = { THEMES: THEMES, themeColor: themeColor, FRAMES: FRAMES, frameOf:
                 FIP_FRAME_ROW: FIP_FRAME_ROW, FIP_FRAME_ROWS: FIP_FRAME_ROWS,
                 CAPTION: CAPTION, CAPTION_FONTS: CAPTION_FONTS, HEADING_WEIGHTS: HEADING_WEIGHTS, headingFont: headingFont,
                 captionMeasure: captionMeasure, wrapLines: wrapLines, captionParts: captionParts, hasCaptions: hasCaptions,
-                captionLayout: captionLayout, captionBounds: captionBounds, captionWarnings: captionWarnings };
+                captionLayout: captionLayout, captionBounds: captionBounds, captionWarnings: captionWarnings,
+                PLAN: PLAN, PLAN_SECTIONS: PLAN_SECTIONS, PLAN_PART_NAMES: PLAN_PART_NAMES, planText: planText,
+                planChapters: planChapters, exhibitPlanLayout: exhibitPlanLayout };
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = EXPORTS;
 }

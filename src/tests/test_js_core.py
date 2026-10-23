@@ -24,6 +24,7 @@ NODE = shutil.which("node")
         "test_zoom.mjs",
         "test_print_preview.mjs",
         "test_i18n.mjs",
+        "test_exhibit_plan.mjs",
     ],
 )
 def test_node_suite(name):

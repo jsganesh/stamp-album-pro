@@ -11,6 +11,7 @@ import re
 from typing import Optional
 
 from stamp_album.core.models import (
+    PLAN_PARTS,
     Album,
     Color,
     CropMarkSettings,
@@ -888,6 +889,11 @@ class AlbumParser:
                 # PAGE_TEXT_ROLE ("heading"), written after a text item marked as a heading
                 if last_text is not None and params and unquote(params[0]) == "heading":
                     last_text.role = "heading"
+            elif cmd == "PAGE_TEXT_PART":
+                # PAGE_TEXT_PART ("plan"): which part of the title and plan page a text item is
+                part = unquote(params[0]) if params else ""
+                if last_text is not None and part in PLAN_PARTS:
+                    last_text.part = part
             elif cmd == "ALBUM_THEME":
                 name = unquote(params[0]) if params else ""
                 if name in THEMES:

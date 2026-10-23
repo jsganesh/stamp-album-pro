@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+- File › Title and plan page… (also in the right panel, under Exhibit): a form for an exhibit's first page as FIP judges expect it: the title and a line under it, Purpose, Scope, a plan of chapters and sections (numbered for you: 1, 1.1, 2), Important items, Research and References. It makes the page from your answers (on page 1 if that is empty, otherwise as a new first page), says when the page is too long, and is one Undo step. Opening it again shows the page's own text, including anything you changed on the page, and Update the page replaces only the parts it made
+- Album files mark those parts with `PAGE_TEXT_PART("…")` after each text item; older versions skip the line
+
 ### Changed
 - The Title page template follows the FIP guidelines for an exhibit's first page: Purpose, Scope, a plan in numbered chapters and sections (not a list of pages), how important items are shown (a double frame), Research and References
 - Page setup says how an FIP sheet hangs in an exhibition frame: 4 to a row and 16 to a frame for 23 cm sheets, 3 and 12 for 31 cm, 2 and 8 for 46 cm (GREX 2026 Art. 6.1)
