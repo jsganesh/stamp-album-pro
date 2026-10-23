@@ -253,3 +253,20 @@ def test_starting_the_app_moves_loose_albums(tmp_path):
     env["STAMP_ALBUM_APP_START"] = "1"
     subprocess.run([sys.executable, "-c", code], env=env, check=True, timeout=120)
     assert (files / "NZ" / "NZ.slbum").is_file() and not (files / "NZ.slbum").exists()
+
+
+# ── Names never lead outside the albums folder ──
+
+
+def test_paths_stay_inside_the_albums_folder(folders, tmp_path):
+    assert storage.inside("A", "images", "x.png") == folders / "A" / "images" / "x.png"
+    for bad in ("..", "../x", "A/../../x", str(tmp_path / "elsewhere")):
+        with pytest.raises(storage.OutsideAlbums):
+            storage.inside(bad)
+    secret = tmp_path / "secret.png"
+    secret.write_bytes(RED)
+    assert storage.find_image("../secret.png", None) is None  # names only, never paths
+    client = TestClient(api.app)
+    assert client.delete("/images/..secret.png").status_code == 400
+    assert client.get("/files/..%2Fsecret.slbum").status_code in (400, 404)
+    assert secret.exists()
