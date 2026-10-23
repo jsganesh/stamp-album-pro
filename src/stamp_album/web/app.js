@@ -46,7 +46,8 @@ function saveDraft() {
         pages[_currentPage] = E;
         var state = { v: 1, pages: pages, currentPage: _currentPage, elements: E, pw: _pw / _sc, ph: _ph / _sc,
                       pageBorder: _pageBorder || "", pageBorderC: _pageBorderC || "", theme: _theme,
-                      captionHeading: _captionHeading, mount: S.CORE.getMount() };
+                      captionHeading: _captionHeading, mount: S.CORE.getMount(),
+                      borderInset: S.CORE.getBorderInset() };
         localStorage.setItem(_draftKey, JSON.stringify(state));
         if (_currentFile) localStorage.setItem(_draftFileKey, _currentFile);
         else localStorage.removeItem(_draftFileKey);
@@ -77,6 +78,8 @@ function loadDraft() {
         // Drafts from before mounts are drawn as they were (0 + 1 mm)
         var m = state.mount && S.CORE.validMount(state.mount.overhang, state.mount.gap) ? state.mount : S.CORE.OLD_ALBUM_MOUNT;
         S.CORE.setMount(m.overhang, m.gap);
+        // Drafts from before the border distance keep 4.8 mm
+        S.CORE.setBorderInset(S.CORE.validBorderInset(state.borderInset) ? state.borderInset : S.CORE.OLD_ALBUM_BORDER_INSET);
         // ...and their stamps get black frames and no fill, as an opened file's do.
         _pages.forEach(function(p) { (p || []).forEach(S.CORE.normalizeStamp); });
         syncNid();
@@ -325,6 +328,7 @@ function newAlbum() {
     _currentPage = 0;
     _pages = [[]];
     S.CORE.setMount(S.CORE.NEW_ALBUM_MOUNT.overhang, S.CORE.NEW_ALBUM_MOUNT.gap);
+    S.CORE.setBorderInset(S.CORE.NEW_ALBUM_BORDER_INSET);
     syncPageBar();
     _dirty = false;
     S.resetUndo();
@@ -361,6 +365,25 @@ function syncMount() {
     }
 }
 
+// The page border's distance from the paper's edge: shown only when the album has a border.
+function syncBorderInset() {
+    var sel = $("def-bdr-inset"), row = $("bdr-inset-row"), note = $("bdr-inset-note");
+    if (!sel) return;
+    var v = S.CORE.getBorderInset(), vals = S.CORE.BORDER_INSET_CHOICES.slice();
+    if (vals.indexOf(v) === -1) { vals.push(v); vals.sort(function(a, b) { return a - b; }); }
+    sel.innerHTML = "";
+    vals.forEach(function(n) {
+        var o = document.createElement("option");
+        o.value = String(n);
+        o.textContent = tr("msg.mm_value", { n: String(n) });
+        sel.appendChild(o);
+    });
+    sel.value = String(v);
+    var has = !!_pageBorder && _pageBorder !== "none";
+    if (row) row.hidden = !has;
+    if (note) note.hidden = !has;
+}
+
 // ── File/image management functions defined in files.js ──
 
 // ── Build canvas state for direct render/export ──
@@ -390,7 +413,8 @@ function buildCanvasState(format) {
         theme_color: themeColor(),  // marked headings
         caption_heading: _captionHeading,
         mount_overhang: S.CORE.getMount().overhang,
-        mount_gap: S.CORE.getMount().gap
+        mount_gap: S.CORE.getMount().gap,
+        border_inset: S.CORE.getBorderInset()
     };
 }
 
@@ -415,6 +439,7 @@ function syncPageBar() {
     syncMount();
     var bdr = $("def-bdr");
     if (bdr) bdr.value = _pageBorder || "none";
+    syncBorderInset();
     var note = $("bdr-note");
     if (note) note.hidden = S.CORE.PLAIN_BORDERS.indexOf(_pageBorder || "none") !== -1;
     if (S.renderPageBorder) S.renderPageBorder(_pageBorder);
@@ -453,7 +478,7 @@ function exportPDF() {
         a.download = filename;
         a.click();
         setTimeout(function() { URL.revokeObjectURL(a.href); }, 100);
-        showToast(tr("msg.saved_to_downloads", { format: "PDF", name: filename }) + missingFontsNote(), "success");
+        showToast(tr("msg.saved_to_downloads", { format: "PDF", name: filename }) + " " + tr("msg.print_at_100") + missingFontsNote(), "success");
     })
     .catch(function(err) {
         clearTimeout(timeout);
@@ -597,6 +622,7 @@ Object.defineProperties(S, {
     _theme: { get: function(){ return _theme; }, set: function(v){ _theme = v; } },
     _captionHeading: { get: function(){ return _captionHeading; }, set: function(v){ _captionHeading = v === "semibold" ? "semibold" : "bold"; } },
     themeColor: { value: themeColor }, syncPageBar: { value: syncPageBar }, syncMount: { value: syncMount },
+    syncBorderInset: { value: syncBorderInset },
     frameOf: { get: function(){ return window.StampAlbumDSL.frameOf; } },
     CORE: { get: function(){ return window.StampAlbumDSL; } },
     _undoStack: { get: function(){ return _undoStack; }, set: function(v){ _undoStack = v; } },

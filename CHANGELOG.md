@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+- The page border could be cut off when printing, or the whole page shrunk to fit (about 93% on A4, with every stamp box shrunk too): it sat 4.8 mm from the paper's edge, closer than most printers can print. New albums, templates and the wizard now put it 13 mm in, and the right panel has **Border from edge** (4.8, 8, 10, 12 or 13 mm) for any album with a border. Albums saved before keep 4.8 mm until it is changed. Saved as `ALBUM_BORDER_INSET(13)`
+- After exporting a PDF, a reminder to print it at 100% (Actual size), not Fit to page
+
 ### Added
 - File › Title and plan page… (also in the right panel, under Exhibit): a form for an exhibit's first page as FIP judges expect it: the title and a line under it, Purpose, Scope, a plan of chapters and sections (numbered for you: 1, 1.1, 2), Important items, Research and References. It makes the page from your answers (on page 1 if that is empty, otherwise as a new first page), says when the page is too long, and is one Undo step. Opening it again shows the page's own text, including anything you changed on the page, and Update the page replaces only the parts it made
 - Album files mark those parts with `PAGE_TEXT_PART("…")` after each text item; older versions skip the line

@@ -29,6 +29,7 @@ function applyWizard() {
     lines.push("ALBUM_PAGES_MARGINS(15 15 15 15)");
     var m = S.CORE.NEW_ALBUM_MOUNT;  // a new album's stamp mounts
     lines.push("ALBUM_MOUNT(" + m.overhang + " " + m.gap + ")");
+    lines.push("ALBUM_BORDER_INSET(" + S.CORE.NEW_ALBUM_BORDER_INSET + ")");  // a new album's border distance
 
     if (title) lines.push('PAGE_TEXT_CENTRE("HB" 16 "' + escapeDSL(title) + '")');
 

@@ -382,6 +382,15 @@ function init() {
         S.schedulePreviewRefresh();
     });
 
+    // The page border's distance from the paper's edge
+    $("def-bdr-inset").addEventListener("change", function() {
+        S.CORE.setBorderInset(Number(this.value));
+        S.renderPageBorder(S._pageBorder);
+        render();  // caption warnings use the inside of the border
+        pushUndo();
+        S.schedulePreviewRefresh();
+    });
+
     // The album's stamp mounts: every frame moves out or in
     ["def-mount-over", "def-mount-gap"].forEach(function(id) {
         $(id).addEventListener("change", function() {
@@ -752,7 +761,10 @@ function init() {
     var _restored = false;
     if (loadDraft) _restored = loadDraft();
     // A fresh start is a new album: its stamp mounts start at the new album's
-    if (!_restored) S.CORE.setMount(S.CORE.NEW_ALBUM_MOUNT.overhang, S.CORE.NEW_ALBUM_MOUNT.gap);
+    if (!_restored) {
+        S.CORE.setMount(S.CORE.NEW_ALBUM_MOUNT.overhang, S.CORE.NEW_ALBUM_MOUNT.gap);
+        S.CORE.setBorderInset(S.CORE.NEW_ALBUM_BORDER_INSET);
+    }
     if (_restored) {
         S._dirty = true;
         var hasItems = S._pages.some(function(p, i) {

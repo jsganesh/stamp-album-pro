@@ -129,6 +129,7 @@ class AlbumSerializer:
         if getattr(album, "theme", ""):
             lines.append(f'ALBUM_THEME("{self._escape_string(album.theme)}")')
         lines.append(f"ALBUM_MOUNT({_mm(album.mount_overhang)} {_mm(album.mount_gap)})")
+        lines.append(f"ALBUM_BORDER_INSET({_mm(album.border_inset)})")
         if getattr(album, "caption_heading", "bold") == "semibold":  # bold is the default
             lines.append('CAPTION_HEADING("semibold")')
 

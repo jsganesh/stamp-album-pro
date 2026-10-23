@@ -38,6 +38,7 @@ var SAMPLE_DSL = [
     'ALBUM_PAGES_SIZE(210 297)',
     'ALBUM_PAGES_MARGINS(15 15 15 15)',
     'ALBUM_MOUNT(1.5 1)',
+    'ALBUM_BORDER_INSET(13)',
     'PAGE_START',
     'PAGE_TEXT_AT(20.0 18.0 170.0 12.0 "HB" 16 "Great Britain: The First Stamps" "center")',
     'PAGE_TEXT_ROLE("heading")',

@@ -24,7 +24,23 @@ from dataclasses import dataclass, field
 
 UNITS_PER_MM = 2.5  # the editor's canvas scale
 UNIT_MM = 1 / UNITS_PER_MM  # one editor canvas unit, 0.4 mm
-MARGIN_U = 12  # page edge to the border, in units (4.8 mm)
+MARGIN_U = 12  # page edge to the border, in units (4.8 mm): albums from before ALBUM_BORDER_INSET
+# The border's distance from the paper's edge is an album setting, in mm (ALBUM_BORDER_INSET).
+# Printers can't print right to the edge, so new albums start at 13 mm. Keep these in step with
+# BORDER_INSET_CHOICES in web/dsl_core.js.
+OLD_ALBUM_INSET_MM = 4.8  # MARGIN_U units
+NEW_ALBUM_INSET_MM = 13.0
+INSET_CHOICES_MM = (4.8, 8, 10, 12, 13)
+INSET_MAX_MM = 30.0
+
+
+def valid_inset(value) -> bool:
+    """Whether *value* is a usable border distance in mm."""
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return False
+    return 0 <= v <= INSET_MAX_MM
 INNER_U = 4  # outer rule to inner rule of a double border, in units
 
 PLAIN_STYLES = ("solid", "double", "dashed", "dotted")
@@ -138,9 +154,10 @@ def _rect(x, y, w, h, color, width, dash=None) -> str:
     )
 
 
-def page_border_markup(style: str, w: float, h: float, color: str) -> str:
-    """``renderPageBorder`` in borders.js: SVG for a page ``w`` x ``h`` units."""
-    m = MARGIN_U
+def page_border_markup(style: str, w: float, h: float, color: str, margin: float = MARGIN_U) -> str:
+    """``renderPageBorder`` in borders.js: SVG for a page ``w`` x ``h`` units, the border
+    *margin* units in from the edge."""
+    m = margin
     if style == "solid":
         return _rect(m, m, w - m * 2, h - m * 2, color, "1")
     if style == "double" or style in CORNER_STYLES:
@@ -351,12 +368,14 @@ def markup_primitives(markup: str, unit_mm: float = UNIT_MM) -> list:
     return out
 
 
-def primitives(style: str, page_w_mm: float, page_h_mm: float) -> list:
-    """The page border for *style* on a page ``page_w_mm`` x ``page_h_mm``, in page mm."""
+def primitives(style: str, page_w_mm: float, page_h_mm: float,
+               inset_mm: float = OLD_ALBUM_INSET_MM) -> list:
+    """The page border for *style* on a page ``page_w_mm`` x ``page_h_mm``, *inset_mm* from
+    its edge, in page mm."""
     if style not in STYLES:
         return []
     w, h = page_w_mm * UNITS_PER_MM, page_h_mm * UNITS_PER_MM
-    return markup_primitives(page_border_markup(style, w, h, "#000"))
+    return markup_primitives(page_border_markup(style, w, h, "#000", inset_mm * UNITS_PER_MM))
 
 
 def strokes_with_dashes(prims: list) -> list:
@@ -396,7 +415,8 @@ def page_primitives(album) -> list:
     ps = album.page_setup
     if not ps.has_border or ps.border_style not in STYLES:
         return []
-    return strokes_with_dashes(primitives(ps.border_style, ps.width, ps.height))
+    inset = getattr(album, "border_inset", OLD_ALBUM_INSET_MM)
+    return strokes_with_dashes(primitives(ps.border_style, ps.width, ps.height, inset))
 
 
 def svg_elements(prims: list, color: str) -> str:

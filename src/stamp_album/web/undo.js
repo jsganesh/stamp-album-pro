@@ -12,7 +12,8 @@ function snapshot() {
     pages[S._currentPage] = S.E;
     return JSON.stringify({ v: 2, pages: pages, cur: S._currentPage, pw: S._pw, ph: S._ph,
                             border: S._pageBorder || "", borderC: S._pageBorderC || "", theme: S._theme,
-                            heading: S._captionHeading, mount: S.CORE.getMount() });
+                            heading: S._captionHeading, mount: S.CORE.getMount(),
+                            inset: S.CORE.getBorderInset() });
 }
 
 function pushUndo() {
@@ -63,6 +64,7 @@ function restore(json) {
         S._theme = st.theme;
         if (st.heading !== undefined) S._captionHeading = st.heading;
         if (st.mount) S.CORE.setMount(st.mount.overhang, st.mount.gap);
+        if (st.inset !== undefined) S.CORE.setBorderInset(st.inset);
         S.syncPageBar();
     }
     S.sel = null;

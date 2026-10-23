@@ -662,6 +662,9 @@ class Album:
     # albums start at 1.5 + 1 (frames.NEW_ALBUM_MOUNT).
     mount_overhang: float = 0.0
     mount_gap: float = 1.0
+    # The page border's distance from the paper's edge, mm (ALBUM_BORDER_INSET in the DSL). An
+    # album that doesn't say keeps 4.8 mm, as before; new albums start at 13 (page_border.py).
+    border_inset: float = 4.8
 
     # Color settings
     color_album_border: Optional[Color] = None

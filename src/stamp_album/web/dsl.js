@@ -47,6 +47,7 @@ function buildDSL() {
         theme: S._theme,
         captionHeading: S._captionHeading,
         mount: S.CORE.getMount(),
+        borderInset: S.CORE.getBorderInset(),
         colMode: S._colMode || 1,
         colGap: S._colGap || 10,
         currentFile: S._currentFile || ""
@@ -74,6 +75,7 @@ function parseDSL(dsl) {
         S._theme = state.theme;
         S._captionHeading = state.captionHeading;
         S.CORE.setMount(state.mount.overhang, state.mount.gap);  // as stored, else 0 + 1 mm as before
+        S.CORE.setBorderInset(state.borderInset);  // as stored, else 4.8 mm as before
         S._colMode = state.colMode;
         S._colGap = state.colGap;
         S._pages = JSON.parse(JSON.stringify(state.pages));
