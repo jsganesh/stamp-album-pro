@@ -22,7 +22,7 @@ function el(name, attrs) {
 // The open album's page, as drawPage takes it: items in canvas px.
 function openAlbumPage() {
     return { pw: S._pw / S._sc, ph: S._ph / S._sc, border: S._pageBorder, color: S.themeColor(),
-             mount: null, unit: S._sc };
+             mount: null, unit: S._sc, inset: S.CORE.getBorderInset() };
 }
 
 // The drawing of one page's items, in mm. `page` gives the paper ({pw, ph} in mm), the
@@ -35,18 +35,18 @@ function drawPage(svg, items, page) {
     var before = pg.mount ? S.CORE.getMount() : null;
     if (before) S.CORE.setMount(pg.mount.overhang, pg.mount.gap);  // frame outsets for this page
     try {
-        drawItems(svg, items, sc, pw, ph, pg.border, color);
+        drawItems(svg, items, sc, pw, ph, pg.border, color, pg.inset);
     } finally {
         if (before) S.CORE.setMount(before.overhang, before.gap);
     }
 }
 
-function drawItems(svg, items, sc, pw, ph, border, color) {
+function drawItems(svg, items, sc, pw, ph, border, color, inset) {
     while (svg.firstChild) svg.removeChild(svg.firstChild);
     svg.setAttribute("viewBox", "0 0 " + pw + " " + ph);
     svg.appendChild(el("rect", { x: 0, y: 0, width: pw, height: ph, fill: "#fff" }));
     if (border && border !== "none") {
-        var m = 12 / S._sc;  // where borders.js draws the border (12 canvas px)
+        var m = inset != null ? inset : S.CORE.OLD_ALBUM_BORDER_INSET;  // the album's border distance, mm
         var frame = el("rect", { x: m, y: m, width: pw - 2 * m, height: ph - 2 * m, fill: "none",
                                  stroke: color, "stroke-width": 0.8 });
         frame.setAttribute("class", "pg-border");

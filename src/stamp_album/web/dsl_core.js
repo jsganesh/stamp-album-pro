@@ -178,7 +178,10 @@ var PLAIN_BORDERS = ["none", "solid", "double"];
 function serializeEl(el) {
     var E = escapeDSL;  // every text field is escaped, so quotes and backslashes survive a save
     if (el.t === "image") {
-        return 'STAMP_ADD_IMG(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + E(el.img || "") + '" "' + E(el.lbl || "") + '" "' + E(el.cap || "") + '" "")';
+        var img = 'STAMP_ADD_IMG(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + E(el.img || "") + '" "' + E(el.lbl || "") + '" "' + E(el.cap || "") + '" "")';
+        // A copy or scan of a real item: the original's size (mm) and the word printed under it
+        if (isReproduction(el)) img += '\nSTAMP_IMG_REPRO(' + Number(el.origW) + ' ' + Number(el.origH) + ' "' + E(el.reproLbl || "Reproduction") + '")';
+        return img;
     } else if (el.t === "freehand") {
         return 'STAMP_ADD_AT(' + el.x.toFixed(1) + ' ' + el.y.toFixed(1) + ' ' + el.w.toFixed(1) + ' ' + el.h.toFixed(1) + ' "' + E(el.lbl || "") + '" "freehand" "" "" ' + (el.s || "freehand") + ' "' + E(el.bdr || "solid") + '" "' + E(el.bdrC || "#000") + '" ' + (el.bdrW || 0.5) + ' "' + E(el.fill || "#FEFEFE") + '" ' + (el.fillA != null ? el.fillA : 100) + ')';
     } else if (el.t === "text") {
@@ -201,6 +204,8 @@ function serializeEl(el) {
         if (el.denom || el.cond || el.perf) {
             lines.push('STAMP_DETAILS("' + E(el.denom || "") + '" "' + E(el.cond || "") + '" "' + E(el.perf || "") + '")');
         }
+        // Expertised: "(e)" in bold under the caption (FIP). Older versions skip this line.
+        if (el.exp) lines.push("STAMP_EXPERTISED()");
         return lines.join("\n");
     }
 }
@@ -278,6 +283,7 @@ function parseDSL(dsl) {
     var sawPageStart = false;
     var lastStamp = null;  // the stamp a STAMP_HEADING or STAMP_DETAILS line describes
     var lastText = null;   // the text a PAGE_TEXT_ROLE line marks
+    var lastImage = null;  // the picture a STAMP_IMG_REPRO line describes
 
     var lines = dsl.split("\n");
     for (var i = 0; i < lines.length; i++) {
@@ -350,6 +356,7 @@ function parseDSL(dsl) {
             sawPageStart = true;
             lastStamp = null;
             lastText = null;
+            lastImage = null;
             _rowX = _pageMargin;
             _rowY = 12;
             continue;
@@ -383,7 +390,21 @@ function parseDSL(dsl) {
 
         var mImg = matchDSL(t, /^STAMP_ADD_IMG\(\s*(-?[\d.]+)\s+(-?[\d.]+)\s+([\d.]+)\s+([\d.]+)\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\s+"((?:[^"\\]|\\.)*)"\)/);
         if (mImg) {
-            currentElements.push({ id: "el" + (nid++), t: "image", s: "rectangle", x: parseFloat(mImg[1]), y: parseFloat(mImg[2]), w: parseFloat(mImg[3]), h: parseFloat(mImg[4]), lbl: mImg[6] || "", cap: mImg[7] || "", bdr: "none", bdrC: "transparent", bdrW: 0, fill: "transparent", fillA: 0, img: mImg[5] || "", font: "HN", fs: 12 });
+            lastImage = { id: "el" + (nid++), t: "image", s: "rectangle", x: parseFloat(mImg[1]), y: parseFloat(mImg[2]), w: parseFloat(mImg[3]), h: parseFloat(mImg[4]), lbl: mImg[6] || "", cap: mImg[7] || "", bdr: "none", bdrC: "transparent", bdrW: 0, fill: "transparent", fillA: 0, img: mImg[5] || "", font: "HN", fs: 12 };
+            currentElements.push(lastImage);
+            continue;
+        }
+        var mRepro = matchDSL(t, /^STAMP_IMG_REPRO\(\s*([\d.]+)\s+([\d.]+)\s+"((?:[^"\\]|\\.)*)"\s*\)/);
+        if (mRepro) {
+            if (lastImage && parseFloat(mRepro[1]) > 0 && parseFloat(mRepro[2]) > 0) {
+                lastImage.origW = parseFloat(mRepro[1]);
+                lastImage.origH = parseFloat(mRepro[2]);
+                lastImage.reproLbl = mRepro[3];
+            }
+            continue;
+        }
+        if (matchDSL(t, /^STAMP_EXPERTISED\(\s*\)/)) {
+            if (lastStamp) lastStamp.exp = true;
             continue;
         }
 
@@ -719,6 +740,7 @@ function captionParts(el, opts) {
     var trim = function(v) { return String(v || "").trim(); };
     if (el.t === "image") {  // a picture: its own caption only (its label is the file's name)
         if (trim(el.cap)) below.push({ kind: "picture", text: trim(el.cap), fontId: "CapI", sizePt: CAPTION.CAPTION_PT });
+        if (isReproduction(el)) below.push({ kind: "reproduction", text: trim(el.reproLbl) || "Reproduction", fontId: "CapI", sizePt: CAPTION.CAPTION_PT });
         return { above: above, below: below };
     }
     if (trim(el.hdg)) above.push({ kind: "heading", text: trim(el.hdg), fontId: headingFont(opts && opts.headingWeight), sizePt: CAPTION.HEADING_PT });
@@ -726,6 +748,7 @@ function captionParts(el, opts) {
     var details = [el.denom, el.cond, el.perf].map(trim).filter(Boolean).join(" · ");
     if (details) below.push({ kind: "details", text: details, fontId: "CapI", sizePt: CAPTION.CAPTION_PT });
     if (trim(el.cat)) below.push({ kind: "catalogue", text: trim(el.cat), fontId: "CapI", sizePt: CAPTION.CAPTION_PT });
+    if (el.exp && el.t === "stamp") below.push({ kind: "expertised", text: "(e)", fontId: "CapB", sizePt: CAPTION.CAPTION_PT });
     return { above: above, below: below };
 }
 
@@ -871,6 +894,19 @@ function chapterFor(el, entries) {
     return entries.find(function(e) { return e.num === el.chapter; }) || null;
 }
 
+// ── Reproductions ──
+// A picture can be a copy or scan of a real item (el.origW, el.origH: the original's size in mm).
+// FIP asks that a reproduction differ in size from the original by at least 25% and be marked
+// as one; "Reproduction" (el.reproLbl) prints under it. Keep in step with caption_layout.py.
+var REPRO_MIN_DIFF = 0.25;
+function isReproduction(el) { return !!el && el.t === "image" && Number(el.origW) > 0 && Number(el.origH) > 0; }
+// The picture's size as a share of the original's (by width), or null.
+function reproScale(el) { return isReproduction(el) ? el.w / Number(el.origW) : null; }
+function reproTooClose(el) {
+    var r = reproScale(el);
+    return r !== null && Math.abs(r - 1) < REPRO_MIN_DIFF - 0.005;
+}
+
 // ── Exhibit check ──
 // What FIP guidelines would mark down, page by page: [{ level, code, page, n }], where level is
 // "fix" (likely to cost points) or "advice", page is a 0-based page index (null for the album)
@@ -907,6 +943,8 @@ function exhibitCheck(input) {
         if (unnamed) add("advice", "unnamed_stamps", i, unnamed);
         var w = (input.warnings || [])[i] || 0;
         if (w) add("fix", "caption_clash", i, w);
+        var close = p.filter(reproTooClose).length;
+        if (close) add("fix", "repro_size", i, close);
     });
     var fip = ["fip23", "fip31", "fip46", "a4"].find(function(k) { return sizeNear(input.pw, input.ph, PAPER_MM[k]); });
     if (!fip) add("advice", "paper", null);
@@ -985,7 +1023,9 @@ var EXPORTS = { THEMES: THEMES, themeColor: themeColor, FRAMES: FRAMES, frameOf:
                 PLAN: PLAN, PLAN_SECTIONS: PLAN_SECTIONS, PLAN_PART_NAMES: PLAN_PART_NAMES, planText: planText,
                 planChapters: planChapters, exhibitPlanLayout: exhibitPlanLayout,
                 CHAPTER_RE: CHAPTER_RE, planEntries: planEntries, chapterHeading: chapterHeading,
-                chapterFor: chapterFor, exhibitCheck: exhibitCheck };
+                chapterFor: chapterFor, exhibitCheck: exhibitCheck,
+                REPRO_MIN_DIFF: REPRO_MIN_DIFF, isReproduction: isReproduction, reproScale: reproScale,
+                reproTooClose: reproTooClose };
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = EXPORTS;
 }

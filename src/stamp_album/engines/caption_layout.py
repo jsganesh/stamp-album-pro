@@ -79,6 +79,9 @@ def caption_parts(stamp, heading_weight: Optional[str] = None) -> tuple[list, li
         text = (getattr(stamp, "picture_caption", "") or "").strip()
         if text:
             below.append(("picture", text, "CapI", CAPTION_PT))
+        if getattr(stamp, "repro_size", None):  # a copy of a real item says so (FIP)
+            word = (getattr(stamp, "repro_label", "") or "").strip() or "Reproduction"
+            below.append(("reproduction", word, "CapI", CAPTION_PT))
         return above, below
     heading = getattr(stamp, "heading", None)
     if heading is not None and (heading.text or "").strip():
@@ -93,6 +96,8 @@ def caption_parts(stamp, heading_weight: Optional[str] = None) -> tuple[list, li
     cat = catalogue_text(getattr(stamp, "catalog_refs", None))
     if cat:
         below.append(("catalogue", cat, "CapI", CAPTION_PT))
+    if getattr(stamp, "expertised", False):  # FIP: a bold "(e)" for an item with a certificate
+        below.append(("expertised", "(e)", "CapB", CAPTION_PT))
     return above, below
 
 

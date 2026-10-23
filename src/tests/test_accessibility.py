@@ -102,6 +102,7 @@ OPENERS = {
     "page setup": "document.getElementById('btn-page-setup').click()",
     "title and plan page": "document.getElementById('btn-exhibit-plan').click()",
     "check exhibit": "StampAlbum.openCheck()",
+    "frames": "StampAlbum.openFrames()",
     "keyboard shortcuts": "document.getElementById('help-overlay').classList.add('open')",
     "template gallery": "document.getElementById('btn-wiz-template').click()",
 }

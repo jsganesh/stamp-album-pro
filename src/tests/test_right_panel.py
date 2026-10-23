@@ -134,7 +134,8 @@ def test_more_details_folded_when_empty(page):
     page.click("#more-toggle")
     assert page.get_attribute("#more-toggle", "aria-expanded") == "true"
     assert _visible_labels(page, "#more-body") == ["Value", "Condition", "Perforation",
-                                                   "Catalogue no."]
+                                                   "Catalogue no.",
+                                                   "Expertised (has a certificate)"]
     assert "imperforate" in page.inner_text("#more-body")
 
 

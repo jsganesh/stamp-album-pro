@@ -205,6 +205,9 @@ def _states(pg):
     pg.evaluate("StampAlbum.openCheck()")
     yield "check exhibit"
     pg.evaluate("document.getElementById('check-overlay').classList.remove('open')")
+    pg.evaluate("StampAlbum.openFrames()")
+    yield "frames"
+    pg.evaluate("document.getElementById('frames-overlay').classList.remove('open')")
     pg.evaluate("StampAlbum.openCalibration()")
     yield "calibration page"
     pg.evaluate("document.getElementById('calibration-overlay').classList.remove('open')")

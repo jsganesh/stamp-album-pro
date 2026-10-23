@@ -360,7 +360,7 @@ function panelTitle(el) {
 }
 // The details a reader may not need, under More details (optional): Value,
 // Condition, Perforation and Catalogue no.
-var MORE_FIELDS = ["denom", "cond", "perf", "cat"];
+var MORE_FIELDS = ["denom", "cond", "perf", "cat", "exp"];
 function moreFilled(el) {
     return MORE_FIELDS.filter(function(k) { return el && el[k] && String(el[k]).trim(); }).length;
 }
@@ -462,6 +462,7 @@ function fillPanel(el, changed) {
     show("pcap-row", isImg);
     show("pcap-note", isImg);
     $("pcap").value = el.cap || "";
+    fillRepro(el, isImg);
     $("phead").checked = el.role === "heading";
     fillChapter(el, isText);
     showFont(el.font || "HN");
@@ -482,10 +483,32 @@ function fillPanel(el, changed) {
         $("pdenom").value = el.denom || "";
         $("pcond").value = el.cond || "";
         $("pperf").value = el.perf || "";
+        $("pexp").checked = !!el.exp;
         updateMoreCount(el);
         // Folded unless one is filled in; a choice made by hand lasts while the stamp stays selected.
         if (changed) setMoreOpen(moreFilled(el) > 0);
     }
+}
+
+// A picture that is a copy of a real item: its original's size and how it compares (FIP: at
+// least 25% larger or smaller).
+function fillRepro(el, isImg) {
+    var on = isImg && S.CORE.isReproduction(el);
+    // The editor keeps sizes in canvas px; the comparison is in mm, as the original's size
+    var inMm = Object.assign({}, el, { w: el.w / S._sc, h: el.h / S._sc });
+    show("prepro-row", isImg);
+    show("prepro-hint", isImg);
+    show("porig-row", on);
+    show("prepro-note", on);
+    show("prepro-fit-row", on && S.CORE.reproTooClose(inMm));
+    $("prepro").checked = on;
+    if (!on) return;
+    $("porig-w").value = el.origW;
+    $("porig-h").value = el.origH;
+    var pct = Math.round(S.CORE.reproScale(inMm) * 100);
+    var close = S.CORE.reproTooClose(inMm), note = $("prepro-note");
+    note.textContent = S.t(close ? "msg.repro_too_close" : "msg.repro_ok", { pct: pct });
+    note.classList.toggle("warn", close);
 }
 
 // A text item's link to a plan chapter: offered when the album has a title and plan page,
@@ -921,6 +944,7 @@ S.applySnap = applySnap;
 S.add = add;
 S.select = select;
 S.panelItem = panelItem;
+S.fillRepro = fillRepro;
 S.panelTyped = panelTyped;
 S.commitPanelEdit = commitPanelEdit;
 S.updateMoreCount = updateMoreCount;

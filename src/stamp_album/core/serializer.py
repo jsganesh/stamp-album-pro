@@ -78,7 +78,12 @@ class AlbumSerializer:
         if getattr(stamp, "is_picture", False):
             img, label = e(stamp.image_path or ""), e(stamp.description)
             cap = e(getattr(stamp, "picture_caption", ""))
-            return [f'STAMP_ADD_IMG({x} {y} {w} {h} "{img}" "{label}" "{cap}" "")']
+            out = [f'STAMP_ADD_IMG({x} {y} {w} {h} "{img}" "{label}" "{cap}" "")']
+            repro = getattr(stamp, "repro_size", None)
+            if repro:
+                word = e(getattr(stamp, "repro_label", "") or "Reproduction")
+                out.append(f'STAMP_IMG_REPRO({_mm(repro[0])} {_mm(repro[1])} "{word}")')
+            return out
         # The frame as the editor writes it (FRAMES in web/dsl_core.js)
         frame = getattr(stamp, "frame", "thin") or "thin"
         frames = {"none": ("none", 0), "medium": ("solid", 1), "double": ("double", 1)}
@@ -104,6 +109,8 @@ class AlbumSerializer:
         if any(details):
             denom, cond, perf = (list(details) + ["", "", ""])[:3]
             out.append(f'STAMP_DETAILS("{e(denom)}" "{e(cond)}" "{e(perf)}")')
+        if getattr(stamp, "expertised", False):
+            out.append("STAMP_EXPERTISED()")
         return out
 
     def to_dsl(self, album: Album) -> str:

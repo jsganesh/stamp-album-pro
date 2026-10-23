@@ -52,7 +52,8 @@ var PHRASES = {
     decorative_border: "msg.check_decorative_border", empty_page: "msg.check_empty_page",
     no_heading: "msg.check_no_heading", chapter_gone: "msg.check_chapter_gone",
     unnamed_stamps: "msg.check_unnamed_stamps", caption_clash: "msg.check_caption_clash",
-    paper: "msg.check_paper", frames: "msg.check_frames", frames_full: "msg.check_frames_full"
+    paper: "msg.check_paper", frames: "msg.check_frames", frames_full: "msg.check_frames_full",
+    repro_size: "msg.check_repro_size"
 };
 function sentence(f) {
     return S.t(PHRASES[f.code], { count: f.n, per: f.perFrame || 0, last: f.last || 0 });

@@ -5,6 +5,14 @@ All notable changes to this project are documented here. The format follows [Kee
 ## [Unreleased]
 
 ### Added
+- **Expertised (has a certificate)** under a stamp's More details: prints a bold "(e)" under its caption, as FIP asks, in the editor and every export. Saved as `STAMP_EXPERTISED()`
+- **A copy or scan of a real item** for a picture: takes its size as the original's (which can be corrected), prints "Reproduction" under it, shows its size as a share of the original's, and offers **Make it 75% of the original** while it is within 25% of it. Check exhibit flags a copy too close in size. Saved as `STAMP_IMG_REPRO(w h "Reproduction")`
+- **View › Frames…** shows the pages as they hang in exhibition frames: 4, 3 or 2 to a row by sheet size, 4 rows to a frame; a page goes to it when clicked
+
+### Fixed
+- The page pictures beside the page draw the border at the album's border distance
+
+### Added
 - **Chapter** in the right panel for a text item, once the album has a title and plan page: links it to a chapter or section of the plan, making it a page heading with the plan's words ("2.1 Blued paper"). When the plan changes in the form, linked headings follow it: a chapter that moved keeps its headings, a renamed one renames them. Saved as `PAGE_TEXT_CHAPTER("2.1")`
 - **Philatelic note** text tile (9 pt italic), for printing, paper, rates or postmarks set apart from the story, as FIP thematic rules ask
 - **View › Check exhibit…** lists what FIP judges would mark down: things to fix (no title and plan page, or not first; a plan without chapters; a heading linked to a chapter no longer in the plan; captions or frames past the border, counted on every page; a decorative border) and advice (pages without a heading, stamps with no name, empty pages, paper that is not A4 or an FIP sheet, and how the pages fill frames of 16, 12 or 8 sheets), each with a button to go to its page
