@@ -4,6 +4,11 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+- Each album has a folder of its own in StampAlbum, holding the album and the pictures it uses (`StampAlbum/<album>/<album>.slbum` and `images/`). Saving copies in the pictures the album uses; pictures attached before the first save wait in a hidden holding folder until then. Deleting an album in Manage saved albums deletes its folder, and the question says so
+- When the app starts, albums still loose in StampAlbum move into folders of their own, with copies of their pictures; the shared images folder is kept and nothing else is deleted. A message says so once, and `Albums moved into folders.txt` lists what moved
+- Pictures are found in the open album's folder first, then the old shared folder, so older albums keep printing
+
 ### Fixed
 - The page border could be cut off when printing, or the whole page shrunk to fit (about 93% on A4, with every stamp box shrunk too): it sat 4.8 mm from the paper's edge, closer than most printers can print. New albums, templates and the wizard now put it 13 mm in, and the right panel has **Border from edge** (4.8, 8, 10, 12 or 13 mm) for any album with a border. Albums saved before keep 4.8 mm until it is changed. Saved as `ALBUM_BORDER_INSET(13)`
 - After exporting a PDF, a reminder to print it at 100% (Actual size), not Fit to page

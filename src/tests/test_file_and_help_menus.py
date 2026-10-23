@@ -17,7 +17,7 @@ from fastapi.testclient import TestClient
 from test_accessibility import _axe
 from test_ui_smoke import base_url, page, wait_for_app  # noqa: F401
 
-from stamp_album import api
+from stamp_album import api, storage
 
 
 def _png(colour, size=(30, 20)):
@@ -34,8 +34,8 @@ def folders(tmp_path, monkeypatch):
     files = tmp_path / "StampAlbum"
     images = files / "images"
     images.mkdir(parents=True)
-    monkeypatch.setattr(api, "FILES_DIR", files)
-    monkeypatch.setattr(api, "IMAGES_DIR", images)
+    monkeypatch.setattr(storage, "FILES_DIR", files)
+    monkeypatch.setattr(storage, "IMAGES_DIR", images)
     return files
 
 
@@ -311,7 +311,8 @@ def test_attaching_places_the_image_on_the_page(page, folders, tmp_path):
     assert abs(el["w"] / el["h"] - 1.5) < 0.05  # the picture's own shape
     _wait(page, "document.querySelectorAll('#img-grid .img-item').length === 1")
     assert page.is_hidden("#img-empty")
-    assert (folders / "images" / "scan.png").exists()
+    # A new album has no folder yet: its pictures wait in the holding folder until it is saved
+    assert (folders / ".unsaved-images" / "scan.png").exists()
     # A thumbnail adds another copy
     page.click("#img-grid .img-add")
     _wait(page, "StampAlbum.E.length === 2")
@@ -427,7 +428,7 @@ def test_recent_route_sorts_newest_first(folders):
 
 def test_attaching_never_replaces_a_different_image(folders):
     client = TestClient(api.app)
-    images = folders / "images"
+    images = folders / ".unsaved-images"  # no album open: the holding folder
 
     def up(name, data):
         r = client.post("/images", files={"file": (name, io.BytesIO(data), "image/png")})

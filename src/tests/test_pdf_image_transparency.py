@@ -19,6 +19,9 @@ def home_with_images(tmp_path, monkeypatch):
     rgba.save(images / "arms_rgba.png")
     Image.new("RGB", (60, 80), (200, 30, 30)).save(images / "arms_rgb.png")
     monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+    from stamp_album import storage  # the albums folder is set when the app loads
+    monkeypatch.setattr(storage, "FILES_DIR", tmp_path / "StampAlbum")
+    monkeypatch.setattr(storage, "IMAGES_DIR", images)
     return images
 
 

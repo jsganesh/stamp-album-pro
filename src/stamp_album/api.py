@@ -4,6 +4,7 @@ import secrets
 import tempfile
 from pathlib import Path
 from typing import Dict, Optional
+from urllib.parse import unquote
 
 import uvicorn
 from fastapi import (
@@ -18,6 +19,7 @@ from fastapi import (
 from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse, Response
 from pydantic import BaseModel
 
+from stamp_album import storage
 from stamp_album.cloud_sync import (
     authenticate_user,
     create_session,
@@ -84,13 +86,22 @@ async def security_headers(request: Request, call_next):
     return response
 
 
-# Directory for user files
-FILES_DIR = Path(os.environ.get("STAMP_ALBUM_FILES", Path.home() / "StampAlbum"))
-FILES_DIR.mkdir(parents=True, exist_ok=True)
+# Albums, their pictures and exports: a folder for each album in storage.FILES_DIR
+# (~/StampAlbum). See storage.py.
+storage.FILES_DIR.mkdir(parents=True, exist_ok=True)
+# When the app itself starts (serve.py, desktop.py set this; tests don't), albums still loose
+# in the albums folder move into folders of their own. Nothing is deleted.
+if os.environ.get("STAMP_ALBUM_APP_START") == "1":
+    storage.move_loose_albums()
 
-# Directory for uploaded images
-IMAGES_DIR = FILES_DIR / "images"
-IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+# The album open in the editor, which the editor names in a cookie (S.setOpenAlbum in app.js),
+# so a picture is looked for in that album's folder first.
+ALBUM_COOKIE = "stampalbum_album"
+
+
+def _open_album(request: Request) -> Optional[str]:
+    name = unquote(request.cookies.get(ALBUM_COOKIE, "") or "")
+    return name if storage.valid_album_name(name) else None
 
 # Serve web UI
 WEB_DIR = Path(__file__).parent / "web"
@@ -134,7 +145,7 @@ class FileContent(BaseModel):
 @app.get("/files")
 async def list_files(sort: str = "name", limit: int = 0):
     """The saved albums: by name, or with sort=recent newest first (File › Open recent)."""
-    paths = [f for f in FILES_DIR.iterdir() if f.is_file() and f.suffix in (".slbum", ".txt")]
+    paths = storage.list_albums()
     if sort == "recent":
         paths.sort(key=lambda f: (-f.stat().st_mtime, f.name))
     else:
@@ -143,23 +154,26 @@ async def list_files(sort: str = "name", limit: int = 0):
     return names[:limit] if limit > 0 else names
 
 
-# Album files are named plainly inside FILES_DIR. Albums are saved only as .slbum: a .txt
+# Albums are named plainly ("New Zealand.slbum"), each in its own folder in storage.FILES_DIR.
+# Albums are saved only as .slbum: a .txt
 # (an older album, or an AlbumEasy file the editor can't read yet) is opened but never written,
 # so a blank page saved by mistake can't replace it.
 ALBUM_SUFFIXES = (".slbum", ".txt")
 
 
 def _album_path(filename: str, saving: bool = False) -> Path:
-    bad = (
-        not filename
-        or filename.startswith(".")
-        or any(c in filename for c in "/\\:\0")
-        or Path(filename).suffix.lower() not in ((".slbum",) if saving else ALBUM_SUFFIXES)
-    )
-    if bad:
+    if not storage.valid_album_name(filename, saving=saving):
         detail = "Albums are saved as .slbum files" if saving else "Not an album file name"
         raise HTTPException(status_code=400, detail=detail)
-    return FILES_DIR / filename
+    return storage.album_path(filename)
+
+
+@app.get("/albums/moved")
+async def albums_moved():
+    """The albums moved into folders of their own when the app started, said once."""
+    moved = [{"from": old, "to": new} for old, new in storage.LAST_MOVED]
+    storage.LAST_MOVED.clear()
+    return moved
 
 
 @app.get("/files/{filename}")
@@ -171,10 +185,12 @@ async def get_file(filename: str):
 
 
 @app.post("/files/{filename}")
-async def save_file(filename: str, request: FileContent):
-    filepath = _album_path(filename, saving=True)
-    filepath.write_text(request.content, encoding="utf-8")
-    return {"status": "saved", "path": str(filepath)}
+async def save_file(filename: str, request: FileContent, http: Request):
+    """Save into the album's own folder, copying in the pictures it uses (from the album that
+    was open, the old shared folder or the holding folder)."""
+    _album_path(filename, saving=True)
+    filepath = storage.save_album(filename, request.content, from_album=_open_album(http))
+    return {"status": "saved", "path": str(filepath), "folder": str(filepath.parent)}
 
 
 @app.delete("/files/{filename}")
@@ -182,32 +198,33 @@ async def delete_file(filename: str):
     filepath = _album_path(filename)
     if not filepath.exists():
         raise HTTPException(status_code=404, detail="File not found")
-    filepath.unlink()
+    storage.delete_album(filename)  # its folder: pictures and exports too
     return {"status": "deleted"}
 
 
 # Image management endpoints
-ALLOWED_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".tif", ".webp"}
+ALLOWED_IMAGE_EXTENSIONS = storage.IMAGE_SUFFIXES
 
 
 @app.get("/images")
-async def list_images():
-    images = sorted(
-        [f.name for f in IMAGES_DIR.iterdir() if f.suffix.lower() in ALLOWED_IMAGE_EXTENSIONS]
-    )
-    return images
+async def list_images(request: Request):
+    """The pictures in the open album's folder (or the holding folder before its first save)."""
+    folder = storage.images_dir(_open_album(request))
+    if not folder.is_dir():
+        return []
+    return sorted(f.name for f in folder.iterdir() if f.suffix.lower() in ALLOWED_IMAGE_EXTENSIONS)
 
 
 @app.get("/images/{filename}")
-async def get_image(filename: str):
-    filepath = IMAGES_DIR / filename
-    if not filepath.exists():
+async def get_image(filename: str, request: Request):
+    filepath = storage.find_image(filename, _open_album(request))
+    if filepath is None:
         raise HTTPException(status_code=404, detail="Image not found")
     return FileResponse(filepath)
 
 
 @app.post("/images")
-async def upload_image(file: UploadFile = File(...)):
+async def upload_image(request: Request, file: UploadFile = File(...)):
     if not file.filename:
         raise HTTPException(status_code=400, detail="No filename provided")
 
@@ -217,28 +234,32 @@ async def upload_image(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail=f"Unsupported image format: {ext}")
 
     data = await file.read()
-    filepath = _image_path_for(name, data)
+    folder = storage.images_dir(_open_album(request))
+    folder.mkdir(parents=True, exist_ok=True)
+    filepath = _image_path_for(name, data, folder)
     if not filepath.exists():
         filepath.write_bytes(data)
     return {"status": "uploaded", "filename": filepath.name, "path": str(filepath)}
 
 
-def _image_path_for(name: str, data: bytes) -> Path:
-    """Where an attached image is kept: its own name, unless a different image already
-    has that name (another album may use it), then "name-2.ext", "name-3.ext", …
-    The same image attached again reuses its file."""
+def _image_path_for(name: str, data: bytes, folder: Path) -> Path:
+    """Where an attached image is kept in *folder*: its own name, unless a different image
+    already has that name, then "name-2.ext", "name-3.ext", … The same image attached again
+    reuses its file."""
     stem, ext = Path(name).stem, Path(name).suffix
     n = 1
     while True:
-        candidate = IMAGES_DIR / (name if n == 1 else f"{stem}-{n}{ext}")
+        candidate = folder / (name if n == 1 else f"{stem}-{n}{ext}")
         if not candidate.exists() or candidate.read_bytes() == data:
             return candidate
         n += 1
 
 
 @app.delete("/images/{filename}")
-async def delete_image(filename: str):
-    filepath = IMAGES_DIR / filename
+async def delete_image(filename: str, request: Request):
+    if "/" in filename or "\\" in filename or filename.startswith("."):
+        raise HTTPException(status_code=400, detail="Not an image name")
+    filepath = storage.images_dir(_open_album(request)) / filename
     if not filepath.exists():
         raise HTTPException(status_code=404, detail="Image not found")
     filepath.unlink()
