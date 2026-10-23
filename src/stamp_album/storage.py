@@ -54,15 +54,30 @@ def valid_album_name(name: str, saving: bool = False) -> bool:
     )
 
 
+class OutsideAlbums(ValueError):
+    """A path that would lead outside the albums folder."""
+
+
+def inside(*parts) -> Path:
+    """The albums folder joined with *parts*, or OutsideAlbums if the result would be outside
+    it. Every path built from a name the editor sends goes through here, so no name ("..",
+    "/etc", "a/../../x") can reach another folder."""
+    base = os.path.normpath(os.path.abspath(FILES_DIR))
+    path = os.path.normpath(os.path.join(base, *[str(p) for p in parts]))
+    if path != base and not path.startswith(base + os.sep):
+        raise OutsideAlbums(path)
+    return Path(path)
+
+
 def album_dir(name: str) -> Path:
     """The folder of the album named *name* ("New Zealand.slbum" -> StampAlbum/New Zealand)."""
-    return FILES_DIR / Path(name).stem
+    return inside(Path(name).stem)
 
 
 def album_path(name: str) -> Path:
     """Where the album *name* is: in its own folder, or loose (an album not yet moved)."""
-    own = album_dir(name) / name
-    loose = FILES_DIR / name
+    own = inside(Path(name).stem, name)
+    loose = inside(name)
     if own.is_file() or not loose.is_file():
         return own
     return loose
@@ -71,7 +86,7 @@ def album_path(name: str) -> Path:
 def images_dir(name: Optional[str]) -> Path:
     """Where pictures attached to the album *name* go: its folder, or the holding folder."""
     if name and valid_album_name(name) and album_path(name).is_file():
-        return album_dir(name) / "images"
+        return inside(Path(name).stem, "images")
     return hold_dir()
 
 
@@ -114,15 +129,13 @@ def find_image(name: str, album: Optional[str] = None) -> Optional[Path]:
         return None
     places = []
     if album and valid_album_name(album):
-        places.append(album_dir(album) / "images")
-    places += [IMAGES_DIR, hold_dir()]
-    for d in places:
-        p = d / fname
-        if p.is_file():
-            return p
+        places.append(inside(Path(album).stem, "images", fname))
+    places += [inside(IMAGES_DIR, fname), inside(HOLD_NAME, fname)]
     for f in list_albums():  # any album's folder: the picture may have come from another
-        p = f.parent / "images" / fname
-        if f.parent != FILES_DIR and p.is_file():
+        if f.parent != FILES_DIR:
+            places.append(inside(f.parent, "images", fname))
+    for p in places:
+        if p.is_file():
             return p
     return None
 
@@ -130,10 +143,10 @@ def find_image(name: str, album: Optional[str] = None) -> Optional[Path]:
 def copy_images(dsl: str, to_album: str, from_album: Optional[str] = None) -> list[str]:
     """Copy the pictures *dsl* uses into *to_album*'s images folder, from wherever they are
     (*from_album* is looked in first). Pictures already there are left. Returns the names copied."""
-    dest = album_dir(to_album) / "images"
+    dest = inside(Path(to_album).stem, "images")
     copied = []
     for name in image_names(dsl):
-        target = dest / name
+        target = inside(dest, name)
         if target.exists():
             continue
         src = find_image(name, from_album)
@@ -150,10 +163,10 @@ def save_album(name: str, content: str, from_album: Optional[str] = None) -> Pat
     same name (an album from before folders) moves in: it is replaced by this save."""
     folder = album_dir(name)
     folder.mkdir(parents=True, exist_ok=True)
-    path = folder / name
+    path = inside(folder, name)
     path.write_text(content, encoding="utf-8")
     copy_images(content, name, from_album)
-    loose = FILES_DIR / name
+    loose = inside(name)
     if loose.is_file() and loose != path:
         loose.unlink()
     return path
@@ -161,11 +174,12 @@ def save_album(name: str, content: str, from_album: Optional[str] = None) -> Pat
 
 def delete_album(name: str) -> None:
     """Delete the album: its whole folder (pictures and exports too), or a loose file."""
-    path = album_path(name)
-    if path.parent != FILES_DIR and path.parent.parent == FILES_DIR:
-        shutil.rmtree(path.parent)
+    base, path = inside(), album_path(name)
+    folder = inside(path.parent)
+    if folder != base and folder.parent == base:  # its own folder, never the albums folder
+        shutil.rmtree(folder)
     else:
-        path.unlink()
+        inside(path).unlink()
 
 
 def _free_name(stem: str) -> str:
