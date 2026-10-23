@@ -461,6 +461,8 @@ var PAPER_MM = { a4: [210, 297], a5: [148, 210], a3: [297, 420], letter: [215.9,
                  fip23: [230, 297], fip31: [310, 297], fip46: [460, 297] };
 // Sheets used only as listed: no portrait or landscape
 var FIXED_PAPERS = { fip23: true, fip31: true, fip46: true };
+// How FIP sheets hang in an exhibition frame (GREX 2026 Art. 6.1): sheets to a row; a frame has 4 rows.
+var FIP_FRAME_ROW = { fip23: 4, fip31: 3, fip46: 2 }, FIP_FRAME_ROWS = 4;
 // Up to v0.2.0 the editor treated PDF points as pixels at 2.5 px/mm, so albums saved
 // from it carry (points / 2.5) instead of millimetres.
 var LEGACY_PAGE_MM = { a4: [238.0, 336.8], a5: [168.0, 238.0], a3: [336.8, 476.4], letter: [244.8, 316.8], legal: [244.8, 403.6] };
@@ -772,6 +774,7 @@ var EXPORTS = { THEMES: THEMES, themeColor: themeColor, FRAMES: FRAMES, frameOf:
                 frameBox: frameBox, SHAPE_POLYGONS: SHAPE_POLYGONS, shapeOutline: shapeOutline,
                 normalizeStamp: normalizeStamp, PLAIN_BORDERS: PLAIN_BORDERS, escapeDSL: escapeDSL, unescapeDSL: unescapeDSL, serializeEl: serializeEl, buildDSL: buildDSL, parseDSL: parseDSL, normalizePageSize: normalizePageSize, findOutside: findOutside,
                 describePageSize: describePageSize, fitToPage: fitToPage, PAPER_MM: PAPER_MM, FIXED_PAPERS: FIXED_PAPERS,
+                FIP_FRAME_ROW: FIP_FRAME_ROW, FIP_FRAME_ROWS: FIP_FRAME_ROWS,
                 CAPTION: CAPTION, CAPTION_FONTS: CAPTION_FONTS, HEADING_WEIGHTS: HEADING_WEIGHTS, headingFont: headingFont,
                 captionMeasure: captionMeasure, wrapLines: wrapLines, captionParts: captionParts, hasCaptions: hasCaptions,
                 captionLayout: captionLayout, captionBounds: captionBounds, captionWarnings: captionWarnings };

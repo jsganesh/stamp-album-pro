@@ -446,6 +446,7 @@
   "msg.paper_fip31": "FIP sheet 31 × 29.7 cm",
   "ui.fip_46": "FIP sheet 46 × 29.7 cm",
   "msg.paper_fip46": "FIP sheet 46 × 29.7 cm",
+  "msg.ps_frame_sheets": "In an exhibition frame these sheets hang {row} to a row, {frame} to a frame.",
   "ui.add": "Add",
   "ui.tools": "Tools",
   "ui.page_n": "Page {n}",

@@ -589,6 +589,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 :is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay, #albums-overlay) .ps-orient legend { width: 100%; margin-bottom: 0.25rem; }
 :is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay, #albums-overlay) .ps-orient label { font-size: 1rem; min-height: var(--ctl); display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
 :is(#page-setup-overlay, #fit-prompt-overlay, #calibration-overlay, #albums-overlay) .ps-orient input { width: 1.125rem; height: 1.125rem; accent-color: var(--accent); }
+#ps-frame-note { font-size: 0.9375rem; line-height: 1.5; color: var(--text2); margin: 0; }
 :is(#ps-note, #cal-note, #alb-note) { font-size: 0.9375rem; line-height: 1.5; color: var(--text2); background: var(--bg1); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.625rem 0.75rem; margin-top: 0.25rem; }
 #ps-note.warn { color: #5B3A06; background: #FFF6E5; border-color: #E8C98A; }
 /* Manage saved albums: one row per album, its name then Open and Delete */

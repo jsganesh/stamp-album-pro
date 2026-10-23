@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+- The Title page template follows the FIP guidelines for an exhibit's first page: Purpose, Scope, a plan in numbered chapters and sections (not a list of pages), how important items are shown (a double frame), Research and References
+- Page setup says how an FIP sheet hangs in an exhibition frame: 4 to a row and 16 to a frame for 23 cm sheets, 3 and 12 for 31 cm, 2 and 8 for 46 cm (GREX 2026 Art. 6.1)
+
 ## [0.5.0] - 2026-10-18
 
 The last of the UI review: a phone layout with a bar along the bottom, pictures of the pages beside the page, one Stamp tile at the size you used last, Print preview one page at a time, a template gallery with pictures and four more templates, stamp mounts and FIP exhibit sheets, and safer saving.
