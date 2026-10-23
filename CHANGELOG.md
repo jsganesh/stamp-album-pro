@@ -9,6 +9,8 @@ All notable changes to this project are documented here. The format follows [Kee
   - The Font list's "Fonts on this computer" now comes from the app rather than from the browser guessing, so every font offered prints. Fonts that can't be put into a PDF (OpenType outlines or a licence that forbids it) are not offered. The "Web Safe" group, whose fonts didn't print either, is gone.
   - A font an album uses that this computer doesn't have shows as "Zapfino (not on this computer)", and the export message names the fonts that printed in Helvetica instead.
   - Longer messages stay on screen longer.
+- **Words typed in the right panel are kept when you move on.** A stamp's Name, Heading, a picture's Caption and the optional details (Value, Condition, Perforation, Catalogue no.) used to be saved only when the field was left with Tab or Enter: clicking the next stamp, the empty page, or closing the phone's Properties sheet dropped what had been typed. Now the words are saved as they are typed and drawn on the page straight away. Leaving the field or choosing another item records them as one step to undo. A number half typed in Position, Size or Font size is kept the same way, and goes to the item it was typed for. Save and Export count a field still being typed in.
+- **A click that only selects an item is no longer a step to undo**, so Undo always undoes something you can see.
 
 ## [0.5.0] - 2026-10-18
 

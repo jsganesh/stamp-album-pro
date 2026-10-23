@@ -120,8 +120,10 @@ function init() {
     document.addEventListener("mouseup", function() {
         S.gridMoving(false);
         if (S._drg && S._dragEl) {
-            if (S._dragEl.w !== S._ds.ow || S._dragEl.h !== S._ds.oh) S.noteStampSize(S._dragEl);  // resized: the next stamp is this size
-            pushUndo();
+            var d = S._dragEl, o = S._ds;
+            if (d.w !== o.ow || d.h !== o.oh) S.noteStampSize(d);  // resized: the next stamp is this size
+            // A click that only selects moves nothing, so it is no step to undo.
+            if (d.x !== o.ox || d.y !== o.oy || d.w !== o.ow || d.h !== o.oh) pushUndo();
         }
         S._drg = false;
         S._dragEl = null;
@@ -130,10 +132,12 @@ function init() {
     });
 
     // ── Props Panel ──
+    // Every field acts on the item the panel shows (S.panelItem), which is still the
+    // last one while its edit is being counted as the selection moves on.
     function bindProp(id, key, transform) {
         $(id).addEventListener("change", function() {
-            var el = S.E.find(function(x) { return x.id === S.sel; });
-            if (!el) return;
+            var el = S.panelItem(); if (!el) return;
+            if (!transform && String(this.value) === String(S.mm(el[key]))) return;  // left as it was shown
             // The field is in mm; elements are stored in canvas px
             el[key] = transform ? transform(this.value) : S.px(parseFloat(this.value) || 0);
             if (key === "w" || key === "h") S.noteStampSize(el);  // the next stamp is this size
@@ -145,60 +149,41 @@ function init() {
     bindProp("py", "y");
     bindProp("pw", "w");
     bindProp("ph", "h");
-    $("plbl").addEventListener("change", function() {
-        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
-        el.lbl = this.value; pushUndo(); render();
+    // Words (a stamp's Name, Heading, a picture's Caption and the optional details) are
+    // saved as they are typed and drawn on the page straight away; leaving the field,
+    // or choosing another item, records them as one step to undo.
+    var TYPED = { plbl: "lbl", phdg: "hdg", pcap: "cap", pcat: "cat", pdenom: "denom", pcond: "cond", pperf: "perf" };
+    Object.keys(TYPED).forEach(function(id) {
+        var box = $(id);
+        box.setAttribute("data-live", "");
+        box.addEventListener("input", function() {
+            var el = S.panelItem(); if (!el) return;
+            el[TYPED[id]] = this.value;
+            if (id !== "plbl" && id !== "phdg" && id !== "pcap") S.updateMoreCount(el);
+            S.panelTyped();
+        });
+        box.addEventListener("change", function() { S.commitPanelEdit(); render(); });
     });
     // Frame: none, thin, medium or double, always black
     $("pbs").addEventListener("change", function() {
-        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        var el = S.panelItem(); if (!el) return;
         S.CORE.applyFrame(el, this.value); pushUndo(); render();
     });
     // Heading mark: the text is drawn in the theme colour
     $("phead").addEventListener("change", function() {
-        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        var el = S.panelItem(); if (!el) return;
         if (this.checked) el.role = "heading"; else delete el.role;
         pushUndo(); render();
     });
     $("pfnt").addEventListener("change", function() {
-        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
+        var el = S.panelItem(); if (!el) return;
         el.font = this.value; pushUndo(); render();
     });
     $("pfs").addEventListener("change", function() {
-        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
-        el.fs = parseFloat(this.value) || 12; pushUndo(); render();
-    });
-
-    // ── Philatelic data change handlers ──
-    $("pcap").addEventListener("change", function() {
-        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
-        el.cap = this.value; pushUndo(); render();
-    });
-    $("phdg").addEventListener("change", function() {
-        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
-        el.hdg = this.value; pushUndo(); render();
-    });
-    $("pcat").addEventListener("change", function() {
-        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
-        el.cat = this.value; pushUndo(); render();
-    });
-    $("pdenom").addEventListener("change", function() {
-        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
-        el.denom = this.value; pushUndo(); render();
-    });
-    $("pcond").addEventListener("change", function() {
-        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
-        el.cond = this.value; pushUndo(); render();
-    });
-    $("pperf").addEventListener("change", function() {
-        var el = S.E.find(function(x) { return x.id === S.sel; }); if (!el) return;
-        el.perf = this.value; pushUndo(); render();
-    });
-    // The four optional details keep their count up to date as they are filled in
-    ["pcat", "pdenom", "pcond", "pperf"].forEach(function(id) {
-        $(id).addEventListener("change", function() {
-            S.updateMoreCount(S.E.find(function(x) { return x.id === S.sel; }));
-        });
+        var el = S.panelItem(); if (!el) return;
+        var v = parseFloat(this.value) || 12;
+        if (v === (el.fs || 12)) return;  // left as it was
+        el.fs = v; pushUndo(); render();
     });
     $("more-toggle").addEventListener("click", function() {
         S.setMoreOpen(this.getAttribute("aria-expanded") !== "true");
@@ -713,8 +698,10 @@ function init() {
         }
         S.gridMoving(false);
         if (S._drg && S._dragEl) {
-            if (S._dragEl.w !== S._ds.ow || S._dragEl.h !== S._ds.oh) S.noteStampSize(S._dragEl);  // resized: the next stamp is this size
-            pushUndo();
+            var d = S._dragEl, o = S._ds;
+            if (d.w !== o.ow || d.h !== o.oh) S.noteStampSize(d);  // resized: the next stamp is this size
+            // A click that only selects moves nothing, so it is no step to undo.
+            if (d.x !== o.ox || d.y !== o.oy || d.w !== o.ow || d.h !== o.oh) pushUndo();
         }
         S._drg = false;
         S._dragEl = null;
