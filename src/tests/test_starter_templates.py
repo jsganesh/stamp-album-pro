@@ -242,3 +242,19 @@ def test_varieties_are_named_above_each_stamp():
     stamps = _stamps(next(t for t in TEMPLATES if t["id"] == "normal_and_varieties"))
     heads = [s.heading.text for s in stamps]
     assert heads == ["Normal", "Shade", "Paper", "Watermark", "Perforation"] * 3
+
+
+def test_title_page_follows_fip():
+    """The Title page has what FIP guidelines ask of an exhibit's first page (GREV 3.3; the
+    Traditional, Postal History, Thematic and Open guidelines): purpose, scope, a plan in
+    chapters rather than a page list, how important items are shown, research and references."""
+    t = next(t for t in TEMPLATES if t["id"] == "title_page")
+    texts = [s.description for p in _parse(t).pages for s in p.absolute_stamps if s.is_text_element]
+    sections = ("Purpose", "Scope", "Plan of the exhibit", "Important items", "Research",
+                "References")
+    for name in sections:
+        assert name in texts, f"no '{name}' section"
+    plan = texts[texts.index("Plan of the exhibit") + 1]
+    assert "page" not in plan.lower(), "the plan is chapters, not a list of pages"
+    assert "1.1" in plan, "chapters numbered with sections under them"
+    assert "double frame" in texts[texts.index("Important items") + 1]

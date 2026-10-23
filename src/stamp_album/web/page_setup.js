@@ -32,9 +32,13 @@ function chosenSize() {
     return { w: w, h: h };
 }
 
-// FIP sheets are used as listed, so the orientation choice hides for them.
+// FIP sheets are used as listed, so the orientation choice hides for them; instead a note
+// says how they hang in an exhibition frame.
 function syncOrientation() {
-    $("ps-orient").hidden = !!CORE.FIXED_PAPERS[$("ps-size").value];
+    var key = $("ps-size").value, row = CORE.FIP_FRAME_ROW[key], note = $("ps-frame-note");
+    $("ps-orient").hidden = !!CORE.FIXED_PAPERS[key];
+    note.hidden = !row;
+    note.textContent = row ? S.t("msg.ps_frame_sheets", { row: row, frame: row * CORE.FIP_FRAME_ROWS }) : "";
 }
 
 function updateNote() {

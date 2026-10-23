@@ -96,7 +96,7 @@ STAMP_DETAILS("Value" "Used" "")
     {
         "id": "title_page",
         "name": "Title page",
-        "description": "The first page of an exhibit: title, introduction, plan, important items, research and references.",
+        "description": "The first page of an exhibit, as FIP judges expect it: title, purpose, scope, a plan in numbered chapters, how important items are shown, research and references.",
         "category": "Exhibition",
         "content": r"""ALBUM_PAGES_BORDER(0.5 0 0 1)
 ALBUM_PAGES_BORDER_STYLE("solid")
@@ -107,19 +107,21 @@ ALBUM_PAGES_SIZE(210 297)
 ALBUM_PAGES_MARGINS(15 15 15 15)
 ALBUM_MOUNT(1.5 1)
 PAGE_START
-PAGE_TEXT_AT(20.0 48.0 170.0 13.0 "HB" 22 "Exhibit Title" "center")
+PAGE_TEXT_AT(20.0 40.0 170.0 13.0 "HB" 22 "Exhibit Title" "center")
 PAGE_TEXT_ROLE("heading")
-PAGE_TEXT_AT(20.0 62.0 170.0 8.0 "HN" 11 "A traditional exhibit by Your Name" "center")
-PAGE_TEXT_AT(20.0 91.0 170.0 8.0 "HB" 11 "Introduction" "left")
-PAGE_TEXT_AT(20.0 100.0 170.0 12.0 "HN" 10 "Say in a few sentences what the exhibit shows and why it is worth showing: the subject, the period it covers, and what the viewer should take away from it." "left")
-PAGE_TEXT_AT(20.0 123.0 170.0 8.0 "HB" 11 "Plan of the exhibit" "left")
-PAGE_TEXT_AT(20.0 132.0 170.0 21.0 "HN" 10 "1. First chapter · pages 1 to 4\n2. Second chapter · pages 5 to 8\n3. Third chapter · pages 9 to 12\n4. Fourth chapter · pages 13 to 16" "left")
-PAGE_TEXT_AT(20.0 164.0 170.0 8.0 "HB" 11 "Important items" "left")
-PAGE_TEXT_AT(20.0 173.0 170.0 7.0 "HN" 10 "Mark the key items in the exhibit, for example with a thin frame on their pages, and list them here." "left")
-PAGE_TEXT_AT(20.0 191.0 170.0 8.0 "HB" 11 "Research" "left")
-PAGE_TEXT_AT(20.0 200.0 170.0 7.0 "HN" 10 "Note any original research or new findings the exhibit presents." "left")
-PAGE_TEXT_AT(20.0 218.0 170.0 8.0 "HB" 11 "References" "left")
-PAGE_TEXT_AT(20.0 227.0 170.0 7.0 "HN" 10 "List the catalogues, handbooks and articles you used." "left")
+PAGE_TEXT_AT(20.0 54.0 170.0 8.0 "HN" 11 "A traditional exhibit by Your Name" "center")
+PAGE_TEXT_AT(20.0 74.0 170.0 8.0 "HB" 11 "Purpose" "left")
+PAGE_TEXT_AT(20.0 83.0 170.0 12.0 "HN" 10 "Say in a few sentences what the exhibit sets out to show and why: the subject, the story it tells, and what the viewer should take away from it." "left")
+PAGE_TEXT_AT(20.0 101.0 170.0 8.0 "HB" 11 "Scope" "left")
+PAGE_TEXT_AT(20.0 110.0 170.0 12.0 "HN" 10 "Say where the exhibit begins and ends and why, and name anything left out on purpose." "left")
+PAGE_TEXT_AT(20.0 128.0 170.0 8.0 "HB" 11 "Plan of the exhibit" "left")
+PAGE_TEXT_AT(20.0 137.0 170.0 30.0 "HN" 10 "1. First chapter\n1.1 First section\n1.2 Second section\n2. Second chapter\n3. Third chapter\n4. Fourth chapter" "left")
+PAGE_TEXT_AT(20.0 173.0 170.0 8.0 "HB" 11 "Important items" "left")
+PAGE_TEXT_AT(20.0 182.0 170.0 12.0 "HN" 10 "Important and rare items have a double frame. Say what makes each one important, and where a statement of rarity comes from." "left")
+PAGE_TEXT_AT(20.0 200.0 170.0 8.0 "HB" 11 "Research" "left")
+PAGE_TEXT_AT(20.0 209.0 170.0 12.0 "HN" 10 "Note any study of your own or new findings the exhibit presents." "left")
+PAGE_TEXT_AT(20.0 227.0 170.0 8.0 "HB" 11 "References" "left")
+PAGE_TEXT_AT(20.0 236.0 170.0 12.0 "HN" 10 "List the catalogues, handbooks and articles you used, with their authors and years." "left")
 """,
     },
     {

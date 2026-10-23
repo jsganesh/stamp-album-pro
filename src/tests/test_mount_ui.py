@@ -124,6 +124,22 @@ def test_page_setup_offers_fip_sheets_used_as_listed(page):
     assert page.is_hidden("#ps-orient")
 
 
+def test_page_setup_says_how_fip_sheets_hang_in_a_frame(page):
+    """GREX 2026 Art. 6.1: a frame has 4 rows of 4 sheets 23 cm wide (or 3 of 31 cm, 2 of 46 cm)."""
+    page.evaluate("StampAlbum.newAlbum(); StampAlbum.select(null)")
+    page.click("#btn-page-setup")
+    assert page.is_hidden("#ps-frame-note")  # A4: no frame note
+    for size, words in (("fip23", "4 to a row, 16 to a frame"),
+                        ("fip31", "3 to a row, 12 to a frame"),
+                        ("fip46", "2 to a row, 8 to a frame")):
+        page.select_option("#ps-size", size)
+        assert page.is_visible("#ps-frame-note")
+        assert words in page.inner_text("#ps-frame-note")
+    page.select_option("#ps-size", "a3")
+    assert page.is_hidden("#ps-frame-note")
+    assert page.js_errors == []
+
+
 def test_the_wizard_offers_fip_sheets(page):
     values = page.evaluate(
         "[...document.querySelectorAll('#wiz-pg-size option')].map(o => o.value)")

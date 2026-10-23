@@ -4,6 +4,9 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+- The Title page template follows the FIP guidelines for an exhibit's first page: Purpose, Scope, a plan in numbered chapters and sections (not a list of pages), how important items are shown (a double frame), Research and References
+- Page setup says how an FIP sheet hangs in an exhibition frame: 4 to a row and 16 to a frame for 23 cm sheets, 3 and 12 for 31 cm, 2 and 8 for 46 cm (GREX 2026 Art. 6.1)
 ### Fixed
 - **Fonts on this computer print as they show.** A text item set in a font such as Georgia or Palatino showed in the editor but came out in Helvetica in the PDF, PNG, SVG and HTML exports. One font finder now reads each font's own name, looks in the font folders and their subfolders (on a Mac most fonts are in a subfolder) on macOS, Windows and Linux, and serves every export: the PDF and PNG draw with the font, and the SVG and HTML carry the letters used, as the captions do. Print preview shows it too.
   - The Font list's "Fonts on this computer" now comes from the app rather than from the browser guessing, so every font offered prints. Fonts that can't be put into a PDF (OpenType outlines or a licence that forbids it) are not offered. The "Web Safe" group, whose fonts didn't print either, is gone.
