@@ -1079,6 +1079,15 @@ STATIC_MEDIA_TYPES = {
 }
 
 
+# The Font list for text items: fonts on this computer that every export can use (ADR-001).
+# A plain def, so the first call's scan of the font folders runs off the event loop.
+@app.get("/api/fonts")
+def list_system_fonts():
+    from stamp_album.engines import system_fonts
+
+    return {"fonts": system_fonts.available()}
+
+
 # The bundled caption font (web/fonts): only its four .ttf files, looked up by name.
 @app.get("/fonts/{name}")
 async def serve_font(name: str):

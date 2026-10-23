@@ -12,12 +12,17 @@ import tempfile
 from pathlib import Path
 from typing import Optional
 
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
 from stamp_album.core.models import Album, Color, Stamp
-from stamp_album.engines import caption_fonts, caption_layout, frames, page_border, text_layout
+from stamp_album.engines import (
+    caption_fonts,
+    caption_layout,
+    frames,
+    page_border,
+    system_fonts,
+    text_layout,
+)
 from stamp_album.engines.layout import layout_rows
 
 # ── Font resolution ──
@@ -38,38 +43,11 @@ _BUILTIN_FONT_MAP = {
 }
 
 
-def _get_system_font_dirs():
-    import platform
-    system = platform.system()
-    if system == "Darwin":
-        return [
-            Path("/Library/Fonts"),
-            Path.home() / "Library/Fonts",
-            Path("/System/Library/Fonts"),
-        ]
-    return [Path("/usr/share/fonts"), Path("/usr/local/share/fonts"), Path.home() / ".fonts"]
-
-
 def _resolve_reportlab_font(font_id: str, c: canvas.Canvas) -> str:
-    """Resolve a font ID to a ReportLab registered font name."""
+    """A font id's ReportLab name: a built-in font, a font on this computer, or Helvetica."""
     if font_id in _BUILTIN_FONT_MAP:
         return _BUILTIN_FONT_MAP[font_id]
-    # Try to find and register a TTF
-    for d in _get_system_font_dirs():
-        if not d.is_dir():
-            continue
-        for f in d.iterdir():
-            if f.suffix.lower() in (".ttf", ".ttc", ".otf"):
-                stem = f.stem.lower().replace(" ", "")
-                fid = font_id.lower()
-                if fid in stem or stem in fid:
-                    try:
-                        name = f"F{font_id}"
-                        pdfmetrics.registerFont(TTFont(name, str(f)))
-                        return name
-                    except Exception:
-                        continue
-    return "Helvetica"
+    return system_fonts.reportlab_name(font_id) or "Helvetica"
 
 
 def _mm_to_pt(value: float) -> float:

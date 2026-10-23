@@ -33,7 +33,7 @@ function exportFormat(fmt) {
             a.click();
             setTimeout(function() { URL.revokeObjectURL(a.href); }, 100);
         }
-        showToast(S.t("msg.saved_to_downloads", { format: labels[fmt] || fmt, name: filename }), "success");
+        showToast(S.t("msg.saved_to_downloads", { format: labels[fmt] || fmt, name: filename }) + S.missingFontsNote(), "success");
     })
     .catch(function(err) { showToast(S.t("msg.export_failed", { msg: err }), "error"); });
 }

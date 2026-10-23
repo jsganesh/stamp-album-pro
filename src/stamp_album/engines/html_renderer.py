@@ -14,7 +14,14 @@ from stamp_album.core.models import (
     Page,
     Stamp,
 )
-from stamp_album.engines import caption_fonts, caption_layout, frames, page_border, text_layout
+from stamp_album.engines import (
+    caption_fonts,
+    caption_layout,
+    frames,
+    page_border,
+    system_fonts,
+    text_layout,
+)
 from stamp_album.engines.layout import layout_rows
 
 
@@ -68,6 +75,7 @@ class HTMLRenderer:
         self.font_manager = font_manager
         self._page_counter = 0
         self._caption_chars: dict = {}  # caption font id -> characters set in it
+        self._text_chars: dict = {}  # a font on this computer -> characters set in it
 
     def render(self) -> str:
         """Render the entire album to HTML.
@@ -76,12 +84,15 @@ class HTMLRenderer:
         file shows the same captions as the preview.
         """
         self._caption_chars = {}
+        self._text_chars = {}
         pages = []
         for page in self.album.pages:
             self._page_counter += 1
             pages.append(self._render_page(page))
+        text_faces = "".join(system_fonts.font_face(f, "".join(cs))
+                             for f, cs in sorted(self._text_chars.items()))
         caption_style = (
-            f"<style>{caption_fonts.subset_font_faces(self._caption_chars)}"
+            f"<style>{caption_fonts.subset_font_faces(self._caption_chars)}{text_faces}"
             f".caption{{font-family:{caption_fonts.css_family()};{caption_fonts.CSS_TEXT_RULES}}}</style>"
         )
         parts = [
@@ -225,6 +236,9 @@ class HTMLRenderer:
 
             if stamp.is_text_element:
                 family, weight, style = text_layout.css_font(stamp.font_id)
+                fid = stamp.font_id
+                if fid and system_fonts.find(fid):  # embedded, like the captions
+                    self._text_chars.setdefault(fid, set()).update(stamp.description or "")
                 font_css = f"font-family:{family};font-weight:{weight};font-style:{style};"
                 tc = stamp.text_color  # a marked heading takes the theme colour
                 rgb = (round(tc.r * 255), round(tc.g * 255), round(tc.b * 255)) if tc else None

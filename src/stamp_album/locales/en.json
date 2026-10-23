@@ -282,8 +282,7 @@
   "msg.failed_to_load": "Failed to load: {msg}",
   "msg.could_not_load_templates": "Could not load templates",
   "msg.fonts_standard": "Standard Fonts",
-  "msg.fonts_system": "System Fonts",
-  "msg.fonts_web_safe": "Web Safe",
+  "msg.fonts_system": "Fonts on this computer",
   "msg.guide_page_center": "Page Center",
   "msg.guide_left_edge": "Left edge",
   "msg.guide_center": "Center",
@@ -452,5 +451,7 @@
   "ui.pages_and_album": "Pages and album",
   "msg.added_drag_it": "Added. Drag it into place.",
   "msg.tap_an_item_first": "Tap a stamp or some text on the page first.",
-  "msg.nothing_to_undo": "Nothing to undo yet."
+  "msg.nothing_to_undo": "Nothing to undo yet.",
+  "msg.font_not_on_this_computer": "{name} (not on this computer)",
+  "msg.fonts_not_here_print_helvetica": "Not on this computer, so printed in Helvetica: {names}."
 }
