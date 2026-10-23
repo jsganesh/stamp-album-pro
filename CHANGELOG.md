@@ -7,6 +7,9 @@ All notable changes to this project are documented here. The format follows [Kee
 ### Changed
 - The Title page template follows the FIP guidelines for an exhibit's first page: Purpose, Scope, a plan in numbered chapters and sections (not a list of pages), how important items are shown (a double frame), Research and References
 - Page setup says how an FIP sheet hangs in an exhibition frame: 4 to a row and 16 to a frame for 23 cm sheets, 3 and 12 for 31 cm, 2 and 8 for 46 cm (GREX 2026 Art. 6.1)
+### Fixed
+- **Words typed in the right panel are kept when you move on.** A stamp's Name, Heading, a picture's Caption and the optional details (Value, Condition, Perforation, Catalogue no.) used to be saved only when the field was left with Tab or Enter: clicking the next stamp, the empty page, or closing the phone's Properties sheet dropped what had been typed. Now the words are saved as they are typed and drawn on the page straight away. Leaving the field or choosing another item records them as one step to undo. A number half typed in Position, Size or Font size is kept the same way, and goes to the item it was typed for. Save and Export count a field still being typed in.
+- **A click that only selects an item is no longer a step to undo**, so Undo always undoes something you can see.
 
 ## [0.5.0] - 2026-10-18
 

@@ -416,6 +416,7 @@ function themeColor() {
 
 // ── Export PDF (direct — no DSL parser) ──
 function exportPDF() {
+    if (S.commitPanelEdit) S.commitPanelEdit();  // a field still being typed in counts first
     showToast(tr("msg.generating_format", { format: "PDF" }), "info");
     var filename = _currentFile ? _currentFile.replace(/\.(slbum|txt)$/, ".pdf") : "album.pdf";
     var state = buildCanvasState("pdf");
