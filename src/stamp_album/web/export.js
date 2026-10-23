@@ -5,6 +5,7 @@ var $ = S.$, showToast = S.showToast;
 
 // ── Export (PDF / PNG / SVG / HTML) ──
 function exportFormat(fmt) {
+    if (S.commitPanelEdit) S.commitPanelEdit();  // a field still being typed in counts first
     var labels = { pdf: "PDF", png: "PNG", svg: "SVG", html: "HTML" };
     var exts = { pdf: ".pdf", png: ".png", svg: ".svg", html: ".html" };
     showToast(S.t("msg.generating_format", { format: labels[fmt] || fmt }), "info");

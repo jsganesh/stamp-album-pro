@@ -363,6 +363,46 @@ function show(id, on) { $(id).hidden = !on; }
 // replace the selection directly (Escape, undo, a page switch, opening a file),
 // so render() brings the panel in step whenever this no longer matches.
 var _panelFor = null;
+
+// The item the panel's fields belong to. Field handlers use this, not S.sel, because
+// the selection can change (a click on another stamp) before a field's edit is counted.
+function panelItem() {
+    return _panelFor ? S.E.find(function(x) { return x.id === _panelFor; }) || null : null;
+}
+
+// Words typed in the panel are saved into the item as they are typed (S.panelTyped), so
+// nothing is held back until the field is left. The undo step for them is recorded once,
+// when the field is left or the panel moves on to another item (commitPanelEdit).
+var _typed = false, _committing = false, _renderQueued = false;
+function panelTyped() {
+    if (!_typed) {
+        _typed = true;
+        S._dirty = true;
+        S.updateTitle();
+    }
+    S.scheduleDraftSave();
+    if (_renderQueued) return;  // one redraw per frame, however fast the typing
+    _renderQueued = true;
+    (window.requestAnimationFrame || setTimeout)(function() { _renderQueued = false; render(); });
+}
+function commitPanelEdit() {
+    if (_committing) return;
+    _committing = true;
+    try {
+        // A number half typed in a panel box (Position, Size, Font size) counts too.
+        var a = document.activeElement;
+        if (a && a.tagName === "INPUT" && !a.hasAttribute("data-live") && $("rp-content").contains(a)) {
+            a.dispatchEvent(new Event("change"));
+        }
+        if (_typed) {
+            _typed = false;
+            S.pushUndo();
+        }
+    } finally {
+        _committing = false;
+    }
+}
+
 function syncPanel() {
     var el = S.E.find(function(x) { return x.id === S.sel; });
     if ((el ? el.id : null) !== _panelFor) fillPanel(el, true);
@@ -376,6 +416,7 @@ function select(id) {
 }
 
 function fillPanel(el, changed) {
+    if ((el ? el.id : null) !== _panelFor) commitPanelEdit();  // the last item's edit, before its fields are replaced
     _panelFor = el ? el.id : null;
     $("rp-title").textContent = panelTitle(el);
     $("rp-content").hidden = !el;
@@ -839,6 +880,9 @@ S.clearAlignmentGuides = clearAlignmentGuides;
 S.applySnap = applySnap;
 S.add = add;
 S.select = select;
+S.panelItem = panelItem;
+S.panelTyped = panelTyped;
+S.commitPanelEdit = commitPanelEdit;
 S.updateMoreCount = updateMoreCount;
 S.setMoreOpen = setMoreOpen;
 S.panelTitle = panelTitle;
