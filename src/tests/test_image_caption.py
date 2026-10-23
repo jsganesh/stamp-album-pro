@@ -238,7 +238,10 @@ def test_panel_caption_field_prints_below_the_image(page):
     page.press("#pcap", "Tab")
     cap = page.locator(".cel .caption-picture")
     assert cap.text_content() == "Coat of arms"
-    style = cap.evaluate("n => [getComputedStyle(n).fontStyle, getComputedStyle(n).borderStyle]")
+    # Read in one step: typing redraws the page on the next frame, which replaces the line a
+    # locator found a moment earlier (its style then reads as empty on slower machines).
+    style = page.evaluate("""(() => { const n = document.querySelector('.cel .caption-picture');
+        return [getComputedStyle(n).fontStyle, getComputedStyle(n).borderStyle]; })()""")
     assert style == ["italic", "none"]
     img, c = page.evaluate("""[document.querySelector('.cel').getBoundingClientRect().bottom,
         document.querySelector('.cel .caption-picture').getBoundingClientRect().top]""")
