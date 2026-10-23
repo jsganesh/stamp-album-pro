@@ -191,6 +191,7 @@ def _states(pg):
     pg.keyboard.press("Escape")
     pg.keyboard.press("Escape")
     for opener, closer, name in (("#btn-page-setup", "#ps-cancel", "page setup"),
+                                 ("#btn-exhibit-plan", "#tp-cancel", "title and plan page"),
                                  ("#btn-help", None, "keyboard shortcuts")):
         if opener == "#btn-help":
             pg.click("#menu-help-btn")  # Keyboard shortcuts is in the Help menu

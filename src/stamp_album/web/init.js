@@ -372,6 +372,7 @@ function init() {
     // ── Page setup / Grid ──
     S.wirePageSetup();
     S.wireCalibration();
+    S.wireExhibitPlan();
     S.wireFitPrompt();
     S.wireAlbums();
     $("grid").addEventListener("change", function() {

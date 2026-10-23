@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Optional
 
 from stamp_album.core.models import (
+    PLAN_PARTS,
     Album,
     Color,
     RowStyle,
@@ -68,6 +69,8 @@ class AlbumSerializer:
                    f'"{e(stamp.description)}" "{e(stamp.text_align or "left")}")']
             if getattr(stamp, "role", "") == "heading":
                 out.append('PAGE_TEXT_ROLE("heading")')
+            if getattr(stamp, "part", "") in PLAN_PARTS:
+                out.append(f'PAGE_TEXT_PART("{stamp.part}")')
             return out
         if getattr(stamp, "is_picture", False):
             img, label = e(stamp.image_path or ""), e(stamp.description)

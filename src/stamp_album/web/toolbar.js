@@ -218,6 +218,7 @@ function wireToolbar() {
     onItem("menu-manage", function() { S.openManageAlbums(); });
     onItem("btn-save", function() { S.saveFile(); });
     onItem("menu-page-setup", function() { S.openPageSetup(); });
+    onItem("menu-exhibit-plan", function() { S.openExhibitPlan(); });
     ["pdf", "png", "svg", "html"].forEach(function(fmt) {
         onItem("menu-export-" + fmt, function() { if (S.exportFormat) S.exportFormat(fmt); });
     });
