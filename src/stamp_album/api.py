@@ -168,6 +168,14 @@ def _album_path(filename: str, saving: bool = False) -> Path:
     return storage.album_path(filename)
 
 
+@app.exception_handler(storage.OutsideAlbums)
+async def _outside_albums(request: Request, exc: storage.OutsideAlbums):
+    """A name that would lead outside the albums folder is refused."""
+    from fastapi.responses import JSONResponse
+
+    return JSONResponse(status_code=400, content={"detail": "Not a name in the albums folder"})
+
+
 def _is_this_computer(request: Request) -> bool:
     """Whether the request comes from the computer the app runs on (not a phone on the Wi-Fi)."""
     host = request.client.host if request.client else ""
@@ -248,7 +256,7 @@ ALLOWED_IMAGE_EXTENSIONS = storage.IMAGE_SUFFIXES
 @app.get("/images")
 async def list_images(request: Request):
     """The pictures in the open album's folder (or the holding folder before its first save)."""
-    folder = storage.images_dir(_open_album(request))
+    folder = storage.inside(storage.images_dir(_open_album(request)))
     if not folder.is_dir():
         return []
     return sorted(f.name for f in folder.iterdir() if f.suffix.lower() in ALLOWED_IMAGE_EXTENSIONS)
@@ -273,7 +281,7 @@ async def upload_image(request: Request, file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail=f"Unsupported image format: {ext}")
 
     data = await file.read()
-    folder = storage.images_dir(_open_album(request))
+    folder = storage.inside(storage.images_dir(_open_album(request)))
     folder.mkdir(parents=True, exist_ok=True)
     filepath = _image_path_for(name, data, folder)
     if not filepath.exists():
@@ -288,7 +296,7 @@ def _image_path_for(name: str, data: bytes, folder: Path) -> Path:
     stem, ext = Path(name).stem, Path(name).suffix
     n = 1
     while True:
-        candidate = folder / (name if n == 1 else f"{stem}-{n}{ext}")
+        candidate = storage.inside(folder, name if n == 1 else f"{stem}-{n}{ext}")
         if not candidate.exists() or candidate.read_bytes() == data:
             return candidate
         n += 1
@@ -298,7 +306,7 @@ def _image_path_for(name: str, data: bytes, folder: Path) -> Path:
 async def delete_image(filename: str, request: Request):
     if "/" in filename or "\\" in filename or filename.startswith("."):
         raise HTTPException(status_code=400, detail="Not an image name")
-    filepath = storage.images_dir(_open_album(request)) / filename
+    filepath = storage.inside(storage.images_dir(_open_album(request)), filename)
     if not filepath.exists():
         raise HTTPException(status_code=404, detail="Image not found")
     filepath.unlink()

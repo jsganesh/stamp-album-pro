@@ -14,6 +14,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - Each album has a folder of its own in StampAlbum, holding the album and the pictures it uses (`StampAlbum/<album>/<album>.slbum` and `images/`). Saving copies in the pictures the album uses; pictures attached before the first save wait in a hidden holding folder until then. Deleting an album in Manage saved albums deletes its folder, and the question says so
 - When the app starts, albums still loose in StampAlbum move into folders of their own, with copies of their pictures; the shared images folder is kept and nothing else is deleted. A message says so once, and `Albums moved into folders.txt` lists what moved
 - Pictures are found in the open album's folder first, then the old shared folder, so older albums keep printing
+- Every path built from an album or picture name is checked to stay inside the albums folder (`storage.inside`); a name that would lead elsewhere is refused
 
 ### Fixed
 - A test of picture captions could fail on slower machines (CI on macOS and Linux): typing redraws the page on the next frame, and the test read the caption's style from the line just replaced. It now reads it in one step. CI also runs on pull requests stacked on another branch
