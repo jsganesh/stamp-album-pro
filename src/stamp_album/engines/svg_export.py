@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Optional
 
 from stamp_album.core.models import Album, Color, Stamp
-from stamp_album.engines import caption_fonts, caption_layout, frames, page_border
+from stamp_album.engines import caption_fonts, caption_layout, frames, page_border, system_fonts
 from stamp_album.engines.layout import layout_rows
 
 
@@ -33,8 +33,12 @@ def _build_shape_svg(stamp: Stamp, x: float, y: float, w: float, h: float,
     return frames.svg_fragment(stamp, x, y, w, h, border_hex, fill_hex)
 
 
-def _draw_text_element_svg(stamp: Stamp) -> str:
-    """SVG for a free-form text element (user units are mm, font size is pt)."""
+def _draw_text_element_svg(stamp: Stamp, sys_used: Optional[dict] = None) -> str:
+    """SVG for a free-form text element (user units are mm, font size is pt).
+
+    A font on this computer is measured as the PDF measures it, and the characters set in
+    it are added to *sys_used*, for its embedded subset.
+    """
     from reportlab.pdfbase import pdfmetrics
 
     from stamp_album.engines import text_layout
@@ -47,7 +51,11 @@ def _draw_text_element_svg(stamp: Stamp) -> str:
 
     from stamp_album.engines.pdf import _BUILTIN_FONT_MAP
 
-    metrics = _BUILTIN_FONT_MAP.get(stamp.font_id or "HN", "Helvetica")  # the PDF's widths
+    fid = stamp.font_id or "HN"
+    metrics = _BUILTIN_FONT_MAP.get(fid) or system_fonts.reportlab_name(fid)  # the PDF's widths
+    if metrics and fid not in _BUILTIN_FONT_MAP and sys_used is not None:
+        sys_used.setdefault(fid, set()).update(text)
+    metrics = metrics or "Helvetica"
     family, weight, style = text_layout.css_font(stamp.font_id)
     # The family goes in a style attribute: the stylesheet's text rule would beat an attribute.
     face = f' style="font-family:{family}"'
@@ -149,6 +157,7 @@ class SVGExporter:
             '</defs>',
         ]
         used: dict = {}
+        sys_used: dict = {}  # fonts on this computer -> characters set in them
 
         row_layout = layout_rows(album)
         y_offset = 0
@@ -217,7 +226,7 @@ class SVGExporter:
                 x, y, w, h = stamp.abs_x, stamp.abs_y, stamp.width, stamp.height
 
                 if stamp.is_text_element:
-                    parts.append(_draw_text_element_svg(stamp))
+                    parts.append(_draw_text_element_svg(stamp, sys_used))
                 else:
                     border_hex = _color_hex(
                         getattr(stamp, "border_color", None) or
@@ -245,7 +254,8 @@ class SVGExporter:
             y_offset += h_mm + gap
 
         parts.append("</svg>")
-        faces = caption_fonts.subset_font_faces(used)
+        faces = caption_fonts.subset_font_faces(used) + "".join(
+            system_fonts.font_face(f, "".join(cs)) for f, cs in sorted(sys_used.items()))
         caption_style = (
             f"<style>{faces}text.caption{{font-family:{caption_fonts.css_family()};"
             f"{caption_fonts.CSS_TEXT_RULES}}}</style>"

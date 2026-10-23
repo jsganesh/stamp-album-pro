@@ -529,6 +529,7 @@ function init() {
 
     // ── Font population ──
     S.populateFonts();
+    S.loadSystemFonts();  // the fonts on this computer join the list when the app answers
 
     // ── Load templates ──
     loadTemplateList();

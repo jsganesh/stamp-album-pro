@@ -132,7 +132,8 @@ function showToast(msg, type) {
     t.className = "toast " + type;
     t.textContent = msg;
     c.appendChild(t);
-    setTimeout(function(){ t.remove(); }, 3000);
+    // Longer messages stay longer, so there is time to read them.
+    setTimeout(function(){ t.remove(); }, Math.max(3000, String(msg).length * 60));
 }
 
 // ── Utility ──
@@ -155,29 +156,39 @@ function px(mm) { return Math.round(mm * _sc * 100) / 100; }
 function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
 
 // ── System Fonts ──
+// The fonts on this computer that every export can use (GET /api/fonts, ADR-001). The
+// list is asked of the app rather than guessed by the browser, so a font offered is a
+// font that prints.
 var SYSTEM_FONTS = [];
-function detectFonts() {
-    var testStr = "mmmmmmmmmmlli";
-    var testSize = "72px";
-    var defaults = { serif: "serif", sansSerif: "sans-serif", monospace: "monospace" };
-    var testSpan = document.createElement("span");
-    testSpan.style.fontSize = testSize;
-    testSpan.style.position = "absolute";
-    testSpan.style.left = "-9999px";
-    testSpan.innerHTML = testStr;
-    document.body.appendChild(testSpan);
-    var defaultWidth = {};
-    for (var d in defaults) { testSpan.style.fontFamily = defaults[d]; defaultWidth[d] = testSpan.offsetWidth; }
-    var candidates = ["Arial","Arial Black","Arial Narrow","Calibri","Cambria","Candara","Comic Sans MS","Consolas","Courier New","Franklin Gothic","Garamond","Georgia","Helvetica","Impact","Lucida Console","Lucida Sans","Microsoft Sans Serif","Palatino","Segoe UI","Tahoma","Times New Roman","Trebuchet MS","Verdana","Bookman Old Style","Century Gothic","Gill Sans","Rockwell","Perpetua","Baskerville","Didot","Optima","Futura","Avant Garde","Goudy","American Typewriter","Andale Mono","Apple Chancery","Brush Script MT","Chalkduster","Copperplate","Herculanum","Luminari","Marker Felt","Noteworthy","Papyrus","Zapfino"];
-    SYSTEM_FONTS = [];
-    for (var i = 0; i < candidates.length; i++) {
-        testSpan.style.fontFamily = "'" + candidates[i] + "',sans-serif";
-        if (testSpan.offsetWidth !== defaultWidth.sansSerif) { SYSTEM_FONTS.push(candidates[i]); }
-    }
-    testSpan.remove();
-    SYSTEM_FONTS.sort();
+var _fontsLoaded = false;
+function loadSystemFonts() {
+    return fetch("/api/fonts").then(function(r) { return r.ok ? r.json() : { fonts: [] }; })
+        .then(function(d) {
+            SYSTEM_FONTS = (d.fonts || []).slice().sort();
+            _fontsLoaded = true;
+            if (S.populateFonts) S.populateFonts();
+        })
+        .catch(function() { /* the standard fonts are still offered */ });
 }
-detectFonts();
+// Fonts the album's text items use that this computer can't print (they print in Helvetica).
+function missingFonts() {
+    if (!_fontsLoaded) return [];
+    var seen = {};
+    var pages = _pages.slice();
+    pages[_currentPage] = S.E;
+    pages.forEach(function(els) {
+        (els || []).forEach(function(el) {
+            var f = el.t === "text" && el.font;
+            if (f && !/^[HTC][NBIS]$/.test(f) && SYSTEM_FONTS.indexOf(f) < 0) seen[f] = true;
+        });
+    });
+    return Object.keys(seen).sort();
+}
+// A sentence to add to the export message when some text printed in Helvetica instead.
+function missingFontsNote() {
+    var m = missingFonts();
+    return m.length ? " " + tr("msg.fonts_not_here_print_helvetica", { names: m.join(", ") }) : "";
+}
 
 // ── Update title bar ──
 function updateTitle() {
@@ -441,7 +452,7 @@ function exportPDF() {
         a.download = filename;
         a.click();
         setTimeout(function() { URL.revokeObjectURL(a.href); }, 100);
-        showToast(tr("msg.saved_to_downloads", { format: "PDF", name: filename }), "success");
+        showToast(tr("msg.saved_to_downloads", { format: "PDF", name: filename }) + missingFontsNote(), "success");
     })
     .catch(function(err) {
         clearTimeout(timeout);
@@ -592,6 +603,8 @@ Object.defineProperties(S, {
     _undoPaused: { get: function(){ return _undoPaused; }, set: function(v){ _undoPaused = v; } },
     _init: { get: function(){ return _init; }, set: function(v){ _init = v; } },
     SYSTEM_FONTS: { get: function(){ return SYSTEM_FONTS; }, set: function(v){ SYSTEM_FONTS = v; } },
+    loadSystemFonts: { value: loadSystemFonts }, missingFonts: { value: missingFonts },
+    missingFontsNote: { value: missingFontsNote },
     $: { value: $ }, mm: { value: mm }, px: { value: px }, ptPx: { value: ptPx }, withAlpha: { value: withAlpha }, clamp: { value: clamp },
     fontCSS: { value: fontCSS }, showToast: { value: showToast }, t: { value: tr }, refreshLanguage: { value: refreshLanguage }, countElements: { value: countElements }, pageSizeLabel: { value: pageSizeLabel },
     // pushUndo/undo/redo/loadElements defined in undo.js

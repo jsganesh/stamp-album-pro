@@ -26,16 +26,31 @@ function populateFonts() {
     og.label = S.t("msg.fonts_standard");
     stdFonts.forEach(function(f) { var o = document.createElement("option"); o.value = f.v; o.textContent = f.t; og.appendChild(o); });
     pfnt.appendChild(og);
-    if (S.SYSTEM_FONTS && S.SYSTEM_FONTS.length) {
+    if (S.SYSTEM_FONTS && S.SYSTEM_FONTS.length) {  // from the app: each one prints
         var og2 = document.createElement("optgroup");
         og2.label = S.t("msg.fonts_system");
         S.SYSTEM_FONTS.forEach(function(f) { var o = document.createElement("option"); o.value = f; o.textContent = f; og2.appendChild(o); });
         pfnt.appendChild(og2);
     }
-    var ws = document.createElement("optgroup");
-    ws.label = S.t("msg.fonts_web_safe");
-    ["Arial","Helvetica","Times New Roman","Courier New","Georgia","Verdana","Trebuchet MS","Impact","Comic Sans MS"].forEach(function(f) { var o = document.createElement("option"); o.value = f; o.textContent = f; ws.appendChild(o); });
-    pfnt.appendChild(ws);
+    var el = _panelFor && S.E.find(function(x) { return x.id === _panelFor; });
+    if (el && el.t === "text") showFont(el.font || "HN");  // the list was rebuilt under a text item
+}
+
+// Show a text item's font in the Font list. A font the album uses that this computer
+// doesn't have (it was chosen on another computer) is listed as such: it prints in Helvetica.
+function showFont(font) {
+    var pfnt = $("pfnt");
+    var old = pfnt.querySelector("option[data-missing]");
+    if (old) old.remove();
+    var known = [].some.call(pfnt.options, function(o) { return o.value === font; });
+    if (!known) {
+        var o = document.createElement("option");
+        o.value = font;
+        o.textContent = S.t("msg.font_not_on_this_computer", { name: font });
+        o.setAttribute("data-missing", "");
+        pfnt.appendChild(o);
+    }
+    pfnt.value = font;
 }
 
 // ── Alignment guide lines + snap + labels ──
@@ -406,7 +421,7 @@ function fillPanel(el, changed) {
     show("pcap-note", isImg);
     $("pcap").value = el.cap || "";
     $("phead").checked = el.role === "heading";
-    $("pfnt").value = el.font || "HN";
+    showFont(el.font || "HN");
     $("pfs").value = el.fs || 12;
     // Font and Size are for text items only. Captions (stamps, free shapes) use the
     // bundled caption font at fixed sizes. Any values stored on an item are kept.

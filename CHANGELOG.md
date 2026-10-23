@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+- **Fonts on this computer print as they show.** A text item set in a font such as Georgia or Palatino showed in the editor but came out in Helvetica in the PDF, PNG, SVG and HTML exports. One font finder now reads each font's own name, looks in the font folders and their subfolders (on a Mac most fonts are in a subfolder) on macOS, Windows and Linux, and serves every export: the PDF and PNG draw with the font, and the SVG and HTML carry the letters used, as the captions do. Print preview shows it too.
+  - The Font list's "Fonts on this computer" now comes from the app rather than from the browser guessing, so every font offered prints. Fonts that can't be put into a PDF (OpenType outlines or a licence that forbids it) are not offered. The "Web Safe" group, whose fonts didn't print either, is gone.
+  - A font an album uses that this computer doesn't have shows as "Zapfino (not on this computer)", and the export message names the fonts that printed in Helvetica instead.
+  - Longer messages stay on screen longer.
+
 ## [0.5.0] - 2026-10-18
 
 The last of the UI review: a phone layout with a bar along the bottom, pictures of the pages beside the page, one Stamp tile at the size you used last, Print preview one page at a time, a template gallery with pictures and four more templates, stamp mounts and FIP exhibit sheets, and safer saving.

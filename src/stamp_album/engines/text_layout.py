@@ -30,11 +30,16 @@ _FACE = {"N": ("normal", "normal"), "B": ("bold", "normal"),
 def css_font(font_id: str | None) -> tuple[str, str, str]:
     """``(family, weight, style)`` for a text element's font id, for CSS and SVG.
 
-    An id that isn't built in draws as regular Helvetica, as in the PDF.
+    Any other id is a font on this computer ("Georgia"), drawn in its regular face; one
+    that isn't installed (or can't be embedded) draws as regular Helvetica, as in the PDF.
     """
     fid = font_id or "HN"
     if len(fid) == 2 and fid[0] in _CSS_FAMILY and fid[1] in _FACE:
         return (_CSS_FAMILY[fid[0]], *_FACE[fid[1]])
+    from stamp_album.engines import system_fonts
+
+    if system_fonts.find(fid):
+        return (system_fonts.css_family(fid), "normal", "normal")
     return (_CSS_FAMILY["H"], "normal", "normal")
 
 

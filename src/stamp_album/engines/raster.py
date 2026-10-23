@@ -15,7 +15,14 @@ from typing import Optional
 from PIL import Image, ImageDraw, ImageFont
 
 from stamp_album.core.models import Album, Color, Stamp
-from stamp_album.engines import caption_fonts, caption_layout, frames, page_border, text_layout
+from stamp_album.engines import (
+    caption_fonts,
+    caption_layout,
+    frames,
+    page_border,
+    system_fonts,
+    text_layout,
+)
 from stamp_album.engines.layout import layout_rows
 
 # ── Font resolution ──
@@ -34,18 +41,6 @@ _BUILTIN_FONT_MAP_NAMES = {
     "HI": "Helvetica-Oblique",
     "HS": "Helvetica-BoldOblique",
 }
-
-
-def _get_system_font_dirs():
-    import platform
-    system = platform.system()
-    if system == "Darwin":
-        return [
-            Path("/Library/Fonts"),
-            Path.home() / "Library/Fonts",
-            Path("/System/Library/Fonts"),
-        ]
-    return [Path("/usr/share/fonts"), Path("/usr/local/share/fonts"), Path.home() / ".fonts"]
 
 
 # Font files tried (in order) for the built-in PDF base-14 families. Pillow's
@@ -141,19 +136,7 @@ def _resolve_pillow_font(font_id: str, size: float) -> ImageFont.FreeTypeFont | 
             except Exception:
                 continue
         return _default_font(size)
-    for d in _get_system_font_dirs():
-        if not d.is_dir():
-            continue
-        for f in d.iterdir():
-            if f.suffix.lower() in (".ttf", ".ttc", ".otf"):
-                stem = f.stem.lower().replace(" ", "")
-                fid = font_id.lower()
-                if fid in stem or stem in fid:
-                    try:
-                        return ImageFont.truetype(str(f), size)
-                    except Exception:
-                        continue
-    return _default_font(size)
+    return system_fonts.pillow_font(font_id, size) or _default_font(size)  # on this computer
 
 
 def _resolve_image_path(image_path: Optional[str]) -> Optional[Path]:
