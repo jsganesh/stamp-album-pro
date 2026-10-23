@@ -4,6 +4,11 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+- **Chapter** in the right panel for a text item, once the album has a title and plan page: links it to a chapter or section of the plan, making it a page heading with the plan's words ("2.1 Blued paper"). When the plan changes in the form, linked headings follow it: a chapter that moved keeps its headings, a renamed one renames them. Saved as `PAGE_TEXT_CHAPTER("2.1")`
+- **Philatelic note** text tile (9 pt italic), for printing, paper, rates or postmarks set apart from the story, as FIP thematic rules ask
+- **View › Check exhibit…** lists what FIP judges would mark down: things to fix (no title and plan page, or not first; a plan without chapters; a heading linked to a chapter no longer in the plan; captions or frames past the border, counted on every page; a decorative border) and advice (pages without a heading, stamps with no name, empty pages, paper that is not A4 or an FIP sheet, and how the pages fill frames of 16, 12 or 8 sheets), each with a button to go to its page
+
 ### Changed
 - Exports go into the album's own folder: Export as PDF, PNG, SVG or HTML saves `StampAlbum/<album>/exports/<album>.pdf` (and so on), replacing the last export of that kind, and the message has a **Show in Finder** button (**Show in Explorer** on Windows). An album not saved yet is offered a save first; Cancel downloads it as before. On a phone or tablet on the Wi-Fi, exports still download. A saved HTML page finds its pictures in the album's images folder
 - Each album has a folder of its own in StampAlbum, holding the album and the pictures it uses (`StampAlbum/<album>/<album>.slbum` and `images/`). Saving copies in the pictures the album uses; pictures attached before the first save wait in a hidden holding folder until then. Deleting an album in Manage saved albums deletes its folder, and the question says so

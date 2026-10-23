@@ -48,6 +48,29 @@ function measure(text, font, sizePt) {
     return _ctx.measureText(String(text)).width * 25.4 / 96 * 1.04;
 }
 
+// The album's plan, numbered: [{ num, level, text }] (empty without a title and plan page).
+function currentPlanEntries() {
+    var pages = allPages(), idx = planPage(pages);
+    if (idx === -1) return [];
+    var plan = pages[idx].find(function(el) { return el.t === "text" && el.part === "plan"; });
+    return plan ? CORE.planEntries(plan.lbl) : [];
+}
+
+// Headings linked to the plan follow it: a heading keeps its chapter by name if the chapter
+// moved, else by number; one whose chapter has gone keeps its words (Check exhibit says so).
+function followPlan(pages, planText) {
+    var entries = CORE.planEntries(planText);
+    pages.forEach(function(p) {
+        (p || []).forEach(function(el) {
+            if (el.t !== "text" || !el.chapter || el.part) return;
+            var e = CORE.chapterFor(el, entries);
+            if (!e) return;
+            el.chapter = e.num;
+            el.lbl = CORE.chapterHeading(e);
+        });
+    });
+}
+
 // ── The plan's chapters and sections ──
 function chapterRows() {
     return Array.prototype.map.call(document.querySelectorAll("#tp-plan-list li"), function(li) {
@@ -173,6 +196,8 @@ function applyExhibitPlan() {
         idx = 0;
         pages.unshift(items);
     }
+    var planItem = items.find(function(el) { return el.part === "plan"; });
+    followPlan(pages, planItem ? planItem.lbl : "");
     closeExhibitPlan();
     S._pages = pages;
     S._currentPage = idx;
@@ -214,6 +239,7 @@ function wireExhibitPlan() {
 
 // ── Exports ──
 S.openExhibitPlan = openExhibitPlan;
+S.currentPlanEntries = currentPlanEntries;
 S.applyExhibitPlan = applyExhibitPlan;
 S.wireExhibitPlan = wireExhibitPlan;
 

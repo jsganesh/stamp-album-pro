@@ -187,6 +187,8 @@ function serializeEl(el) {
         if (el.role === "heading") text += '\nPAGE_TEXT_ROLE("heading")';
         // So is the part of the title and plan page the text is (exhibitPlanLayout).
         if (el.part && PLAN_PART_NAMES.indexOf(el.part) !== -1) text += '\nPAGE_TEXT_PART("' + el.part + '")';
+        // And the plan chapter a page heading is linked to (headingForChapter)
+        if (el.chapter && CHAPTER_RE.test(el.chapter)) text += '\nPAGE_TEXT_CHAPTER("' + el.chapter + '")';
         return text;
     } else {
         // Every stamp, rectangles included, is written in the extended format so its border
@@ -459,6 +461,11 @@ function parseDSL(dsl) {
         var mPart = matchDSL(t, /^PAGE_TEXT_PART\(\s*"(\w+)"\s*\)/);
         if (mPart) {
             if (lastText && PLAN_PART_NAMES.indexOf(mPart[1]) !== -1) lastText.part = mPart[1];
+            continue;
+        }
+        var mChap = matchDSL(t, /^PAGE_TEXT_CHAPTER\(\s*"([\d.]+)"\s*\)/);
+        if (mChap) {
+            if (lastText && CHAPTER_RE.test(mChap[1])) lastText.chapter = mChap[1];
             continue;
         }
 
@@ -838,6 +845,82 @@ function planChapters(text) {
     return out;
 }
 
+// ── Page headings linked to the plan ──
+// A page heading can be linked to a chapter or section of the plan (el.chapter, its number, as
+// PAGE_TEXT_CHAPTER in the file). Its text is the plan's line, "2.1 Blued paper", and follows the
+// plan when the plan is changed with the form. Keep in step with models.CHAPTER_RE.
+var CHAPTER_RE = /^\d+(\.\d+)?$/;
+// The plan's lines with their numbers: [{ num: "2.1", level: 2, text: "Blued paper" }].
+function planEntries(planText) {
+    var ch = 0, sec = 0;
+    return planChapters(planText).map(function(c) {
+        if (c.level === 2 && ch > 0) { sec++; return { num: ch + "." + sec, level: 2, text: c.text }; }
+        ch++; sec = 0;
+        return { num: String(ch), level: 1, text: c.text };
+    });
+}
+// A heading's text for a plan entry, as the plan prints it: "2. Chapter", "2.1 Section".
+function chapterHeading(e) { return e.num + (e.level === 1 ? ". " : " ") + e.text; }
+// The plan entry a linked heading belongs to now: the entry with the heading's own name (so a
+// chapter that moved keeps its headings), else the one with its number; null if it has gone.
+function chapterFor(el, entries) {
+    if (!el || !el.chapter) return null;
+    var name = String(el.lbl || "").replace(/^\d+(\.\d+)?\.?\s+/, "").trim();
+    var byName = entries.filter(function(e) { return e.text === name; });
+    if (byName.length === 1) return byName[0];
+    return entries.find(function(e) { return e.num === el.chapter; }) || null;
+}
+
+// ── Exhibit check ──
+// What FIP guidelines would mark down, page by page: [{ level, code, page, n }], where level is
+// "fix" (likely to cost points) or "advice", page is a 0-based page index (null for the album)
+// and n a count. input: { pages: [[el in mm]], pw, ph, pageBorder, warnings: [n per page] },
+// warnings being the stamps whose captions run past the border or into something.
+// Keep the codes in step with the phrases msg.check_<code>.
+var FRAME_ROWS = 4;
+function exhibitCheck(input) {
+    var pages = input.pages || [], out = [];
+    var add = function(level, code, page, n) { out.push({ level: level, code: code, page: page, n: n || 0 }); };
+    var planIdx = -1, plan = null;
+    pages.forEach(function(p, i) {
+        (p || []).forEach(function(el) {
+            if (planIdx === -1 && el.t === "text" && PLAN_PART_NAMES.indexOf(el.part) !== -1) planIdx = i;
+            if (el.t === "text" && el.part === "plan" && plan === null) plan = el.lbl || "";
+        });
+    });
+    if (planIdx === -1) add("fix", "no_plan", null);
+    else if (planIdx > 0) add("fix", "plan_not_first", planIdx);
+    else if (plan === null || !planEntries(plan).length) add("fix", "plan_empty", planIdx);
+    var entries = planEntries(plan || "");
+    var border = input.pageBorder || "none";
+    if (PLAIN_BORDERS.indexOf(border) === -1) add("fix", "decorative_border", null);
+    pages.forEach(function(p, i) {
+        p = p || [];
+        if (!p.length) { add("advice", "empty_page", i); return; }
+        if (i === planIdx) return;
+        var heads = p.filter(function(el) { return el.t === "text" && el.role === "heading"; });
+        if (!heads.length) add("advice", "no_heading", i);
+        heads.forEach(function(el) { if (el.chapter && planIdx !== -1 && !chapterFor(el, entries)) add("fix", "chapter_gone", i); });
+        var unnamed = p.filter(function(el) {
+            return el.t === "stamp" && !String(el.lbl || "").trim() && !String(el.hdg || "").trim();
+        }).length;
+        if (unnamed) add("advice", "unnamed_stamps", i, unnamed);
+        var w = (input.warnings || [])[i] || 0;
+        if (w) add("fix", "caption_clash", i, w);
+    });
+    var fip = ["fip23", "fip31", "fip46", "a4"].find(function(k) { return sizeNear(input.pw, input.ph, PAPER_MM[k]); });
+    if (!fip) add("advice", "paper", null);
+    var perRow = FIP_FRAME_ROW[fip] || (fip === "a4" ? 4 : 0);
+    if (perRow) {
+        var perFrame = perRow * FRAME_ROWS, used = pages.length;
+        var frames = Math.ceil(used / perFrame), last = used - (frames - 1) * perFrame;
+        add("advice", last === perFrame ? "frames_full" : "frames", null, frames);
+        out[out.length - 1].perFrame = perFrame;
+        out[out.length - 1].last = last;
+    }
+    return out;
+}
+
 // The page's text items, in mm: [{ part, x, y, w, h, font, fs, lbl, align, role }].
 // answers: { title, by, purpose, scope, chapters, important, research, references };
 // labels: the section names as printed ({ purpose: "Purpose", … }).
@@ -900,7 +983,9 @@ var EXPORTS = { THEMES: THEMES, themeColor: themeColor, FRAMES: FRAMES, frameOf:
                 captionMeasure: captionMeasure, wrapLines: wrapLines, captionParts: captionParts, hasCaptions: hasCaptions,
                 captionLayout: captionLayout, captionBounds: captionBounds, captionWarnings: captionWarnings,
                 PLAN: PLAN, PLAN_SECTIONS: PLAN_SECTIONS, PLAN_PART_NAMES: PLAN_PART_NAMES, planText: planText,
-                planChapters: planChapters, exhibitPlanLayout: exhibitPlanLayout };
+                planChapters: planChapters, exhibitPlanLayout: exhibitPlanLayout,
+                CHAPTER_RE: CHAPTER_RE, planEntries: planEntries, chapterHeading: chapterHeading,
+                chapterFor: chapterFor, exhibitCheck: exhibitCheck };
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = EXPORTS;
 }

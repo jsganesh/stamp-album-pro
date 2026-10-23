@@ -11,6 +11,7 @@ import re
 from typing import Optional
 
 from stamp_album.core.models import (
+    CHAPTER_RE,
     PLAN_PARTS,
     Album,
     Color,
@@ -894,6 +895,11 @@ class AlbumParser:
                 part = unquote(params[0]) if params else ""
                 if last_text is not None and part in PLAN_PARTS:
                     last_text.part = part
+            elif cmd == "PAGE_TEXT_CHAPTER":
+                # PAGE_TEXT_CHAPTER ("2.1"): the plan chapter a page heading is linked to
+                num = unquote(params[0]) if params else ""
+                if last_text is not None and CHAPTER_RE.match(num):
+                    last_text.chapter = num
             elif cmd == "ALBUM_THEME":
                 name = unquote(params[0]) if params else ""
                 if name in THEMES:

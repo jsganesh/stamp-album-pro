@@ -175,6 +175,18 @@ function init() {
         if (this.checked) el.role = "heading"; else delete el.role;
         pushUndo(); render();
     });
+    // A link to a chapter of the plan: the heading takes the plan's words for it
+    $("pchap").addEventListener("change", function() {
+        var el = S.panelItem(); if (!el) return;
+        var v = this.value, e = (S.currentPlanEntries() || []).find(function(x) { return x.num === v; });
+        if (!e) { delete el.chapter; pushUndo(); render(); return; }
+        el.chapter = e.num;
+        el.lbl = S.CORE.chapterHeading(e);
+        el.role = "heading";
+        $("plbl").value = el.lbl;
+        $("phead").checked = true;
+        pushUndo(); render();
+    });
     $("pfnt").addEventListener("change", function() {
         var el = S.panelItem(); if (!el) return;
         el.font = this.value; pushUndo(); render();
@@ -358,6 +370,7 @@ function init() {
     S.wirePageSetup();
     S.wireCalibration();
     S.wireExhibitPlan();
+    S.wireCheck();
     S.wireFitPrompt();
     S.wireAlbums();
     $("grid").addEventListener("change", function() {

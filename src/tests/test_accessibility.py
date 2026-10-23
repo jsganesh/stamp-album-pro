@@ -101,6 +101,7 @@ OPENERS = {
     "dsl editor": "document.getElementById('btn-dsl').click()",
     "page setup": "document.getElementById('btn-page-setup').click()",
     "title and plan page": "document.getElementById('btn-exhibit-plan').click()",
+    "check exhibit": "StampAlbum.openCheck()",
     "keyboard shortcuts": "document.getElementById('help-overlay').classList.add('open')",
     "template gallery": "document.getElementById('btn-wiz-template').click()",
 }

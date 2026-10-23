@@ -211,6 +211,8 @@ def test_palette_text_items_have_hints_and_no_font_codes(page):
         ["Heading", "16 pt", "A page or section heading"],
         ["Label", "12 pt", "A title above a paragraph"],
         ["Description", "10 pt", "A paragraph on what the page shows"],
+        ["Philatelic note", "9 pt italic",
+         "Printing, paper, rates or postmarks, set apart from the story"],
     ]
     for name, _, hint, aria, described in items:
         assert aria == f"Add {name}" and described == hint
@@ -219,7 +221,7 @@ def test_palette_text_items_have_hints_and_no_font_codes(page):
 
 
 def test_palette_sizes_match_what_is_added(page):
-    for st, fs in (("heading", 16), ("label", 12), ("desc", 10)):
+    for st, fs in (("heading", 16), ("label", 12), ("desc", 10), ("note", 9)):
         page.click(f"#sidebar .p-item[data-st={st}]")
         assert page.evaluate("StampAlbum.E[StampAlbum.E.length - 1].fs") == fs, st
 
