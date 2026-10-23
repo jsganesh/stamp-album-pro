@@ -121,3 +121,14 @@ def test_phone_name_typed_is_kept_when_the_sheet_is_closed(phone):
     assert _el(phone, a)["lbl"] == "Penny Lilac"
     assert phone.evaluate("StampAlbum._undoStack.length") == before + 1
     assert not phone.js_errors
+
+
+def test_undo_after_a_tick_box_undoes_it_once(page):
+    a, _ = _two_stamps(page)
+    page.evaluate("StampAlbum.add({ t: 'text', x: 60, y: 300, w: 200, h: 40, lbl: 'Notes' })")
+    tid = page.evaluate("StampAlbum.E[StampAlbum.E.length - 1].id")
+    page.evaluate("(id) => StampAlbum.select(id)", tid)
+    page.check("#phead")
+    page.uncheck("#phead")  # the tick box keeps focus
+    page.evaluate("StampAlbum.undo()")
+    assert page.evaluate("(id) => StampAlbum.E.find(e => e.id === id).role", tid) == "heading"

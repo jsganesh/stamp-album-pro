@@ -391,7 +391,8 @@ function commitPanelEdit() {
     try {
         // A number half typed in a panel box (Position, Size, Font size) counts too.
         var a = document.activeElement;
-        if (a && a.tagName === "INPUT" && !a.hasAttribute("data-live") && $("rp-content").contains(a)) {
+        var typed = a && a.tagName === "INPUT" && (a.type === "number" || a.type === "text");
+        if (typed && !a.hasAttribute("data-live") && $("rp-content").contains(a)) {
             a.dispatchEvent(new Event("change"));
         }
         if (_typed) {
