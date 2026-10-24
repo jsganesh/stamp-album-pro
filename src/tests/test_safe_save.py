@@ -7,7 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 from test_ui_smoke import base_url, page  # noqa: F401  (fixtures)
 
-from stamp_album import api
+from stamp_album import api, storage
 
 ALBUM = 'ALBUM_PAGES_SIZE(210 297)\nPAGE_START\nSTAMP_ADD_AT(20 20 40 30 "x" "" "" "")\nPAGE_END\n'
 ALBUMEASY = "ALBUM_PAGES_SIZE (210 297)\nPAGE_START\nROW_START_FS (2)\nSTAMP_ADD (24 28 \"\")\n"
@@ -18,7 +18,7 @@ def albums(tmp_path, monkeypatch):
     """The albums folder, emptied for each test (also used by the in-process server)."""
     files = tmp_path / "albums"
     files.mkdir()
-    monkeypatch.setattr(api, "FILES_DIR", files)
+    monkeypatch.setattr(storage, "FILES_DIR", files)
     return files
 
 
@@ -61,7 +61,7 @@ def test_server_never_saves_a_txt(albums, client):
     (albums / "tdc.txt").write_text("AlbumEasy", encoding="utf-8")
     r = client.post("/files/tdc.txt", json={"content": ""})
     assert r.status_code == 400
-    assert (albums / "tdc.txt").read_text(encoding="utf-8") == "AlbumEasy"
+    assert storage.album_path("tdc.txt").read_text(encoding="utf-8") == "AlbumEasy"
     assert client.get("/files/tdc.txt").text == "AlbumEasy"  # still opens
 
 
@@ -86,7 +86,7 @@ def test_server_reads_and_deletes_only_album_names(albums, client, method):
 
 def test_server_still_saves_an_album(albums, client):
     assert client.post("/files/My album.slbum", json={"content": ALBUM}).status_code == 200
-    assert (albums / "My album.slbum").read_text(encoding="utf-8") == ALBUM
+    assert storage.album_path("My album.slbum").read_text(encoding="utf-8") == ALBUM
 
 
 # ── The editor ──
@@ -98,8 +98,8 @@ def test_a_txt_album_is_saved_as_a_new_slbum(albums, page):
     assert _save(page) is True
     assert [s[0] for s in seen] == ["prompt"]
     assert seen[0][2] == "tdc.slbum"  # suggested
-    assert (albums / "tdc.txt").read_text(encoding="utf-8") == ALBUMEASY  # untouched
-    assert "STAMP_ADD_AT" in (albums / "tdc.slbum").read_text(encoding="utf-8")
+    assert storage.album_path("tdc.txt").read_text(encoding="utf-8") == ALBUMEASY  # untouched
+    assert "STAMP_ADD_AT" in storage.album_path("tdc.slbum").read_text(encoding="utf-8")
     assert page.evaluate("StampAlbum._currentFile") == "tdc.slbum"
     assert page.evaluate("StampAlbum._dirty") is False
     # The next Save goes to tdc.slbum without asking
@@ -111,7 +111,8 @@ def test_a_typed_txt_name_becomes_slbum(albums, page):
     _open(page, "old.txt")
     _answer(page, "notes.txt")
     assert _save(page) is True
-    assert sorted(p.name for p in albums.iterdir()) == ["notes.slbum"]
+    assert sorted(p.name for p in storage.list_albums()) == ["notes.slbum"]
+    assert (albums / "notes" / "notes.slbum").is_file()  # in a folder of its own
 
 
 def test_cancel_saves_nothing(albums, page):
@@ -132,7 +133,7 @@ def test_replacing_a_saved_album_asks_first(albums, page):
     assert [s[0] for s in seen] == ["prompt", "confirm", "prompt"]
     assert "album" in seen[1][1] and "Replace" in seen[1][1]
     assert seen[2][2] == "album.slbum"  # asked again with the same name
-    assert (albums / "album.slbum").read_text(encoding="utf-8") == "first"
+    assert storage.album_path("album.slbum").read_text(encoding="utf-8") == "first"
 
 
 def test_replacing_when_confirmed(albums, page):
@@ -140,7 +141,7 @@ def test_replacing_when_confirmed(albums, page):
     page.evaluate("StampAlbum.newAlbum()")
     _answer(page, "album.slbum", True)
     assert _save(page) is True
-    assert (albums / "album.slbum").read_text(encoding="utf-8") != "first"
+    assert storage.album_path("album.slbum").read_text(encoding="utf-8") != "first"
 
 
 def test_another_name_after_saying_no(albums, page):
@@ -148,8 +149,8 @@ def test_another_name_after_saying_no(albums, page):
     page.evaluate("StampAlbum.newAlbum()")
     _answer(page, "album", False, "album 2")
     assert _save(page) is True
-    assert sorted(p.name for p in albums.iterdir()) == ["album 2.slbum", "album.slbum"]
-    assert (albums / "album.slbum").read_text(encoding="utf-8") == "first"
+    assert sorted(p.name for p in storage.list_albums()) == ["album 2.slbum", "album.slbum"]
+    assert storage.album_path("album.slbum").read_text(encoding="utf-8") == "first"
 
 
 def test_saving_the_open_slbum_does_not_ask(albums, page):
@@ -158,7 +159,7 @@ def test_saving_the_open_slbum_does_not_ask(albums, page):
     seen = _answer(page)
     assert _save(page) is True
     assert seen == []
-    assert "new" in (albums / "mine.slbum").read_text(encoding="utf-8")
+    assert "new" in storage.album_path("mine.slbum").read_text(encoding="utf-8")
 
 
 def test_file_names_are_made_plain(page):

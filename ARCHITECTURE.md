@@ -305,11 +305,11 @@ Album
 | Method | Path | Purpose | Key Logic |
 |--------|------|---------|-----------|
 | GET | `/` | Serve SPA | Returns `index.html` with cache busting |
-| GET | `/files` | List albums | Scans `~/StampAlbum/*.slbum` |
+| GET | `/files` | List albums | `storage.list_albums()`: `~/StampAlbum/<album>/<album>.slbum`, and any still loose |
 | POST | `/files/{name}` | Save album | Writes DSL text |
 | GET | `/files/{name}` | Open album | Returns DSL text |
 | DELETE | `/files/{name}` | Delete album | Removes file |
-| GET | `/images` | List images | Scans `~/StampAlbum/images/*` |
+| GET | `/images` | List images | The open album's `images` folder (cookie `stampalbum_album`) |
 | POST | `/images` | Upload image | Multipart, validates ext, saves |
 | POST | `/render` | DSL → HTML | Parser → HTMLRenderer |
 | POST | `/parse` | DSL → JSON model | Parser → Album → JSON |
@@ -602,7 +602,7 @@ User clicks Save
   │           │     └── freehand→ STAMP_ADD_AT(x y w h "lbl" "freehand" "bdr" "fill")
   │           └── PAGE_COLUMN_STOP (if column mode)
   │
-  └── POST /files/{name} (DSL text saved to ~/StampAlbum/)
+  └── POST /files/{name} (saved to ~/StampAlbum/<album>/, pictures copied in)
 
 
 ### Load Flow (File → DSL → Canvas)
@@ -727,8 +727,8 @@ The JS load order means `events.js` and `canvas.js` are loaded but their code ne
 ## 12. Environment & Configuration
 
 **Storage locations:**
-- Albums: `~/StampAlbum/*.slbum`
-- Images: `~/StampAlbum/images/*`
+- Albums: `~/StampAlbum/<album>/<album>.slbum`, one folder each (`storage.py`); loose albums from before move in when the app starts
+- Images: `~/StampAlbum/<album>/images/*`; before an album's first save, `~/StampAlbum/.unsaved-images/`; older albums' shared `~/StampAlbum/images/` is still searched
 - Auth/sharing: `~/StampAlbum/.users.json`, `.sessions.json`, `.shares.json`
 - Version history: `~/StampAlbum/.versions/{hash}_{name}/*`
 - Draft auto-save: `localStorage` (browser)

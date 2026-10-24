@@ -34,6 +34,17 @@ function pageSizeLabel(d) {
               orientation: tr(d.landscape ? "ui.landscape" : "ui.portrait") });
 }
 
+// ── The open album, for the server ──
+// Each album keeps its pictures in its own folder (storage.py), so the server needs to know which
+// album is open to find "/images/name": a cookie names it, and every picture request carries it.
+function setOpenAlbum(name) {
+    _currentFile = name || null;
+    try {
+        document.cookie = "stampalbum_album=" + encodeURIComponent(_currentFile || "") +
+            "; path=/; SameSite=Strict" + (_currentFile ? "" : "; max-age=0");
+    } catch (_) { /* cookies off: pictures are still found in the old shared folder */ }
+}
+
 // ── localStorage draft persistence ──
 var _draftTimer = null;
 var _draftKey = "stampalbum.draft";
@@ -84,7 +95,7 @@ function loadDraft() {
         _pages.forEach(function(p) { (p || []).forEach(S.CORE.normalizeStamp); });
         syncNid();
         var savedFile = localStorage.getItem(_draftFileKey);
-        if (savedFile) _currentFile = savedFile;
+        setOpenAlbum(savedFile || null);
         return true;
     } catch (_) { return false; }
 }
@@ -324,7 +335,7 @@ function newAlbum() {
     clearDraft();
     E = [];
     sel = null;
-    _currentFile = null;
+    setOpenAlbum(null);
     _currentPage = 0;
     _pages = [[]];
     S.CORE.setMount(S.CORE.NEW_ALBUM_MOUNT.overhang, S.CORE.NEW_ALBUM_MOUNT.gap);
@@ -611,7 +622,7 @@ Object.defineProperties(S, {
     _dragH: { get: function(){ return _dragH; }, set: function(v){ _dragH = v; } },
     _ds: { get: function(){ return _ds; }, set: function(v){ _ds = v; } },
     _collapsed: { get: function(){ return _collapsed; }, set: function(v){ _collapsed = v; } },
-    _currentFile: { get: function(){ return _currentFile; }, set: function(v){ _currentFile = v; } },
+    _currentFile: { get: function(){ return _currentFile; }, set: function(v){ setOpenAlbum(v); } },
     _currentPage: { get: function(){ return _currentPage; }, set: function(v){ _currentPage = v; } },
     _pages: { get: function(){ return _pages; }, set: function(v){ _pages = v; } },
     _dirty: { get: function(){ return _dirty; }, set: function(v){ _dirty = v; } },

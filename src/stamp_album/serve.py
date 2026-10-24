@@ -81,6 +81,7 @@ def main() -> int:
 
     host = os.environ.get("STAMP_ALBUM_HOST", "127.0.0.1")
     preferred = int(os.environ.get("STAMP_ALBUM_PORT", "8080"))
+    os.environ["STAMP_ALBUM_APP_START"] = "1"  # api.py moves loose albums into folders
 
     # Kill any existing server on the preferred port first
     if not _port_is_free(host, preferred):

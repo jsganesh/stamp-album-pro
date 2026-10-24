@@ -14,6 +14,7 @@ from typing import Optional
 
 from reportlab.pdfgen import canvas
 
+from stamp_album import storage
 from stamp_album.core.models import Album, Color, Stamp
 from stamp_album.engines import (
     caption_fonts,
@@ -60,12 +61,12 @@ def _color_to_rgb(color: Optional[Color]) -> tuple[float, float, float]:
     return (max(0, min(1, color.r)), max(0, min(1, color.g)), max(0, min(1, color.b)))
 
 
-def _resolve_image_path(image_path: Optional[str]) -> Optional[Path]:
+def _resolve_image_path(image_path: Optional[str], album=None) -> Optional[Path]:
+    """The picture's file: in the album's own folder, else wherever storage.find_image finds it."""
     if not image_path:
         return None
-    fname = image_path.split("/")[-1].split("\\")[-1]
-    p = Path.home() / "StampAlbum" / "images" / fname
-    return p if p.is_file() else None
+    source = Path(getattr(album, "source_path", "") or "").name if album is not None else ""
+    return storage.find_image(image_path, source or None)
 
 
 # ── Drawing helpers ──
@@ -149,7 +150,7 @@ def _draw_stamp(c: canvas.Canvas, stamp: Stamp, album: Album,
 
     # Embed image if present
     if stamp.image_path:
-        img_fp = _resolve_image_path(stamp.image_path)
+        img_fp = _resolve_image_path(stamp.image_path, album)
         if img_fp:
             try:
                 c.drawImage(str(img_fp), x, y, w, h, preserveAspectRatio=True, mask="auto")

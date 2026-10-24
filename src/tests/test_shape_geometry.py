@@ -126,6 +126,9 @@ def test_png_image_keeps_aspect_ratio(client, tmp_path, monkeypatch):
     images.mkdir(parents=True)
     Image.new("RGB", (60, 80), (200, 30, 30)).save(images / "tall.png")  # 3:4
     monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+    from stamp_album import storage  # the albums folder is set when the app loads
+    monkeypatch.setattr(storage, "FILES_DIR", tmp_path / "StampAlbum")
+    monkeypatch.setattr(storage, "IMAGES_DIR", images)
     state = _state("rectangle", "png", lbl="")
     state["elements"][0].update(
         {

@@ -41,6 +41,9 @@ class _ServerThread(threading.Thread):
         self._server: uvicorn.Server | None = None
 
     def run(self) -> None:
+        import os
+
+        os.environ["STAMP_ALBUM_APP_START"] = "1"  # api.py moves loose albums into folders
         from stamp_album.api import app
 
         config = uvicorn.Config(

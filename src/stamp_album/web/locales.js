@@ -301,6 +301,10 @@ var LOCALES = {
   "msg.no_frame_note": "No frame. The stamp is {w} × {h} mm.",
   "msg.frame_note": "Frame {fw} × {fh} mm, {clear} mm clear all round the stamp ({w} × {h} mm, dashed).",
   "msg.page_n_of": "Page {n} of {total}",
+  "msg.albums_moved": {
+   "one": "Your album now has a folder of its own in StampAlbum, with its pictures. Nothing was deleted.",
+   "other": "Your {count} albums now each have a folder of their own in StampAlbum, with their pictures. Nothing was deleted."
+  },
   "msg.count_elements": {
    "one": "{count} element",
    "other": "{count} elements"
@@ -371,7 +375,7 @@ var LOCALES = {
   "msg.opened": "Opened {name}",
   "msg.open_file": "Open {name}",
   "msg.delete_name": "Delete {name}",
-  "msg.delete_confirm": "Delete {name}?",
+  "msg.delete_confirm": "Delete {name}? Its folder goes too, with the pictures and exports in it. This cannot be undone.",
   "msg.deleted": "Deleted {name}",
   "msg.save_failed": "Save failed",
   "msg.saved_to": "Saved to {path}",

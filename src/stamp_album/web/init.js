@@ -762,6 +762,7 @@ function init() {
     if (loadDraft) _restored = loadDraft();
     // A fresh start is a new album: its stamp mounts start at the new album's
     if (!_restored) {
+        S._currentFile = null;  // a new album: no folder yet (clears an old cookie)
         S.CORE.setMount(S.CORE.NEW_ALBUM_MOUNT.overhang, S.CORE.NEW_ALBUM_MOUNT.gap);
         S.CORE.setBorderInset(S.CORE.NEW_ALBUM_BORDER_INSET);
     }
@@ -772,6 +773,10 @@ function init() {
         });
         if (hasItems) $("restore-note").hidden = false;
     }
+    // Albums from before folders were moved into folders of their own when the app started
+    fetch("/albums/moved").then(function(r) { return r.ok ? r.json() : []; }).then(function(moved) {
+        if (moved && moved.length) showToast(S.t("msg.albums_moved", { count: moved.length }), "info");
+    }).catch(function() {});
 
     // ── Init ──
     S.applyPageSize(S._pw / S._sc, S._ph / S._sc);

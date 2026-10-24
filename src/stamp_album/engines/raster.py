@@ -14,6 +14,7 @@ from typing import Optional
 
 from PIL import Image, ImageDraw, ImageFont
 
+from stamp_album import storage
 from stamp_album.core.models import Album, Color, Stamp
 from stamp_album.engines import (
     caption_fonts,
@@ -139,12 +140,12 @@ def _resolve_pillow_font(font_id: str, size: float) -> ImageFont.FreeTypeFont | 
     return system_fonts.pillow_font(font_id, size) or _default_font(size)  # on this computer
 
 
-def _resolve_image_path(image_path: Optional[str]) -> Optional[Path]:
+def _resolve_image_path(image_path: Optional[str], album=None) -> Optional[Path]:
+    """The picture's file: in the album's own folder, else wherever storage.find_image finds it."""
     if not image_path:
         return None
-    fname = image_path.split("/")[-1].split("\\")[-1]
-    p = Path.home() / "StampAlbum" / "images" / fname
-    return p if p.is_file() else None
+    source = Path(getattr(album, "source_path", "") or "").name if album is not None else ""
+    return storage.find_image(image_path, source or None)
 
 
 def _color_to_rgb(color: Optional[Color]) -> tuple[int, int, int]:
@@ -225,7 +226,7 @@ def _draw_stamp(draw: ImageDraw.ImageDraw, stamp: Stamp, album: Album, px_per_mm
     _draw_shape(draw, stamp, px_per_mm, border_rgb, fill_rgb)
 
     if stamp.image_path:
-        img_fp = _resolve_image_path(stamp.image_path)
+        img_fp = _resolve_image_path(stamp.image_path, album)
         if img_fp:
             try:
                 img = Image.open(img_fp).convert("RGBA")

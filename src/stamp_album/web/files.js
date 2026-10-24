@@ -92,7 +92,8 @@ function saveFile() {
 }
 
 // ── Image management ──
-// Images live in the StampAlbum folder's images folder; an album refers to them
+// Images live in the album's own folder (StampAlbum/<album>/images; before its first save, a
+// holding folder that the save copies them from); an album refers to them
 // by name. The Images section lists the images the open album uses, on any page.
 function uploadImageFile(file, callback) {
     var formData = new FormData();
