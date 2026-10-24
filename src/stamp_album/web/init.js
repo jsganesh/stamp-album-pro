@@ -175,6 +175,39 @@ function init() {
         if (this.checked) el.role = "heading"; else delete el.role;
         pushUndo(); render();
     });
+    // Expertised: "(e)" under the caption
+    $("pexp").addEventListener("change", function() {
+        var el = S.panelItem(); if (!el) return;
+        if (this.checked) el.exp = true; else delete el.exp;
+        S.updateMoreCount(el);
+        pushUndo(); render();
+    });
+    // A picture that is a copy of a real item: its size now is taken as the original's,
+    // which can be corrected, then made 75% of it
+    $("prepro").addEventListener("change", function() {
+        var el = S.panelItem(); if (!el) return;
+        if (this.checked) {
+            el.origW = Math.round(S.mm(el.w) * 10) / 10;
+            el.origH = Math.round(S.mm(el.h) * 10) / 10;
+            el.reproLbl = S.t("msg.reproduction_word");
+        } else { delete el.origW; delete el.origH; delete el.reproLbl; }
+        pushUndo(); render(); S.fillRepro(el, true);
+    });
+    ["porig-w", "porig-h"].forEach(function(id) {
+        $(id).addEventListener("change", function() {
+            var el = S.panelItem(); if (!el) return;
+            var v = parseFloat(this.value);
+            if (!(v > 0)) { S.fillRepro(el, true); return; }
+            el[id === "porig-w" ? "origW" : "origH"] = v;
+            pushUndo(); render(); S.fillRepro(el, true);
+        });
+    });
+    $("prepro-fit").addEventListener("click", function() {
+        var el = S.panelItem(); if (!el || !S.CORE.isReproduction(el)) return;
+        el.w = S.px(el.origW * 0.75);
+        el.h = S.px(el.origH * 0.75);
+        pushUndo(); render(); S.updateProps(); S.fillRepro(el, true);
+    });
     // A link to a chapter of the plan: the heading takes the plan's words for it
     $("pchap").addEventListener("change", function() {
         var el = S.panelItem(); if (!el) return;
@@ -371,6 +404,7 @@ function init() {
     S.wireCalibration();
     S.wireExhibitPlan();
     S.wireCheck();
+    S.wireFrames();
     S.wireFitPrompt();
     S.wireAlbums();
     $("grid").addEventListener("change", function() {
@@ -567,7 +601,7 @@ function init() {
         var size = core.normalizePageSize(state.pw, state.ph);
         S.drawPageThumb(svg, state.pages[0] || [], {
             pw: size.pw, ph: size.ph, border: state.pageBorder, color: core.themeColor(state),
-            mount: state.mount, unit: 1
+            mount: state.mount, unit: 1, inset: state.borderInset
         });
         svg.style.aspectRatio = size.pw + " / " + size.ph;  // the picture keeps the paper's shape
     }

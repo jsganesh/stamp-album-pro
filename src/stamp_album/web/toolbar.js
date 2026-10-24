@@ -220,6 +220,7 @@ function wireToolbar() {
     onItem("menu-page-setup", function() { S.openPageSetup(); });
     onItem("menu-exhibit-plan", function() { S.openExhibitPlan(); });
     onItem("menu-check", function() { S.openCheck(); });
+    onItem("menu-frames", function() { S.openFrames(); });
     ["pdf", "png", "svg", "html"].forEach(function(fmt) {
         onItem("menu-export-" + fmt, function() { if (S.exportFormat) S.exportFormat(fmt); });
     });

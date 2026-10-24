@@ -476,6 +476,11 @@ class Stamp:
     details: tuple = ("", "", "")
     is_picture: bool = False  # a placed picture (coat of arms, map): no frame
     picture_caption: str = ""  # a picture's one caption: 8 pt italic below it (caption_layout)
+    # A picture that is a copy or scan of a real item: the original's size, mm (STAMP_IMG_REPRO),
+    # and the word printed under it; FIP asks for at least 25% difference in size
+    repro_size: Optional[tuple] = None
+    repro_label: str = ""
+    expertised: bool = False  # STAMP_EXPERTISED: "(e)" in bold under the caption (FIP)
     role: str = ""  # "heading" for text marked as a heading
     # Text items: the part of the exhibit's title and plan page this is (PAGE_TEXT_PART), one of
     # PLAN_PARTS; the editor's Title and plan page form makes and updates these items

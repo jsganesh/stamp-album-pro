@@ -895,6 +895,17 @@ class AlbumParser:
                 part = unquote(params[0]) if params else ""
                 if last_text is not None and part in PLAN_PARTS:
                     last_text.part = part
+            elif cmd == "STAMP_IMG_REPRO":
+                # STAMP_IMG_REPRO (w h "Reproduction"): the picture is a copy of an item that size
+                if (current_stamp is not None and getattr(current_stamp, "is_picture", False)
+                        and len(params) >= 2 and _is_number(params[0]) and _is_number(params[1])
+                        and float(params[0]) > 0 and float(params[1]) > 0):
+                    current_stamp.repro_size = (float(params[0]), float(params[1]))
+                    current_stamp.repro_label = unquote(params[2]) if len(params) > 2 else ""
+            elif cmd == "STAMP_EXPERTISED":
+                # STAMP_EXPERTISED (): the stamp has a certificate; "(e)" prints under it
+                if current_stamp is not None and not getattr(current_stamp, "is_picture", False):
+                    current_stamp.expertised = True
             elif cmd == "PAGE_TEXT_CHAPTER":
                 # PAGE_TEXT_CHAPTER ("2.1"): the plan chapter a page heading is linked to
                 num = unquote(params[0]) if params else ""

@@ -549,6 +549,11 @@ class CanvasElementState(BaseModel):
     denom: str = ""
     cond: str = ""
     perf: str = ""
+    exp: bool = False  # expertised: "(e)" under the caption
+    # A picture that is a copy of a real item: the original's size (mm) and the printed word
+    origW: float = 0
+    origH: float = 0
+    reproLbl: str = ""
 
 
 class CanvasStateRequest(BaseModel):
@@ -651,6 +656,10 @@ def _canvas_state_to_album(req: CanvasStateRequest) -> "Album":
             stamp.is_freehand = el.t == "freehand"
             stamp.is_picture = el.t == "image"
             stamp.picture_caption = el.cap if el.t == "image" else ""
+            if el.t == "image" and el.origW > 0 and el.origH > 0:
+                stamp.repro_size = (el.origW, el.origH)
+                stamp.repro_label = el.reproLbl or "Reproduction"
+            stamp.expertised = bool(el.exp) and el.t == "stamp"
             stamp.details = (el.denom or "", el.cond or "", el.perf or "")
             stamp.heading = heading
             stamp.footer_text = footer
