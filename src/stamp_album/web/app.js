@@ -150,6 +150,25 @@ function showToast(msg, type) {
     setTimeout(function(){ t.remove(); }, Math.max(3000, String(msg).length * 60));
 }
 
+// A message with one button (Show in Finder after an export), kept up long enough to use it.
+function showToastAction(msg, type, label, action) {
+    var c = document.getElementById("toast-container");
+    if (!c) return;
+    c.textContent = "";
+    var t = document.createElement("div");
+    t.className = "toast has-action " + (type || "info");
+    t.setAttribute("role", "status");
+    var p = document.createElement("span");
+    p.textContent = msg;
+    var b = document.createElement("button");
+    b.type = "button";
+    b.textContent = label;
+    b.addEventListener("click", function() { action(); t.remove(); });
+    t.appendChild(p); t.appendChild(b);
+    c.appendChild(t);
+    setTimeout(function(){ t.remove(); }, 12000);
+}
+
 // ── Utility ──
 function $(id) { return document.getElementById(id); }
 // Font sizes are typographic points everywhere (DSL, PDF, PNG, SVG, preview).
@@ -644,7 +663,7 @@ Object.defineProperties(S, {
     loadSystemFonts: { value: loadSystemFonts }, missingFonts: { value: missingFonts },
     missingFontsNote: { value: missingFontsNote },
     $: { value: $ }, mm: { value: mm }, px: { value: px }, ptPx: { value: ptPx }, withAlpha: { value: withAlpha }, clamp: { value: clamp },
-    fontCSS: { value: fontCSS }, showToast: { value: showToast }, t: { value: tr }, refreshLanguage: { value: refreshLanguage }, countElements: { value: countElements }, pageSizeLabel: { value: pageSizeLabel },
+    fontCSS: { value: fontCSS }, showToast: { value: showToast }, showToastAction: { value: showToastAction }, t: { value: tr }, refreshLanguage: { value: refreshLanguage }, countElements: { value: countElements }, pageSizeLabel: { value: pageSizeLabel },
     // pushUndo/undo/redo/loadElements defined in undo.js
     saveDraft: { value: saveDraft }, scheduleDraftSave: { value: scheduleDraftSave },
     loadDraft: { value: loadDraft }, clearDraft: { value: clearDraft }, syncNid: { value: syncNid },

@@ -172,6 +172,15 @@ def save_album(name: str, content: str, from_album: Optional[str] = None) -> Pat
     return path
 
 
+EXPORT_SUFFIXES = {"pdf": ".pdf", "png": ".png", "svg": ".svg", "html": ".html"}
+
+
+def export_path(name: str, fmt: str) -> Path:
+    """Where the album's export of kind *fmt* is kept: <album>/exports/<album>.<ext>. Exporting
+    again replaces it, so the folder holds the latest of each kind."""
+    return inside(Path(name).stem, "exports", Path(name).stem + EXPORT_SUFFIXES[fmt])
+
+
 def delete_album(name: str) -> None:
     """Delete the album: its whole folder (pictures and exports too), or a loose file."""
     base, path = inside(), album_path(name)
