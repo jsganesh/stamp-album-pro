@@ -87,11 +87,13 @@ function itemSpec(it) {
 // The element a palette item adds, placed at (x, y). Shared by drag, touch and click.
 function elementFrom(d, x, y) {
     var w = d.w || 80, h = d.h || 60;
-    if (d.t === "text") { w = 120; h = d.st === "heading" ? 24 : d.st === "desc" ? 16 : 18; }
+    if (d.t === "text") { w = 120; h = d.st === "heading" ? 24 : d.st === "desc" ? 16 : d.st === "note" ? 14 : 18; }
     if (d.t === "freehand") { w = 100; h = 80; }
     var el = { t: d.t || "stamp", s: d.s || "rectangle", x: x, y: y, w: w, h: h,
-        lbl: d.t === "text" ? S.t(d.st === "heading" ? "ui.heading" : d.st === "desc" ? "ui.description" : "ui.label") : "",
-        font: d.font || "HN", fs: d.st === "heading" ? 16 : d.st === "desc" ? 10 : 12,
+        lbl: d.t === "text" ? S.t(d.st === "heading" ? "ui.heading" : d.st === "desc" ? "ui.description" :
+                                  d.st === "note" ? "ui.philatelic_note" : "ui.label") : "",
+        // A philatelic note is italic and smaller, set apart from the story (FIP thematic rule)
+        font: d.st === "note" ? "HI" : d.font || "HN", fs: d.st === "heading" ? 16 : d.st === "desc" ? 10 : d.st === "note" ? 9 : 12,
         bdr: "none", bdrC: "#000000", bdrW: 0, fill: "transparent", fillA: 0, img: "" };
     if (el.t === "text") {
         if (d.st === "heading") el.role = "heading";  // drawn in the theme colour

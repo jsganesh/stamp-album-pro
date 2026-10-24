@@ -74,7 +74,7 @@ def test_icons_come_from_the_one_line_icon_set(page):
         .filter(h => !document.querySelector(h))"""
     )
     assert missing == []
-    assert page.locator("#sidebar .p-item .icon svg.ic").count() == 11
+    assert page.locator("#sidebar .p-item .icon svg.ic").count() == 12  # with Philatelic note
 
 
 def test_every_toolbar_button_has_a_word_at_1440(page):

@@ -9,6 +9,7 @@ All models are pure Python data classes with no UI dependencies.
 from __future__ import annotations
 
 import enum
+import re
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
@@ -479,12 +480,16 @@ class Stamp:
     # Text items: the part of the exhibit's title and plan page this is (PAGE_TEXT_PART), one of
     # PLAN_PARTS; the editor's Title and plan page form makes and updates these items
     part: str = ""
+    # Text items: the number of the plan chapter a page heading is linked to ("2.1")
+    chapter: str = ""
     text_color: Optional[Color] = None  # Text items: drawn in this colour (theme's, for headings)
 
 
 # The parts of an exhibit's title and plan page (PAGE_TEXT_PART). Keep in step with
 # PLAN_PART_NAMES in web/dsl_core.js.
 PLAN_SECTIONS = ("purpose", "scope", "plan", "important", "research", "references")
+# A plan chapter's number, "2" or "2.1" (PAGE_TEXT_CHAPTER); CHAPTER_RE in web/dsl_core.js
+CHAPTER_RE = re.compile(r"^\d+(\.\d+)?$")
 PLAN_PARTS = frozenset(("title", "by") + PLAN_SECTIONS + tuple(n + "_label" for n in PLAN_SECTIONS))
 
 

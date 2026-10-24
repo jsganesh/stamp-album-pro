@@ -202,6 +202,9 @@ def _states(pg):
         else:
             pg.keyboard.press("Escape")
             pg.evaluate("document.getElementById('help-overlay').classList.remove('open')")
+    pg.evaluate("StampAlbum.openCheck()")
+    yield "check exhibit"
+    pg.evaluate("document.getElementById('check-overlay').classList.remove('open')")
     pg.evaluate("StampAlbum.openCalibration()")
     yield "calibration page"
     pg.evaluate("document.getElementById('calibration-overlay').classList.remove('open')")

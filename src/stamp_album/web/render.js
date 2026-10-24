@@ -463,6 +463,7 @@ function fillPanel(el, changed) {
     show("pcap-note", isImg);
     $("pcap").value = el.cap || "";
     $("phead").checked = el.role === "heading";
+    fillChapter(el, isText);
     showFont(el.font || "HN");
     $("pfs").value = el.fs || 12;
     // Font and Size are for text items only. Captions (stamps, free shapes) use the
@@ -485,6 +486,29 @@ function fillPanel(el, changed) {
         // Folded unless one is filled in; a choice made by hand lasts while the stamp stays selected.
         if (changed) setMoreOpen(moreFilled(el) > 0);
     }
+}
+
+// A text item's link to a plan chapter: offered when the album has a title and plan page,
+// except on the items that page is made of.
+function fillChapter(el, isText) {
+    var entries = isText && !el.part && S.currentPlanEntries ? S.currentPlanEntries() : [];
+    show("pchap-row", entries.length > 0);
+    show("pchap-note", entries.length > 0);
+    if (!entries.length) return;
+    var sel = $("pchap");
+    sel.innerHTML = "";
+    var none = document.createElement("option");
+    none.value = "";
+    none.textContent = S.t("msg.not_linked");
+    sel.appendChild(none);
+    entries.forEach(function(e) {
+        var o = document.createElement("option");
+        o.value = e.num;
+        o.textContent = S.CORE.chapterHeading(e);
+        sel.appendChild(o);
+    });
+    var now = S.CORE.chapterFor(el, entries);
+    sel.value = now ? now.num : "";
 }
 
 function updateProps() {
