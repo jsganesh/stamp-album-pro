@@ -75,6 +75,8 @@ def test_spec_signs_only_with_an_identity_from_the_environment():
     assert "Developer ID Application:" not in spec.split("CODESIGN_IDENTITY =")[1]
 
 
+# Windows' `bash` is the WSL launcher, and build.sh is never run there (CI builds Windows).
+@pytest.mark.skipif(sys.platform == "win32", reason="build.sh runs on macOS and Linux only")
 def test_build_refuses_to_notarise_an_unsigned_app():
     import os
     import subprocess
