@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Hardened-runtime entitlements for the Developer ID build (build.sh signs with
+  them when CODESIGN_IDENTITY is set). Empty on purpose: every library in the
+  bundle is signed by the same team, so library validation can stay on, and the
+  app needs no JIT. Add a key only with the crash that proves it is needed.
+-->
+<plist version="1.0">
+<dict>
+</dict>
+</plist>

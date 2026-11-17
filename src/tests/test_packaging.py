@@ -50,6 +50,52 @@ def test_spec_names_no_removed_modules():
         assert gone not in spec, gone
 
 
+# --- Signing and notarisation (macOS) -------------------------------------
+
+# Each one switches off a hardened-runtime protection Apple's notary checks for.
+WEAKENING = {
+    "com.apple.security.cs.disable-library-validation",
+    "com.apple.security.cs.allow-jit",
+    "com.apple.security.cs.allow-dyld-environment-variables",
+    "com.apple.security.get-task-allow",
+}
+
+
+def test_entitlements_keep_the_hardened_runtime_whole():
+    import plistlib
+
+    path = ROOT / "packaging" / "entitlements.plist"
+    entitlements = plistlib.loads(path.read_bytes())
+    assert not WEAKENING & set(entitlements)
+
+
+def test_spec_signs_only_with_an_identity_from_the_environment():
+    spec = _spec()
+    assert 'os.environ.get("CODESIGN_IDENTITY")' in spec
+    assert "Developer ID Application:" not in spec.split("CODESIGN_IDENTITY =")[1]
+
+
+# Windows' `bash` is the WSL launcher, and build.sh is never run there (CI builds Windows).
+@pytest.mark.skipif(sys.platform == "win32", reason="build.sh runs on macOS and Linux only")
+def test_build_refuses_to_notarise_an_unsigned_app():
+    import os
+    import subprocess
+
+    env = {k: v for k, v in os.environ.items() if k != "CODESIGN_IDENTITY"}
+    env["NOTARY_PROFILE"] = "any"
+    run = subprocess.run(
+        ["bash", str(ROOT / "build.sh")], env=env, capture_output=True, text=True, timeout=30
+    )
+    assert run.returncode == 1
+    assert "needs CODESIGN_IDENTITY" in run.stderr
+
+
+def test_build_staples_before_the_shipped_zip():
+    body = (ROOT / "build.sh").read_text(encoding="utf-8").split("notarise() {")[1]
+    body = body.split("}")[0]
+    assert body.index("notarytool submit") < body.index("stapler staple") < body.rindex("zip_app")
+
+
 def test_smoke_test_checks_every_caption_font():
     sys.path.insert(0, str(ROOT / "packaging"))
     try:

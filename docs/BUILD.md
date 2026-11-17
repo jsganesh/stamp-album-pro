@@ -33,7 +33,32 @@ This builds with `packaging/stamp_album.spec`, runs the built app's checks (`pac
 
 The app is built for the Mac's own processor: Apple silicon on an Apple silicon Mac, Intel on an Intel Mac.
 
-The app is not signed. The first time, right-click it and choose **Open**, then **Open** again (on macOS 15 and later: open it once, then System Settings › Privacy & Security › **Open Anyway**).
+A plain `make app` gives the app an ad-hoc signature only. On another Mac, the first time, right-click it and choose **Open**, then **Open** again (on macOS 15 and later: open it once, then System Settings › Privacy & Security › **Open Anyway**).
+
+### Signed and notarised release
+
+A release for other Macs is signed with a Developer ID and notarised by Apple, so it opens with no warning.
+
+One-time setup:
+
+1. **Developer ID Application certificate.** In Xcode › Settings › Accounts, choose the team, **Manage Certificates…**, **+**, **Developer ID Application**. Only the team's Account Holder can create one. `security find-identity -v -p codesigning` then lists it.
+2. **Notary credentials in the keychain.** Make an app-specific password at account.apple.com (Sign-In and Security › App-Specific Passwords), then run this and answer its prompts:
+
+   ```bash
+   xcrun notarytool store-credentials stampalbum-notary --team-id ZV97P254RG
+   ```
+
+Each release:
+
+```bash
+CODESIGN_IDENTITY="Developer ID Application: <name> (ZV97P254RG)" NOTARY_PROFILE=stampalbum-notary ./build.sh
+```
+
+`CODESIGN_IDENTITY` also takes the certificate's SHA-1 hash from `security find-identity`. With it set, PyInstaller signs every library and the app with the hardened runtime and `packaging/entitlements.plist` (empty: no protection is switched off). `build.sh` then checks the signature, sends the zip to Apple (`notarytool submit --wait`, usually a few minutes), staples the ticket to the app, zips it again and asks Gatekeeper (`spctl`) to accept it. If Apple refuses it, `xcrun notarytool log <submission id> --keychain-profile stampalbum-notary` says why.
+
+`CODESIGN_IDENTITY` without `NOTARY_PROFILE` signs but doesn't notarise, which is how to check a change to the entitlements. `NOTARY_PROFILE` alone is refused, since Apple notarises only Developer ID builds.
+
+CI builds stay unsigned: the certificate and the notary password are on this Mac only.
 
 ## Windows
 
@@ -59,7 +84,7 @@ uv run python packaging/smoke_test.py dist/StampAlbumPro/StampAlbumPro.exe
 - All of `src/stamp_album/web`: the editor page, scripts, styles, tutorial pictures, CodeMirror, and the Source Serif 4 Caption fonts with `OFL.txt`.
 - Every `stamp_album` module, uvicorn's run-time modules (it picks them by name), websockets and python-multipart.
 - The version comes from `stamp_album/__init__.py`.
-- Qt and Tk are excluded on macOS and Windows.
+- Qt and Tk are excluded on macOS and Windows, and mypy (pulled in by pydantic's mypy plugin, which the app never loads) everywhere.
 
 Files the app writes go to `~/StampAlbum`, as when run from source: a folder for each album, with its pictures, and version history.
 
@@ -74,7 +99,8 @@ Files the app writes go to `~/StampAlbum`, as when run from source: a folder for
 
 ## Not done yet
 
-- **Signing and notarisation.** These need an Apple Developer ID (for `codesign_identity` and notarisation) and a Windows code-signing certificate.
+- **Windows signing.** It needs a Windows code-signing certificate.
+- **Signed builds from CI.** The Developer ID certificate and notary credentials would have to be repository secrets.
 - **An installer** for Windows (the zip is the stopgap), and a `.dmg` for macOS.
 - **An app icon.**
 - **Intel Macs** need a build on an Intel Mac (or a `macos-13` runner), or a universal2 Python for a universal app.

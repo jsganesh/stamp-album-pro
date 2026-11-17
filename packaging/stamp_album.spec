@@ -16,6 +16,7 @@ accepts the usual flags: --cli (headless PDF), --web (browser mode).
 `packaging/smoke_test.py` checks a built app.
 """
 
+import os
 import re
 import sys
 from pathlib import Path
@@ -46,9 +47,17 @@ hiddenimports = (
 )
 
 # GUI toolkits pywebview could use on Linux; macOS uses Cocoa, Windows WebView2.
-excludes = ["tkinter", "PyQt5", "PyQt6", "PySide2", "PySide6"]
+# mypy comes in only through pydantic's mypy plugin, which the app never loads:
+# about 6 MB and 70 compiled modules that would each need signing.
+excludes = ["tkinter", "PyQt5", "PyQt6", "PySide2", "PySide6", "mypy", "mypyc"]
 if sys.platform.startswith("linux"):
-    excludes = ["tkinter"]
+    excludes = ["tkinter", "mypy", "mypyc"]
+
+# macOS signing: unset gives PyInstaller's ad-hoc signature (runs only on the
+# Mac that built it without a Gatekeeper warning). A "Developer ID Application:
+# …" identity gives the hardened runtime that notarisation needs (build.sh).
+CODESIGN_IDENTITY = os.environ.get("CODESIGN_IDENTITY") or None
+ENTITLEMENTS = str(ROOT / "packaging" / "entitlements.plist") if CODESIGN_IDENTITY else None
 
 a = Analysis(
     [str(PKG / "__main__.py")],
@@ -79,8 +88,8 @@ exe = EXE(
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
-    codesign_identity=None,  # signing: pending (needs a Developer ID)
-    entitlements_file=None,
+    codesign_identity=CODESIGN_IDENTITY,
+    entitlements_file=ENTITLEMENTS,
 )
 
 coll = COLLECT(

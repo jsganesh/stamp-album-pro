@@ -5,6 +5,8 @@ All notable changes to this project are documented here. The format follows [Kee
 ## [Unreleased]
 
 ### Added
+- **Signed and notarised Mac app**: `CODESIGN_IDENTITY=… NOTARY_PROFILE=… ./build.sh` signs every library with a Developer ID and the hardened runtime, has Apple notarise the zip, staples the ticket and checks it with Gatekeeper, so the app opens on any Mac without the "unidentified developer" warning. Setup and use are in docs/BUILD.md. A plain `make app` is unchanged
+- The built app leaves out mypy, which came in through pydantic's mypy plugin: 6 MB smaller (51 MB)
 - **Expertised (has a certificate)** under a stamp's More details: prints a bold "(e)" under its caption, as FIP asks, in the editor and every export. Saved as `STAMP_EXPERTISED()`
 - **A copy or scan of a real item** for a picture: takes its size as the original's (which can be corrected), prints "Reproduction" under it, shows its size as a share of the original's, and offers **Make it 75% of the original** while it is within 25% of it. Check exhibit flags a copy too close in size. Saved as `STAMP_IMG_REPRO(w h "Reproduction")`
 - **View › Frames…** shows the pages as they hang in exhibition frames: 4, 3 or 2 to a row by sheet size, 4 rows to a frame; a page goes to it when clicked
