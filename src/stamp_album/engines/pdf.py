@@ -23,6 +23,7 @@ from stamp_album.engines import (
     page_border,
     system_fonts,
     text_layout,
+    user_images,
 )
 from stamp_album.engines.layout import layout_rows
 
@@ -153,7 +154,8 @@ def _draw_stamp(c: canvas.Canvas, stamp: Stamp, album: Album,
         img_fp = _resolve_image_path(stamp.image_path, album)
         if img_fp:
             try:
-                c.drawImage(str(img_fp), x, y, w, h, preserveAspectRatio=True, mask="auto")
+                c.drawImage(user_images.UserImageReader(str(img_fp)), x, y, w, h,
+                            preserveAspectRatio=True, mask="auto")
             except Exception:
                 pass
 

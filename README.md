@@ -33,7 +33,7 @@ The tutorial pictures and these screenshots are made from the running app with `
 
 ## Run from source
 
-Requirements: Python 3.10 or newer (CI tests 3.10, 3.11 and 3.13) and [uv](https://docs.astral.sh/uv/).
+Requirements: Python 3.11 or newer (CI tests 3.11 and 3.13) and [uv](https://docs.astral.sh/uv/).
 
 ```bash
 git clone https://github.com/jsganesh/stamp-album-pro.git
