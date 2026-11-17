@@ -29,7 +29,7 @@ The tutorial pictures and these screenshots are made from the running app with `
 ## What it does not do yet
 
 - **No exhibition-rule checking.** The goal is pages that meet international exhibition standards, but this release does not verify compliance with any federation's rules. Check your pages against the current regulations yourself.
-- **No signed installers.** `make app` builds a macOS app, and CI builds a zipped Windows folder (see [docs/BUILD.md](docs/BUILD.md)), but neither is signed, so macOS and Windows warn the first time it is opened.
+- **No signed Windows build, and no installers.** `./build.sh` can sign and notarise the macOS app with a Developer ID (see [docs/BUILD.md](docs/BUILD.md)); the zipped Windows folder from CI is unsigned, so Windows warns the first time it is opened.
 
 ## Run from source
 
