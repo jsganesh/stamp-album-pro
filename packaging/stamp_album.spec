@@ -59,6 +59,9 @@ if sys.platform.startswith("linux"):
 CODESIGN_IDENTITY = os.environ.get("CODESIGN_IDENTITY") or None
 ENTITLEMENTS = str(ROOT / "packaging" / "entitlements.plist") if CODESIGN_IDENTITY else None
 
+# Rendered from packaging/icon/StampAlbum.svg by tools/make_icon.py.
+ICON = ROOT / "packaging" / "icon"
+
 a = Analysis(
     [str(PKG / "__main__.py")],
     pathex=[str(SRC)],
@@ -85,6 +88,7 @@ exe = EXE(
     strip=False,
     upx=False,
     console=False,
+    icon=str(ICON / "StampAlbum.ico") if sys.platform == "win32" else None,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
@@ -106,7 +110,7 @@ if sys.platform == "darwin":
     app = BUNDLE(
         coll,
         name=f"{DISPLAY_NAME}.app",
-        icon=None,
+        icon=str(ICON / "StampAlbum.icns"),
         bundle_identifier=BUNDLE_ID,
         version=VERSION,
         info_plist={

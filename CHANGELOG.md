@@ -10,6 +10,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - Python 3.11 or newer is now required, because Pillow 13 no longer supports Python 3.10 (end of life in October 2026)
 
 ### Added
+- **An app icon**: an exhibit sheet with a double border and two perforated stamps in black mounts with gold corners, in the app's deep red. Shown in the Dock, Finder and on Windows. Drawn as `packaging/icon/StampAlbum.svg` and rendered by `tools/make_icon.py`
 - **Signed and notarised Mac app**: `CODESIGN_IDENTITY=… NOTARY_PROFILE=… ./build.sh` signs every library with a Developer ID and the hardened runtime, has Apple notarise the zip, staples the ticket and checks it with Gatekeeper, so the app opens on any Mac without the "unidentified developer" warning. Setup and use are in docs/BUILD.md. A plain `make app` is unchanged
 - The built app leaves out mypy, which came in through pydantic's mypy plugin: 6 MB smaller (51 MB)
 - **Expertised (has a certificate)** under a stamp's More details: prints a bold "(e)" under its caption, as FIP asks, in the editor and every export. Saved as `STAMP_EXPERTISED()`
