@@ -50,6 +50,38 @@ def test_spec_names_no_removed_modules():
         assert gone not in spec, gone
 
 
+# --- App icon --------------------------------------------------------------
+
+ICON = ROOT / "packaging" / "icon"
+
+
+def test_spec_uses_the_rendered_icons():
+    spec = _spec()
+    assert 'ICON / "StampAlbum.icns"' in spec
+    assert 'ICON / "StampAlbum.ico"' in spec
+
+
+def test_icns_holds_every_mac_size_with_the_grid_margin():
+    from PIL import Image
+
+    with Image.open(ICON / "StampAlbum.icns") as icns:
+        assert (512, 512, 2) in icns.info["sizes"]
+        icns.size = (512, 512)
+        icns.load(scale=2)
+        big = icns.convert("RGBA")
+    # Apple's grid leaves 100 of 1024 px clear all round; the corner is see-through.
+    assert big.size == (1024, 1024)
+    assert big.getpixel((50, 50))[3] == 0
+    assert big.getpixel((512, 512))[3] == 255
+
+
+def test_ico_holds_the_windows_sizes():
+    from PIL import Image
+
+    with Image.open(ICON / "StampAlbum.ico") as ico:
+        assert {(16, 16), (32, 32), (48, 48), (256, 256)} <= ico.info["sizes"]
+
+
 # --- Signing and notarisation (macOS) -------------------------------------
 
 # Each one switches off a hardened-runtime protection Apple's notary checks for.

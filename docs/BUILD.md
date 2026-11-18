@@ -84,6 +84,7 @@ uv run python packaging/smoke_test.py dist/StampAlbumPro/StampAlbumPro.exe
 - All of `src/stamp_album/web`: the editor page, scripts, styles, tutorial pictures, CodeMirror, and the Source Serif 4 Caption fonts with `OFL.txt`.
 - Every `stamp_album` module, uvicorn's run-time modules (it picks them by name), websockets and python-multipart.
 - The version comes from `stamp_album/__init__.py`.
+- The app icon: `packaging/icon/StampAlbum.icns` on macOS, `StampAlbum.ico` on Windows. Both are rendered from `packaging/icon/StampAlbum.svg` by `python tools/make_icon.py` (on a Mac, with Playwright's Chromium); edit the SVG, run it, check the icon at 16 px in Finder's list view, and commit all three. The drawing keeps to Apple's grid (an 824 px body with 100 px clear all round), so macOS shows it as it is rather than on a grey tile.
 - Qt and Tk are excluded on macOS and Windows, and mypy (pulled in by pydantic's mypy plugin, which the app never loads) everywhere.
 
 Files the app writes go to `~/StampAlbum`, as when run from source: a folder for each album, with its pictures, and version history.
@@ -102,5 +103,4 @@ Files the app writes go to `~/StampAlbum`, as when run from source: a folder for
 - **Windows signing.** It needs a Windows code-signing certificate.
 - **Signed builds from CI.** The Developer ID certificate and notary credentials would have to be repository secrets.
 - **An installer** for Windows (the zip is the stopgap), and a `.dmg` for macOS.
-- **An app icon.**
 - **Intel Macs** need a build on an Intel Mac (or a `macos-13` runner), or a universal2 Python for a universal app.
