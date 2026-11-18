@@ -18,8 +18,8 @@ ROOT = Path(__file__).resolve().parent.parent
 REPO_URL = "https://github.com/jsganesh/stamp-album-pro"
 
 DOWNLOADS = """### Downloads
-- `StampAlbumPro-macos.zip`: the macOS app (Apple silicon). Unzip and open; the first time, \
-right-click › Open, as the app is not signed yet.
+- `StampAlbumPro-macos.zip`: the macOS app (Apple silicon), signed with a Developer ID and \
+notarised by Apple. Unzip and open.
 - `StampAlbumPro-windows.zip`: the Windows folder. Unzip and run `StampAlbumPro.exe`; the \
 first time, More info › Run anyway, as the app is not signed yet.
 """

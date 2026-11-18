@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-18
+
 ### Security
 - Pillow 13.0.0 (from 12.3.0), which fixes the heap overflows and other bugs in its FPX, TIFF, JPEG and JPEG 2000 decoders that an attached picture or one inside a shared album could reach. Also opentelemetry-api 1.45.2 and setuptools 84.1.0
 - Pictures are only decoded as PNG, JPEG, GIF, BMP, TIFF or WEBP, the types the app accepts by name, in the PNG and PDF exports alike. A file named `.png` that holds another format is left out instead of reaching that format's decoder

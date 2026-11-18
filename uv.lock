@@ -1502,7 +1502,7 @@ wheels = [
 
 [[package]]
 name = "stamp-album-pro"
-version = "0.5.0"
+version = "0.6.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
