@@ -4,6 +4,11 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Security
+- Pillow 13.0.0 (from 12.3.0), which fixes the heap overflows and other bugs in its FPX, TIFF, JPEG and JPEG 2000 decoders that an attached picture or one inside a shared album could reach. Also opentelemetry-api 1.45.2 and setuptools 84.1.0
+- Pictures are only decoded as PNG, JPEG, GIF, BMP, TIFF or WEBP, the types the app accepts by name, in the PNG and PDF exports alike. A file named `.png` that holds another format is left out instead of reaching that format's decoder
+- Python 3.11 or newer is now required, because Pillow 13 no longer supports Python 3.10 (end of life in October 2026)
+
 ### Added
 - **Signed and notarised Mac app**: `CODESIGN_IDENTITY=… NOTARY_PROFILE=… ./build.sh` signs every library with a Developer ID and the hardened runtime, has Apple notarise the zip, staples the ticket and checks it with Gatekeeper, so the app opens on any Mac without the "unidentified developer" warning. Setup and use are in docs/BUILD.md. A plain `make app` is unchanged
 - The built app leaves out mypy, which came in through pydantic's mypy plugin: 6 MB smaller (51 MB)

@@ -23,6 +23,7 @@ from stamp_album.engines import (
     page_border,
     system_fonts,
     text_layout,
+    user_images,
 )
 from stamp_album.engines.layout import layout_rows
 
@@ -229,7 +230,7 @@ def _draw_stamp(draw: ImageDraw.ImageDraw, stamp: Stamp, album: Album, px_per_mm
         img_fp = _resolve_image_path(stamp.image_path, album)
         if img_fp:
             try:
-                img = Image.open(img_fp).convert("RGBA")
+                img = user_images.open_image(img_fp).convert("RGBA")
                 # Fit inside the box keeping the aspect ratio, centred (like the PDF).
                 fit = min(w / img.width, h / img.height)
                 nw, nh = max(1, int(img.width * fit)), max(1, int(img.height * fit))
