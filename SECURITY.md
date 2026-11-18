@@ -23,5 +23,5 @@ If you set `STAMP_ALBUM_HOST` to make it reachable from other devices, for examp
 
 ## Out of scope
 
-- The warnings macOS and Windows show for the apps, which are not signed yet
+- The warning Windows shows for the app, which is not signed yet
 - Problems that need someone to already control your computer or your user account

@@ -8,6 +8,8 @@ import os
 import sys
 from pathlib import Path
 
+from stamp_album import __version__
+
 QT_REMOVED = "The PyQt6 editor was removed. Run `stamp-album` to open the editor."
 
 
@@ -121,7 +123,7 @@ def _run_cli(args: list[str]):
     parser.add_argument(
         "--version",
         action="version",
-        version="StampAlbum Pro v0.5.0",
+        version=f"StampAlbum Pro v{__version__}",
     )
     parser.add_argument(
         "-v", "--verbose",
