@@ -2,7 +2,7 @@
 
 Design and print stamp album pages. StampAlbum Pro pairs a drag-and-drop page canvas with a text-based page description (DSL) and exports print-ready pages.
 
-> **Status: alpha (v0.6.0).** Developed on macOS. The automated test suite also runs on Windows and Linux in CI. Each [release](https://github.com/jsganesh/stamp-album-pro/releases) has a zipped macOS app (Apple silicon, signed and notarised by Apple since 0.6.0) and a zipped Windows folder (not signed yet). You can also run it from source (see below).
+> **Status: alpha (v0.7.0).** Developed on macOS. The automated test suite also runs on Windows and Linux in CI. Each [release](https://github.com/jsganesh/stamp-album-pro/releases) has a zipped macOS app (Apple silicon, signed and notarised by Apple) and a zipped Windows folder (experimental and not signed). You can also run it from source (see below).
 
 ![Main editor](docs/screenshots/01-main-editor.png)
 
@@ -52,10 +52,10 @@ Without uv: `python -m venv .venv`, activate it, then `pip install -e ".[dev]"`.
 
 Platform notes:
 - **macOS:** the main development platform.
-- **Windows:** tests pass in CI; the app itself has not been checked there yet.
+- **Windows:** experimental. The tests pass in CI and CI builds the app, but no one has tried the app by hand on a Windows PC yet. [Reports of what works and what doesn't](https://github.com/jsganesh/stamp-album-pro/issues) are welcome.
 - **Linux:** tests pass in CI on Ubuntu; the app itself is not verified.
 
-The `launcher/` folder contains launch scripts (a `.command` file for macOS, a `.bat` file for Windows, a `.desktop` file for Linux; see `launcher/README.md`). They have not been tested for 0.6.0.
+The `launcher/` folder contains launch scripts (a `.command` file for macOS, a `.bat` file for Windows, a `.desktop` file for Linux; see `launcher/README.md`). They have not been tested for 0.7.0.
 
 ## Development
 
@@ -93,10 +93,14 @@ StampAlbum Pro's page-description language follows the command syntax of **Album
 
 StampAlbum Pro is a separate program written from scratch in Python and JavaScript. It contains no AlbumEasy source code, artwork or fonts, and it is not affiliated with or endorsed by AlbumEasy. AlbumEasy is licensed under the GNU GPL v3.
 
+## Support
+
+StampAlbum Pro is free and stays free. If it helps your exhibits, you can [buy me a coffee](https://www.paypal.com/ncp/payment/8TVNS557FWMY4), also under Help in the app; it is never expected. Bug reports and word of what works for you help just as much.
+
 ## Licence
 
 MIT, see [LICENSE](LICENSE).
 
 The caption font, Source Serif 4 Caption by Adobe, is bundled under the SIL Open Font License 1.1 ([src/stamp_album/web/fonts/OFL.txt](src/stamp_album/web/fonts/OFL.txt)).
 
-Licensing note: dependency licences have not been audited yet, so review them before distributing binaries. (v0.2.0 included PyMuPDF, which is AGPL-3.0 or commercial; it has since been removed.)
+The libraries the app is built from are all permissively licensed (MIT, BSD, Apache-2.0, PSF); none is GPL or AGPL, and a test keeps it that way. Every build carries their notices as `THIRD_PARTY_LICENSES.txt`, written by `tools/third_party_licenses.py`. (v0.2.0 included PyMuPDF, which is AGPL-3.0 or commercial; it has since been removed.)

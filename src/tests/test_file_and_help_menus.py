@@ -3,7 +3,8 @@
 
 - File › Open recent lists the 10 newest saved albums; File › Manage saved albums… opens
   or deletes them. Both ask before replacing unsaved work.
-- Help is a menu: Show the tutorial, Keyboard shortcuts (still on ?), Print calibration page.
+- Help is a menu: Show the tutorial, Keyboard shortcuts (still on ?), Print calibration page,
+  then two links to the browser: Get help or report a problem, and Buy me a coffee.
 - The CSV/Excel import is gone: it filled a stamp list nothing ever showed.
 - The Images section lists the images the open album uses; a new album says how to add one.
   Attaching an image places it on the page. An image is never deleted from the panel.
@@ -11,8 +12,10 @@
 import io
 import os
 import time
+from urllib.parse import urlparse
 
 import pytest
+from browser_helpers import open_page
 from fastapi.testclient import TestClient
 from test_accessibility import _axe
 from test_ui_smoke import base_url, page, wait_for_app  # noqa: F401
@@ -96,15 +99,59 @@ def test_import_routes_are_gone():
 
 # ── Help ──
 
-def test_help_is_a_menu_with_three_items(page):
+def test_help_menu_items(page):
     assert page.locator("#btn-help-tb").count() == 0
     page.click("#menu-help-btn")
     assert page.is_visible("#menu-help")
     items = page.evaluate("[...document.querySelectorAll('#menu-help .mi')].map(b => b.id)")
-    assert items == ["menu-tutorial", "btn-help", "menu-calibration"]
+    assert items == ["menu-tutorial", "btn-help", "menu-calibration", "menu-report", "menu-coffee"]
     # They left View and File
     assert page.locator("#menu-view #menu-tutorial, #menu-view #btn-help").count() == 0
     assert page.locator("#menu-file #menu-calibration").count() == 0
+
+
+def test_help_links_leave_the_app_for_the_browser(page):
+    # target=_blank: the Mac window hands it to the default browser, a phone opens a tab.
+    for id_, host in (("menu-report", "github.com/jsganesh/stamp-album-pro/issues"),
+                      ("menu-coffee", "www.paypal.com/ncp/payment/")):
+        a = page.locator("#" + id_)
+        href = urlparse(a.get_attribute("href"))
+        assert href.scheme == "https" and (href.hostname + href.path).startswith(host)
+        assert a.get_attribute("target") == "_blank"
+        assert "noopener" in a.get_attribute("rel") and "noreferrer" in a.get_attribute("rel")
+        assert "opens in your browser" in a.inner_text().lower() or page.locator(
+            "#" + id_ + " .sr-only").count() == 1
+
+
+def test_the_coffee_item_has_its_own_colour(page):
+    page.click("#menu-help-btn")
+    colour = "(id) => getComputedStyle(document.getElementById(id)).color"
+    coffee = page.evaluate(colour, "menu-coffee")
+    assert coffee != page.evaluate(colour, "menu-tutorial")
+    assert coffee != page.evaluate(colour, "menu-report")
+    style = "(id) => getComputedStyle(document.getElementById(id)).fontWeight"
+    assert page.evaluate(style, "menu-coffee") == "600"
+
+
+def test_using_a_help_link_closes_the_menu_and_opens_a_tab(page):
+    # A stub answers for PayPal, so the test never reaches the real site.
+    page.context.route("**/*paypal.com/**", lambda route: route.fulfill(body="stub"))
+    page.click("#menu-help-btn")
+    with page.context.expect_page() as opened:
+        page.click("#menu-coffee")
+    assert not page.is_visible("#menu-help")
+    assert urlparse(opened.value.url).hostname == "www.paypal.com"
+    opened.value.close()
+
+
+def test_help_links_work_from_the_keyboard(page):
+    page.focus("#menu-help-btn")
+    page.keyboard.press("Enter")
+    seen = []
+    for _ in range(6):  # the arrows wrap round, so six presses pass every item
+        page.keyboard.press("ArrowDown")
+        seen.append(page.evaluate("document.activeElement.id"))
+    assert seen.index("menu-coffee") == seen.index("menu-report") + 1, seen
 
 
 @pytest.mark.parametrize("item, overlay", [
@@ -393,7 +440,7 @@ def test_phone_shows_open_recent_below_its_item(base_url, folders):
     with pw.sync_playwright() as p:
         b = p.chromium.launch()
         pg = b.new_page(viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
-        pg.goto(base_url + "/")
+        open_page(pg, base_url + "/")
         wait_for_app(pg)
         pg.evaluate("document.getElementById('tutorial-overlay').classList.remove('open')")
         assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")

@@ -16,12 +16,19 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 REPO_URL = "https://github.com/jsganesh/stamp-album-pro"
+# Also in .github/FUNDING.yml and README.md; src/tests/test_support_link.py keeps the three in step.
+SUPPORT_URL = "https://www.paypal.com/ncp/payment/8TVNS557FWMY4"
 
 DOWNLOADS = """### Downloads
 - `StampAlbumPro-macos.zip`: the macOS app (Apple silicon), signed with a Developer ID and \
 notarised by Apple. Unzip and open.
-- `StampAlbumPro-windows.zip`: the Windows folder. Unzip and run `StampAlbumPro.exe`; the \
-first time, More info › Run anyway, as the app is not signed yet.
+- `StampAlbumPro-windows.zip`: **experimental.** The Windows folder, built and tested by CI but \
+not yet tried by hand on a Windows PC. Unzip and run `StampAlbumPro.exe`; the first time, \
+More info › Run anyway, as it is not signed. Please report what you find.
+"""
+
+SUPPORT = f"""StampAlbum Pro is free. If it helps your exhibits, you can \
+[buy me a coffee]({SUPPORT_URL}); it is never expected.
 """
 
 
@@ -49,7 +56,7 @@ def release_notes(changelog: str, version: str) -> str:
     heading, body = changelog_section(changelog, version)
     anchor = github_anchor(heading)
     link = f"{REPO_URL}/blob/v{version}/CHANGELOG.md#{anchor}"
-    return f"{DOWNLOADS}\n{body}\n\n[Changelog for {version}]({link})\n"
+    return f"{DOWNLOADS}\n{body}\n\n[Changelog for {version}]({link})\n\n{SUPPORT}"
 
 
 def main(argv: list[str]) -> int:

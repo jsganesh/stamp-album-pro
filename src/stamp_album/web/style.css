@@ -56,6 +56,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .mi:hover:not(:disabled), .mi:focus-visible { background: var(--accent-soft); }
 .mi:disabled { color: var(--muted); cursor: default; }
 .mi[data-danger] { color: var(--accent); }
+a.mi { text-decoration: none; }
+.mi[data-support] { color: #6B4423; font-weight: 600; }
+.mi[data-support]:hover, .mi[data-support]:focus-visible { background: #F4E8D6; }
+.mi[data-support] .mk { color: inherit; }
 /* File › Open recent: a submenu beside its item (below it on a phone) */
 .msubmenu { position: relative; display: flex; flex-direction: column; }
 #menu-recent::after { content: ""; margin-left: auto; width: 0.5rem; height: 0.5rem; border: solid var(--text2); border-width: 0 2px 2px 0; transform: rotate(-45deg); }

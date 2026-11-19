@@ -82,6 +82,12 @@ def test_ico_holds_the_windows_sizes():
         assert {(16, 16), (32, 32), (48, 48), (256, 256)} <= ico.info["sizes"]
 
 
+def test_workflow_releases_as_a_draft_until_the_notarised_zip_is_in():
+    workflow = (ROOT / ".github" / "workflows" / "app.yml").read_text(encoding="utf-8")
+    create = workflow.split("gh release create")[1].split("dist/StampAlbumPro-macos.zip")[0]
+    assert "--draft" in create
+
+
 # --- Signing and notarisation (macOS) -------------------------------------
 
 # Each one switches off a hardened-runtime protection Apple's notary checks for.

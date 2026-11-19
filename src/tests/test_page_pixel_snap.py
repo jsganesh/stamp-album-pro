@@ -10,6 +10,7 @@ import os
 
 import playwright.sync_api as pw
 import pytest
+from browser_helpers import open_page
 from test_ui_smoke import base_url, page, wait_for_app  # noqa: F401  (fixtures)
 
 SIZES = {"A4": (210, 297), "Letter": (215.9, 279.4), "A4 landscape": (297, 210)}
@@ -75,7 +76,7 @@ def test_page_on_whole_device_pixels_on_retina(base_url):
                 raise
             pytest.skip(f"chromium unavailable: {exc}")
         pg = browser.new_page(viewport={"width": 1500, "height": 950}, device_scale_factor=2)
-        pg.goto(base_url + "/")
+        open_page(pg, base_url + "/")
         wait_for_app(pg)
         pg.evaluate("StampAlbum.applyPageSize(215.9, 279.4)")  # Letter: left was x.125
         for width in WIDTHS:
