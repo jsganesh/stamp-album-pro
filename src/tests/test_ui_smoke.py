@@ -11,6 +11,7 @@ import threading
 import time
 
 import pytest
+from browser_helpers import open_page
 
 try:
     import playwright.sync_api as pw
@@ -68,7 +69,7 @@ def page(base_url):
         pg = browser.new_page(viewport={"width": 1500, "height": 950})
         pg.js_errors = []
         pg.on("pageerror", lambda e: pg.js_errors.append(str(e)))
-        pg.goto(base_url + "/")
+        open_page(pg, base_url + "/")
         wait_for_app(pg)
         pg.evaluate("document.getElementById('tutorial-overlay').classList.remove('open')")
         # A desktop window opens at Fit whole page, which enlarges the page past 100%.

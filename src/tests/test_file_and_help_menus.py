@@ -12,8 +12,10 @@
 import io
 import os
 import time
+from urllib.parse import urlparse
 
 import pytest
+from browser_helpers import open_page
 from fastapi.testclient import TestClient
 from test_accessibility import _axe
 from test_ui_smoke import base_url, page, wait_for_app  # noqa: F401
@@ -111,9 +113,10 @@ def test_help_menu_items(page):
 def test_help_links_leave_the_app_for_the_browser(page):
     # target=_blank: the Mac window hands it to the default browser, a phone opens a tab.
     for id_, host in (("menu-report", "github.com/jsganesh/stamp-album-pro/issues"),
-                      ("menu-coffee", "paypal.com/ncp/payment/")):
+                      ("menu-coffee", "www.paypal.com/ncp/payment/")):
         a = page.locator("#" + id_)
-        assert a.get_attribute("href").startswith("https://") and host in a.get_attribute("href")
+        href = urlparse(a.get_attribute("href"))
+        assert href.scheme == "https" and (href.hostname + href.path).startswith(host)
         assert a.get_attribute("target") == "_blank"
         assert "noopener" in a.get_attribute("rel") and "noreferrer" in a.get_attribute("rel")
         assert "opens in your browser" in a.inner_text().lower() or page.locator(
@@ -137,7 +140,7 @@ def test_using_a_help_link_closes_the_menu_and_opens_a_tab(page):
     with page.context.expect_page() as opened:
         page.click("#menu-coffee")
     assert not page.is_visible("#menu-help")
-    assert "paypal.com" in opened.value.url
+    assert urlparse(opened.value.url).hostname == "www.paypal.com"
     opened.value.close()
 
 
@@ -437,7 +440,7 @@ def test_phone_shows_open_recent_below_its_item(base_url, folders):
     with pw.sync_playwright() as p:
         b = p.chromium.launch()
         pg = b.new_page(viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
-        pg.goto(base_url + "/")
+        open_page(pg, base_url + "/")
         wait_for_app(pg)
         pg.evaluate("document.getElementById('tutorial-overlay').classList.remove('open')")
         assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")

@@ -10,6 +10,7 @@ page. Properties opens only from its button. The top bar keeps its menus."""
 
 import playwright.sync_api as pw
 import pytest
+from browser_helpers import open_page
 from test_accessibility import _axe
 from test_ui_smoke import base_url, page, wait_for_app  # noqa: F401  (fixtures)
 from test_zoom_ui import IPHONE, phone  # noqa: F401  (fixture)
@@ -322,7 +323,7 @@ def test_longer_words_still_fit_the_bar(base_url):
     with pw.sync_playwright() as p:
         browser = p.chromium.launch()
         pg = browser.new_page(viewport=IPHONE, is_mobile=True, has_touch=True)
-        pg.goto(base_url + "/?lang=pseudo")
+        open_page(pg, base_url + "/?lang=pseudo")
         wait_for_app(pg)
         cut = pg.evaluate("""[...document.querySelectorAll('#phone-bar button, #pg-pager *')]
             .filter(b => b.scrollWidth > b.clientWidth + 1).map(b => b.id)""")

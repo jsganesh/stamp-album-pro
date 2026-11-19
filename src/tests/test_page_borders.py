@@ -8,6 +8,7 @@ ports it and every export draws its primitives.
 from io import BytesIO
 
 import pytest
+from browser_helpers import open_page
 from fastapi.testclient import TestClient
 from image_helpers import pixels
 from PIL import Image, ImageFilter
@@ -154,7 +155,7 @@ def _editor_img(base_url, page, style):
         viewport={"width": 1500, "height": 950}, device_scale_factor=3
     )
     try:
-        pg.goto(base_url + "/")
+        open_page(pg, base_url + "/")
         wait_for_app(pg)
         pg.evaluate("StampAlbum.setZoomMode('actual')")  # compared with the exports at 100%
         _editor_markup(pg, style, inset=4.8)  # as the exports here (no border_inset sent)

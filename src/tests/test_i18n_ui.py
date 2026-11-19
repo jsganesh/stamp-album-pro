@@ -16,6 +16,7 @@ import re
 from pathlib import Path
 
 import pytest
+from browser_helpers import open_page
 from test_ui_smoke import base_url, pw, wait_for_app  # noqa: F401
 
 IPHONE = {"width": 390, "height": 664}
@@ -60,7 +61,7 @@ def _open(browser, base_url, query="", locale="en-US", german=False, viewport=No
     pg = ctx.new_page()
     pg.js_errors = []
     pg.on("pageerror", lambda e: pg.js_errors.append(str(e)))
-    pg.goto(base_url + "/" + query)
+    open_page(pg, base_url + "/" + query)
     wait_for_app(pg)
     pg.evaluate("document.getElementById('tutorial-overlay').classList.remove('open')")
     pg.wait_for_timeout(300)  # panels finish sliding (phone)
@@ -109,7 +110,7 @@ def test_phrases_cannot_add_other_markup(browser, base_url):
     ctx.add_init_script(NO_TUTORIAL)
     ctx.add_init_script("window.StampAlbumLocales = { de: %s };" % json.dumps(sneaky))
     pg = ctx.new_page()
-    pg.goto(base_url + "/")
+    open_page(pg, base_url + "/")
     wait_for_app(pg)
     step = pg.locator(f'[data-i18n-html="{key}"]')
     assert step.evaluate("e => [...e.querySelectorAll('*')].map(c => c.localName)") == ["b", "br"]
