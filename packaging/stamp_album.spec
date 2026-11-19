@@ -34,9 +34,15 @@ VERSION = re.search(
     r'__version__\s*=\s*"([^"]+)"', (PKG / "__init__.py").read_text(encoding="utf-8")
 ).group(1)
 
+# THIRD_PARTY_LICENSES.txt is written fresh for this platform's installed libraries.
+sys.path.insert(0, str(ROOT / "tools"))
+import third_party_licenses  # noqa: E402
+
+NOTICES = third_party_licenses.write(ROOT / "build" / "THIRD_PARTY_LICENSES.txt")
+
 # Everything the browser UI loads: HTML, JS, CSS, tutorial pictures, the
 # caption fonts (and OFL.txt), CodeMirror. Served from stamp_album/web.
-datas = [(str(PKG / "web"), "stamp_album/web")]
+datas = [(str(PKG / "web"), "stamp_album/web"), (str(NOTICES), ".")]
 
 hiddenimports = (
     collect_submodules("stamp_album")

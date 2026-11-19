@@ -20,8 +20,9 @@ REPO_URL = "https://github.com/jsganesh/stamp-album-pro"
 DOWNLOADS = """### Downloads
 - `StampAlbumPro-macos.zip`: the macOS app (Apple silicon), signed with a Developer ID and \
 notarised by Apple. Unzip and open.
-- `StampAlbumPro-windows.zip`: the Windows folder. Unzip and run `StampAlbumPro.exe`; the \
-first time, More info › Run anyway, as the app is not signed yet.
+- `StampAlbumPro-windows.zip`: **experimental.** The Windows folder, built and tested by CI but \
+not yet tried by hand on a Windows PC. Unzip and run `StampAlbumPro.exe`; the first time, \
+More info › Run anyway, as it is not signed. Please report what you find.
 """
 
 

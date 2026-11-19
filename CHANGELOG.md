@@ -4,6 +4,15 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+- **Licence notices**: every build carries `THIRD_PARTY_LICENSES.txt`, the licence text of each library it includes, Python, CodeMirror and the caption font. All are MIT, BSD, Apache-2.0, PSF or OFL; a test fails the build if a GPL or AGPL library is ever added
+
+### Changed
+- **The Windows build is called experimental** in the release notes and the README: CI builds and tests it, but no one has tried it by hand on a Windows PC yet
+
+### Removed
+- **The accounts and sharing API** (`/api/auth/*`, `/api/users`, `/api/share*`) and the `cloud_sync` module behind it. The editor never called them, the server has no sign-in, and with `STAMP_ALBUM_HOST` set they would only have been more to attack. Files `~/StampAlbum/.users.json`, `.sessions.json` and `.shares.json` from earlier versions are no longer read and can be deleted
+
 ## [0.6.0] - 2026-11-18
 
 ### Security
