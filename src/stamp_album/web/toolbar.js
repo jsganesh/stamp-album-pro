@@ -248,6 +248,9 @@ function wireToolbar() {
     onItem("menu-tutorial", function() { if (S.showTutorial) S.showTutorial(); });
     onItem("btn-help", function() { $("help-overlay").classList.add("open"); });
     onItem("menu-calibration", function() { S.openCalibration(); });
+    // Two links to the browser: the click closes the menu and then follows the link.
+    onItem("menu-report", function() {});
+    onItem("menu-coffee", function() {});
     ["btn-dsl"].forEach(function(id) { $(id).addEventListener("click", function() { closeMenu(); }); });
 
     // Phone width: start with the side panels collapsed so the page has room;

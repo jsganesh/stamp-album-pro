@@ -204,7 +204,14 @@ def test_python_reads_the_editors_placed_pictures():
 
 def test_editor_page_loads_nothing_from_outside():
     html = (WEB / "index.html").read_text(encoding="utf-8")
-    assert not re.findall(r'(?:src|href)="https?://', html), "scripts and styles are bundled"
+    fetched = r'<(?:script|link|img|iframe|source|video|audio|embed|object)\b[^>]*(?:src|href|data)="https?://'
+    assert not re.findall(fetched, html), "scripts, styles and pictures are bundled"
+    # Links the user clicks load nothing by themselves; these two Help items are the only ones.
+    anchors = re.findall(r'<a [^>]*href="(https?://[^"]+)"', html)
+    assert sorted(anchors) == [
+        "https://github.com/jsganesh/stamp-album-pro/issues",
+        "https://www.paypal.com/ncp/payment/8TVNS557FWMY4",
+    ]
     for name in ("codemirror.min.js", "codemirror.min.css", "codemirror-LICENSE.txt"):
         assert (WEB / name).is_file(), name
     csp = TestClient(app).get("/").headers["content-security-policy"]

@@ -1,7 +1,7 @@
 """The "buy me a coffee" link is the same everywhere it appears, and only ever a link.
 
-It is a hosted PayPal payment page: no account details or keys are involved, and the app
-itself never mentions it, so nothing in the editor asks for money.
+It is a hosted PayPal payment page: no account details or keys are involved. In the editor
+it is one Help menu item that opens the browser; nothing pops up or asks for money.
 """
 
 import importlib.util
@@ -30,8 +30,13 @@ def test_every_release_note_carries_it():
     assert URL in release_notes.release_notes(changelog, "v1.0.0")
 
 
-def test_the_editor_does_not_ask_for_money():
+def test_the_editor_offers_it_in_the_help_menu_and_nowhere_else():
     web = ROOT / "src" / "stamp_album" / "web"
-    for path in web.glob("*"):
-        if path.suffix in {".js", ".html"}:
-            assert "paypal" not in path.read_text(encoding="utf-8").lower(), path.name
+    page = (web / "index.html").read_text(encoding="utf-8")
+    assert page.count(URL) == 1
+    link = re.search(r'<a [^>]*href="' + re.escape(URL) + r'"[^>]*>', page).group(0)
+    assert 'id="menu-coffee"' in link and 'target="_blank"' in link and "noopener" in link
+    help_menu = page.split('id="menu-help"')[1].split('<div class="tb-menu">')[0]
+    assert URL in help_menu
+    for path in web.glob("*.js"):  # no pop-ups, nags or counters: it is only a menu item
+        assert "paypal" not in path.read_text(encoding="utf-8").lower(), path.name

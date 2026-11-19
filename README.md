@@ -95,7 +95,7 @@ StampAlbum Pro is a separate program written from scratch in Python and JavaScri
 
 ## Support
 
-StampAlbum Pro is free and stays free. If it helps your exhibits, you can [buy me a coffee](https://www.paypal.com/ncp/payment/8TVNS557FWMY4); it is never expected. Bug reports and word of what works for you help just as much.
+StampAlbum Pro is free and stays free. If it helps your exhibits, you can [buy me a coffee](https://www.paypal.com/ncp/payment/8TVNS557FWMY4), also under Help in the app; it is never expected. Bug reports and word of what works for you help just as much.
 
 ## Licence
 
