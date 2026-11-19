@@ -93,6 +93,10 @@ StampAlbum Pro's page-description language follows the command syntax of **Album
 
 StampAlbum Pro is a separate program written from scratch in Python and JavaScript. It contains no AlbumEasy source code, artwork or fonts, and it is not affiliated with or endorsed by AlbumEasy. AlbumEasy is licensed under the GNU GPL v3.
 
+## Support
+
+StampAlbum Pro is free and stays free. If it helps your exhibits, you can [buy me a coffee](https://www.paypal.com/ncp/payment/8TVNS557FWMY4); it is never expected. Bug reports and word of what works for you help just as much.
+
 ## Licence
 
 MIT, see [LICENSE](LICENSE).

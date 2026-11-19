@@ -5,6 +5,7 @@ All notable changes to this project are documented here. The format follows [Kee
 ## [Unreleased]
 
 ### Added
+- **A way to say thanks**: a "buy me a coffee" link in the README, on the repository's Sponsor button and in each release's notes. The app stays free and nothing in it asks for money
 - **Licence notices**: every build carries `THIRD_PARTY_LICENSES.txt`, the licence text of each library it includes, Python, CodeMirror and the caption font. All are MIT, BSD, Apache-2.0, PSF or OFL; a test fails the build if a GPL or AGPL library is ever added
 
 ### Changed
