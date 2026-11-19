@@ -4,11 +4,14 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-20
+
 ### Added
 - **Help › Buy me a coffee** and **Help › Get help or report a problem**: two links that open in your browser, the first to a PayPal page for those who want to say thanks (in its own colour, so it is easy to find and easy to ignore), the second to the project's issue tracker. The same coffee link is in the README, on the repository's Sponsor button and in each release's notes. The app stays free; nothing pops up or asks for money
 - **Licence notices**: every build carries `THIRD_PARTY_LICENSES.txt`, the licence text of each library it includes, Python, CodeMirror and the caption font. All are MIT, BSD, Apache-2.0, PSF or OFL; a test fails the build if a GPL or AGPL library is ever added
 
 ### Changed
+- Releases are created as drafts by the App build workflow, so the unsigned CI Mac zip is replaced by the notarised one before anyone can download it
 - **The Windows build is called experimental** in the release notes and the README: CI builds and tests it, but no one has tried it by hand on a Windows PC yet
 
 ### Removed

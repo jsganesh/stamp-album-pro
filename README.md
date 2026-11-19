@@ -2,7 +2,7 @@
 
 Design and print stamp album pages. StampAlbum Pro pairs a drag-and-drop page canvas with a text-based page description (DSL) and exports print-ready pages.
 
-> **Status: alpha (v0.6.0).** Developed on macOS. The automated test suite also runs on Windows and Linux in CI. Each [release](https://github.com/jsganesh/stamp-album-pro/releases) has a zipped macOS app (Apple silicon, signed and notarised by Apple since 0.6.0) and a zipped Windows folder (experimental and not signed). You can also run it from source (see below).
+> **Status: alpha (v0.7.0).** Developed on macOS. The automated test suite also runs on Windows and Linux in CI. Each [release](https://github.com/jsganesh/stamp-album-pro/releases) has a zipped macOS app (Apple silicon, signed and notarised by Apple) and a zipped Windows folder (experimental and not signed). You can also run it from source (see below).
 
 ![Main editor](docs/screenshots/01-main-editor.png)
 
@@ -55,7 +55,7 @@ Platform notes:
 - **Windows:** experimental. The tests pass in CI and CI builds the app, but no one has tried the app by hand on a Windows PC yet. [Reports of what works and what doesn't](https://github.com/jsganesh/stamp-album-pro/issues) are welcome.
 - **Linux:** tests pass in CI on Ubuntu; the app itself is not verified.
 
-The `launcher/` folder contains launch scripts (a `.command` file for macOS, a `.bat` file for Windows, a `.desktop` file for Linux; see `launcher/README.md`). They have not been tested for 0.6.0.
+The `launcher/` folder contains launch scripts (a `.command` file for macOS, a `.bat` file for Windows, a `.desktop` file for Linux; see `launcher/README.md`). They have not been tested for 0.7.0.
 
 ## Development
 

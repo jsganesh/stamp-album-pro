@@ -84,9 +84,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # A draft, because CI's macOS zip is unsigned: the notarised zip built on the
+          # maintainer's Mac replaces it, and then the draft is published (docs/BUILD.md).
           # 0.x versions are alphas, so they go out as pre-releases.
           case "$GITHUB_REF_NAME" in v0.*) pre=--prerelease ;; *) pre= ;; esac
-          gh release create "$GITHUB_REF_NAME" $pre --verify-tag \
+          gh release create "$GITHUB_REF_NAME" $pre --draft --verify-tag \
             --title "StampAlbum Pro $GITHUB_REF_NAME" \
             --notes-file release-notes.md \
             dist/StampAlbumPro-macos.zip dist/StampAlbumPro-windows.zip

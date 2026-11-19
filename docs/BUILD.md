@@ -60,6 +60,13 @@ CODESIGN_IDENTITY="Developer ID Application: <name> (ZV97P254RG)" NOTARY_PROFILE
 
 CI builds stay unsigned: the certificate and the notary password are on this Mac only.
 
+### Publishing a release
+
+1. Bump the version (`pyproject.toml`, `stamp_album/__init__.py`, `uv.lock`), turn the changelog's Unreleased entries into the new version's section, and merge that.
+2. Build the notarised zip from the merged commit (`./build.sh` as above) and keep a copy of `dist/StampAlbumPro-macos.zip`.
+3. Push the tag: `git tag -a vX.Y.Z -m "StampAlbum Pro vX.Y.Z" && git push origin vX.Y.Z`. The **App build** workflow builds both zips and creates the release as a **draft**, with the notes taken from the changelog.
+4. Replace CI's unsigned macOS zip with the notarised one (`gh release upload vX.Y.Z StampAlbumPro-macos.zip --clobber`), check the download's checksum, then publish the draft (`gh release edit vX.Y.Z --draft=false`). Nobody can download the unsigned zip, because a draft is visible only to the maintainer.
+
 ## Windows
 
 The Windows build is experimental: CI builds and checks it, but it has not been tried by hand on a Windows PC. Windows builds come from CI, since there's no Windows machine in the workflow. The **App build** workflow (`.github/workflows/app.yml`) builds on `macos-latest` and `windows-latest`, runs the built app's checks on each, and keeps both zips as workflow artifacts for 30 days:
