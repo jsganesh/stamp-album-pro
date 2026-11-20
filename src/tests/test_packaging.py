@@ -50,6 +50,19 @@ def test_spec_names_no_removed_modules():
         assert gone not in spec, gone
 
 
+# --- README download links ---------------------------------------------------
+
+
+def test_readme_download_links_name_the_current_version():
+    from stamp_album import __version__
+
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    base = f"https://github.com/jsganesh/stamp-album-pro/releases/download/v{__version__}/"
+    assert f"({base}StampAlbumPro-macos.zip)" in readme
+    assert f"({base}StampAlbumPro-windows.zip)" in readme
+    assert len(re.findall(r"releases/download/", readme)) == 2, "stale link to an older version"
+
+
 # --- App icon --------------------------------------------------------------
 
 ICON = ROOT / "packaging" / "icon"

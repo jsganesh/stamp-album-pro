@@ -62,7 +62,7 @@ CI builds stay unsigned: the certificate and the notary password are on this Mac
 
 ### Publishing a release
 
-1. Bump the version (`pyproject.toml`, `stamp_album/__init__.py`, `uv.lock`), turn the changelog's Unreleased entries into the new version's section, and merge that.
+1. Bump the version (`pyproject.toml`, `stamp_album/__init__.py`, `uv.lock`, and the two Download links in `README.md`; a test fails if they name another version), turn the changelog's Unreleased entries into the new version's section, and merge that.
 2. Build the notarised zip from the merged commit (`./build.sh` as above) and keep a copy of `dist/StampAlbumPro-macos.zip`.
 3. Push the tag: `git tag -a vX.Y.Z -m "StampAlbum Pro vX.Y.Z" && git push origin vX.Y.Z`. The **App build** workflow builds both zips and creates the release as a **draft**, with the notes taken from the changelog.
 4. Replace CI's unsigned macOS zip with the notarised one (`gh release upload vX.Y.Z StampAlbumPro-macos.zip --clobber`), check the download's checksum, then publish the draft (`gh release edit vX.Y.Z --draft=false`). Nobody can download the unsigned zip, because a draft is visible only to the maintainer.

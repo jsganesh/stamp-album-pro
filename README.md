@@ -6,6 +6,14 @@ Design and print stamp album pages. StampAlbum Pro pairs a drag-and-drop page ca
 
 ![Main editor](docs/screenshots/01-main-editor.png)
 
+## Download
+
+**Mac:** [StampAlbumPro-macos.zip](https://github.com/jsganesh/stamp-album-pro/releases/download/v0.7.0/StampAlbumPro-macos.zip). Unzip it and open **StampAlbum Pro**. It is signed and notarised by Apple, so it opens without a warning. It needs an Apple-silicon Mac (M1 or later); Intel Macs are not supported yet.
+
+**Windows (experimental):** [StampAlbumPro-windows.zip](https://github.com/jsganesh/stamp-album-pro/releases/download/v0.7.0/StampAlbumPro-windows.zip). Unzip the folder anywhere and run `StampAlbumPro.exe`, keeping the `_internal` folder beside it. It is not signed, so Windows shows "Windows protected your PC" the first time: choose **More info**, then **Run anyway**.
+
+Older versions and the notes for each release are on the [releases page](https://github.com/jsganesh/stamp-album-pro/releases). Or run it from source (below).
+
 ## What it does today
 
 - **Visual canvas:** place, drag, resize and align stamps and text elements on a page
