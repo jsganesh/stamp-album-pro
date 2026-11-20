@@ -95,6 +95,21 @@ def test_ico_holds_the_windows_sizes():
         assert {(16, 16), (32, 32), (48, 48), (256, 256)} <= ico.info["sizes"]
 
 
+def test_workflows_default_to_a_read_only_token():
+    for path in (ROOT / ".github" / "workflows").glob("*.yml"):
+        text = path.read_text(encoding="utf-8")
+        top = re.search(r"^permissions:\n((?:  .*\n)+)", text, re.M)
+        assert top, f"{path.name} has no top-level permissions"
+        assert top.group(1).split() == ["contents:", "read"], path.name
+
+
+def test_only_the_release_job_may_write():
+    text = (ROOT / ".github" / "workflows" / "app.yml").read_text(encoding="utf-8")
+    release = text.split("\n  release:")[1]
+    assert "contents: write" in release
+    assert "contents: write" not in text.split("\n  release:")[0]
+
+
 def test_workflow_makes_normal_releases_so_the_newest_is_latest():
     workflow = (ROOT / ".github" / "workflows" / "app.yml").read_text(encoding="utf-8")
     assert "--prerelease" not in workflow

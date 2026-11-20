@@ -4,6 +4,11 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Security
+- **The editor's own files (scripts, styles, pictures) are now served by looking the name up in the files of their folder**, not from a path built out of the address. The old check stopped `../` but on Windows not `..\`, a drive like `D:` or a network path like `\\host\share`, so a crafted address could read a file outside the app's folder, or make the computer contact another one. Nothing outside the list, nor any hidden file, is served now. Mac and Linux were not affected
+- Running `api.py` directly bound every network interface (`0.0.0.0`); it now listens on this computer only, like the app does
+- The CI and App build workflows give their token read-only access to the repository by default; only the release job can write
+
 ### Changed
 - The README has a Download section with direct links to the Mac and Windows zips, and says the Mac app needs an Apple-silicon Mac
 - Releases are normal releases, not pre-releases, even while the version starts with 0: the newest is GitHub's "Latest", so one download link always works. The README and the release notes still say the app is alpha

@@ -1074,7 +1074,21 @@ STATIC_MEDIA_TYPES = {
     ".jpeg": "image/jpeg",
     ".gif": "image/gif",
     ".svg": "image/svg+xml",
+    ".txt": "text/plain; charset=utf-8",
 }
+
+
+def _static_files() -> dict[str, Path]:
+    """The files the catch-all route may serve: regular files directly in the web folder, of
+    a known type. A request is looked up by name in this list and never turned into a path:
+    no "..", no "\\" or "D:" (which Windows reads as a path), no hidden files. About forty
+    entries, listed on each request so a file added to the folder is found at once."""
+    return {
+        p.name: p
+        for p in WEB_DIR.iterdir()
+        if p.is_file() and not p.name.startswith(".") and p.suffix.lower() in STATIC_MEDIA_TYPES
+    }
+
 
 
 # The Font list for text items: fonts on this computer that every export can use (ADR-001).
@@ -1101,16 +1115,13 @@ async def serve_font(name: str):
 # Must be LAST so that /files, /images, /render, /export, /api, etc. match first.
 @app.get("/{static_file:path}")
 async def serve_static(static_file: str):
-    if not static_file or "/" in static_file:
+    fp = _static_files().get(static_file)
+    if fp is None:
         raise HTTPException(status_code=404)
-    fp = WEB_DIR / static_file
-    if fp.exists() and fp.is_file():
-        # Explicit types, not the mimetypes module: on Windows it reads the
-        # registry, which can map .js to text/plain and break module loading.
-        mt = STATIC_MEDIA_TYPES.get(fp.suffix.lower())
-        return FileResponse(fp, media_type=mt)
-    raise HTTPException(status_code=404)
+    # Explicit types, not the mimetypes module: on Windows it reads the
+    # registry, which can map .js to text/plain and break module loading.
+    return FileResponse(fp, media_type=STATIC_MEDIA_TYPES[fp.suffix.lower()])
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    uvicorn.run(app, host="127.0.0.1", port=8080)  # loopback only; STAMP_ALBUM_HOST is in serve.py
