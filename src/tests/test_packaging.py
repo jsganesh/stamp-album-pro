@@ -95,6 +95,11 @@ def test_ico_holds_the_windows_sizes():
         assert {(16, 16), (32, 32), (48, 48), (256, 256)} <= ico.info["sizes"]
 
 
+def test_workflow_makes_normal_releases_so_the_newest_is_latest():
+    workflow = (ROOT / ".github" / "workflows" / "app.yml").read_text(encoding="utf-8")
+    assert "--prerelease" not in workflow
+
+
 def test_workflow_releases_as_a_draft_until_the_notarised_zip_is_in():
     workflow = (ROOT / ".github" / "workflows" / "app.yml").read_text(encoding="utf-8")
     create = workflow.split("gh release create")[1].split("dist/StampAlbumPro-macos.zip")[0]

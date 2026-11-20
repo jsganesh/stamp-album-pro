@@ -6,6 +6,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed
 - The README has a Download section with direct links to the Mac and Windows zips, and says the Mac app needs an Apple-silicon Mac
+- Releases are normal releases, not pre-releases, even while the version starts with 0: the newest is GitHub's "Latest", so one download link always works. The README and the release notes still say the app is alpha
 
 ## [0.7.0] - 2026-11-20
 
