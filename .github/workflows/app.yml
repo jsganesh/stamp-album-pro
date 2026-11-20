@@ -28,6 +28,10 @@ on:
       - src/stamp_album/serve.py
       - .github/workflows/app.yml
 
+# The builds only read the repository; the release job below asks for write itself.
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}

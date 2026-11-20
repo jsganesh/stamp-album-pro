@@ -4,6 +4,10 @@ on:
   # Every pull request, including ones stacked on another branch (their base is not main)
   pull_request:
 
+# Nothing here writes to the repository, so the token only reads it.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ${{ matrix.os }}
