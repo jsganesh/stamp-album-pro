@@ -4,6 +4,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-11-20
+
 ### Security
 - **The editor's own files (scripts, styles, pictures) are now served by looking the name up in the files of their folder**, not from a path built out of the address. The old check stopped `../` but on Windows not `..\`, a drive like `D:` or a network path like `\\host\share`, so a crafted address could read a file outside the app's folder, or make the computer contact another one. Nothing outside the list, nor any hidden file, is served now. Mac and Linux were not affected
 - Running `api.py` directly bound every network interface (`0.0.0.0`); it now listens on this computer only, like the app does
