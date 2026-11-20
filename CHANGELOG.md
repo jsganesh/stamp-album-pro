@@ -4,6 +4,9 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+- The README has a Download section with direct links to the Mac and Windows zips, and says the Mac app needs an Apple-silicon Mac
+
 ## [0.7.0] - 2026-11-20
 
 ### Added
