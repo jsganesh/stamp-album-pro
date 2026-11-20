@@ -2,15 +2,15 @@
 
 Design and print stamp album pages. StampAlbum Pro pairs a drag-and-drop page canvas with a text-based page description (DSL) and exports print-ready pages.
 
-> **Status: alpha (v0.7.0).** Developed on macOS. The automated test suite also runs on Windows and Linux in CI. Each [release](https://github.com/jsganesh/stamp-album-pro/releases) has a zipped macOS app (Apple silicon, signed and notarised by Apple) and a zipped Windows folder (experimental and not signed). You can also run it from source (see below).
+> **Status: alpha (v0.7.1).** Developed on macOS. The automated test suite also runs on Windows and Linux in CI. Each [release](https://github.com/jsganesh/stamp-album-pro/releases) has a zipped macOS app (Apple silicon, signed and notarised by Apple) and a zipped Windows folder (experimental and not signed). You can also run it from source (see below).
 
 ![Main editor](docs/screenshots/01-main-editor.png)
 
 ## Download
 
-**Mac:** [StampAlbumPro-macos.zip](https://github.com/jsganesh/stamp-album-pro/releases/download/v0.7.0/StampAlbumPro-macos.zip). Unzip it and open **StampAlbum Pro**. It is signed and notarised by Apple, so it opens without a warning. It needs an Apple-silicon Mac (M1 or later); Intel Macs are not supported yet.
+**Mac:** [StampAlbumPro-macos.zip](https://github.com/jsganesh/stamp-album-pro/releases/download/v0.7.1/StampAlbumPro-macos.zip). Unzip it and open **StampAlbum Pro**. It is signed and notarised by Apple, so it opens without a warning. It needs an Apple-silicon Mac (M1 or later); Intel Macs are not supported yet.
 
-**Windows (experimental):** [StampAlbumPro-windows.zip](https://github.com/jsganesh/stamp-album-pro/releases/download/v0.7.0/StampAlbumPro-windows.zip). Unzip the folder anywhere and run `StampAlbumPro.exe`, keeping the `_internal` folder beside it. It is not signed, so Windows shows "Windows protected your PC" the first time: choose **More info**, then **Run anyway**.
+**Windows (experimental):** [StampAlbumPro-windows.zip](https://github.com/jsganesh/stamp-album-pro/releases/download/v0.7.1/StampAlbumPro-windows.zip). Unzip the folder anywhere and run `StampAlbumPro.exe`, keeping the `_internal` folder beside it. It is not signed, so Windows shows "Windows protected your PC" the first time: choose **More info**, then **Run anyway**.
 
 Older versions and the notes for each release are on the [releases page](https://github.com/jsganesh/stamp-album-pro/releases). Or run it from source (below).
 
@@ -63,7 +63,7 @@ Platform notes:
 - **Windows:** experimental. The tests pass in CI and CI builds the app, but no one has tried the app by hand on a Windows PC yet. [Reports of what works and what doesn't](https://github.com/jsganesh/stamp-album-pro/issues) are welcome.
 - **Linux:** tests pass in CI on Ubuntu; the app itself is not verified.
 
-The `launcher/` folder contains launch scripts (a `.command` file for macOS, a `.bat` file for Windows, a `.desktop` file for Linux; see `launcher/README.md`). They have not been tested for 0.7.0.
+The `launcher/` folder contains launch scripts (a `.command` file for macOS, a `.bat` file for Windows, a `.desktop` file for Linux; see `launcher/README.md`). They have not been tested for 0.7.1.
 
 ## Development
 
