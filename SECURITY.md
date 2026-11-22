@@ -9,7 +9,7 @@ StampAlbum Pro is alpha software maintained by one person. Only the latest relea
 Please don't open a public issue. Report it privately, in either of these ways:
 
 - **GitHub (preferred):** the repository's **Security** tab › **Report a vulnerability**
-- **Email:** jsganesh@gmail.com, with "StampAlbum Pro security" in the subject
+- **Email:** philatallypro@gmail.com, with "StampAlbum Pro security" in the subject
 
 Include what you found, how to reproduce it, and which version and operating system you used.
 
