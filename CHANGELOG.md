@@ -4,6 +4,9 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+- The security policy asks for reports at the project's support email instead of a personal one
+
 ## [0.7.1] - 2026-11-20
 
 ### Security
